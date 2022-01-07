@@ -11,6 +11,7 @@ import numpy as np
 import scipy.io
 import pandas as pd
 import numpy.matlib
+import seaborn as sns
 
 from inputs.data import *
 from inputs.parameters_and_options import *
@@ -25,8 +26,8 @@ from inputs.WBUS2_depth import *
 path_code = '..'
 path_folder = path_code + '/2. Data/'
 precalculated_inputs = path_folder + "0. Precalculated inputs/"
-path_data = path_folder + "Basile data/"
-precalculated_transport = path_folder + "precalculated_transport/carbon_tax_car_bus_taxi_20211103/"
+path_data = path_folder + "data_Cape_Town/"
+precalculated_transport = path_folder + "precalculated_transport/"
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
 path_outputs = path_code+'/4. Sorties/'
 # %% Import parameters and options
@@ -89,7 +90,7 @@ agricultural_rent = param["agricultural_rent_2011"] ** (param["coeff_a"]) * (par
 print(sum(spline_land_informal(29)))
 
 #Floods
-param = infer_WBUS2_depth(housing_types, param, path_folder)
+#param = infer_WBUS2_depth(housing_types, param, path_folder)
 if options["agents_anticipate_floods"] == 1:
     fraction_capital_destroyed, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a = import_floods_data(options, param, path_folder)
 elif options["agents_anticipate_floods"] == 0:
@@ -104,7 +105,6 @@ elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed["contents_backyard"] = np.zeros(24014)
     fraction_capital_destroyed["structure_backyards"] = np.zeros(24014)
     fraction_capital_destroyed["structure_informal_settlements"] = np.zeros(24014)
-
 # %% Calibration
 
 #General calibration
@@ -125,7 +125,38 @@ for i in range(0, len(list_amenity_backyard)):
         param["amenity_settlement"] = list_amenity_settlement[j]
         param["pockets"] = np.ones(24014) * param["amenity_settlement"]
         param["backyard_pockets"] = np.ones(24014) * param["amenity_backyard"]
-        initial_state_utility, initial_state_error, initial_state_simulated_jobs, initial_state_households_housing_types, initial_state_household_centers, initial_state_households, initial_state_dwelling_size, initial_state_housing_supply, initial_state_rent, initial_state_rent_matrix, initial_state_capital_land, initial_state_average_income, initial_state_limit_city = compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, param["coeff_A"])
+        (initial_state_utility, 
+         initial_state_error, 
+         initial_state_simulated_jobs, 
+         initial_state_households_housing_types, 
+         initial_state_household_centers, 
+         initial_state_households, 
+         initial_state_dwelling_size, 
+         initial_state_housing_supply, 
+         initial_state_rent, 
+         initial_state_rent_matrix, 
+         initial_state_capital_land, 
+         initial_state_average_income, 
+         initial_state_limit_city) = compute_equilibrium(
+             fraction_capital_destroyed, 
+             amenities, 
+             param, 
+             housing_limit, 
+             population, 
+             households_per_income_class, 
+             total_RDP, 
+             coeff_land, 
+             income_net_of_commuting_costs, 
+             grid, 
+             options, 
+             agricultural_rent, 
+             interest_rate, 
+             number_properties_RDP, 
+             average_income, 
+             mean_income, 
+             income_class_by_housing_type, 
+             minimum_housing_supply, 
+             param["coeff_A"])
         housing_type_total.loc[(housing_type_total.param_backyard == param["amenity_backyard"]) & (housing_type_total.param_settlement == param["amenity_settlement"]), 2:6] = sum_housing_types(initial_state_households_housing_types)
     
 housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP])
@@ -154,7 +185,39 @@ metrics_is = np.zeros(index_max)
 param["backyard_pockets"] = np.zeros(24014) + param["amenity_backyard"]
 save_param_backyards = np.zeros((index_max, 24014))
 metrics_ib = np.zeros(index_max)
-initial_state_utility, initial_state_error, initial_state_simulated_jobs, initial_state_households_housing_types, initial_state_household_centers, initial_state_households, initial_state_dwelling_size, initial_state_housing_supply, initial_state_rent, initial_state_rent_matrix, initial_state_capital_land, initial_state_average_income, initial_state_limit_city = compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, param["coeff_A"])
+(initial_state_utility, 
+ initial_state_error, 
+ initial_state_simulated_jobs, 
+ initial_state_households_housing_types, 
+ initial_state_household_centers, 
+ initial_state_households, 
+ initial_state_dwelling_size, 
+ initial_state_housing_supply, 
+ initial_state_rent, 
+ initial_state_rent_matrix, 
+ initial_state_capital_land, 
+ initial_state_average_income, 
+ initial_state_limit_city
+ ) = compute_equilibrium(
+     fraction_capital_destroyed, 
+     amenities, 
+     param, 
+     housing_limit, 
+     population, 
+     households_per_income_class, 
+     total_RDP, 
+     coeff_land, 
+     income_net_of_commuting_costs, 
+     grid, 
+     options, 
+     agricultural_rent, 
+     interest_rate, 
+     number_properties_RDP, 
+     average_income, 
+     mean_income, 
+     income_class_by_housing_type, 
+     minimum_housing_supply, 
+     param["coeff_A"])
 
 
 for index in range(0, index_max):
@@ -354,7 +417,7 @@ U = (z ** (1 - param["beta"])) * (q ** param["beta"]) * amenities[subset] * B[su
 #class 0 (1/0) = 1885
 
 
-import seaborn as sns
+
 sns.distplot(U, hist = True, kde = False)
 np.nanmedian(U)
 #### 1. Exposition des pop vulnérables
