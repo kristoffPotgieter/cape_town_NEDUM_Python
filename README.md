@@ -6,10 +6,13 @@
 .
 ├── 2. Data
 │   ├── 0. Precalculated inputs
+│   ├── Flood plains - from Claus
+│   ├── Land occupation
 │   ├── data_Cape_Town
+│   ├── housing_types_grid_sal.xlsx
 │   └── precalculated_transport
 ├── 4. Sorties
-├── code capetown python
+└── code capetown python
     
     
 ```
