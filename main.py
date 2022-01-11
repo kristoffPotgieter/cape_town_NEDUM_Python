@@ -204,6 +204,7 @@ metrics_is = np.zeros(index_max)
 param["backyard_pockets"] = np.zeros(24014) + param["amenity_backyard"]
 save_param_backyards = np.zeros((index_max, 24014))
 metrics_ib = np.zeros(index_max)
+print("\n* City limits *")
 (initial_state_utility, 
  initial_state_error, 
  initial_state_simulated_jobs, 
@@ -238,11 +239,11 @@ metrics_ib = np.zeros(index_max)
      minimum_housing_supply, 
      param["coeff_A"])
 
-
+# %% Iterations
+print("\n** ITERATIONS **")
+debut_iterations_time=time.process_time()
+number_total_iterations=index_max
 for index in range(0, index_max):
-    
-    print("******************************* NEW ITERATION **************************************")
-    print("INDEX  = " + str(index))
     
     #IS
     diff_is = np.zeros(24014)
@@ -269,6 +270,13 @@ for index in range(0, index_max):
     metrics[index] = metrics_is[index] + metrics_ib[index]
     
     initial_state_utility, initial_state_error, initial_state_simulated_jobs, initial_state_households_housing_types, initial_state_household_centers, initial_state_households, initial_state_dwelling_size, initial_state_housing_supply, initial_state_rent, initial_state_rent_matrix, initial_state_capital_land, initial_state_average_income, initial_state_limit_city = compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, param["coeff_A"])
+    
+    time_elapsed=time.process_time() - debut_iterations_time
+    iteration_number= index+1
+    print(f"iteration {iteration_number}/{number_total_iterations} finished.",
+              str(datetime.timedelta(seconds=round(time_elapsed))),f"elapsed ({round(time_elapsed/iteration_number)}s per iteration). There remains",
+              str(datetime.timedelta(seconds=round(time_elapsed/iteration_number*(number_total_iterations-iteration_number))))
+            )
 
 index_min = np.argmin(metrics)
 metrics[index_min]
