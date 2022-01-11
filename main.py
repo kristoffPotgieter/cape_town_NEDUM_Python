@@ -12,6 +12,7 @@ import scipy.io
 import pandas as pd
 import numpy.matlib
 import seaborn as sns
+import time
 
 from inputs.data import *
 from inputs.parameters_and_options import *
@@ -23,6 +24,7 @@ from equilibrium.functions_dynamic import *
 from equilibrium.run_simulations import *
 from inputs.WBUS2_depth import *
 
+
 path_code = '..'
 path_folder = path_code + '/2. Data/'
 precalculated_inputs = path_folder + "0. Precalculated inputs/"
@@ -30,6 +32,8 @@ path_data = path_folder + "data_Cape_Town/"
 precalculated_transport = path_folder + "precalculated_transport/"
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
 path_outputs = path_code+'/4. Sorties/'
+
+start = time.process_time()
 # %% Import parameters and options
 
 print("\n*** Load parameters and options ***\n")
@@ -109,7 +113,9 @@ elif options["agents_anticipate_floods"] == 0:
 
 #General calibration
 list_amenity_backyard = np.arange(0.70, 0.90, 0.01)
+list_amenity_backyard=list_amenity_backyard[0:2]
 list_amenity_settlement = np.arange(0.67, 0.87, 0.01)
+list_amenity_settlement=list_amenity_settlement[0:2]
 housing_type_total = pd.DataFrame(np.array(np.meshgrid(list_amenity_backyard, list_amenity_settlement)).T.reshape(-1,2))
 housing_type_total.columns = ["param_backyard", "param_settlement"]
 housing_type_total["formal"] = np.zeros(len(housing_type_total.param_backyard))
@@ -119,6 +125,9 @@ housing_type_total["subsidized"] = np.zeros(len(housing_type_total.param_backyar
 
 sum_housing_types = lambda initial_state_households_housing_types : np.nansum(initial_state_households_housing_types, 1)
 
+debut_calib_time = time.process_time()
+number_total_iterations=len(list_amenity_backyard)*len(list_amenity_settlement)
+print(f"** Calibration: {number_total_iterations} iterations **")
 for i in range(0, len(list_amenity_backyard)):
     for j in range(0, len(list_amenity_settlement)):
         param["amenity_backyard"] = list_amenity_backyard[i]
@@ -157,7 +166,17 @@ for i in range(0, len(list_amenity_backyard)):
              income_class_by_housing_type, 
              minimum_housing_supply, 
              param["coeff_A"])
-        housing_type_total.loc[(housing_type_total.param_backyard == param["amenity_backyard"]) & (housing_type_total.param_settlement == param["amenity_settlement"]), 2:6] = sum_housing_types(initial_state_households_housing_types)
+        housing_type_total.loc[
+            (housing_type_total.param_backyard == param["amenity_backyard"]) 
+            & (housing_type_total.param_settlement == param["amenity_settlement"]), 
+            2:6] = sum_housing_types(initial_state_households_housing_types)
+        
+        time_elapsed=time.process_time() - debut_calib_time
+        iteration_number= i*len(list_amenity_settlement)+j+1
+        print(f"iteration {iteration_number}/{number_total_iterations} finished.",
+              str(datetime.timedelta(seconds=round(time_elapsed))),f"elapsed ({round(time_elapsed/iteration_number)}s per iteration). There remains",
+              str(datetime.timedelta(seconds=round(time_elapsed/iteration_number*(number_total_iterations-iteration_number))))
+            )
     
 housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP])
 

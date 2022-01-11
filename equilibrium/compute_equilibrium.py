@@ -82,7 +82,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_li
 
     #Iteration
     #with alive_bar(param["max_iter"],title='compute equilibrium') as bar:
-    with tqdm(total = param["max_iter"],desc="compute equilibrium") as pbar:
+    with tqdm(total = param["max_iter"],desc="stops when error_max_abs <"+str(param["precision"])) as pbar:
         while (index_iteration < param["max_iter"] - 1) & (error_max_abs[index_iteration] > param["precision"]):
         
             #Adjust parameters
