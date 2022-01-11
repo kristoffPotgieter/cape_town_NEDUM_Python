@@ -9,6 +9,7 @@ import numpy as np
 import scipy.io
 import pandas as pd
 import numpy.matlib
+from tqdm import tqdm
 
 from equilibrium.compute_outputs import *
 
@@ -80,40 +81,43 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_li
     nb_error[index_iteration] = np.nansum(np.abs(total_simulated_jobs[index_iteration, :] / households_per_income_class - 1) > param["precision"])
 
     #Iteration
-    while (index_iteration < param["max_iter"] - 1) & (error_max_abs[index_iteration] > param["precision"]):
+    #with alive_bar(param["max_iter"],title='compute equilibrium') as bar:
+    with tqdm(total = param["max_iter"],desc="compute equilibrium") as pbar:
+        while (index_iteration < param["max_iter"] - 1) & (error_max_abs[index_iteration] > param["precision"]):
+        
+            #Adjust parameters
+            index_iteration = index_iteration + 1
+            utility[index_iteration, :] = np.exp(np.log(utility[index_iteration - 1, :]) + diff_utility[index_iteration - 1, :]) 
+            utility[index_iteration, utility[index_iteration, :] < 0] = 10
+            convergence_factor = param["convergence_factor"] / (1 + 0.5 * np.abs((total_simulated_jobs[index_iteration, :] + 100) / (households_per_income_class + 100) -1)) #.*(Jval./mean(Jval)).^0.3 %We adjust the parameter to how close we are from objective 
+            convergence_factor = convergence_factor * (1 - 0.6 * index_iteration / param["max_iter"])
+            
+            #Compute outputs solver - first iteration
+            simulated_jobs[index_iteration, 0, :], rent_matrix[index_iteration, 0, :], simulated_people_housing_types[index_iteration,0,:], simulated_people[0,:,:], housing_supply[0,:], dwelling_size[0,:], R_mat[0,:,:] = compute_outputs('formal', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[0, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
+            simulated_jobs[index_iteration, 1, :], rent_matrix[index_iteration, 1, :], simulated_people_housing_types[index_iteration,1,:], simulated_people[1,:,:], housing_supply[1,:], dwelling_size[1,:], R_mat[1,:,:] = compute_outputs('backyard', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[1, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
+            simulated_jobs[index_iteration, 2, :], rent_matrix[index_iteration, 2, :], simulated_people_housing_types[index_iteration,2,:], simulated_people[2,:,:], housing_supply[2,:], dwelling_size[2,:], R_mat[2,:,:] = compute_outputs('informal', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[2, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
     
-        #Adjust parameters
-        index_iteration = index_iteration + 1
-        utility[index_iteration, :] = np.exp(np.log(utility[index_iteration - 1, :]) + diff_utility[index_iteration - 1, :]) 
-        utility[index_iteration, utility[index_iteration, :] < 0] = 10
-        convergence_factor = param["convergence_factor"] / (1 + 0.5 * np.abs((total_simulated_jobs[index_iteration, :] + 100) / (households_per_income_class + 100) -1)) #.*(Jval./mean(Jval)).^0.3 %We adjust the parameter to how close we are from objective 
-        convergence_factor = convergence_factor * (1 - 0.6 * index_iteration / param["max_iter"])
-        
-        #Compute outputs solver - first iteration
-        simulated_jobs[index_iteration, 0, :], rent_matrix[index_iteration, 0, :], simulated_people_housing_types[index_iteration,0,:], simulated_people[0,:,:], housing_supply[0,:], dwelling_size[0,:], R_mat[0,:,:] = compute_outputs('formal', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[0, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
-        simulated_jobs[index_iteration, 1, :], rent_matrix[index_iteration, 1, :], simulated_people_housing_types[index_iteration,1,:], simulated_people[1,:,:], housing_supply[1,:], dwelling_size[1,:], R_mat[1,:,:] = compute_outputs('backyard', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[1, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
-        simulated_jobs[index_iteration, 2, :], rent_matrix[index_iteration, 2, :], simulated_people_housing_types[index_iteration,2,:], simulated_people[2,:,:], housing_supply[2,:], dwelling_size[2,:], R_mat[2,:,:] = compute_outputs('informal', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[2, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
-
-        #Compute error and adjust utility
-        total_simulated_jobs[index_iteration,:] = np.sum(simulated_jobs[index_iteration, :, :], 0)
-        
-        #deriv_U will be used to adjust the utility levels
-        diff_utility[index_iteration, :] = np.log((total_simulated_jobs[index_iteration, :] + 10) / (households_per_income_class + 10))
-        diff_utility[index_iteration, :] = diff_utility[index_iteration, :] * convergence_factor
-        diff_utility[index_iteration, diff_utility[index_iteration, :] > 0] = diff_utility[index_iteration, diff_utility[index_iteration, :] > 0] * 1.1
-        
-        #Variables to display
-        error[index_iteration, :] = (total_simulated_jobs[index_iteration, :] / households_per_income_class - 1) * 100
-        error_max_abs[index_iteration] = np.max(np.abs(total_simulated_jobs[index_iteration, households_per_income_class != 0] / households_per_income_class - 1))
-        m = np.argmax(np.abs(total_simulated_jobs[index_iteration, :] / households_per_income_class - 1))
-        erreur_temp = (total_simulated_jobs[index_iteration, :] / households_per_income_class - 1)
-        error_max[index_iteration] = erreur_temp[m]
-        error_mean[index_iteration] = np.mean(np.abs(total_simulated_jobs[index_iteration, :] / (households_per_income_class + 0.001) - 1))
-        nb_error[index_iteration] = np.sum(np.abs(total_simulated_jobs[index_iteration, :] / households_per_income_class - 1) > param["precision"])
-        print(error_max_abs[index_iteration])
-        print(index_iteration)
+            #Compute error and adjust utility
+            total_simulated_jobs[index_iteration,:] = np.sum(simulated_jobs[index_iteration, :, :], 0)
+            
+            #deriv_U will be used to adjust the utility levels
+            diff_utility[index_iteration, :] = np.log((total_simulated_jobs[index_iteration, :] + 10) / (households_per_income_class + 10))
+            diff_utility[index_iteration, :] = diff_utility[index_iteration, :] * convergence_factor
+            diff_utility[index_iteration, diff_utility[index_iteration, :] > 0] = diff_utility[index_iteration, diff_utility[index_iteration, :] > 0] * 1.1
+            
+            #Variables to display
+            error[index_iteration, :] = (total_simulated_jobs[index_iteration, :] / households_per_income_class - 1) * 100
+            error_max_abs[index_iteration] = np.max(np.abs(total_simulated_jobs[index_iteration, households_per_income_class != 0] / households_per_income_class - 1))
+            m = np.argmax(np.abs(total_simulated_jobs[index_iteration, :] / households_per_income_class - 1))
+            erreur_temp = (total_simulated_jobs[index_iteration, :] / households_per_income_class - 1)
+            error_max[index_iteration] = erreur_temp[m]
+            error_mean[index_iteration] = np.mean(np.abs(total_simulated_jobs[index_iteration, :] / (households_per_income_class + 0.001) - 1))
+            nb_error[index_iteration] = np.sum(np.abs(total_simulated_jobs[index_iteration, :] / households_per_income_class - 1) > param["precision"])
+            pbar.set_postfix({'error_max_abs': error_max_abs[index_iteration]})
+            pbar.update()
+            #print(error_max_abs[index_iteration])
+            #print(index_iteration)
     
-
     #RDP houses 
     households_RDP = number_properties_RDP * total_RDP / sum(number_properties_RDP)
     construction_RDP = np.matlib.repmat(param["RDP_size"] / (param["RDP_size"] + param["backyard_size"]), 1, len(grid_temp.dist)) * 1000000
