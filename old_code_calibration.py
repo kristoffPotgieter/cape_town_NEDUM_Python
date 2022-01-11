@@ -5,6 +5,37 @@ Created on Tue Jan 11 15:26:14 2022
 
 @author: vincentviguie
 """
+
+print("\n*** NEDUM-Cape-Town - Old calibration code ***\n")
+
+import numpy as np
+import scipy.io
+import pandas as pd
+import numpy.matlib
+import seaborn as sns
+import time
+import datetime #not present in main.py
+
+from inputs.data import *
+from inputs.parameters_and_options import *
+from equilibrium.compute_equilibrium import *
+from outputs.export_outputs import *
+from outputs.export_outputs_floods import *
+from outputs.flood_outputs import *
+from equilibrium.functions_dynamic import *
+from equilibrium.run_simulations import *
+from inputs.WBUS2_depth import *
+
+path_code = '..'
+path_folder = path_code + '/2. Data/'
+precalculated_inputs = path_folder + "0. Precalculated inputs/"
+path_data = path_folder + "data_Cape_Town/"
+precalculated_transport = path_folder + "precalculated_transport/"
+path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
+path_outputs = path_code+'/4. Sorties/'
+
+start = time.process_time()
+
 # %% Calibration
 
 #General calibration
