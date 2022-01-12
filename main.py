@@ -169,7 +169,9 @@ print("\n*** Solver initial state ***\n")
 # %% Validation
 
 if options["agents_anticipate_floods"] == 0:
-    fraction_capital_destroyed = import_floods_data()
+    fraction_capital_destroyed = import_floods_data(options, param, path_folder) #need to add parameters
+
+housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP]) #taken back from old_code_calibration
 
 #General validation
 export_housing_types(initial_state_households_housing_types, initial_state_household_centers, housing_type_data, households_per_income_class, name, 'Simulation', 'Data')

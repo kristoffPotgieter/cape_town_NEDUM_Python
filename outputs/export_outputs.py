@@ -52,7 +52,7 @@ def export_housing_types(housing_type_1, households_center_1, housing_type_2, ho
     plt.ylabel("Households")
     plt.tick_params(labelbottom=True)
     plt.xticks(rotation='horizontal')
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_housing_type.png')
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_housing_type.png')
     plt.close()
     
     #Graph validation income class
@@ -62,7 +62,7 @@ def export_housing_types(housing_type_1, households_center_1, housing_type_2, ho
     plt.ylabel("Households")
     plt.tick_params(labelbottom=True)
     plt.xticks(rotation='horizontal')
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_income_class.png')
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_income_class.png')
     plt.close()
         
 def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, dwelling_size_sp, SP_code):
@@ -72,92 +72,92 @@ def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial
     count_formal = housing_types_grid.formal_grid_2011 - data_rdp["count"]
     count_formal[count_formal < 0] = 0
 
-    os.mkdir('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/housing_types')
+    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types')
 
-    inf_dwellings_2013 = pd.read_excel('C:/Users/Coupain/Desktop/cape_town/2. Data/Flood plains - from Claus/inf_dwellings_2013.xlsx').iloc[:, 1]
+    inf_dwellings_2013 = pd.read_excel('C:/Users/monnie/Documents/GitHub/cape_town_NEDUM/2. Data/Flood plains - from Claus/inf_dwellings_2013.xlsx').iloc[:, 1]
     inf_dwellings_2013[np.isnan(inf_dwellings_2013)] = 0
     
     #Formal
     error = (initial_state_households_housing_types[0, :] / count_formal - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_diff_with_data.png')  
-    export_map(count_formal, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_data.png', 1200)
-    export_map(initial_state_households_housing_types[0, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_simul.png', 1200)
-    export_map(simul1_households_housing_type[0, 0, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_Basile1.png', 1200)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_diff_with_data.png')  
+    export_map(count_formal, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_data.png', 1200)
+    export_map(initial_state_households_housing_types[0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_simul.png', 1200)
+    export_map(simul1_households_housing_type[0, 0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_Basile1.png', 1200)
     
     #Subsidized
     error = (initial_state_households_housing_types[3, :] / data_rdp["count"] - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_diff_with_data.png')  
-    export_map(data_rdp["count"], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_data.png', 1200)
-    export_map(initial_state_households_housing_types[3, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_simul.png', 1200)
-    export_map(simul1_households_housing_type[0, 3, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_Basile1.png', 1200)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_diff_with_data.png')  
+    export_map(data_rdp["count"], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_data.png', 1200)
+    export_map(initial_state_households_housing_types[3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_simul.png', 1200)
+    export_map(simul1_households_housing_type[0, 3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_Basile1.png', 1200)
     
     #Informal
     error = (initial_state_households_housing_types[2, :] / housing_types_grid.informal_grid_2011 - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_diff_with_data.png')  
-    export_map(housing_types_grid.informal_grid_2011, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_data.png', 800)
-    export_map(initial_state_households_housing_types[2, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_simul.png', 800)
-    export_map(simul1_households_housing_type[0, 2, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_Basile1.png', 800)
-    export_map(inf_dwellings_2013, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_data_Claus_2013.png', 800)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_diff_with_data.png')  
+    export_map(housing_types_grid.informal_grid_2011, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data.png', 800)
+    export_map(initial_state_households_housing_types[2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_simul.png', 800)
+    export_map(simul1_households_housing_type[0, 2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_Basile1.png', 800)
+    export_map(inf_dwellings_2013, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data_Claus_2013.png', 800)
     
     #Backyard
     error = (initial_state_households_housing_types[1, :] / housing_types_grid.backyard_grid_2011 - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/backyard_diff_with_data.png')  
-    export_map(housing_types_grid.backyard_grid_2011, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/backyard_data.png', 800)
-    export_map(initial_state_households_housing_types[1, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/housing_types/backyard_simul.png', 800)
-    export_map(simul1_households_housing_type[0, 1, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/backyard_Basile1.png', 800)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_diff_with_data.png')  
+    export_map(housing_types_grid.backyard_grid_2011, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_data.png', 800)
+    export_map(initial_state_households_housing_types[1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types/backyard_simul.png', 800)
+    export_map(simul1_households_housing_type[0, 1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_Basile1.png', 800)
     
     #2. Dwelling size
     
-    os.mkdir('C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size')
+    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size')
     
     dwelling_size = SP_to_grid_2011_1(dwelling_size_sp, SP_code, grid)
     
     #Data
-    export_map(dwelling_size, grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/data.png', 300)
+    export_map(dwelling_size, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/data.png', 300)
     
     #Class 1
     error = (initial_state_dwelling_size[0, :] / dwelling_size - 1) * 100
-    error_map(error, grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class1_diff_with_data.png')  
-    export_map(initial_state_dwelling_size[0, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class1_simul.png', 300)
-    export_map(simul1_dwelling_size[0, 0, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class1_Basile1.png', 300)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class1_diff_with_data.png')  
+    export_map(initial_state_dwelling_size[0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class1_simul.png', 300)
+    export_map(simul1_dwelling_size[0, 0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class1_Basile1.png', 300)
     
     #Class 2
     error = (initial_state_dwelling_size[1, :] / dwelling_size - 1) * 100
-    error_map(error, grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class2_diff_with_data.png')  
-    export_map(initial_state_dwelling_size[1, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class2_simul.png', 200)
-    export_map(simul1_dwelling_size[0, 1, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class2_Basile1.png', 200)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class2_diff_with_data.png')  
+    export_map(initial_state_dwelling_size[1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class2_simul.png', 200)
+    export_map(simul1_dwelling_size[0, 1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class2_Basile1.png', 200)
     
     #Class 3
     error = (initial_state_dwelling_size[2, :] / dwelling_size - 1) * 100
-    error_map(error, grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class3_diff_with_data.png')  
-    export_map(initial_state_dwelling_size[2, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class3_simul.png', 200)
-    export_map(simul1_dwelling_size[0, 2, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class3_Basile1.png', 200)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class3_diff_with_data.png')  
+    export_map(initial_state_dwelling_size[2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class3_simul.png', 200)
+    export_map(simul1_dwelling_size[0, 2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class3_Basile1.png', 200)
     
     #Class 4
     error = (initial_state_dwelling_size[3, :] / dwelling_size - 1) * 100
-    error_map(error, grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class4_diff_with_data.png')  
-    export_map(initial_state_dwelling_size[3, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class4_simul.png', 100)
-    export_map(simul1_dwelling_size[0, 3, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/dwelling_size/class4_Basile1.png', 100)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class4_diff_with_data.png')  
+    export_map(initial_state_dwelling_size[3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class4_simul.png', 100)
+    export_map(simul1_dwelling_size[0, 3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/class4_Basile1.png', 100)
     
     #3. Rents
 
-    os.mkdir('C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents')
+    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents')
     
     #Class 1
-    export_map(initial_state_rent[0, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class1_simul.png', 800)
-    export_map(simul1_rent[0, 0, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class1_Basile1.png', 800)
+    export_map(initial_state_rent[0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class1_simul.png', 800)
+    export_map(simul1_rent[0, 0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class1_Basile1.png', 800)
     
     #Class 2
-    export_map(initial_state_rent[1, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class2_simul.png', 700)
-    export_map(simul1_rent[0, 1, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class2_Basile1.png', 700)
+    export_map(initial_state_rent[1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class2_simul.png', 700)
+    export_map(simul1_rent[0, 1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class2_Basile1.png', 700)
     
     #Class 3
-    export_map(initial_state_rent[2, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class3_simul.png', 600)
-    export_map(simul1_rent[0, 2, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class3_Basile1.png', 600)
+    export_map(initial_state_rent[2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class3_simul.png', 600)
+    export_map(simul1_rent[0, 2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class3_Basile1.png', 600)
     
     #Class 4
-    export_map(initial_state_rent[3, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class4_simul.png', 500)
-    export_map(simul1_rent[0, 3, :], grid, 'C:/Users/Charlotte Liotta/Desktop/cape_town/4. Sorties/' + name + '/rents/class4_Basile1.png', 500)
+    export_map(initial_state_rent[3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class4_simul.png', 500)
+    export_map(simul1_rent[0, 3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class4_Basile1.png', 500)
 
 def validation_density(grid, initial_state_households_housing_types, name, housing_types):
     
@@ -188,7 +188,7 @@ def validation_density(grid, initial_state_households_housing_types, name, housi
     plt.tick_params(bottom = True,labelbottom=True)  
     plt.tick_params(labelbottom=True)
     #plt.title("Population density")
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density.png')  
     plt.close()
     
 def validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, name, absolute_number):
@@ -219,7 +219,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     plt.tick_params(labelbottom=True)
     plt.xlabel("Distance to the city center (km)")
     plt.ylabel("Households density (per km2)")
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density_formal.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_formal.png')  
     plt.close()
 
     plt.figure(figsize=(10, 7))
@@ -236,7 +236,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     plt.legend()
     plt.tick_params(labelbottom=True)
     #plt.xticks([10.5, 13, 16, 18, 24, 25, 27, 30, 37, 39, 46.5], ["Joe Slovo", "Hout Bay", "Du Noon", "Philippi", "Khayelitsa" , "Wallacedene", "Khayelitsa", "Witsand", "Enkanini", "Pholile"], rotation ='vertical')
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density_informal.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_informal.png')  
     plt.close()
     
     #fig, ax1 = plt.subplots(figsize=(10, 7))
@@ -269,7 +269,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.xlabel("Distance to the city center (km)")
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density_backyard.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_backyard.png')  
     plt.close()
     
     if absolute_number == 1:
@@ -285,7 +285,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
         plt.tick_params(labelbottom=True)
         plt.xlabel("Distance to the city center (km)")
         plt.ylabel("Absolute number of dwellings")
-        plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_density_formal_absolute.png')  
+        plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_formal_absolute.png')  
         plt.close()
 
         plt.plot(np.arange(max(df["round"] + 1)), new_df2.informal_data, color = "black", label = "Data")
@@ -298,7 +298,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
         plt.ylabel("Absolute number of dwellings")
         plt.legend()
         plt.tick_params(labelbottom=True)
-        plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_density_informal_absolute.png')  
+        plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_informal_absolute.png')  
         plt.close()
 
         plt.plot(np.arange(max(df["round"] + 1)), new_df2.backyard_data, color = "black", label = "Data")
@@ -311,7 +311,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
         plt.tick_params(labelbottom=True)
         plt.xlabel("Distance to the city center (km)")
         plt.ylabel("Absolute number of dwellings")
-        plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_density_backyard_absolute.png')  
+        plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_backyard_absolute.png')  
         plt.close()
         
 
@@ -344,7 +344,7 @@ def validation_housing_price(grid, initial_state_rent, interest_rate, param, cen
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.tick_params(bottom = True,labelbottom=True)
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_housing_price.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_housing_price.png')  
     plt.close()
     
 def plot_diagnosis_map_informl(grid, coeff_land, initial_state_households_housing_types, name):
@@ -353,7 +353,7 @@ def plot_diagnosis_map_informl(grid, coeff_land, initial_state_households_housin
     plt.scatter(grid.x[initial_state_households_housing_types[2, :] > 0], grid.y[initial_state_households_housing_types[2, :] > 0], s=None, c=initial_state_households_housing_types[2, :][initial_state_households_housing_types[2, :] > 0], cmap = 'Reds', marker='.')   
     plt.colorbar()
     plt.axis('off')
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/diagnosis_informal.png')
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/diagnosis_informal.png')
     plt.close()
     
     
