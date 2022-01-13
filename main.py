@@ -48,6 +48,23 @@ options["pluvial"] = 1
 options["informal_land_constrained"] = 0
 param["threshold"] = 130
 
+#PARAMETERS COMING FROM LOCATION-BASED CALIBRATION
+if options["pluvial"] == 0:
+    param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
+    param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+
+param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
+param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+
+param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
+
+#param["pockets"] = 0.70 * np.ones(24014)
+#param["backyard_pockets"] = 0.74 * np.ones(24014)
+
+param["informal_structure_value_ref"] = copy.deepcopy(param["informal_structure_value"])
+param["subsidized_structure_value_ref"] = copy.deepcopy(param["subsidized_structure_value"])
+
+
 #should be put to zero
 options["agents_anticipate_floods"] = 0
  
@@ -84,6 +101,8 @@ total_formal = 626770
 total_informal = 143765
 total_backyard = 91132
 
+housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP]) #taken back from old_code_calibration
+
 #Land-use   
 #options["urban_edge"] = 1
 spline_estimate_RDP, spline_land_backyard, spline_land_RDP, spline_RDP, spline_land_constraints, spline_land_informal, coeff_land_backyard = import_land_use(grid, options, param, data_rdp, housing_types, total_RDP, path_data, path_folder)
@@ -114,20 +133,6 @@ elif options["agents_anticipate_floods"] == 0:
 
 
 # %% Compute initial state
-
-if options["pluvial"] == 0:
-    param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-    param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
-
-param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
-
-
-param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
-
-#param["pockets"] = 0.70 * np.ones(24014)
-#param["backyard_pockets"] = 0.74 * np.ones(24014)
-
 
 print("\n*** Solver initial state ***\n")
 (initial_state_utility, 
@@ -165,17 +170,12 @@ print("\n*** Solver initial state ***\n")
 
 
 
-
 # %% Validation
-
-if options["agents_anticipate_floods"] == 0:
-    fraction_capital_destroyed = import_floods_data(options, param, path_folder) #need to add parameters
-
-housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP]) #taken back from old_code_calibration
 
 #General validation
 export_housing_types(initial_state_households_housing_types, initial_state_household_centers, housing_type_data, households_per_income_class, name, 'Simulation', 'Data')
-export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, data_sp["dwelling_size"], SP_code)
+#export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, data_sp["dwelling_size"], SP_code)
+#undefined parameter names
 validation_density(grid, initial_state_households_housing_types, name, housing_types)
 validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, name, 0)
 validation_housing_price(grid, initial_state_rent, interest_rate, param, center, name, precalculated_inputs)
@@ -198,9 +198,14 @@ if options["pluvial"] == 1:
 # %% Scenarios
 
 #Compute scenarios
-t = np.arange(0, 30) # simulation over 30 years
-param["informal_structure_value_ref"] = copy.deepcopy(param["informal_structure_value"])
-param["subsidized_structure_value_ref"] = copy.deepcopy(param["subsidized_structure_value"])
+t = np.arange(0, 30)
+
+#Add counterfactual options: here, we may want to consider flood damages and people in flood zones, while keeping housing choices independent of floods (?)
+#But is this really working?
+if options["agents_anticipate_floods"] == 0:
+    fraction_capital_destroyed, *_ = import_floods_data(options, param, path_folder) #need to add parameters
+    #fraction_capital_destroyed, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a = import_floods_data(options, param, path_folder)
+
 
 # important: does the simulation
 (simulation_households_center, 
