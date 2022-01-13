@@ -21,7 +21,7 @@ See Res-IRF inputs
 Organize files as in `README.md`, open Spyder, define _code capetown python_ folder as a project, and run `main.py`:
  
 ### Preamble
-Load libraries, user packages, define file paths, and set up timing for optimization.
+- Load libraries, user packages, define file paths, and set up timing for optimization.
 
 ### Import parameters and options
 - Set baseline in `inputs\parameters_and_options.py` (**choice to be made between default and settings**).
@@ -31,7 +31,7 @@ Load libraries, user packages, define file paths, and set up timing for optimiza
 - Set data format in `inputs\data.py` (**make this uniform**). The question is: **should we make this implicit** (as for the scenario import, defined as part of the `run simulation` function) **or make all the imports explicit** (including scenarios)?
 
 ### Compute initial state
-Set equilibrium modelling in `equilibrium\compute_equilibrium.py` (**describe more extensively in appendix**).
+- Set equilibrium modelling in `equilibrium\compute_equilibrium.py` (**describe more extensively in appendix**).
 
 ### Validation
 - Check how modelled initial state fits the data, using plots as defined in `outputs\export_outputs.py` and `outputs\flood_outputs.py` (**discuss what are the plots we want to appear**)
