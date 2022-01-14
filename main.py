@@ -130,7 +130,12 @@ elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed["contents_backyard"] = np.zeros(24014)
     fraction_capital_destroyed["structure_backyards"] = np.zeros(24014)
     fraction_capital_destroyed["structure_informal_settlements"] = np.zeros(24014)
+    _, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a = import_floods_data(options, param, path_folder) #we still define the other variables if we want to plot their evolution
 
+#Scenarios
+
+spline_agricultural_rent, spline_interest_rate, spline_RDP, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid, path_scenarios) #we add required argument
+#Most of the import is implicit in run_simulation, but we need to make this explicit for scenario plots
 
 # %% Compute initial state
 
@@ -174,7 +179,7 @@ print("\n*** Solver initial state ***\n")
 
 #General validation
 export_housing_types(initial_state_households_housing_types, initial_state_household_centers, housing_type_data, households_per_income_class, name, 'Simulation', 'Data')
-#export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, data_sp["dwelling_size"], SP_code)
+export_density_rents_sizes(grid, name, data_rdp, housing_types, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simulation_households_housing_type, simulation_rent, simulation_dwelling_size, data_sp) #we take ["dwelling_size"] out
 #undefined parameter names
 validation_density(grid, initial_state_households_housing_types, name, housing_types)
 validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, name, 0)
@@ -245,7 +250,12 @@ if options["agents_anticipate_floods"] == 0:
 
 #Save outputs
 name = 'carbon_tax_car_bus_taxi_20211103_basile'
-os.mkdir(path_outputs + name)
+
+try:
+    os.mkdir(path_outputs + name)
+except OSError as error:
+    print(error) 
+
 np.save(path_outputs + name + '/simulation_households_center.npy', simulation_households_center)
 np.save(path_outputs + name + '/simulation_dwelling_size.npy', simulation_dwelling_size)
 np.save(path_outputs + name + '/simulation_rent.npy', simulation_rent)
@@ -271,10 +281,10 @@ plt.xticks(rotation='horizontal')
 plt.ylabel("Number of households")
 plt.ylim(0, 880000)
 
-simulation_rent = np.load(path_outputs + '20210111_1_0' + '/simulation_rent.npy')
-simulation_dwelling_size = np.load(path_outputs + '20210111_1_0' + '/simulation_dwelling_size.npy')
-income = np.load(path_folder+"precalculated_transport/year_29.npy")
-simulation_households = np.load(path_outputs + '20210111_1_0' + '/simulation_households.npy')
+simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
+simulation_dwelling_size = np.load(path_outputs + name + '/simulation_dwelling_size.npy')
+income = np.load(path_folder+"precalculated_transport/incomeNetofCommuting_29.npy")
+simulation_households = np.load(path_outputs + name + '/simulation_households.npy')
 
 hh_2011 = simulation_households[0, :, :, :]
 hh_2020 = simulation_households[9, :, :, :]
@@ -508,11 +518,11 @@ plt.text(r[3] + 0.15, 1.005, '2040')
 
 ##  B. Evolution des dégâts par quartile de revenu
 
-spline_agricultural_rent, spline_interest_rate, spline_RDP, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid)
+#spline_agricultural_rent, spline_interest_rate, spline_RDP, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid, path_scenarios) #we add required argument
 formal_structure_cost_2011 = compute_formal_structure_cost_method2(simulation_rent[0, :, :], param, interpolate_interest_rate(spline_interest_rate, 0), import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0), simulation_households_housing_type[0, :, :], (spline_income(0) / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"])    
-content_cost_2011 = compute_content_cost(simulation_households_center[0, :, :], np.load(path_folder+"precalculated_transport/year_0.npy"), param, fraction_capital_destroyed, simulation_rent[0, :, :], simulation_dwelling_size[0, :, :], interpolate_interest_rate(spline_interest_rate, 0))
+content_cost_2011 = compute_content_cost(simulation_households_center[0, :, :], np.load(path_folder+"precalculated_transport/incomeNetofCommuting_0.npy"), param, fraction_capital_destroyed, simulation_rent[0, :, :], simulation_dwelling_size[0, :, :], interpolate_interest_rate(spline_interest_rate, 0))
 formal_structure_cost_2040 = compute_formal_structure_cost_method2(simulation_rent[28, :, :], param, interpolate_interest_rate(spline_interest_rate, 28), import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 28), simulation_households_housing_type[28, :, :], (spline_income(28) / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"])    
-content_cost_2040 = compute_content_cost(simulation_households_center[28, :, :], np.load(path_folder+"precalculated_transport/year_29.npy"), param, fraction_capital_destroyed, simulation_rent[28, :, :], simulation_dwelling_size[28, :, :], interpolate_interest_rate(spline_interest_rate, 28))
+content_cost_2040 = compute_content_cost(simulation_households_center[28, :, :], np.load(path_folder+"precalculated_transport/incomeNetofCommuting_29.npy"), param, fraction_capital_destroyed, simulation_rent[28, :, :], simulation_dwelling_size[28, :, :], interpolate_interest_rate(spline_interest_rate, 28))
 
 item = 'FD_100yr'
 path_data = path_folder+"/FATHOM/"
@@ -573,23 +583,23 @@ df2040["informal_damages"] = df2040['informal_structure_damages'] + df2040['info
 df2040["subsidized_damages"] = df2040['subsidized_structure_damages'] + df2040['subsidized_content_damages']
 df2040["backyard_damages"] = df2040['backyard_structure_damages'] + df2040['backyard_content_damages']
     
-import seaborn as sns
+#import seaborn as sns
 subset = df2011[(~np.isnan(df2011.formal_damages)) & (df2011.formal_pop_flood_prone > 0)]
 sns.distplot(subset.formal_damages, hist = True, kde = False, hist_kws={'weights': subset.formal_pop_flood_prone})
 
 
 ######### 2. EAD
 
-spline_agricultural_rent, spline_interest_rate, spline_RDP, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid)
+#spline_agricultural_rent, spline_interest_rate, spline_RDP, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid, path_scenarios) #we add required parameter
 
 formal_structure_cost_2011 = compute_formal_structure_cost_method2(simulation_rent[0, :, :], param, interpolate_interest_rate(spline_interest_rate, 0), import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0), simulation_households_housing_type[0, :, :], (spline_income(0) / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"])    
-content_cost_2011 = compute_content_cost(simulation_households_center[0, :, :], np.load(path_folder+"precalculated_transport/year_0.npy"), param, fraction_capital_destroyed, simulation_rent[0, :, :], simulation_dwelling_size[0, :, :], interpolate_interest_rate(spline_interest_rate, 0))
+content_cost_2011 = compute_content_cost(simulation_households_center[0, :, :], np.load(path_folder+"precalculated_transport/incomeNetofCommuting_0.npy"), param, fraction_capital_destroyed, simulation_rent[0, :, :], simulation_dwelling_size[0, :, :], interpolate_interest_rate(spline_interest_rate, 0))
 damages_fluvial_2011 = compute_damages(fluvial_floods, path_data, param, content_cost_2011,
                     simulation_households_housing_type[0, 0, :], simulation_households_housing_type[0, 3, :], simulation_households_housing_type[0, 2, :], simulation_households_housing_type[0, 1, :], simulation_dwelling_size[0, :, :],
                     formal_structure_cost_2011, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a, options, spline_inflation, 0)
 
 formal_structure_cost_2040 = compute_formal_structure_cost_method2(simulation_rent[28, :, :], param, interpolate_interest_rate(spline_interest_rate, 28), import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 28), simulation_households_housing_type[28, :, :], (spline_income(28) / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"])    
-content_cost_2040 = compute_content_cost(simulation_households_center[28, :, :], np.load(path_folder+"precalculated_transport/year_29.npy"), param, fraction_capital_destroyed, simulation_rent[28, :, :], simulation_dwelling_size[28, :, :], interpolate_interest_rate(spline_interest_rate, 28))
+content_cost_2040 = compute_content_cost(simulation_households_center[28, :, :], np.load(path_folder+"precalculated_transport/incomeNetofCommuting_29.npy"), param, fraction_capital_destroyed, simulation_rent[28, :, :], simulation_dwelling_size[28, :, :], interpolate_interest_rate(spline_interest_rate, 28))
 damages_fluvial_2040 = compute_damages(fluvial_floods, path_data, param, content_cost_2040,
                     simulation_households_housing_type[28, 0, :], simulation_households_housing_type[28, 3, :], simulation_households_housing_type[28, 2, :], simulation_households_housing_type[28, 1, :], simulation_dwelling_size[28, :, :],
                     formal_structure_cost_2040, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a, options, spline_inflation, 28)
@@ -606,13 +616,13 @@ damages_fluvial_2040.formal_damages = damages_fluvial_2040.formal_content_damage
 
 
 formal_structure_cost_2011 = compute_formal_structure_cost_method2(simulation_rent[0, :, :], param, interpolate_interest_rate(spline_interest_rate, 0), import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0), simulation_households_housing_type[0, :, :], (spline_income(0) / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"])    
-content_cost_2011 = compute_content_cost(simulation_households_center[0, :, :], np.load(path_folder+"precalculated_transport/year_0.npy"), param, fraction_capital_destroyed, simulation_rent[0, :, :], simulation_dwelling_size[0, :, :], interpolate_interest_rate(spline_interest_rate, 0))
+content_cost_2011 = compute_content_cost(simulation_households_center[0, :, :], np.load(path_folder+"precalculated_transport/incomeNetofCommuting_0.npy"), param, fraction_capital_destroyed, simulation_rent[0, :, :], simulation_dwelling_size[0, :, :], interpolate_interest_rate(spline_interest_rate, 0))
 damages_pluvial_2011 = compute_damages(pluvial_floods, path_data, param, content_cost_2011,
                     simulation_households_housing_type[0, 0, :], simulation_households_housing_type[0, 3, :], simulation_households_housing_type[0, 2, :], simulation_households_housing_type[0, 1, :], simulation_dwelling_size[0, :, :],
                     formal_structure_cost_2011, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a, options, spline_inflation, 0)
 
 formal_structure_cost_2040 = compute_formal_structure_cost_method2(simulation_rent[28, :, :], param, interpolate_interest_rate(spline_interest_rate, 28), import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 28), simulation_households_housing_type[28, :, :], (spline_income(28) / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"])    
-content_cost_2040 = compute_content_cost(simulation_households_center[28, :, :], np.load(path_folder+"precalculated_transport/year_29.npy"), param, fraction_capital_destroyed, simulation_rent[28, :, :], simulation_dwelling_size[28, :, :], interpolate_interest_rate(spline_interest_rate, 28))
+content_cost_2040 = compute_content_cost(simulation_households_center[28, :, :], np.load(path_folder+"precalculated_transport/incomeNetofCommuting_29.npy"), param, fraction_capital_destroyed, simulation_rent[28, :, :], simulation_dwelling_size[28, :, :], interpolate_interest_rate(spline_interest_rate, 28))
 damages_pluvial_2040 = compute_damages(pluvial_floods, path_data, param, content_cost_2040,
                     simulation_households_housing_type[28, 0, :], simulation_households_housing_type[28, 3, :], simulation_households_housing_type[28, 2, :], simulation_households_housing_type[28, 1, :], simulation_dwelling_size[28, :, :],
                     formal_structure_cost_2040, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a, options, spline_inflation, 28)
@@ -686,5 +696,5 @@ df = pd.DataFrame()
 df["pop_2011"] = pop_2011
 df["pop_2040"] = pop_2040
 df["fraction_capital_destroyed"] = fraction_capital_destroyed["structure_formal_2"]
-df.to_excel(path_outputs+"20201216_1_1/map_data.xlsx")
+df.to_excel(path_outputs + name + "/map_data.xlsx")
 

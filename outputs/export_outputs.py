@@ -28,7 +28,7 @@ def error_map(error, grid, export_name):
     plt.savefig(export_name)
     plt.close()
     
-def export_map(value, grid):
+def export_map(value, grid, export_name, lim):
     map = plt.scatter(grid.x, 
             grid.y, 
             s=None,
@@ -37,9 +37,9 @@ def export_map(value, grid):
             marker='.')
     plt.colorbar(map)
     plt.axis('off')
-    #plt.clim(0, lim)
-    #plt.savefig(export_name)
-    #plt.close()
+    plt.clim(0, lim)
+    plt.savefig(export_name)
+    plt.close()
     
 # %% Validation
 
@@ -65,16 +65,19 @@ def export_housing_types(housing_type_1, households_center_1, housing_type_2, ho
     plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_income_class.png')
     plt.close()
         
-def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, dwelling_size_sp, SP_code):
+def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, dwelling_size_sp): #we take Sp_code out
 
     #1. Housing types
 
-    count_formal = housing_types_grid.formal_grid_2011 - data_rdp["count"]
+    count_formal = housing_types_grid.formal_grid - data_rdp["count"]
     count_formal[count_formal < 0] = 0
 
-    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types')
+    try:
+        os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types')
+    except OSError as error:
+        print(error) 
 
-    inf_dwellings_2013 = pd.read_excel('C:/Users/monnie/Documents/GitHub/cape_town_NEDUM/2. Data/Flood plains - from Claus/inf_dwellings_2013.xlsx').iloc[:, 1]
+    inf_dwellings_2013 = pd.read_excel('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/2. Data/Flood plains - from Claus/inf_dwellings_2020.xlsx').iloc[:, 1] #we update the info
     inf_dwellings_2013[np.isnan(inf_dwellings_2013)] = 0
     
     #Formal
@@ -92,25 +95,28 @@ def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial
     export_map(simul1_households_housing_type[0, 3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_Basile1.png', 1200)
     
     #Informal
-    error = (initial_state_households_housing_types[2, :] / housing_types_grid.informal_grid_2011 - 1) * 100
+    error = (initial_state_households_housing_types[2, :] / housing_types_grid.informal_grid - 1) * 100
     error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_diff_with_data.png')  
-    export_map(housing_types_grid.informal_grid_2011, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data.png', 800)
+    export_map(housing_types_grid.informal_grid, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data.png', 800)
     export_map(initial_state_households_housing_types[2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_simul.png', 800)
     export_map(simul1_households_housing_type[0, 2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_Basile1.png', 800)
     export_map(inf_dwellings_2013, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data_Claus_2013.png', 800)
     
-    #Backyard
-    error = (initial_state_households_housing_types[1, :] / housing_types_grid.backyard_grid_2011 - 1) * 100
+    #Backyard: note that we actually have formal and informal backyarding, what does this mean?
+    error = (initial_state_households_housing_types[1, :] / housing_types_grid.backyard_informal_grid - 1) * 100
     error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_diff_with_data.png')  
-    export_map(housing_types_grid.backyard_grid_2011, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_data.png', 800)
+    export_map(housing_types_grid.backyard_informal_grid, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_data.png', 800)
     export_map(initial_state_households_housing_types[1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types/backyard_simul.png', 800)
     export_map(simul1_households_housing_type[0, 1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_Basile1.png', 800)
     
     #2. Dwelling size
     
-    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size')
-    
-    dwelling_size = SP_to_grid_2011_1(dwelling_size_sp, SP_code, grid)
+    try:
+        os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size')
+    except OSError as error:
+        print(error) 
+        
+    dwelling_size = SP_to_grid_2011_1(dwelling_size_sp, grid) #we take Sp_code out
     
     #Data
     export_map(dwelling_size, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/dwelling_size/data.png', 300)
@@ -141,8 +147,11 @@ def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial
     
     #3. Rents
 
-    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents')
-    
+    try:
+        os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents')
+    except OSError as error:
+        print(error) 
+
     #Class 1
     export_map(initial_state_rent[0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class1_simul.png', 800)
     export_map(simul1_rent[0, 0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/rents/class1_Basile1.png', 800)

@@ -359,17 +359,17 @@ def import_basile_simulation():
     SP_code = data["spCode"][0][0].squeeze()
     return simul1_error, simul1_utility, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, simul1_households_center, SP_code
 
-def SP_to_grid_2011_1(data_SP, SP_Code, grid):  
-    grid_intersect = pd.read_csv('C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/Basile data/grid_SP_intersect.csv', sep = ';')   
+def SP_to_grid_2011_1(data_SP, grid): #we take SP_Code argument out 
+    grid_intersect = pd.read_csv('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/2. Data/data_Cape_Town/grid_SP_intersect.csv', sep = ';')   
     data_grid = np.zeros(len(grid.dist))   
     for index in range(0, len(grid.dist)):  
         intersect = np.unique(grid_intersect.SP_CODE[grid_intersect.ID_grille == grid.id[index]])
         area_exclu = 0       
         for i in range(0, len(intersect)):     
-            if len(data_SP[SP_Code == intersect[i]]) == 0:                      
+            if len(data_SP[sp_code == intersect[i]]) == 0: #name of the column in data_sp, we'll se if this allows to take SP_code out of arguments                      
                 area_exclu = area_exclu + sum(grid_intersect.Area[(grid_intersect.ID_grille == grid.id[index]) & (grid_intersect.SP_CODE == intersect[i])])
             else:
-                data_grid[index] = data_grid[index] + sum(grid_intersect.Area[(grid_intersect.ID_grille == grid.id[index]) & (grid_intersect.SP_CODE == intersect[i])]) * data_SP[SP_Code == intersect[i]]       
+                data_grid[index] = data_grid[index] + sum(grid_intersect.Area[(grid_intersect.ID_grille == grid.id[index]) & (grid_intersect.SP_CODE == intersect[i])]) * data_SP[sp_code == intersect[i]]      #same as above  
         if area_exclu > 0.9 * sum(grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]):
             data_grid[index] = np.nan         
         else:

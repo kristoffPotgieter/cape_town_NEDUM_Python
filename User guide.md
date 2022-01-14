@@ -38,7 +38,7 @@ Organize files as in `README.md`, open Spyder, define _code capetown python_ fol
 - Should we add key parameter tables to make the reading of plots more self-contained?
 
 ### Scenarios
-- Set the time range of the simulation, then choose counterfactual parameters and options: note that those can differ from the ones used for setting up the initial state (**shouldn't we just use other parameter names in simulation functions, so that we can choose them right from the start?**). Note that the longer the time frame, the longer is the code to run.
+- Set the time range of the simulation, then choose counterfactual parameters and options: note that those may differ from the ones used for setting up the initial state (**shouldn't we just use other parameter names in simulation functions, so that we can choose them right from the start?**). Note that the longer the time frame, the longer is the code to run: it can take one full day for 30 years.
 - Run simulation from `equilibrium\run_simulations.py`: note that this simply consists in iterating the `compute_equilibrium` function over several years according to some predefined scenarios (**shouldn't we allow for scenarios to be set as parameters rather than imports?**).
 - It should be noted that the code raises some warnings: this should be checked in the future. As a matter of fact, the process becomes increasingly slow with the number of iterations...
 - Save simulation results: shouldn't we make the whole process implicit, as for validation results?
@@ -46,6 +46,7 @@ Organize files as in `README.md`, open Spyder, define _code capetown python_ fol
 ### Plot output scenarios
 - Again, shouldn't we write this as part of a separate module and just call on the functions?
 - Even better, should we make the functions adapt to the selected time frame?
+- The code also raises some warnings that should be addressed
 
 ---
 
@@ -65,3 +66,5 @@ Organize files as in `README.md`, open Spyder, define _code capetown python_ fol
 2. `calibration`
 3. `equilibrium`
 4. `output`
+
+NB: We need to enter system path C:/ as a parameter for all the pieces of code + need to correct errors in SP_to_grid
