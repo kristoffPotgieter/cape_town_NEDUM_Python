@@ -68,3 +68,9 @@ Organize files as in `README.md`, open Spyder, define _code capetown python_ fol
 4. `output`
 
 NB: We need to enter system path C:/ as a parameter for all the pieces of code + need to correct errors in SP_to_grid
+
+NB: take care to circular references (no import statements within functions), hidden coupling (not too many assumptions about other files), centralize global variables/items (and reduce functions' implicit context and side effects), no spaghetti or ravioli code, use submodules if needed, replace `import *` statements (?), do not assign a same variable name several times, think of tuples as immutable equivalent of lists, use simple returns in functions (and raise exceptions if needed), write docstrings for functions (and use `doctest`), take care to variable names referencing the same object, use `enumerate()` instead of counters, `with open` to read from files (to ensure it closes)...
+
+NB: should I add (empty) `__init__.py` files? use classes and methods (only if object persistency)? use decorators (for memorization and caching)? context managers? use function annotations and `isinstance`? Generators instead of iterables (with `itertools`)?
+
+Use pycodestyle (also autopep8, yapf, black)? Maybe not a good idea for backward compatibility... Use `.rst` (with Sphinx, Read the docs) instead of `.md`?
