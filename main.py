@@ -1,91 +1,87 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 27 15:33:37 2020
+Created on Tue Oct 27 15:33:37 2020.
 
 @author: Charlotte Liotta
 """
 
-print("\n*** NEDUM-Cape-Town - Floods modelling ***\n")
+# TO DO
+# Change names and repo structure?
+
+
+# %% Preamble
+
+
+# IMPORT PACKAGES
 
 import numpy as np
-import scipy.io
 import pandas as pd
-import numpy.matlib
 import seaborn as sns
 import time
 
-from inputs.data import *
-from inputs.parameters_and_options import *
-from equilibrium.compute_equilibrium import *
-from outputs.export_outputs import *
-from outputs.export_outputs_floods import *
-from outputs.flood_outputs import *
-from equilibrium.functions_dynamic import *
-from equilibrium.run_simulations import *
-from inputs.WBUS2_depth import *
+import inputs.data as inpdt
+import inputs.parameters_and_options as inpprm
+import inputs.WBUS2_depth as inpfld
 
+import equilibrium.compute_equilibrium as eqcmp
+import equilibrium.functions_dynamic as eqdyn
+import equilibrium.run_simulations as eqsim
+
+import outputs.export_outputs as outexp
+import outputs.export_outputs_floods as outexpfld
+import outputs.flood_outputs as outfld
+
+import calibration.disamenity_param_calibration as calprm
+
+
+# DEFINE FILE PATHS
 
 path_code = '..'
 path_folder = path_code + '/2. Data/'
-precalculated_inputs = path_folder + "0. Precalculated inputs/"
-path_data = path_folder + "data_Cape_Town/"
-precalculated_transport = path_folder + "precalculated_transport/"
+precalculated_inputs = path_folder + '0. Precalculated inputs/'
+path_data = path_folder + 'data_Cape_Town/'
+precalculated_transport = path_folder + 'precalculated_transport/'
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
-path_outputs = path_code+'/4. Sorties/'
+path_outputs = path_code + '/4. Sorties/'
+
+
+# START TIMER FOR CODE OPTIMIZATION
 
 start = time.process_time()
+
+
 # %% Import parameters and options
 
-print("\n*** Load parameters and options ***\n")
 
-#IMPORT PARAMETERS AND OPTIONS
-options = import_options()
-param = import_param(options, precalculated_inputs)
-t = np.arange(0, 1)
+# IMPORT DEFAULT PARAMETERS AND OPTIONS
 
-#OPTIONS FOR THIS SIMULATION
-options["pluvial"] = 1
-options["informal_land_constrained"] = 0
-param["threshold"] = 130
-
-#PARAMETERS COMING FROM LOCATION-BASED CALIBRATION
-if options["pluvial"] == 0:
-    param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-    param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
-
-param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
-
-param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
-
-#param["pockets"] = 0.70 * np.ones(24014)
-#param["backyard_pockets"] = 0.74 * np.ones(24014)
-
-param["informal_structure_value_ref"] = copy.deepcopy(param["informal_structure_value"])
-param["subsidized_structure_value_ref"] = copy.deepcopy(param["subsidized_structure_value"])
+options = inpprm.import_options()
+param = inpprm.import_param(precalculated_inputs)
+t = np.arange(0, 1)  # when is it used?
 
 
-#should be put to zero
-options["agents_anticipate_floods"] = 0
- 
-#NAME OF THE SIMULATION - TO EXPORT THE RESULTS
+# GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
+# (change according to custom parameters to be included)
+
 date = 'no_floods_scenario'
-name = date + '_' + str(options["pluvial"]) + '_' + str(options["informal_land_constrained"])
+name = date + '_' + str(options["pluvial"]) + '_' + str(
+    options["informal_land_constrained"])
+
 
 # %% Load data
 
-print("\n*** Load data ***\n")
 
-#DATA
+#  BASIC GEOGRAPHIC DATA
 
-#Grid
-grid, center = import_grid(path_data) # analysis grid
-amenities = import_amenities(precalculated_inputs) # cf. WB working paper for more explanations
+grid, center = inpdt.import_grid(path_data)
+amenities = inpdt.import_amenities(precalculated_inputs)
 
-#Households and income data
-income_class_by_housing_type = import_hypothesis_housing_type()
+
+#  HOUSEHOLDS AND INCOME DATA
+
+income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
-mean_income = np.sum(income_2011.Households_nb * income_2011.INC_med) / sum(income_2011.Households_nb)
+mean_income = np.sum(income_2011.Households_nb * income_2011.INC_med)/ sum(income_2011.Households_nb)
 households_per_income_class, average_income = import_income_classes_data(param, income_2011)
 income_mult = average_income / mean_income
 income_net_of_commuting_costs = np.load(precalculated_transport + 'incomeNetOfCommuting_0.npy')
@@ -173,6 +169,21 @@ print("\n*** Solver initial state ***\n")
      minimum_housing_supply, 
      param["coeff_A"])
 
+# IMPORT CUSTOM PARAMETERS AND OPTIONS
+
+#  If want to update the parameters, need to uncomment the following command
+#  (may take a full day to run) after initial state
+#  calprm...
+
+#  Disamenity parameters for informal settlements and backyard shacks,
+#  coming from location-based calibration, as opposed to general calibration
+#  used in Pfeiffer et al. (appendix C5)
+param["pockets"] = np.load(
+    path_outputs+'fluvial_and_pluvial/param_pockets.npy')
+param["backyard_pockets"] = np.load(
+    path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+
+param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
 
 
 # %% Validation

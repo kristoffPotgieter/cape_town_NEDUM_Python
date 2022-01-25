@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 27 15:57:41 2020
+Created on Tue Oct 27 15:57:41 2020.
 
 @author: Charlotte Liotta
 """
@@ -11,23 +11,48 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import copy
 
+
 def import_grid(path_data):
-    data = pd.read_csv(path_data + 'grid_NEDUM_Cape_Town_500.csv', sep = ';')
+    """Import pixel coordinates and distances to center."""
+    data = pd.read_csv(path_data + 'grid_NEDUM_Cape_Town_500.csv', sep=';')
     grid = pd.DataFrame()
     grid["id"] = data.ID
+    # Reduce dimensionality of data by 1,000
     grid["x"] = data.X/1000
     grid["y"] = data.Y/1000
+    # Compute distance to grid center
     x_center = -53267.944572790904/1000
     y_center = -3754855.1309322729/1000
-    grid["dist"] = (((grid.x - x_center) ** 2) + ((grid.y - y_center) ** 2)) ** 0.5
+    grid["dist"] = (((grid.x - x_center) ** 2)
+                    + ((grid.y - y_center) ** 2)) ** 0.5
+
     return grid, np.array([x_center, y_center])
 
+
+def import_amenities(precalculated_inputs):
+    """Import amenity index for each pixel."""
+    # Follow calibration from Pfeiffer et al. (appendix C4)
+    precalculated_amenities = scipy.io.loadmat(
+        precalculated_inputs + 'calibratedAmenities.mat')
+    # Normalize index by mean of values
+    amenities = (precalculated_amenities["amenities"]
+                 / np.nanmean(precalculated_amenities["amenities"])).squeeze()
+
+    return amenities
+
+
 def import_hypothesis_housing_type():
+    """Import dummies to select income classes into housing types."""
     income_class_by_housing_type = pd.DataFrame()
-    income_class_by_housing_type["formal"] = np.array([1, 1, 1, 1]) #Select which income class can live in formal settlements
-    income_class_by_housing_type["backyard"] = np.array([1, 1, 0, 0]) #Select which income class can live in backyard settlements
-    income_class_by_housing_type["settlement"] = np.array([1, 1, 0, 0]) #Select which income class can live in informal settlements
+    # Select which income class can live in formal settlements
+    income_class_by_housing_type["formal"] = np.array([1, 1, 1, 1])
+    # Select which income class can live in backyard settlements
+    income_class_by_housing_type["backyard"] = np.array([1, 1, 0, 0])
+    # Select which income class can live in informal settlements
+    income_class_by_housing_type["settlement"] = np.array([1, 1, 0, 0])
+
     return income_class_by_housing_type
+
 
 def import_income_classes_data(param, income_2011):
         
@@ -41,10 +66,6 @@ def import_income_classes_data(param, income_2011):
 
     return households_per_income_class, average_income
 
-def import_amenities(precalculated_inputs):
-    precalculated_amenities = scipy.io.loadmat(precalculated_inputs + 'calibratedAmenities.mat')
-    amenities = (precalculated_amenities["amenities"] / np.nanmean(precalculated_amenities["amenities"])).squeeze()
-    return amenities
 
 def import_housig_limit(grid, param):
     center_regulation = (grid["dist"] <= param["historic_radius"])
