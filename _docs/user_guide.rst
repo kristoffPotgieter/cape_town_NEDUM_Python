@@ -1,24 +1,66 @@
 Write guidelines about NEDUM philosophy
 =======================================
 
-See Res-IRF technical documentation + policies assessment
+::
+
+   See Res-IRF technical documentation + policies assessment
+
+
 
 --------------
 
 Write use cases (coastal floods?)
 =================================
 
-See Res-IRF simulation and sensitivity analysis + setting up public
-policies
+::
+
+   See Res-IRF simulation and sensitivity analysis + setting up public
+   policies
 
 --------------
 
 Add data (+ format) description
 ===============================
 
-See Res-IRF inputs
+::
+   See Res-IRF inputs
+   Should we do a proper dictionary? Or should the format just be precised as part of docstrings 
+   (makes sense, especially when variable dimensions to be interpreted)? Maybe we could also change the structure of the repo...
 
 --------------
+
+Where do pre-calculated inputs come from? What about `._` files?
+Else, just matrix form for raw numbers or pixel parameters (24,014), or coord for TAZ (1,787) used in `transportMatrices.mat`?
+`data.mat` is a structure with 54 fields characterizing SPs (1,046 or 1,013?) or pixels (24,014).
+There seems to be 12 income brackets, converted into 4 for the analysis.
+What are the 185 income centers (also used in `Transport_times` matrices)?
+`model_amenity.mat` is a `GeneralizedLinearModel` with 307x18 geographic observations corresponding to SPs. But what is predicted?
+What are the 22 dimensions in `timeCenters.mat`?
+
+In `data_Cape_Town`:
+-  Let's not focus on ancient and old files. 
+-  `data_maps` contains geographic files treated with R scripts `Map_employment_centers`, `Map_future_projects`, `Map_grid_CT`,
+`script_import_data_maps`. Should we update them?
+- `Scenarios` contains tables for scenarios regarding different sets of variables (read description): what about tables not self-contained
+in description?
+- What about `OD_matrix`? Seems to be a square matrix for TAZ...
+- Need to explain other tables or include format as part of docstrings?
+
+`FATHOM` contains prospective flood probability tables at the pixel level (24,014), for fluvial and pluvial, defended and undefended:
+cf. readme file.
+
+`Flood plains - from Claus` contains a table for informal dwellings (number?) at the pixel level in 2020
+
+`Land occupation` contains tables and maps for informal settlement risk scenarios: explain in more details?
+
+`precalculated_transport` contains numpy arrays for income net of commuting over 20 years? Where does it come from?
+
+Finally, at the folder root, we have a table of housing types (which unit?) per pixel. We also have no RDP, but a distinction
+between formal and informal backyarding... What does this mean?
+
+::
+   We already have a variable dictionary from Charlotte: reformat it for use?
+
 
 Code walk-through
 =================
