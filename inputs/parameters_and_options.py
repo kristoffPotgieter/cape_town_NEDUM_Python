@@ -106,7 +106,8 @@ def import_param(precalculated_inputs):
     # Labor parameters
     #  Nb of income classes set to 4 as in Pfeiffer et al. (see table A1)
     param["nb_of_income_classes"] = 4
-    #  Equivalence between income classes in the data (12) and in the model (4)
+    #  Equivalence between income classes in the data (12) and in the model
+    #  (4). Note that we exclude people earning no income from the analysis
     param["income_distribution"] = np.array(
         [0, 1, 1, 1, 1, 2, 3, 3, 4, 4, 4, 4])
     #  Nb of jobs above which we keep employment center in the analysis
@@ -147,6 +148,7 @@ def import_param(precalculated_inputs):
 
     return param
 
+###
 
 def import_construction_parameters(param, grid, housing_types, dwelling_size_sp, mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land):
     

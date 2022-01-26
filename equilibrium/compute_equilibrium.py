@@ -11,7 +11,7 @@ import pandas as pd
 import numpy.matlib
 from tqdm import tqdm
 
-from equilibrium.compute_outputs import *
+from equilibrium.sub.compute_outputs import *
 
 def compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, construction_param):
     

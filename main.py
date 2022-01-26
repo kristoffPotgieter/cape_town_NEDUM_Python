@@ -7,6 +7,7 @@ Created on Tue Oct 27 15:33:37 2020.
 
 # TO DO
 # Change names and repo structure?
+# Set baseline year as a dynamic parameter for loading updated data
 
 
 # %% Preamble
@@ -31,7 +32,7 @@ import outputs.export_outputs as outexp
 import outputs.export_outputs_floods as outexpfld
 import outputs.flood_outputs as outfld
 
-import calibration.disamenity_param_calibration as calprm
+# import calibration.disamenity_param_calibration as calprm
 
 
 # DEFINE FILE PATHS
@@ -71,39 +72,54 @@ name = date + '_' + str(options["pluvial"]) + '_' + str(
 # %% Load data
 
 
-#  BASIC GEOGRAPHIC DATA
+# BASIC GEOGRAPHIC DATA
 
 grid, center = inpdt.import_grid(path_data)
 amenities = inpdt.import_amenities(precalculated_inputs)
 
 
-#  HOUSEHOLDS AND INCOME DATA
+# HOUSEHOLDS AND INCOME DATA
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
-income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
-mean_income = np.sum(income_2011.Households_nb * income_2011.INC_med)/ sum(income_2011.Households_nb)
-households_per_income_class, average_income = import_income_classes_data(param, income_2011)
-income_mult = average_income / mean_income
-income_net_of_commuting_costs = np.load(precalculated_transport + 'incomeNetOfCommuting_0.npy')
-param["income_year_reference"] = mean_income
-data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011, grid_formal_density_HFA, threshold_income_distribution, income_distribution, cape_town_limits = import_households_data(options, precalculated_inputs)
+
+(mean_income, households_per_income_class, average_income, income_mult
+ ) = inpdt.import_income_classes_data(param, path_data)
+
+#  Import income net of commuting costs, as calibrated in Pfeiffer et al.
+#  (see part 3.1 or appendix C3)
+income_net_of_commuting_costs = np.load(
+    precalculated_transport + 'incomeNetOfCommuting_0.npy')
+
+# Is it useful? At least, it is not logical
+# param["income_year_reference"] = mean_income
+
+(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
+ grid_formal_density_HFA, threshold_income_distribution, income_distribution,
+ cape_town_limits) = inpdt.import_households_data(precalculated_inputs)
+
+# Import population density per pixel, by housing type
+# There is no RDP, but both formal and informal backyard???
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
+# Replace missing values by zero
 housing_types[np.isnan(housing_types)] = 0
 
-#Macro data
-interest_rate, population = import_macro_data(param, path_scenarios)
-total_RDP = 194258 #RDP = social housing
-total_formal = 626770
-total_informal = 143765
-total_backyard = 91132
 
-housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP]) #taken back from old_code_calibration
+# MACRO DATA
 
-#Land-use   
-#options["urban_edge"] = 1
-spline_estimate_RDP, spline_land_backyard, spline_land_RDP, spline_RDP, spline_land_constraints, spline_land_informal, coeff_land_backyard = import_land_use(grid, options, param, data_rdp, housing_types, total_RDP, path_data, path_folder)
+interest_rate, population, housing_type_data = inpdt.import_macro_data(
+    param, path_scenarios)
+
+
+# LAND USE
+
+(spline_estimate_RDP, spline_land_backyard, spline_land_RDP, spline_RDP,
+ spline_land_constraints, spline_land_informal, coeff_land_backyard
+ ) = import_land_use(grid, options, param, data_rdp, housing_types, total_RDP,
+                     path_data, path_folder)
+
 number_properties_RDP = spline_estimate_RDP(0)
-coeff_land = import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0)
+coeff_land = import_coeff_land(
+    spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0)
 housing_limit = import_housig_limit(grid, param)
 param = import_construction_parameters(param, grid, housing_types_sp, data_sp["dwelling_size"], mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land)
 minimum_housing_supply = param["minimum_housing_supply"]

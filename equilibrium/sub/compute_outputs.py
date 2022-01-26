@@ -5,7 +5,7 @@ Created on Wed Oct 28 16:01:05 2020
 @author: Charlotte Liotta
 """
 import numpy as np
-from equilibrium.functions_solver import *
+from equilibrium.sub.functions_solver import *
 
 def compute_outputs(housing_type, utility, amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land, minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets):
     
