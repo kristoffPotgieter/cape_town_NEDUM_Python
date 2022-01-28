@@ -265,17 +265,26 @@ def import_land_use(grid, options, param, data_rdp, housing_types, total_RDP,
     coeff_land_backyard[coeff_land_backyard < 0] = 0
 
     # 3. RDP
-    coeff_land_RDP = np.ones(len(coeff_land_backyard))
-      
-    #Area RDP/Backyard
-    RDP_houses_estimates = data_rdp["count"] #actual nb of RDP houses
-    area_RDP = data_rdp["area"] * param["RDP_size"] / (param["backyard_size"] + param["RDP_size"]) / area_pixel   
-    number_properties_2000 = data_rdp["count"] * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
-    construction_rdp = pd.read_csv(path_data + 'grid_new_RDP_projects.csv')            
-    
+    # coeff_land_RDP = np.ones(len(coeff_land_backyard))
+
+    # Area RDP/Backyard
+    #  Actual nb of RDP houses (useful?)
+    RDP_houses_estimates = data_rdp["count"]
+    #  % of the pixel area dedicated to RDP (after accounting for backyard)
+    area_RDP = (data_rdp["area"] * param["RDP_size"]
+                / (param["backyard_size"] + param["RDP_size"]) / area_pixel)
+    #  Why do we weight by distance to the center? Is data for year 2000?
+    number_properties_2000 = (
+        data_rdp["count"]
+        * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
+        )
+    #  New projects
+    construction_rdp = pd.read_csv(path_data + 'grid_new_RDP_projects.csv')
+
+    #  We "center" scenarios around baseline year?
     year_begin_RDP = 2015
     year_RDP = np.arange(year_begin_RDP, 2040) - param["baseline_year"]
-    
+
     #RDP_2011 = 2.2666e+05 #(estimated as sum(data.gridFormal(data.countRDPfromGV > 0)))    % RDP_2011 = 320969; %227409; % Where from?
     RDP_2011 = total_RDP
     RDP_2001 = 1.1718e+05 #(estimated as sum(data.gridFormal(data.countRDPfromGV > 0)))  % 262452; % Estimated by nb inc_1 - BY - settlement in 2001
