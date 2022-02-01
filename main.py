@@ -90,15 +90,15 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 income_net_of_commuting_costs = np.load(
     precalculated_transport + 'incomeNetOfCommuting_0.npy')
 
-# Is it useful? At least, it is not logical
-# param["income_year_reference"] = mean_income
+#  Is it useful? At least, it is not logical
+#  param["income_year_reference"] = mean_income
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(precalculated_inputs)
 
-# Import population density per pixel, by housing type
-# There is no RDP, but both formal and informal backyard???
+#  Import population density per pixel, by housing type
+#  There is no RDP, but both formal and informal backyard???
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 # Replace missing values by zero
 housing_types[np.isnan(housing_types)] = 0
@@ -112,11 +112,13 @@ interest_rate, population, housing_type_data = inpdt.import_macro_data(
 
 # LAND USE
 
-(spline_estimate_RDP, spline_land_backyard, spline_land_RDP, spline_RDP,
- spline_land_constraints, spline_land_informal, coeff_land_backyard
- ) = import_land_use(grid, options, param, data_rdp, housing_types, total_RDP,
-                     path_data, path_folder)
+(spline_RDP, spline_estimate_RDP, spline_land_RDP, coeff_land_backyard,
+ spline_land_backyard, spline_land_informal, spline_land_constraints) = (
+     inpdt.import_land_use(grid, options, param, data_rdp, housing_types,
+                           housing_type_data, path_data, path_folder)
+     )
 
+#  
 number_properties_RDP = spline_estimate_RDP(0)
 coeff_land = import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0)
