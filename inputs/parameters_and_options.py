@@ -7,6 +7,7 @@ Created on Tue Oct 27 15:50:59 2020
 
 import numpy as np
 import scipy.io
+import copy
 
 def import_options():
     options = {"tax_out_urban_edge" : 0}
@@ -16,15 +17,23 @@ def import_options():
     options["load_households_data"] = 0
     options["agents_anticipate_floods"] = 1
     options["WBUS2"] = 0
+    
+    #OPTIONS FOR THIS SIMULATION
+    options["pluvial"] = 1
+    options["informal_land_constrained"] = 0
+    
+    #should be put to zero
+    options["agents_anticipate_floods"] = 0
+
     return options
 
-def import_param(options, precalculated_inputs):
+def import_param(options_import_precalculated_parameters=0, precalculated_inputs=0):
     
     #Baseline Year
     param = {"baseline_year" : 2011}
 
     #Parameters
-    if options["import_precalculated_parameters"] == 1:
+    if options_import_precalculated_parameters == 1:
         param["beta"] = scipy.io.loadmat(precalculated_inputs + 'calibratedUtility_beta.mat')["calibratedUtility_beta"].squeeze()
         param["q0"] = scipy.io.loadmat(precalculated_inputs + 'calibratedUtility_q0.mat')["calibratedUtility_q0"].squeeze()
         param["alpha"] = 1 - param["beta"]
@@ -73,12 +82,17 @@ def import_param(options, precalculated_inputs):
     
     #Solver
     param["max_iter"] = 5000
-    param["precision"] = 0.01
+    param["precision"] = 0.02
     
     #Dynamic
     param["time_invest_housing"] = 3
     param["time_depreciation_buildings"] = 100
     param["iter_calc_lite"] = 1
+    
+    #simulation
+    param["threshold"] = 130
+    param["informal_structure_value_ref"] = copy.deepcopy(param["informal_structure_value"])
+    param["subsidized_structure_value_ref"] = copy.deepcopy(param["subsidized_structure_value"])
     
     return param
 
