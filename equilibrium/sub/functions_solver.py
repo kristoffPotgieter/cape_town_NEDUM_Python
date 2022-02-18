@@ -11,15 +11,12 @@ import scipy
 from scipy.optimize import minimize
 from scipy.interpolate import interp1d
 
-def compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, fraction_capital_destroyed, minimum_housing_supply, construction_param, housing_in, dwelling_size):
+def compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, minimum_housing_supply, construction_param, housing_in, dwelling_size):
     ''' Calculates the housing construction as a function of rents '''
 
     if options["adjust_housing_supply"] == 1:
     
-        capital_destroyed = np.ones(len(fraction_capital_destroyed.structure_formal_2))
-        capital_destroyed[dwelling_size > param["threshold"]] = fraction_capital_destroyed.structure_formal_2[dwelling_size > param["threshold"]]
-        capital_destroyed[dwelling_size <= param["threshold"]] = fraction_capital_destroyed.structure_formal_1[dwelling_size <= param["threshold"]]
-        housing_supply = 1000000 * (construction_param ** (1/param["coeff_a"])) * ((param["coeff_b"] / (interest_rate + param["depreciation_rate"] + capital_destroyed)) ** (param["coeff_b"]/param["coeff_a"])) * ((R) ** (param["coeff_b"]/param["coeff_a"]))
+        housing_supply = 1000000 * (construction_param ** (1/param["coeff_a"])) * ((param["coeff_b"] / (interest_rate + param["depreciation_rate"] )) ** (param["coeff_b"]/param["coeff_a"])) * ((R) ** (param["coeff_b"]/param["coeff_a"]))
     
     
         #Outside the agricultural rent, no housing (accounting for a tax)
@@ -39,14 +36,11 @@ def compute_housing_supply_formal(R, options, housing_limit, param, agricultural
     
     return housing_supply
 
-def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, fraction_capital_destroyed, dwelling_size):
+def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, dwelling_size):
     """ Calculates the backyard available for construction as a function of rents """
 
-    capital_destroyed = np.ones(len(fraction_capital_destroyed.structure_formal_2))
-    capital_destroyed[dwelling_size > param["threshold"]] = fraction_capital_destroyed.structure_subsidized_2[dwelling_size > param["threshold"]]
-    capital_destroyed[dwelling_size <= param["threshold"]] = fraction_capital_destroyed.structure_subsidized_1[dwelling_size <= param["threshold"]]
         
-    housing_supply = (param["alpha"] * (param["RDP_size"] + param["backyard_size"] - param["q0"]) / (param["backyard_size"])) - (param["beta"] * (income_net_of_commuting_costs[0,:] - (capital_destroyed * param["subsidized_structure_value"])) / (param["backyard_size"] * R))
+    housing_supply = (param["alpha"] * (param["RDP_size"] + param["backyard_size"] - param["q0"]) / (param["backyard_size"])) - (param["beta"] * (income_net_of_commuting_costs[0,:] ) / (param["backyard_size"] * R))
     
     housing_supply[R == 0] = 0
     housing_supply = np.minimum(housing_supply, 1)
@@ -55,12 +49,13 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, fra
 
     return housing_supply
 
-def compute_dwelling_size_formal(utility, amenities, param, income_net_of_commuting_costs, fraction_capital_destroyed):
+def compute_dwelling_size_formal(utility, amenities, param, income_net_of_commuting_costs):
+    fraction_capital_destroyed=0
     
     income_temp = copy.deepcopy(income_net_of_commuting_costs)
     income_temp[income_temp < 0] = np.nan
     
-    left_side = (utility[:, None] / amenities[None, :]) * ((1 + (param["fraction_z_dwellings"] * fraction_capital_destroyed.contents_formal[None, :])) ** (param["alpha"])) / ((param["alpha"] * income_temp) ** param["alpha"])
+    left_side = (utility[:, None] / amenities[None, :]) * ((1 + (param["fraction_z_dwellings"] * fraction_capital_destroyed)) ** (param["alpha"])) / ((param["alpha"] * income_temp) ** param["alpha"])
     
     approx = left_side ** (1/param["beta"])
     

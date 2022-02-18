@@ -23,6 +23,7 @@ Add data (+ format) description
 ===============================
 
 ::
+
    See Res-IRF inputs
    Should we do a proper dictionary? Or should the format just be precised as part of docstrings 
    (makes sense, especially when variable dimensions to be interpreted)? Maybe we could also change the structure of the repo...
@@ -46,10 +47,19 @@ NB: Split between rough and refined data (usable in code), with code written on 
 Where do pre-calculated inputs come from? What about `._` files?
 Else, just matrix form for raw numbers or pixel parameters (24,014), or coord for TAZ (1,787) used in `transportMatrices.mat`?
 `data.mat` is a structure with 54 fields characterizing SPs (1,046 or 1,013?) or pixels (24,014).
+*24,014 = griod size*
+
 There seems to be 12 income brackets, converted into 4 for the analysis.
+*yes, we aggregate them*
+
 What are the 185 income centers (also used in `Transport_times` matrices)?
+*they are handled when creating incomeNetOfCommuting_0.npy file*
+
 `model_amenity.mat` is a `GeneralizedLinearModel` with 307x18 geographic observations corresponding to SPs. But what is predicted?
+*the vaue of amenities as a function of natural variabnl;es, I guess*
+
 What are the 22 dimensions in `timeCenters.mat`?
+*no idea*
 
 In `data_Cape_Town`:
 -  Let's not focus on ancient and old files. 

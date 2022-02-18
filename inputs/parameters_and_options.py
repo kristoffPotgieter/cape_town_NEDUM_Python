@@ -9,7 +9,6 @@ import numpy as np
 import scipy.io
 import copy
 
-
 def import_options():
     """Import default options."""
     # Not useful for now (for coding green belt)
@@ -17,7 +16,7 @@ def import_options():
     # Used in solver_equil (dummy for housing supply adaptability)
     options["adjust_housing_supply"] = 1
     # Dummy for agents taking floods into account in their choices
-    options["agents_anticipate_floods"] = 1
+    options["agents_anticipate_floods"] = 0
     # Dummy for using flood data from WBUS2 on top of FATHOM
     options["WBUS2"] = 0
     # Dummy for considering pluvial floods on top of fluvial floods
@@ -126,10 +125,9 @@ def import_param(precalculated_inputs):
     # level, or when the nb of iterations reaches some threshold (to limit
     # processing time)
     param["max_iter"] = 5000
-    param["precision"] = 0.01
-
-    # Dynamic factors
-    #  Time (in years?) for building a new housing unit
+    param["precision"] = 0.02
+    
+    #Dynamic
     param["time_invest_housing"] = 3
     #  Time (in years?) for the full depreciation of a housing unit
     param["time_depreciation_buildings"] = 100
