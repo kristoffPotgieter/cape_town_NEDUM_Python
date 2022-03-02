@@ -5,7 +5,7 @@ Created on Wed Oct 28 16:01:05 2020
 @author: Charlotte Liotta
 """
 import numpy as np
-from equilibrium.functions_solver import *
+from equilibrium.sub.functions_solver import *
 
 def compute_outputs(housing_type, 
                     utility, 

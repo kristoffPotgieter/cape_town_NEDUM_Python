@@ -90,6 +90,9 @@ Load data
    question is: **should we make this implicit** (as for the scenario
    import, defined as part of the ``run simulation`` function) **or make
    all the imports explicit** (including scenarios)?
+-  In ``inpdt.import_macro_data``, where does population figures come from? 
+-  Get into details of ``inpdt.import_land_use``
+-  Is ``inpdt.import_coeff_land`` useful?
 
 Compute initial state
 ---------------------

@@ -17,7 +17,7 @@ Created on Tue Oct 27 15:33:37 2020.
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
+# import seaborn as sns
 import time
 
 import inputs.data as inpdt
@@ -39,9 +39,9 @@ import outputs.flood_outputs as outfld
 
 path_code = '..'
 path_folder = path_code + '/2. Data/'
-precalculated_inputs = path_folder + '0. Precalculated inputs/'
+path_precalc_inp = path_folder + '0. Precalculated inputs/'
 path_data = path_folder + 'data_Cape_Town/'
-precalculated_transport = path_folder + 'precalculated_transport/'
+path_precalc_transp = path_folder + 'precalculated_transport/'
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
 path_outputs = path_code + '/4. Sorties/'
 
@@ -57,7 +57,7 @@ start = time.process_time()
 # IMPORT DEFAULT PARAMETERS AND OPTIONS
 
 options = inpprm.import_options()
-param = inpprm.import_param(precalculated_inputs)
+param = inpprm.import_param(path_precalc_inp)
 t = np.arange(0, 1)  # when is it used?
 
 
@@ -75,30 +75,27 @@ name = date + '_' + str(options["pluvial"]) + '_' + str(
 # BASIC GEOGRAPHIC DATA
 
 grid, center = inpdt.import_grid(path_data)
-amenities = inpdt.import_amenities(precalculated_inputs)
+amenities = inpdt.import_amenities(path_precalc_inp)
 
 
 # HOUSEHOLDS AND INCOME DATA
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-(mean_income, households_per_income_class, average_income, income_mult
- ) = inpdt.import_income_classes_data(param, path_data)
+(mean_income, households_per_income_class, average_income, income_mult,
+ income_2011) = inpdt.import_income_classes_data(param, path_data)
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
 income_net_of_commuting_costs = np.load(
-    precalculated_transport + 'incomeNetOfCommuting_0.npy')
-
-#  Is it useful? At least, it is not logical
-#  param["income_year_reference"] = mean_income
+    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
- cape_town_limits) = inpdt.import_households_data(precalculated_inputs)
+ cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
 #  Import population density per pixel, by housing type
-#  There is no RDP, but both formal and informal backyard???
+#  Note that there is no RDP, but both formal and informal backyard
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 # Replace missing values by zero
 housing_types[np.isnan(housing_types)] = 0
@@ -106,41 +103,55 @@ housing_types[np.isnan(housing_types)] = 0
 
 # MACRO DATA
 
-interest_rate, population, housing_type_data = inpdt.import_macro_data(
-    param, path_scenarios)
+(interest_rate, population, housing_type_data, total_RDP
+ ) = inpdt.import_macro_data(param, path_scenarios)
 
 
 # LAND USE
 
 (spline_RDP, spline_estimate_RDP, spline_land_RDP, coeff_land_backyard,
- spline_land_backyard, spline_land_informal, spline_land_constraints) = (
+ spline_land_backyard, spline_land_informal, spline_land_constraints,
+ number_properties_RDP) = (
      inpdt.import_land_use(grid, options, param, data_rdp, housing_types,
                            housing_type_data, path_data, path_folder)
      )
 
-#  
-number_properties_RDP = spline_estimate_RDP(0)
-coeff_land = import_coeff_land(
-    spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, 0)
-housing_limit = import_housig_limit(grid, param)
-param = import_construction_parameters(param, grid, housing_types_sp, data_sp["dwelling_size"], mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land)
-minimum_housing_supply = param["minimum_housing_supply"]
-agricultural_rent = param["agricultural_rent_2011"] ** (param["coeff_a"]) * (param["depreciation_rate"] + interest_rate) / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+#  Is it needed to still reweight by max_land_use?
+#  What about coeff_land_backyard?
+coeff_land = inpdt.import_coeff_land(
+    spline_land_constraints, spline_land_backyard, spline_land_informal,
+    spline_land_RDP, param, 0)
 
-#Scenarios
+housing_limit = inpdt.import_housing_limit(grid, param)
 
-(spline_agricultural_rent, 
- spline_interest_rate, 
- spline_RDP, 
- spline_population_income_distribution, 
- spline_inflation, 
- spline_income_distribution, 
- spline_population, 
- spline_interest_rate, 
- spline_income, 
- spline_minimum_housing_supply, 
- spline_fuel) = import_scenarios(income_2011, param, grid, path_scenarios) #we add required argument
-#Most of the import is implicit in run_simulation, but we need to make this explicit for scenario plots
+(param, minimum_housing_supply, agricultural_rent
+ ) = inpprm.import_construction_parameters(
+    param, grid, housing_types_sp, data_sp["dwelling_size"],
+    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+    interest_rate
+    )
+
+
+# SCENARIOS
+
+#  What is the difference with existing splines?
+
+(spline_agricultural_rent,
+ spline_interest_rate,
+ spline_RDP,
+ spline_population_income_distribution,
+ spline_inflation,
+ spline_income_distribution,
+ spline_population,
+ spline_interest_rate,
+ spline_income,
+ spline_minimum_housing_supply,
+ spline_fuel) = eqdyn.import_scenarios(
+     income_2011, param, grid, path_scenarios
+     )
+
+# Most of the import is implicit in run_simulation, but we need to make this
+# explicit for scenario plots
 
 
 # %% Compute initial state
@@ -208,7 +219,7 @@ export_housing_types(initial_state_households_housing_types,
 
 validation_density(grid, initial_state_households_housing_types, housing_types,path_outputs+name)
 validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, 0,path_outputs+name)
-validation_housing_price(grid, initial_state_rent, interest_rate, param, center, precalculated_inputs_path,path_outputs+name)
+validation_housing_price(grid, initial_state_rent, interest_rate, param, center, path_precalc_inp_path,path_outputs+name)
 #plot_diagnosis_map_informl(grid, coeff_land, initial_state_households_housing_types, name)
 
 # %% Scenarios
@@ -257,7 +268,7 @@ if options["agents_anticipate_floods"] == 0:
                                 spline_land_informal, 
                                 income_class_by_housing_type, 
                                 path_scenarios, 
-                                precalculated_transport)
+                                path_precalc_transp)
 
 #Save outputs
 name = 'carbon_tax_car_bus_taxi_20211103_basile'

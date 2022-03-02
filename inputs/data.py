@@ -29,11 +29,11 @@ def import_grid(path_data):
     return grid, np.array([x_center, y_center])
 
 
-def import_amenities(precalculated_inputs):
+def import_amenities(path_precalc_inp):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
     precalculated_amenities = scipy.io.loadmat(
-        precalculated_inputs + 'calibratedAmenities.mat')
+        path_precalc_inp + 'calibratedAmenities.mat')
     # Normalize index by mean of values
     amenities = (precalculated_amenities["amenities"]
                  / np.nanmean(precalculated_amenities["amenities"])).squeeze()
@@ -85,15 +85,15 @@ def import_income_classes_data(param, path_data):
     income_mult = average_income / mean_income
 
     return (mean_income, households_per_income_class, average_income,
-            income_mult)
+            income_mult, income_2011)
 
 
-def import_households_data(precalculated_inputs):
+def import_households_data(path_precalc_inp):
     """Import geographic data with class distributions for households."""
     # Import a structure of characteristics (for pixels and SPs mostly)
-    data = scipy.io.loadmat(precalculated_inputs + 'data.mat')['data']
+    data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
 
-    #  Get minimum thresholds (?) for model income classes (4)
+    #  Get maximum thresholds for model income classes (4)
     threshold_income_distribution = data[
         'thresholdIncomeDistribution'][0][0].squeeze()
 
@@ -107,7 +107,7 @@ def import_households_data(precalculated_inputs):
     # Get other data for pixels
     #  Dummy indicating wheter pixel belongs to Mitchell's Plain district
     mitchells_plain_grid_2011 = data['MitchellsPlain'][0][0].squeeze()
-    #  Density of formal housing?
+    #  Population density in formal housing
     grid_formal_density_HFA = data['gridFormalDensityHFA'][0][0].squeeze()
 
     # Get housing type data for SPs (1,046)
@@ -127,18 +127,22 @@ def import_households_data(precalculated_inputs):
 
     # Get other data for SPs
     data_sp = pd.DataFrame()
-    #  Units?
+    #  Avg dwelling size
     data_sp["dwelling_size"] = data['spDwellingSize'][0][0].squeeze()
-    #  Are the three dimensions in matrix for housing type? Is price an avg?
+    #  Avg price of real estate (per m^2) for 2011
+    #  (we do not consider data for 2001 and 2006)
     data_sp["price"] = data['spPrice'][0][0].squeeze()[2, :]
+    #  Other aggregate statistics
     data_sp["income"] = data['sp2011AverageIncome'][0][0].squeeze()
     data_sp["unconstrained_area"] = data["spUnconstrainedArea"][0][0].squeeze()
     data_sp["area"] = data["sp2011Area"][0][0].squeeze()
     data_sp["distance"] = data["sp2011Distance"][0][0].squeeze()
     #  Dummy indicating wheter SP belongs to Mitchell's Plain district
     data_sp["mitchells_plain"] = data["sp2011MitchellsPlain"][0][0].squeeze()
+    #  SP codes
     data_sp["sp_code"] = data["spCode"][0][0].squeeze()
-    # Nb of househods of each model income class in each SP?
+
+    # Nb of househods of each model income class in each SP
     income_distribution = data[
         "sp2011IncomeDistributionNClass"][0][0].squeeze()
     # Dummy indicating whether SP belongs to Cape Town
@@ -156,7 +160,6 @@ def import_macro_data(param, path_scenarios):
     scenario_interest_rate = pd.read_csv(
         path_scenarios + 'Scenario_interest_rate_1.csv', sep=';')
     #  Fit linear regression spline centered around baseline year
-    #  Is ~np.isnan really useful here?
     spline_interest_rate = interp1d(
         scenario_interest_rate.Year_interest_rate[
             ~np.isnan(scenario_interest_rate.real_interest_rate)]
@@ -183,7 +186,7 @@ def import_macro_data(param, path_scenarios):
                                   total_RDP])
     population = sum(housing_type_data)
 
-    return interest_rate, population, housing_type_data
+    return interest_rate, population, housing_type_data, total_RDP
 
 
 def import_land_use(grid, options, param, data_rdp, housing_types,
@@ -213,7 +216,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     land_use_data_old = pd.read_csv(
         path_data + 'grid_NEDUM_Cape_Town_500.csv', sep=';')
 
-    # Surface data on scenarios for informal settlement building?
+    # Surface data on scenarios for informal settlement building
     informal_risks_short = pd.read_csv(
         path_folder + 'Land occupation/informal_settlements_risk_SHORT.csv',
         sep=',')
@@ -231,7 +234,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         + 'Land occupation/informal_settlements_risk_pVERYHIGH.csv',
         sep=',')
 
-    # Nb of informal dwellings per pixel (realized scenario?)
+    # Nb of informal dwellings per pixel (realized scenario)
     informal_settlements_2020 = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
     # Why do we divide by the max % of buildable land? To account for risk?
@@ -252,12 +255,16 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # short scenario and make their risk area equal to zero (why?)
     # Are we using .loc the right way?
     for item in list(polygon_medium_timing.squeeze()):
-        informal_risks_medium.area.loc[
-            informal_risks_medium["grid.data.ID"] == item
-            ] = informal_risks_short.area.loc[
-                informal_risks_short["grid.data.ID"] == item]
-        informal_risks_short.area.loc[
-            informal_risks_short["grid.data.ID"] == item] = 0
+        informal_risks_medium.loc[
+            informal_risks_medium["grid.data.ID"] == item,
+            "area"
+            ] = informal_risks_short.loc[
+                informal_risks_short["grid.data.ID"] == item,
+                "area"
+                ]
+        informal_risks_short.loc[
+            informal_risks_short["grid.data.ID"] == item,
+            "area"] = 0
 
 
 # 1. RDP population
@@ -306,7 +313,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # Getting the outcome
 
-    #  Why do we weight by closeness to the center? Are we mixing data years?
+    #  Why do we weight by closeness to the center to get retrospective RDP?
     number_properties_2000 = (
         data_rdp["count"]
         * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
@@ -327,12 +334,15 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
             ),
         'linear')
 
+    number_properties_RDP = spline_estimate_RDP(0)
+
 
 # 3. RDP pixel share
 
     # Getting areas
 
     #  % of the pixel area dedicated to RDP (after accounting for backyarding)
+    #  Doesn't it embed an exogenous assumption about the share of backyarding?
     area_RDP = (data_rdp["area"] * param["RDP_size"]
                 / (param["backyard_size"] + param["RDP_size"])
                 / area_pixel)
@@ -374,6 +384,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We get share of pixel backyard area by reweighting total area by the
     #  share of backyards in social housing units
+    #  Same remark as before about exogeneity
     area_backyard = (data_rdp["area"] * param["backyard_size"]
                      / (param["backyard_size"] + param["RDP_size"])
                      / area_pixel)
@@ -514,7 +525,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  We also get area for high risk scenario
     high_proba = informal_risks_VERYHIGH.area + informal_risks_HIGH.area
 
-    #  We consider some scenario for 2023 (?) and correct for RDP construction
+    #  We consider some scenario for 2023 and correct for RDP construction
     #  (why?)
     informal_2023 = np.fmin(
         coeff_land_no_urban_edge,
@@ -578,15 +589,42 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     return (spline_RDP, spline_estimate_RDP, spline_land_RDP,
             coeff_land_backyard, spline_land_backyard, spline_land_informal,
-            spline_land_constraints)
+            spline_land_constraints, number_properties_RDP)
 
 
-def import_housig_limit(grid, param):
+def import_coeff_land(spline_land_constraints, spline_land_backyard,
+                      spline_land_informal, spline_land_RDP, param, t):
+    """Return pixel share for housing scenarios, weighted by max building %."""
+    coeff_land_private = (spline_land_constraints(t)
+                          - spline_land_backyard(t)
+                          - spline_land_informal(t)
+                          - spline_land_RDP(t)) * param["max_land_use"]
+    coeff_land_private[coeff_land_private < 0] = 0
+    # How does it differ from the output of import_land_use?
+    coeff_land_backyard = (spline_land_backyard(t)
+                           * param["max_land_use_backyard"])
+    coeff_land_RDP = spline_land_RDP(t)
+    coeff_land_settlement = (spline_land_informal(t)
+                             * param["max_land_use_settlement"])
+    coeff_land = np.array([coeff_land_private, coeff_land_backyard,
+                           coeff_land_settlement, coeff_land_RDP])
+
+    return coeff_land
+
+
+def import_housing_limit(grid, param):
+    """Return height limit within and out of historic city radius."""
     center_regulation = (grid["dist"] <= param["historic_radius"])
     outside_regulation = (grid["dist"] > param["historic_radius"])
-    housing_limit = param["limit_height_center"] * 1000000 * center_regulation + param["limit_height_out"] * 1000000 * outside_regulation 
+    # Set high height multiplier to make as if no constraints
+    housing_limit = (
+        param["limit_height_center"] * 1000000 * center_regulation
+        + param["limit_height_out"] * 1000000 * outside_regulation
+                     )
+
     return housing_limit
 
+###
 
 def import_floods_data(options, param, path_folder):
     
@@ -701,14 +739,7 @@ def import_floods_data(options, param, path_folder):
 
 
 
-def import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, t):
-    coeff_land_private = (spline_land_constraints(t) - spline_land_backyard(t) - spline_land_informal(t) - spline_land_RDP(t)) * param["max_land_use"]
-    coeff_land_private[coeff_land_private < 0] = 0
-    coeff_land_backyard = spline_land_backyard(t) * param["max_land_use_backyard"]
-    coeff_land_RDP = spline_land_RDP(t)
-    coeff_land_settlement = spline_land_informal(t) * param["max_land_use_settlement"]
-    coeff_land = np.array([coeff_land_private, coeff_land_backyard, coeff_land_settlement, coeff_land_RDP])
-    return coeff_land
+
 
 def import_basile_simulation():
     mat1 = scipy.io.loadmat('C:/Users/charl/OneDrive/Bureau/Cape Town - pour Charlotte/Modèle/projet_le_cap/simulations scenarios - 201908.mat')
