@@ -8,12 +8,13 @@ Created on Tue Nov  3 14:16:26 2020.
 import pandas as pd
 from scipy.interpolate import interp1d
 import numpy as np
+import numpy.matlib
 # import copy
 
 
 def import_scenarios(income_2011, param, grid, path_scenarios):
     """Return linear regression splines for various scenarios."""
-    # Import Scenarios
+    # Import Scenarios (include in inputs?)
     scenario_income_distribution = pd.read_csv(
         path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
     scenario_population = pd.read_csv(
@@ -148,17 +149,22 @@ def import_scenarios(income_2011, param, grid, path_scenarios):
         ~np.isnan(scenario_inflation.inflation_base_2010)]
     year_inc = year_inc[(year_inc > 2000) & (year_inc < 2041)]
     #  We get initial spline (not taking inflation into account)
-    inc_year_infla = interp1d(
-        [2001, 2011, 2040],
+    inc_year_noinfla = interp1d(
+        np.array([2001, 2011, 2040]) - param["baseline_year"],
         [average_income_2001, average_income_2011, average_income_2040],
         'linear')
+    #  We stock it into an array with the right number of periods
+    inc_ref = inc_year_noinfla(
+        year_inc - param["baseline_year"]
+        )
     #  We get a schedule for inflation growth rates with respect to baseline
+    noinfla_ref = np.ones(year_inc[(year_inc <= param["baseline_year"])].size)
     infla_ref = spline_inflation(
         year_inc[(year_inc > param["baseline_year"])] - param["baseline_year"]
         ) / spline_inflation(0)
+    infla_schedule = np.append(noinfla_ref, infla_ref)
     #  Then we correct output from initial spline with inflation growth rates
-    inc_year_infla[year_inc > param["baseline_year"]] = (
-        inc_year_infla[year_inc == param["baseline_year"]] * infla_ref)
+    inc_year_infla = inc_ref * infla_schedule
     #  And we get the final spline
     spline_income = interp1d(
         year_inc - param["baseline_year"], inc_year_infla, 'linear')

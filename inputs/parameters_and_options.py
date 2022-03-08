@@ -28,7 +28,7 @@ def import_options():
     return options
 
 
-def import_param(path_precalc_inp):
+def import_param(path_precalc_inp, path_outputs):
     """Import default parameters."""
     # Define baseline year
     param = {"baseline_year": 2011}
@@ -63,30 +63,32 @@ def import_param(path_precalc_inp):
                                        )["lambdaKeep"].squeeze()
 
     # Discount factors
-    #  Why isn't it 5% as in the paper?
+    #  Inconsistency in the paper
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
     param["interest_rate"] = 0.025
 
     # Housing parameters
-    #  Size of an informal dwelling unit (m^2), why not 20 as in the paper?
+    #  Size of an informal dwelling unit (m^2), (not 20 as in the paper,
+    #  cf. Claus)
     param["shack_size"] = 14
     #  Size of a social housing dwelling unit (m^2), see table C6
     param["RDP_size"] = 40
-    #  Size of backyard dwelling unit (m^2), see table C6 (why not 20?)
+    #  Size of backyard dwelling unit (m^2), see table C6 (not rented fraction)
     param["backyard_size"] = 70
     #  Nb of social housing units built per year (cf. Housing Pipeline)
-    #  To which scenario does this correspond?
+    #  Doesn't correspond to scenario from WP (cf. Claus for post-2020)
     param["future_rate_public_housing"] = 1000
     #  Cost of inputs for building an informal dwelling unit (in rands)
-    #  Why not zero as in the paper?
+    #  Not zero as in the paper to account for potential destructions from
+    #  floods
     param["informal_structure_value"] = 4000
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
-    #  Where from?
+    #  Fraction of composite goods that can be destroyed by floods
     param["fraction_z_dwellings"] = 0.49
     #  Value of a social housing dwelling unit (in rands)
-    #  For floods? Where from?
+    #  For floods destruction
     param["subsidized_structure_value"] = 150000
 
     # Max % of land that can be built for housing (to take roads into account),
@@ -157,6 +159,14 @@ def import_param(path_precalc_inp):
     param["subsidized_structure_value_ref"] = copy.deepcopy(
         param["subsidized_structure_value"])
 
+    # Disamenity parameters for informal settlements and backyard shacks,
+    # coming from location-based calibration, as opposed to general calibration
+    # used in Pfeiffer et al. (appendix C5)
+    param["pockets"] = np.load(
+        path_outputs+'fluvial_and_pluvial/param_pockets.npy')
+    param["backyard_pockets"] = np.load(
+        path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+
     return param
 
 
@@ -190,9 +200,9 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # and households of group 2 live there (coloured neighborhood)
     # We do the same as before with a starting supply of 1 in Mitchells Plain?
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
-    (param["minimum_housing_supply"][mitchells_plain_grid_2011]
-     ) = (mitchells_plain_grid_2011[mitchells_plain_grid_2011]
-          / coeff_land[0, mitchells_plain_grid_2011][coeff_land[0, :] != 0])
+    cond = mitchells_plain_grid_2011 * coeff_land[0, :]
+    (param["minimum_housing_supply"][cond != 0]
+     ) = (mitchells_plain_grid_2011[cond != 0] / coeff_land[0, :][cond != 0])
     param["minimum_housing_supply"][
         (coeff_land[0, :] < 0.1) | (np.isnan(param["minimum_housing_supply"]))
         ] = 0
@@ -205,7 +215,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
     # We take minimum dwelling size of built areas where the share of informal
     # and backyard is smaller than 10% of the overall number of dwellings
-    # Why?
+    # See WP, p.18 (formal neighborhoods)
     param["mini_lot_size"] = np.nanmin(
         dwelling_size_sp[housing_types_sp.total_dwellings_SP_2011 != 0][
             (housing_types_sp.informal_SP_2011[
@@ -219,7 +229,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
         )
 
     minimum_housing_supply = param["minimum_housing_supply"]
-    # Meaning?
+    # Meaning? Ask Vincent
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)

@@ -57,7 +57,7 @@ start = time.process_time()
 # IMPORT DEFAULT PARAMETERS AND OPTIONS
 
 options = inpprm.import_options()
-param = inpprm.import_param(path_precalc_inp)
+param = inpprm.import_param(path_precalc_inp, path_outputs)
 t = np.arange(0, 1)  # when is it used?
 
 
@@ -134,7 +134,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 
 # SCENARIOS
 
-#  What is the difference with existing splines?
+#  What is the difference with spline_RDP?
 
 (spline_agricultural_rent,
  spline_interest_rate,
@@ -157,36 +157,36 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 # %% Compute initial state
 
 print("\n*** Solver initial state ***\n")
-(initial_state_utility, 
- initial_state_error, 
- initial_state_simulated_jobs, 
- initial_state_households_housing_types, 
- initial_state_household_centers, 
- initial_state_households, 
- initial_state_dwelling_size, 
- initial_state_housing_supply, 
- initial_state_rent, 
- initial_state_rent_matrix, 
- initial_state_capital_land, 
- initial_state_average_income, 
- initial_state_limit_city) = compute_equilibrium( 
-     amenities, 
-     param, 
-     housing_limit, 
-     population, 
-     households_per_income_class, 
-     total_RDP, 
-     coeff_land, 
-     income_net_of_commuting_costs, 
-     grid, 
-     options, 
-     agricultural_rent, 
-     interest_rate, 
-     number_properties_RDP, 
-     average_income, 
-     mean_income, 
-     income_class_by_housing_type, 
-     minimum_housing_supply, 
+(initial_state_utility,
+ initial_state_error,
+ initial_state_simulated_jobs,
+ initial_state_households_housing_types,
+ initial_state_household_centers,
+ initial_state_households,
+ initial_state_dwelling_size,
+ initial_state_housing_supply,
+ initial_state_rent,
+ initial_state_rent_matrix,
+ initial_state_capital_land,
+ initial_state_average_income,
+ initial_state_limit_city) = eqcmp.compute_equilibrium(
+     amenities,
+     param,
+     housing_limit,
+     population,
+     households_per_income_class,
+     total_RDP,
+     coeff_land,
+     income_net_of_commuting_costs,
+     grid,
+     options,
+     agricultural_rent,
+     interest_rate,
+     number_properties_RDP,
+     average_income,
+     mean_income,
+     income_class_by_housing_type,
+     minimum_housing_supply,
      param["coeff_A"])
 
 # IMPORT CUSTOM PARAMETERS AND OPTIONS
@@ -195,15 +195,9 @@ print("\n*** Solver initial state ***\n")
 #  (may take a full day to run) after initial state
 #  calprm...
 
-#  Disamenity parameters for informal settlements and backyard shacks,
-#  coming from location-based calibration, as opposed to general calibration
-#  used in Pfeiffer et al. (appendix C5)
-param["pockets"] = np.load(
-    path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-param["backyard_pockets"] = np.load(
-    path_outputs+'fluvial_and_pluvial/param_backyards.npy')
 
-param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
+
+# param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
 
 
 # %% Validation: draw maps and figures

@@ -177,7 +177,7 @@ def import_macro_data(param, path_scenarios):
     interest_rate = np.nanmean(interest_rate_n_years)/100
 
     # Population
-    # Where does this come from?
+    # Where does this come? From Claus
     total_RDP = 194258
     total_formal = 626770
     total_informal = 143765
@@ -271,6 +271,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # We compute linear regression spline for 4 years centered around baseline
     # Where does growth rate come from? Set as parameter?
+    # Basile's median scenario + stop of program
     spline_RDP = interp1d(
         [2001 - param["baseline_year"], 2011 - param["baseline_year"],
          2020 - param["baseline_year"], 2041 - param["baseline_year"]],
@@ -294,7 +295,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We take the absolute difference between projected and actual RDP
     #  constructions over the years (RDP left to build?) and return the year
-    #  index for the minimum... Meaning of variables?
+    #  index for the minimum... Meaning of variables? To make it coherent
     year_short_term = np.argmin(
         np.abs(sum(construction_rdp.total_yield_DU_ST)
                - (number_RDP - number_RDP[0]))
@@ -341,14 +342,13 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # Getting areas
 
-    #  % of the pixel area dedicated to RDP (after accounting for backyarding)
-    #  Doesn't it embed an exogenous assumption about the share of backyarding?
+    #  % of the pixel area dedicated to RDP (after accounting for backyard)
     area_RDP = (data_rdp["area"] * param["RDP_size"]
                 / (param["backyard_size"] + param["RDP_size"])
                 / area_pixel)
 
     #  For the RDP constructed area, we take the min between declared value and
-    #  extrapolation from our initial size parameters (why?)
+    #  extrapolation from our initial size parameters
 
     #  We do it for the ST
     area_RDP_short_term = np.minimum(
@@ -392,12 +392,12 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  Share of pixel urban land
     urban = np.transpose(land_use_data_old.urban) / area_pixel
     #  We consider that the potential for backyard building cannot exceed that
-    #  of urban area?
+    #  of urban area
     coeff_land_backyard = np.fmin(urban, area_backyard)
 
     #  We take the population density from both formal and informal backyards
     #  (considered as backyarding) and reweight it by the ratio of max pixel
-    #  share available for backyarding over max population density (why?)
+    #  share available for backyarding over max population density (cf. Charlotte)
     actual_backyards = (
         (housing_types.backyard_formal_grid
          + housing_types.backyard_informal_grid)
@@ -405,7 +405,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
 
-    #  We take the max from two different data sources?
+    #  We take the max from two different data sources? To be conservative!
     #  Idea is supposedly to have a pixel share potential for building
     coeff_land_backyard = np.fmax(coeff_land_backyard, actual_backyards)
     #  Why do we multiply by the max share of land available for backyarding
@@ -595,6 +595,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
     """Return pixel share for housing scenarios, weighted by max building %."""
+    # Should we multiply by max param?
     coeff_land_private = (spline_land_constraints(t)
                           - spline_land_backyard(t)
                           - spline_land_informal(t)

@@ -1,83 +1,115 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 28 16:01:05 2020
+Created on Wed Oct 28 16:01:05 2020.
 
 @author: Charlotte Liotta
 """
 import numpy as np
-from equilibrium.sub.functions_solver import *
+import equilibrium.sub.functions_solver as eqsol
 
-def compute_outputs(housing_type, 
-                    utility, 
-                    amenities, 
-                    param, 
-                    income_net_of_commuting_costs, 
-                    grid, 
-                    income_class_by_housing_type, 
-                    options, housing_limit, 
-                    agricultural_rent, 
-                    interest_rate, 
-                    coeff_land, 
-                    minimum_housing_supply, 
-                    construction_param, 
-                    housing_in, 
-                    param_pockets, 
+
+def compute_outputs(housing_type,
+                    utility,
+                    amenities,
+                    param,
+                    income_net_of_commuting_costs,
+                    grid,
+                    income_class_by_housing_type,
+                    options, housing_limit,
+                    agricultural_rent,
+                    interest_rate,
+                    coeff_land,
+                    minimum_housing_supply,
+                    construction_param,
+                    housing_in,
+                    param_pockets,
                     param_backyards_pockets):
-    
-    # %% Dwelling size
-    
+    """d."""
+    # %% Dwelling size in selected pixels per (endogenous) housing type
+
     if housing_type == 'formal':
-        
-        dwelling_size = compute_dwelling_size_formal(utility, amenities, param, income_net_of_commuting_costs)
-    
-        #Here we introduce the minimum lot-size 
+
+        dwelling_size = eqsol.compute_dwelling_size_formal(
+            utility, amenities, param, income_net_of_commuting_costs)
+
+        # Here, we introduce the minimum lot-size
         dwelling_size = np.maximum(dwelling_size, param["mini_lot_size"])
+        # And we make sure we do not consider cases where some income groups
+        # would have no access to formal housing
         dwelling_size[income_class_by_housing_type.formal == 0, :] = np.nan
-    
-    elif housing_type == 'backyard':
-        dwelling_size = param["shack_size"] * np.ones((4, len(grid.dist)))
-        dwelling_size[income_class_by_housing_type.backyard == 0, :] = np.nan
-    
-    elif housing_type == 'informal':
-        dwelling_size = param["shack_size"] * np.ones((4, len(grid.dist)))
-        dwelling_size[income_class_by_housing_type.settlement == 0, :] = np.nan
-        
-        #plt.hist(data[data> 0.05], bins=100)
-        #plt.xlim(0,20)
-        #plt.tick_params(top='off', bottom='ON', left='off', right='off', labelleft='on', labelbottom='on')
 
-        #data = housing_types_grid.informal_grid_2011 * param["shack_size"] / (250000 * 0.4)
-        
-    # %% Bid rents
-    fraction_capital_destroyed=0
+    elif housing_type == 'backyard':
+
+        # Defined exogenously
+        dwelling_size = param["shack_size"] * np.ones((4, len(grid.dist)))
+        # As before
+        dwelling_size[income_class_by_housing_type.backyard == 0, :] = np.nan
+
+    elif housing_type == 'informal':
+
+        # Defined exogenously
+        dwelling_size = param["shack_size"] * np.ones((4, len(grid.dist)))
+        # As before
+        dwelling_size[income_class_by_housing_type.settlement == 0, :] = np.nan
+
+    # %% Bid rent functions in selected pixels per (endogenous) housing type
+
+    # What is the point? Set as parameter?
+    fraction_capital_destroyed = 0
 
     if housing_type == 'formal':
-        R_mat = param["beta"] * (income_net_of_commuting_costs) / (dwelling_size - (param["alpha"] * param["q0"])) 
+
+        # See research note, p.11
+        R_mat = (param["beta"] * (income_net_of_commuting_costs)
+                 / (dwelling_size - (param["alpha"] * param["q0"])))
         R_mat[income_net_of_commuting_costs < 0] = 0
         R_mat[income_class_by_housing_type.formal == 0, :] = 0
-    
+
     elif housing_type == 'backyard':
-        R_mat = 1 / param["shack_size"] * (
-            income_net_of_commuting_costs - 
-            ((1 + fraction_capital_destroyed * param["fraction_z_dwellings"]) * ((utility[:, None] / (amenities[None, :] * param_backyards_pockets[None, :] * ((dwelling_size - param["q0"]) ** param["beta"]))) ** (1/ param["alpha"]))) 
-            - (param["informal_structure_value"] * (interest_rate + param["depreciation_rate"])) - (fraction_capital_destroyed * param["informal_structure_value"]))
+
+        # See research note, p.12: shouldn't we distinguish between structural
+        # and content damage in fraction_capital_destroyed?
+        R_mat = (
+            (1 / param["shack_size"])
+            * (income_net_of_commuting_costs
+               - ((1 + fraction_capital_destroyed
+                   * param["fraction_z_dwellings"])
+                  * ((utility[:, None] / (amenities[None, :]
+                                          * param_backyards_pockets[None, :]
+                                          * ((dwelling_size - param["q0"])
+                                             ** param["beta"])))
+                     ** (1 / param["alpha"])))
+               - (param["informal_structure_value"]
+                  * (interest_rate + param["depreciation_rate"]))
+               - (fraction_capital_destroyed
+                  * param["informal_structure_value"]))
+            )
         R_mat[income_class_by_housing_type.backyard == 0, :] = 0
-    
+
     elif housing_type == 'informal':
-        #vec_correc_amenities = np.ones((income_net_of_commuting_costs.shape[0], income_net_of_commuting_costs.shape[1]))
-        #vec_correc_amenities[:, (grid.dist < 26) & (grid.dist > 22)] = vec_correc_amenities[:, (grid.dist < 26) & (grid.dist > 22)] * 1.15
-        #vec_correc_amenities[:, (grid.dist < 30) & (grid.dist > 26)] = vec_correc_amenities[:, (grid.dist < 30) & (grid.dist > 26)] * 1.12
-        #vec_correc_amenities[:, (grid.dist < 17) & (grid.dist > 15)] = vec_correc_amenities[:, (grid.dist < 17) & (grid.dist > 15)] * 1.05
-        #vec_correc_amenities[:, (grid.dist < 22) & (grid.dist > 17)] = vec_correc_amenities[:, (grid.dist < 22) & (grid.dist > 17)] * 1.05
-        #R_mat = (1 / param["shack_size"]) * (income_net_of_commuting_costs - ((1 + fraction_capital_destroyed.contents[None, :] * param["fraction_z_dwellings"]) * ((utility[:, None] / (amenities[None, :] * param["amenity_settlement"] * vec_correc_amenities * ((dwelling_size - param["q0"]) ** param["beta"]))) ** (1/ param["alpha"]))) - (param["informal_structure_value"] * (interest_rate + param["depreciation_rate"])) - (fraction_capital_destroyed.structure[None, :] * param["informal_structure_value"]))
-        R_mat = (1 / param["shack_size"]) * (income_net_of_commuting_costs - ((1 + fraction_capital_destroyed * param["fraction_z_dwellings"]) * ((utility[:, None] / (amenities[None, :] * param_pockets[None, :] * ((dwelling_size - param["q0"]) ** param["beta"]))) ** (1/ param["alpha"]))) - (param["informal_structure_value"] * (interest_rate + param["depreciation_rate"])) - (fraction_capital_destroyed * param["informal_structure_value"]))        
-        #R_mat = (1 / param["shack_size"]) * (income_net_of_commuting_costs - ((1 + fraction_capital_destroyed.contents[None, :] * param["fraction_z_dwellings"]) * ((utility[:, None] / (amenities[None, :] * param["amenity_settlement"] * ((dwelling_size - param["q0"]) ** param["beta"]))) ** (1/ param["alpha"]))) - (param["informal_structure_value"] * (interest_rate + param["depreciation_rate"])) - (fraction_capital_destroyed.structure[None, :] * param["informal_structure_value"]))        
-        
+
+        # See research note, p.12: same definition as for backyards
+        R_mat = (
+            (1 / param["shack_size"])
+            * (income_net_of_commuting_costs
+               - ((1 + fraction_capital_destroyed
+                   * param["fraction_z_dwellings"])
+                  * ((utility[:, None] / (amenities[None, :]
+                                          * param_pockets[None, :]
+                                          * ((dwelling_size - param["q0"])
+                                             ** param["beta"])))
+                     ** (1 / param["alpha"])))
+               - (param["informal_structure_value"]
+                  * (interest_rate + param["depreciation_rate"]))
+               - (fraction_capital_destroyed
+                  * param["informal_structure_value"]))
+            )
         R_mat[income_class_by_housing_type.settlement == 0, :] = 0
 
+    # We clean the results just in case
     R_mat[R_mat < 0] = 0
     R_mat[np.isnan(R_mat)] = 0
-    
+
     #Income group in each location
     proba = (R_mat == np.nanmax(R_mat, 0))
     #proba[~np.isnan(param["multi_proba_group"])] = param["multi_proba_group"][~np.isnan(param["multi_proba_group"])]
@@ -104,10 +136,10 @@ def compute_outputs(housing_type,
     # %% Housing supply
     
     if housing_type == 'formal':
-        housing_supply = compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, minimum_housing_supply, construction_param, housing_in, dwelling_size)
+        housing_supply = eqsol.compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, minimum_housing_supply, construction_param, housing_in, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'backyard':
-        housing_supply = compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, dwelling_size)
+        housing_supply = eqsol.compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'informal':
         housing_supply = 1000000 * np.ones(len(which_group))
