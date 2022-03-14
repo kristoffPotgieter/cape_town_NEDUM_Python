@@ -41,5 +41,4 @@
 
 - The ```main``` branch contains the original code (with some extra features) from the WB working paper (adapted from Matlab to Python): it should run properly
 - The ```TLM-edits``` branch contains some code and folder reorganization without rewriting anything: it should run properly
-- The ```TLM-write``` branch is the main working branch. It contains some rewriting and commenting: code may not run fully due to ongoing work (progress will be tracked by adding breakpoints to ```main.py``` in Spyder)
-- All other branches are for internal use only
+- The ```TLM-write``` branch is the main working branch. It contains some rewriting and commenting: code may not run fully due to ongoing work (latest )
