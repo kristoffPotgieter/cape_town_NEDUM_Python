@@ -4,7 +4,7 @@
 *.pdf
 *.jpg
 *.png
-*.backup
+*.bak
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
