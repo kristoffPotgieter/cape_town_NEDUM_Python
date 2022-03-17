@@ -29,8 +29,6 @@ import inputs.parameters_and_options as inpprm
 import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.run_simulations as eqsim
 
-import outputs.export_outputs as outexp
-
 
 # DEFINE FILE PATHS
 
@@ -41,6 +39,7 @@ path_data = path_folder + 'data_Cape_Town/'
 path_precalc_transp = path_folder + 'precalculated_transport/'
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
 path_outputs = path_code + '/4. Sorties/'
+path_floods = path_folder + "FATHOM/"
 
 
 # START TIMER FOR CODE OPTIMIZATION
@@ -206,39 +205,17 @@ print("\n*** Solver initial state ***\n")
      param["coeff_A"])
 
 
-# %% Validation: draw maps and figures
+try:
+    os.mkdir(path_outputs + name)
+except OSError as error:
+    print(error)
 
-# TODO: Go through underlying modules
-
-
-# GENERAL VALIDATION
-
-outexp.export_housing_types(
-    initial_state_households_housing_types, initial_state_household_centers,
-    housing_type_data, households_per_income_class, 'Simulation', 'Data',
-    path_outputs+name
-    )
-
-outexp.validation_density(
-    grid, initial_state_households_housing_types, housing_types,
-    path_outputs+name
-    )
-outexp.validation_density_housing_types(
-    grid, initial_state_households_housing_types, housing_types, 0,
-    path_outputs+name
-    )
-outexp.validation_housing_price(
-    grid, initial_state_rent, interest_rate, param, center, path_precalc_inp,
-    path_outputs+name
-    )
-
-# TODO: Is this function still useful?
-# outexp.plot_diagnosis_map_informl(
-#     grid, coeff_land, initial_state_households_housing_types, name
-#     )
-
-
-# TODO: FLOOD VALIDATION
+np.save(path_outputs + name + '/initial_state_households_housing_types.npy',
+        initial_state_households_housing_types)
+np.save(path_outputs + name + '/initial_state_household_centers.npy',
+        initial_state_household_centers)
+np.save(path_outputs + name + '/initial_state_rent.npy',
+        initial_state_rent)
 
 
 # %% Scenarios
@@ -280,13 +257,12 @@ outexp.validation_housing_price(
      spline_land_informal,
      income_class_by_housing_type,
      path_scenarios,
-     path_precalc_transp
+     path_precalc_transp,
+     spline_RDP
      )
 
 # Save outputs
 # TODO: Is it the right way to do so?
-
-name = 'carbon_tax_car_bus_taxi_20211103_basile'
 
 try:
     os.mkdir(path_outputs + name)

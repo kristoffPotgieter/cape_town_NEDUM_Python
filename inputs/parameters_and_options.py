@@ -17,7 +17,7 @@ def import_options():
     # Used in solver_equil (dummy for housing supply adaptability)
     options["adjust_housing_supply"] = 1
     # Dummy for agents taking floods into account in their choices
-    options["agents_anticipate_floods"] = 0
+    options["agents_anticipate_floods"] = 1
     # Dummy for using flood data from WBUS2 on top of FATHOM
     options["WBUS2"] = 0
     # Dummy for considering pluvial floods on top of fluvial floods

@@ -720,7 +720,7 @@ def import_init_floods_data(options, param, path_folder):
 
 
 def compute_fraction_capital_destroyed(d, type_flood, damage_function,
-                                       housing_type, options):
+                                       housing_type):
     """Define function used to get fraction of capital destroyed by floods."""
     interval0 = 1 - (1/5)
     interval1 = (1/5) - (1/10)
