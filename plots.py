@@ -1,25 +1,76 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb  2 16:40:37 2022
+Created on Wed Feb  2 16:40:37 2022.
 
 @author: vincentviguie
 """
-# %% Plot outputs scenarions
 
-### 0. Housing types
+# %% Preamble
 
-data = pd.DataFrame({'2011': np.nansum(simulation_households_housing_type[0, :, :], 1), '2020': np.nansum(simulation_households_housing_type[9, :, :], 1),'2030': np.nansum(simulation_households_housing_type[19, :, :], 1),'2040': np.nansum(simulation_households_housing_type[28, :, :], 1),}, index = ["Formal private", "Informal in \n backyards", "Informal \n settlements", "Formal subsidized"])
+
+# IMPORT PACKAGES
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import inputs.data as inpdt
+import inputs.parameters_and_options as inpprm
+
+
+# DEFINE FILE PATHS
+
+path_code = '..'
+path_folder = path_code + '/2. Data/'
+path_precalc_inp = path_folder + '0. Precalculated inputs/'
+path_outputs = path_code + '/4. Sorties/'
+
+name = 'carbon_tax_car_bus_taxi_20211103_basile'
+
+
+# LOAD SIMULATION DATA (from main.py)
+
+simulation_households_center = np.load(
+    path_outputs + name + '/simulation_households_center.npy')
+simulation_dwelling_size = np.load(
+    path_outputs + name + '/simulation_dwelling_size.npy')
+simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
+simulation_households_housing_type = np.load(
+    path_outputs + name + '/simulation_households_housing_type.npy')
+simulation_households = np.load(
+    path_outputs + name + '/simulation_households.npy')
+simulation_utility = np.load(path_outputs + name + '/simulation_utility.npy')
+
+income = np.load(
+    path_folder+"precalculated_transport/incomeNetofCommuting_29.npy")
+
+options = inpprm.import_options()
+param = inpprm.import_param(path_precalc_inp, path_outputs)
+
+if options["agents_anticipate_floods"] == 0:
+    fraction_capital_destroyed, *_ = inpdt.import_floods_data(
+        options, param, path_folder
+        )  # need to add parameters?
+
+
+# %% Plot output scenarios
+
+# 0. Housing types
+
+data = pd.DataFrame(
+    {'2011': np.nansum(simulation_households_housing_type[0, :, :], 1),
+     '2020': np.nansum(simulation_households_housing_type[9, :, :], 1),
+     '2030': np.nansum(simulation_households_housing_type[19, :, :], 1),
+     '2040': np.nansum(simulation_households_housing_type[28, :, :], 1)},
+    index=["Formal private", "Informal in \n backyards",
+           "Informal \n settlements", "Formal subsidized"]
+    )
 data.plot(kind="bar")
 plt.tick_params(labelbottom=True)
 plt.xticks(rotation='horizontal')
 plt.ylabel("Number of households")
 plt.ylim(0, 880000)
 
-simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
-simulation_dwelling_size = np.load(path_outputs + name + '/simulation_dwelling_size.npy')
-income = np.load(path_folder+"precalculated_transport/incomeNetofCommuting_29.npy")
-simulation_households = np.load(path_outputs + name + '/simulation_households.npy')
 
 hh_2011 = simulation_households[0, :, :, :]
 hh_2020 = simulation_households[9, :, :, :]
@@ -31,9 +82,9 @@ np.nansum(hh_2020, 2)
 np.nansum(hh_2030, 2)
 np.nansum(hh_2040, 2)
 
-#formal
+#  Formal
 class_income = 3
-income_class_2011 = np.argmax(simulation_households[29, :, :, :], 1) 
+income_class_2011 = np.argmax(simulation_households[29, :, :, :], 1)
 subset = income_class_2011[0, :] == class_income
 q = simulation_dwelling_size[29, 0, :][subset]
 r = simulation_rent[29, 0, :][subset]

@@ -5,9 +5,12 @@ Created on Tue Oct 27 15:33:37 2020.
 @author: Charlotte Liotta
 """
 
-# TO DO
-# Change names and repo structure?
-# Set baseline year as a dynamic parameter for loading updated data
+# TO DO LATER
+# Change names and repo structure
+# Set explicit dynamic parameters
+# Go through calibration (note that we run on precalibrated data)
+# Write user guide with main features, files and functions to interact with
+# Check warnings (need to go into modules)
 
 
 # %% Preamble
@@ -17,22 +20,16 @@ Created on Tue Oct 27 15:33:37 2020.
 
 import numpy as np
 import pandas as pd
-# import seaborn as sns
 import time
+import os
 
 import inputs.data as inpdt
 import inputs.parameters_and_options as inpprm
-import inputs.WBUS2_depth as inpfld
 
 import equilibrium.compute_equilibrium as eqcmp
-import equilibrium.functions_dynamic as eqdyn
 import equilibrium.run_simulations as eqsim
 
 import outputs.export_outputs as outexp
-import outputs.export_outputs_floods as outexpfld
-import outputs.flood_outputs as outfld
-
-# import calibration.disamenity_param_calibration as calprm
 
 
 # DEFINE FILE PATHS
@@ -58,8 +55,9 @@ start = time.process_time()
 
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
-t = np.arange(0, 1)  # when is it used?
 
+#  Set timeline for simulations
+t = np.arange(0, 30)
 
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
@@ -85,6 +83,9 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011) = inpdt.import_income_classes_data(param, path_data)
 
+#  TODO: Ask why we need another parameter
+param["income_year_reference"] = mean_income
+
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
 income_net_of_commuting_costs = np.load(
@@ -107,7 +108,7 @@ housing_types[np.isnan(housing_types)] = 0
  ) = inpdt.import_macro_data(param, path_scenarios)
 
 
-# LAND USE
+# LAND USE PROJECTIONS
 
 (spline_RDP, spline_estimate_RDP, spline_land_RDP, coeff_land_backyard,
  spline_land_backyard, spline_land_informal, spline_land_constraints,
@@ -116,14 +117,23 @@ housing_types[np.isnan(housing_types)] = 0
                            housing_type_data, path_data, path_folder)
      )
 
-#  Is it needed to still reweight by max_land_use?
-#  What about coeff_land_backyard?
+#  TODO: Why do we need this correction?
+param["pockets"][
+    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
+    ] = 0.79
+
+
+#  We correct areas for each housing type at baseline year for the amount of
+#  constructible land in each type
 coeff_land = inpdt.import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal,
     spline_land_RDP, param, 0)
 
+#  We update land use parameters at baseline (relies on data)
+
 housing_limit = inpdt.import_housing_limit(grid, param)
 
+#  TODO: plug outputs in a new variable (not param) and adapt linked functions
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -131,30 +141,34 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     interest_rate
     )
 
-
-# SCENARIOS
-
-#  What is the difference with spline_RDP?
-
-(spline_agricultural_rent,
- spline_interest_rate,
- spline_RDP,
- spline_population_income_distribution,
- spline_inflation,
- spline_income_distribution,
- spline_population,
- spline_interest_rate,
- spline_income,
- spline_minimum_housing_supply,
- spline_fuel) = eqdyn.import_scenarios(
-     income_2011, param, grid, path_scenarios
-     )
-
-# Most of the import is implicit in run_simulation, but we need to make this
-# explicit for scenario plots
+# FLOOD DATA
+#  TODO: create a new variable instead of storing in param
+param = inpdt.infer_WBUS2_depth(housing_types, param, path_folder)
+if options["agents_anticipate_floods"] == 1:
+    (fraction_capital_destroyed, structural_damages_small_houses,
+     structural_damages_medium_houses, structural_damages_large_houses,
+     content_damages, structural_damages_type1, structural_damages_type2,
+     structural_damages_type3a, structural_damages_type3b,
+     structural_damages_type4a, structural_damages_type4b
+     ) = inpdt.import_full_floods_data(options, param, path_folder)
+elif options["agents_anticipate_floods"] == 0:
+    fraction_capital_destroyed = pd.DataFrame()
+    fraction_capital_destroyed["structure_formal_2"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_formal_1"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_subsidized_2"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_subsidized_1"] = np.zeros(24014)
+    fraction_capital_destroyed["contents_formal"] = np.zeros(24014)
+    fraction_capital_destroyed["contents_informal"] = np.zeros(24014)
+    fraction_capital_destroyed["contents_subsidized"] = np.zeros(24014)
+    fraction_capital_destroyed["contents_backyard"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_backyards"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_informal_settlements"
+                               ] = np.zeros(24014)
 
 
 # %% Compute initial state
+
+# TODO: Go through underlying modules
 
 print("\n*** Solver initial state ***\n")
 (initial_state_utility,
@@ -170,6 +184,7 @@ print("\n*** Solver initial state ***\n")
  initial_state_capital_land,
  initial_state_average_income,
  initial_state_limit_city) = eqcmp.compute_equilibrium(
+     fraction_capital_destroyed,
      amenities,
      param,
      housing_limit,
@@ -189,95 +204,101 @@ print("\n*** Solver initial state ***\n")
      minimum_housing_supply,
      param["coeff_A"])
 
-# IMPORT CUSTOM PARAMETERS AND OPTIONS
-
-#  If want to update the parameters, need to uncomment the following command
-#  (may take a full day to run) after initial state
-#  calprm...
-
-
-
-# param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
-
 
 # %% Validation: draw maps and figures
 
-#General validation
-export_housing_types(initial_state_households_housing_types, 
-                     initial_state_household_centers, 
-                     housing_type_data, 
-                     households_per_income_class, 
-                     'Simulation', 
-                     'Data',
-                     path_outputs+name)
+# TODO: Go through underlying modules
 
-validation_density(grid, initial_state_households_housing_types, housing_types,path_outputs+name)
-validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, 0,path_outputs+name)
-validation_housing_price(grid, initial_state_rent, interest_rate, param, center, path_precalc_inp_path,path_outputs+name)
-#plot_diagnosis_map_informl(grid, coeff_land, initial_state_households_housing_types, name)
+
+# GENERAL VALIDATION
+
+outexp.export_housing_types(
+    initial_state_households_housing_types, initial_state_household_centers,
+    housing_type_data, households_per_income_class, 'Simulation', 'Data',
+    path_outputs+name
+    )
+
+outexp.validation_density(
+    grid, initial_state_households_housing_types, housing_types,
+    path_outputs+name
+    )
+outexp.validation_density_housing_types(
+    grid, initial_state_households_housing_types, housing_types, 0,
+    path_outputs+name
+    )
+outexp.validation_housing_price(
+    grid, initial_state_rent, interest_rate, param, center, path_precalc_inp,
+    path_outputs+name
+    )
+
+# TODO: Is this function still useful?
+# outexp.plot_diagnosis_map_informl(
+#     grid, coeff_land, initial_state_households_housing_types, name
+#     )
+
+
+# TODO: FLOOD VALIDATION
+
 
 # %% Scenarios
 
-#Compute scenarios
-t = np.arange(0, 30)
+# TODO: Go through underlying modules
 
-#Add counterfactual options: here, we may want to consider flood damages and people in flood zones, while keeping housing choices independent of floods (?)
-#But is this really working?
-if options["agents_anticipate_floods"] == 0:
-    fraction_capital_destroyed, *_ = import_floods_data(options, param, path_folder) #need to add parameters
-    #fraction_capital_destroyed, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a = import_floods_data(options, param, path_folder)
-
-
-# important: does the simulation
-(simulation_households_center, 
- simulation_households_housing_type, 
- simulation_dwelling_size, 
- simulation_rent, 
- simulation_households, 
- simulation_error, 
- simulation_housing_supply, 
- simulation_utility, 
+# RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
+(simulation_households_center,
+ simulation_households_housing_type,
+ simulation_dwelling_size,
+ simulation_rent,
+ simulation_households,
+ simulation_error,
+ simulation_housing_supply,
+ simulation_utility,
  simulation_deriv_housing,
- simulation_T) = run_simulation(t, 
-                                options, 
-                                income_2011, 
-                                param, 
-                                grid, 
-                                initial_state_utility, 
-                                initial_state_error, 
-                                initial_state_households, 
-                                initial_state_households_housing_types, 
-                                initial_state_housing_supply, 
-                                initial_state_household_centers, 
-                                initial_state_average_income, 
-                                initial_state_rent, 
-                                initial_state_dwelling_size, 
-                                fraction_capital_destroyed, 
-                                amenities, 
-                                housing_limit, 
-                                spline_estimate_RDP, 
-                                spline_land_constraints, 
-                                spline_land_backyard, 
-                                spline_land_RDP, 
-                                spline_land_informal, 
-                                income_class_by_housing_type, 
-                                path_scenarios, 
-                                path_precalc_transp)
+ simulation_T) = eqsim.run_simulation(
+     t,
+     options,
+     income_2011,
+     param,
+     grid,
+     initial_state_utility,
+     initial_state_error,
+     initial_state_households,
+     initial_state_households_housing_types,
+     initial_state_housing_supply,
+     initial_state_household_centers,
+     initial_state_average_income,
+     initial_state_rent,
+     initial_state_dwelling_size,
+     fraction_capital_destroyed,
+     amenities,
+     housing_limit,
+     spline_estimate_RDP,
+     spline_land_constraints,
+     spline_land_backyard,
+     spline_land_RDP,
+     spline_land_informal,
+     income_class_by_housing_type,
+     path_scenarios,
+     path_precalc_transp
+     )
 
-#Save outputs
+# Save outputs
+# TODO: Is it the right way to do so?
+
 name = 'carbon_tax_car_bus_taxi_20211103_basile'
 
 try:
     os.mkdir(path_outputs + name)
 except OSError as error:
-    print(error) 
+    print(error)
 
-np.save(path_outputs + name + '/simulation_households_center.npy', simulation_households_center)
-np.save(path_outputs + name + '/simulation_dwelling_size.npy', simulation_dwelling_size)
+np.save(path_outputs + name + '/simulation_households_center.npy',
+        simulation_households_center)
+np.save(path_outputs + name + '/simulation_dwelling_size.npy',
+        simulation_dwelling_size)
 np.save(path_outputs + name + '/simulation_rent.npy', simulation_rent)
-np.save(path_outputs + name + '/simulation_households_housing_type.npy', simulation_households_housing_type)
-np.save(path_outputs + name + '/simulation_households.npy', simulation_households)
+np.save(path_outputs + name + '/simulation_households_housing_type.npy',
+        simulation_households_housing_type)
+np.save(path_outputs + name + '/simulation_households.npy',
+        simulation_households)
 np.save(path_outputs + name + '/simulation_utility.npy', simulation_utility)
-
-
-

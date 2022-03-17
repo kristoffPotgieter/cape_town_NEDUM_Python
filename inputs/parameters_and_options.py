@@ -63,7 +63,7 @@ def import_param(path_precalc_inp, path_outputs):
                                        )["lambdaKeep"].squeeze()
 
     # Discount factors
-    #  Inconsistency in the paper
+    #  TODO: check inconsistency with the paper (from Viguié et al., 2014)
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
     param["interest_rate"] = 0.025
@@ -85,7 +85,7 @@ def import_param(path_precalc_inp, path_outputs):
     param["informal_structure_value"] = 4000
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
-    #  Fraction of composite goods that can be destroyed by floods
+    #  Comes from Claus (Aux data/HH Income per DU & housing_contents)
     param["fraction_z_dwellings"] = 0.49
     #  Value of a social housing dwelling unit (in rands)
     #  For floods destruction
@@ -93,13 +93,13 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Max % of land that can be built for housing (to take roads into account),
     # by housing type
-    #  Where from?
+    #  TODO: Ask Basile where this comes from
     param["max_land_use"] = 0.7
     param["max_land_use_backyard"] = 0.45
     param["max_land_use_settlement"] = 0.4
 
     # Constraints on housing supply (in meters)
-    #  Where from?
+    #  TODO: Ask Basile where this comes from
     param["historic_radius"] = 100
     param["limit_height_center"] = 10
     param["limit_height_out"] = 10
@@ -108,7 +108,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  Corresponds to the ninth decile in the sales data sets, when
     #  selecting only agricultural properties in rural areas
     param["agricultural_rent_2011"] = 807.2
-    #  Same?
+    #  TODO: Ask Basile where this comes from
     param["agricultural_rent_2001"] = 70.7
 
     # Year urban edge constraint kicks in
@@ -150,10 +150,11 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Size (in m^2) above which we need to switch flood damage functions for
     # formal housing
-    #  Where from?
+    # TODO: Where from?
     param["threshold"] = 130
 
-    # Make copies of parameters that may change (why not create new variables?)
+    # Make copies of parameters that may change
+    # TODO : check if useful
     param["informal_structure_value_ref"] = copy.deepcopy(
         param["informal_structure_value"])
     param["subsidized_structure_value_ref"] = copy.deepcopy(
@@ -175,15 +176,15 @@ def import_construction_parameters(param, grid, housing_types_sp,
                                    grid_formal_density_HFA, coeff_land,
                                    interest_rate):
     """Update parameters with values for construction."""
-    # Estimated population density?
-
-    # Initialize vector for each pixel
+    # We define housing supply per unit of land for simulations where
+    # developers do not adjust
     param["housing_in"] = np.empty(len(grid_formal_density_HFA))
     param["housing_in"][:] = np.nan
     # Fill vector with population density in formal housing divided by the
     # share of built formal area (times 1.1) for areas with some formal housing
-    # Does this give the density for formal area instead of just the pixel
-    # area?
+    # This gives the density for formal area instead of just the pixel area:
+    # we therefore consider that developers always provide one surface unit of
+    # housing per household per unit of land
     (param["housing_in"][coeff_land[0, :] != 0]
      ) = (grid_formal_density_HFA[coeff_land[0, :] != 0]
           / coeff_land[0, :][coeff_land[0, :] != 0]
@@ -192,13 +193,16 @@ def import_construction_parameters(param, grid, housing_types_sp,
     param["housing_in"][
         (coeff_land[0, :] == 0) | np.isnan(grid_formal_density_HFA)
         ] = 0
-    # Put a cap and a floor on values (where from?)
+    # Put a cap and a floor on values
     param["housing_in"][param["housing_in"] > 2 * (10**6)] = 2 * (10**6)
     param["housing_in"][param["housing_in"] < 0] = 0
+    # TODO: Ask Basile where all this comes from
 
     # In Mitchells Plain, housing supply is given exogenously (planning),
     # and households of group 2 live there (coloured neighborhood)
-    # We do the same as before with a starting supply of 1 in Mitchells Plain?
+    # We do the same as before with a starting supply of 1 in Mitchells Plain:
+    # the idea is to have a min housing supply in this zone
+    # TODO: Ask Basile how does this work
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
     cond = mitchells_plain_grid_2011 * coeff_land[0, :]
     (param["minimum_housing_supply"][cond != 0]
@@ -206,12 +210,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
     param["minimum_housing_supply"][
         (coeff_land[0, :] < 0.1) | (np.isnan(param["minimum_housing_supply"]))
         ] = 0
-
-    # Usefulness?
-    param["multi_proba_group"] = np.empty(
-        (param["nb_of_income_classes"], len(grid.dist))
-        )
-    param["multi_proba_group"][:] = np.nan
+    minimum_housing_supply = param["minimum_housing_supply"]
 
     # We take minimum dwelling size of built areas where the share of informal
     # and backyard is smaller than 10% of the overall number of dwellings
@@ -228,8 +227,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
             ]
         )
 
-    minimum_housing_supply = param["minimum_housing_supply"]
-    # Meaning? Ask Vincent
+    # TODO: Ask Basile what this means (link with footnote 16?)
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)

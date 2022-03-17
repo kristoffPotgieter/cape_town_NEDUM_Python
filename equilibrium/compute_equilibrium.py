@@ -15,14 +15,13 @@ import copy
 import equilibrium.sub.compute_outputs as eqout
 
 
-def compute_equilibrium(
-        amenities, param, housing_limit, population,
-        households_per_income_class, total_RDP, coeff_land,
-        income_net_of_commuting_costs, grid, options, agricultural_rent,
-        interest_rate, number_properties_RDP, average_income, mean_income,
-        income_class_by_housing_type, minimum_housing_supply,
-        construction_param
-        ):
+def compute_equilibrium(fraction_capital_destroyed, amenities, param,
+                        housing_limit, population, households_per_income_class,
+                        total_RDP, coeff_land, income_net_of_commuting_costs,
+                        grid, options, agricultural_rent, interest_rate,
+                        number_properties_RDP, average_income, mean_income,
+                        income_class_by_housing_type, minimum_housing_supply,
+                        construction_param):
     """d."""
     # Adjust the population to remove the population in RDP
     #  We augment the number of households per income class to include RDP
@@ -48,6 +47,8 @@ def compute_equilibrium(
     minimum_housing_supply = minimum_housing_supply[selected_pixels]
     housing_in = copy.deepcopy(param["housing_in"][selected_pixels])
     amenities = amenities[selected_pixels]
+    fraction_capital_destroyed = fraction_capital_destroyed.iloc[
+        selected_pixels, :]
     param_pockets = param["pockets"][selected_pixels]
     param_backyards_pockets = param["backyard_pockets"][selected_pixels]
 
@@ -91,10 +92,11 @@ def compute_equilibrium(
      simulated_people[0, :, :], housing_supply[0, :], dwelling_size[0, :],
      R_mat[0, :, :]) = eqout.compute_outputs(
          'formal', utility[index_iteration, :], amenities, param,
-         income_net_of_commuting_costs, grid, income_class_by_housing_type,
-         options, housing_limit, agricultural_rent, interest_rate,
-         coeff_land[0, :], minimum_housing_supply, construction_param,
-         housing_in, param_pockets, param_backyards_pockets
+         income_net_of_commuting_costs, fraction_capital_destroyed, grid,
+         income_class_by_housing_type, options, housing_limit,
+         agricultural_rent, interest_rate, coeff_land[0, :],
+         minimum_housing_supply, construction_param, housing_in, param_pockets,
+         param_backyards_pockets
          )
     #  Backyard housing
     (simulated_jobs[index_iteration, 1, :], rent_matrix[index_iteration, 1, :],
@@ -102,20 +104,23 @@ def compute_equilibrium(
      simulated_people[1, :, :], housing_supply[1, :], dwelling_size[1, :],
      R_mat[1, :, :]) = eqout.compute_outputs(
          'backyard', utility[index_iteration, :], amenities, param,
-         income_net_of_commuting_costs, grid, income_class_by_housing_type,
-         options, housing_limit, agricultural_rent, interest_rate,
-         coeff_land[1, :], minimum_housing_supply, construction_param,
-         housing_in, param_pockets, param_backyards_pockets
+         income_net_of_commuting_costs, fraction_capital_destroyed, grid,
+         income_class_by_housing_type, options, housing_limit,
+         agricultural_rent, interest_rate, coeff_land[1, :],
+         minimum_housing_supply, construction_param, housing_in, param_pockets,
+         param_backyards_pockets
          )
+    #  Informal housing
     (simulated_jobs[index_iteration, 2, :], rent_matrix[index_iteration, 2, :],
      simulated_people_housing_types[index_iteration, 2, :],
      simulated_people[2, :, :], housing_supply[2, :], dwelling_size[2, :],
      R_mat[2, :, :]) = eqout.compute_outputs(
          'informal', utility[index_iteration, :], amenities, param,
-         income_net_of_commuting_costs, grid, income_class_by_housing_type,
-         options, housing_limit, agricultural_rent, interest_rate,
-         coeff_land[2, :], minimum_housing_supply, construction_param,
-         housing_in, param_pockets, param_backyards_pockets
+         income_net_of_commuting_costs, fraction_capital_destroyed, grid,
+         income_class_by_housing_type, options, housing_limit,
+         agricultural_rent, interest_rate, coeff_land[2, :],
+         minimum_housing_supply, construction_param, housing_in, param_pockets,
+         param_backyards_pockets
          )
 
     #Compute error and adjust utility
@@ -146,10 +151,43 @@ def compute_equilibrium(
             convergence_factor = convergence_factor * (1 - 0.6 * index_iteration / param["max_iter"])
             
             #Compute outputs solver - first iteration
-            simulated_jobs[index_iteration, 0, :], rent_matrix[index_iteration, 0, :], simulated_people_housing_types[index_iteration,0,:], simulated_people[0,:,:], housing_supply[0,:], dwelling_size[0,:], R_mat[0,:,:] = eqout.compute_outputs('formal', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[0, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
-            simulated_jobs[index_iteration, 1, :], rent_matrix[index_iteration, 1, :], simulated_people_housing_types[index_iteration,1,:], simulated_people[1,:,:], housing_supply[1,:], dwelling_size[1,:], R_mat[1,:,:] = eqout.compute_outputs('backyard', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[1, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
-            simulated_jobs[index_iteration, 2, :], rent_matrix[index_iteration, 2, :], simulated_people_housing_types[index_iteration,2,:], simulated_people[2,:,:], housing_supply[2,:], dwelling_size[2,:], R_mat[2,:,:] = eqout.compute_outputs('informal', utility[index_iteration,:], amenities, param, income_net_of_commuting_costs, grid, income_class_by_housing_type, options, housing_limit, agricultural_rent, interest_rate, coeff_land[2, :], minimum_housing_supply, construction_param, housing_in, param_pockets, param_backyards_pockets)
-    
+            #  Formal housing
+            (simulated_jobs[index_iteration, 0, :], rent_matrix[index_iteration, 0, :],
+             simulated_people_housing_types[index_iteration, 0, :],
+             simulated_people[0, :, :], housing_supply[0, :], dwelling_size[0, :],
+             R_mat[0, :, :]) = eqout.compute_outputs(
+                 'formal', utility[index_iteration, :], amenities, param,
+                 income_net_of_commuting_costs, fraction_capital_destroyed, grid,
+                 income_class_by_housing_type, options, housing_limit,
+                 agricultural_rent, interest_rate, coeff_land[0, :],
+                 minimum_housing_supply, construction_param, housing_in, param_pockets,
+                 param_backyards_pockets
+                 )
+            #  Backyard housing
+            (simulated_jobs[index_iteration, 1, :], rent_matrix[index_iteration, 1, :],
+             simulated_people_housing_types[index_iteration, 1, :],
+             simulated_people[1, :, :], housing_supply[1, :], dwelling_size[1, :],
+             R_mat[1, :, :]) = eqout.compute_outputs(
+                 'backyard', utility[index_iteration, :], amenities, param,
+                 income_net_of_commuting_costs, fraction_capital_destroyed, grid,
+                 income_class_by_housing_type, options, housing_limit,
+                 agricultural_rent, interest_rate, coeff_land[1, :],
+                 minimum_housing_supply, construction_param, housing_in, param_pockets,
+                 param_backyards_pockets
+                 )
+            #  Informal housing
+            (simulated_jobs[index_iteration, 2, :], rent_matrix[index_iteration, 2, :],
+             simulated_people_housing_types[index_iteration, 2, :],
+             simulated_people[2, :, :], housing_supply[2, :], dwelling_size[2, :],
+             R_mat[2, :, :]) = eqout.compute_outputs(
+                 'informal', utility[index_iteration, :], amenities, param,
+                 income_net_of_commuting_costs, fraction_capital_destroyed, grid,
+                 income_class_by_housing_type, options, housing_limit,
+                 agricultural_rent, interest_rate, coeff_land[2, :],
+                 minimum_housing_supply, construction_param, housing_in, param_pockets,
+                 param_backyards_pockets
+                 )
+
             #Compute error and adjust utility
             total_simulated_jobs[index_iteration,:] = np.sum(simulated_jobs[index_iteration, :, :], 0)
             

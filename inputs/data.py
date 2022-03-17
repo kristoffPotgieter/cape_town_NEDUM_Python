@@ -9,7 +9,6 @@ import numpy as np
 import scipy.io
 import pandas as pd
 from scipy.interpolate import interp1d
-import copy
 
 
 def import_grid(path_data):
@@ -168,16 +167,16 @@ def import_macro_data(param, path_scenarios):
             ~np.isnan(scenario_interest_rate.real_interest_rate)],
         'linear'
         )
-    #  Get interest rate as the mean (in %) over x last years (give as arg?)
+    #  Get interest rate as the mean (in %) over x last years
     nb_years_interest_rate = 3
     interest_rate_n_years = spline_interest_rate(
         np.arange(0 - nb_years_interest_rate, 0))
-    #  Is this precaution necessary?
+    #  We correct the obtained values
     interest_rate_n_years[interest_rate_n_years < 0] = np.nan
     interest_rate = np.nanmean(interest_rate_n_years)/100
 
     # Population
-    # Where does this come? From Claus
+    # Raw figures come from Claus (to be updated)
     total_RDP = 194258
     total_formal = 626770
     total_informal = 143765
@@ -202,14 +201,12 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # RDP population data
     #  We take total population in RDP at baseline year
     RDP_2011 = housing_type_data[3]
-    #  We take estimate for total population in RDP in 2001 (why?)
-    #  (estimated as sum(data.gridFormal(data.countRDPfromGV > 0)))  % 262452;
-    #  % Estimated by nb inc_1 - BY - settlement in 2001
+    #  Comes from Claus (to be updated)
     RDP_2001 = 1.1718e+05
 
     # Land cover for informal settlements (see R code for details)
 
-    # Set the area of a pixel (shouldn't it be set as parameter?) in m^2
+    # Set the area of a pixel in m^2
     area_pixel = (0.5 ** 2) * 1000000
 
     # General surface data on land use (urban, agricultural...)
@@ -237,23 +234,22 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # Nb of informal dwellings per pixel (realized scenario)
     informal_settlements_2020 = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
-    # Why do we divide by the max % of buildable land? To account for risk?
+    # TODO: Why do we correct by max_land here?
     informal_risks_2020 = (
         informal_settlements_2020.inf_dwellings_2020
         * param["shack_size"] * (1 / param["max_land_use_settlement"]))
-    # We neglect building risks smaller than 1% of a pixel area (why?)
+    # We neglect building risks smaller than 1% of a pixel area
     informal_risks_2020[informal_risks_2020 < area_pixel/100] = 0
     informal_risks_2020[np.isnan(informal_risks_2020)] = 0
 
-    # Is it a selection of pixels? On which criterion?
+    # TODO: Ask Basile where this comes from
     polygon_medium_timing = pd.read_excel(
         path_folder + 'Land occupation/polygon_medium_timing.xlsx',
         header=None)
 
     # We take the selected pixels from medium scenario and make their risk
     # area equal to the short scenario, then take the same selection in the
-    # short scenario and make their risk area equal to zero (why?)
-    # Are we using .loc the right way?
+    # short scenario and make their risk area equal to zero
     for item in list(polygon_medium_timing.squeeze()):
         informal_risks_medium.loc[
             informal_risks_medium["grid.data.ID"] == item,
@@ -270,8 +266,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 # 1. RDP population
 
     # We compute linear regression spline for 4 years centered around baseline
-    # Where does growth rate come from? Set as parameter?
-    # Basile's median scenario + stop of program
+    # Construction rate comes from working paper's median scenario, then a
+    # lower rate after the end of the programme in 2020
     spline_RDP = interp1d(
         [2001 - param["baseline_year"], 2011 - param["baseline_year"],
          2020 - param["baseline_year"], 2041 - param["baseline_year"]],
@@ -281,7 +277,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         )
 
     # We capture the output of the function to be used later on
-    #  Should be set as param?
+    #  Start of the programme
     year_begin_RDP = 2015
     #  We "center" scenarios around baseline year
     year_RDP = np.arange(year_begin_RDP, 2040) - param["baseline_year"]
@@ -294,14 +290,13 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # Setting the timeline
 
     #  We take the absolute difference between projected and actual RDP
-    #  constructions over the years (RDP left to build?) and return the year
-    #  index for the minimum... Meaning of variables? To make it coherent
+    #  constructions over the years (RDP left to build) and return the year
+    #  index for the minimum: this define the short-term horizon of the pgrm
     year_short_term = np.argmin(
         np.abs(sum(construction_rdp.total_yield_DU_ST)
                - (number_RDP - number_RDP[0]))
         )
-    #  We just take size of the projection array for long term (set as param?)
-    #  Why not use LT variables from construction_rdp?
+    #  We just take size of the projection array for long-term horizon
     year_long_term = 30
 
     #  We save the timeline into a list
@@ -314,7 +309,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # Getting the outcome
 
-    #  Why do we weight by closeness to the center to get retrospective RDP?
+    #  We weight by closeness to the center to get retrospective number of RDP
+    #  in 2001 (by assuming that central areas where built before)
     number_properties_2000 = (
         data_rdp["count"]
         * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
@@ -384,7 +380,6 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We get share of pixel backyard area by reweighting total area by the
     #  share of backyards in social housing units
-    #  Same remark as before about exogeneity
     area_backyard = (data_rdp["area"] * param["backyard_size"]
                      / (param["backyard_size"] + param["RDP_size"])
                      / area_pixel)
@@ -395,9 +390,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  of urban area
     coeff_land_backyard = np.fmin(urban, area_backyard)
 
-    #  We take the population density from both formal and informal backyards
-    #  (considered as backyarding) and reweight it by the ratio of max pixel
-    #  share available for backyarding over max population density (cf. Charlotte)
+    #  We reweight max pixel share available for backyarding (both formal and
+    #  informal) by a ratio of how densely populated the pixel is: this yields
+    #  an alternative definition of coeef_land_backyard
     actual_backyards = (
         (housing_types.backyard_formal_grid
          + housing_types.backyard_informal_grid)
@@ -405,11 +400,11 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
 
-    #  We take the max from two different data sources? To be conservative!
-    #  Idea is supposedly to have a pixel share potential for building
+    #  We take the max from two different definitions to be conservative: we
+    #  consider the maximum risk of backyard settlements
+    #  This yields a pixel share potential for new structures
     coeff_land_backyard = np.fmax(coeff_land_backyard, actual_backyards)
-    #  Why do we multiply by the max share of land available for backyarding
-    #  although we have already been considering backyarding area?
+    #  TODO: should we multiply by the max share of land available here?
     coeff_land_backyard = coeff_land_backyard * param["max_land_use_backyard"]
     coeff_land_backyard[coeff_land_backyard < 0] = 0
 
@@ -526,7 +521,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     high_proba = informal_risks_VERYHIGH.area + informal_risks_HIGH.area
 
     #  We consider some scenario for 2023 and correct for RDP construction
-    #  (why?)
+    #  (as informal predictions are not precise enough to account for such
+    #  unavailable area)
     informal_2023 = np.fmin(
         coeff_land_no_urban_edge,
         np.fmax(
@@ -595,15 +591,15 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
     """Return pixel share for housing scenarios, weighted by max building %."""
-    # Should we multiply by max param?
     coeff_land_private = (spline_land_constraints(t)
                           - spline_land_backyard(t)
                           - spline_land_informal(t)
                           - spline_land_RDP(t)) * param["max_land_use"]
     coeff_land_private[coeff_land_private < 0] = 0
-    # How does it differ from the output of import_land_use?
     coeff_land_backyard = (spline_land_backyard(t)
                            * param["max_land_use_backyard"])
+    # We do not need to reweight RDP available pixel share as we directly have
+    # the true value from construction plans
     coeff_land_RDP = spline_land_RDP(t)
     coeff_land_settlement = (spline_land_informal(t)
                              * param["max_land_use_settlement"])
@@ -625,126 +621,352 @@ def import_housing_limit(grid, param):
 
     return housing_limit
 
-###
 
-def import_floods_data(options, param, path_folder):
-    
-    #Import floods data
-    fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr', 'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
-    pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr', 'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
+# TODO: Study underlying assumptions
+
+def import_init_floods_data(options, param, path_folder):
+    """Import initial floods data and damage functions."""
+    # Import floods data
+    fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
+                      'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr',
+                      'FD_1000yr']
+    pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr',
+                      'P_100yr', 'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
     path_data = path_folder + "FATHOM/"
-    
+
     d_pluvial = {}
     d_fluvial = {}
     for flood in fluvial_floods:
-        type_flood = copy.deepcopy(flood)
-        d_fluvial[flood] = np.squeeze(pd.read_excel(path_data + flood + ".xlsx"))
+        d_fluvial[flood] = np.squeeze(
+            pd.read_excel(path_data + flood + ".xlsx")
+            )
     for flood in pluvial_floods:
-        type_flood = copy.deepcopy(flood)
-        d_pluvial[flood] = np.squeeze(pd.read_excel(path_data + flood + ".xlsx"))
-    
-    #Depth-damage functions
-    structural_damages_small_houses = interp1d([0, 0.1, 0.6, 1.2, 2.4, 6, 10], [0, 0.0479, 0.1312, 0.1795, 0.3591, 1, 1]) #de Villiers 2007
-    structural_damages_medium_houses = interp1d([0, 0.1, 0.6, 1.2, 2.4, 6, 10], [0, 0.083, 0.2273, 0.3083, 0.62, 1, 1]) #de Villiers 2007
-    structural_damages_large_houses = interp1d([0, 0.1, 0.6, 1.2, 2.4, 6, 10], [0, 0.0799, 0.2198, 0.2997, 0.5994, 1, 1]) #de Villiers 2007
-    content_damages = interp1d([0, 0.1, 0.3, 0.6, 1.2, 1.5, 2.4, 10], [0, 0.06, 0.15, 0.35, 0.77, 0.95, 1, 1]) #de Villiers 2007
-    structural_damages_type1 = interp1d([0, 0.5, 1, 1.25, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10], [0, 0.5, 0.9, 1, 1,1,1,1,1,1,1,1,1]) #Englhardt 2019
-    structural_damages_type2 = interp1d([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10], [0, 0.45, 0.65, 0.82, 0.95, 1, 1, 1,1,1,1,1]) #Englhardt 2019
-    structural_damages_type3a = interp1d([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10], [0, 0.4, 0.55, 0.7, 0.78,0.81,0.81,0.81,0.81,0.81,0.81,0.81]) #Englhardt 2019
-    structural_damages_type3b = interp1d([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10], [0, 0.25, 0.4,0.48,0.58,0.62,0.65,0.75,0.78,0.8,0.81,0.81]) #Englhardt 2019
-    structural_damages_type4a = interp1d([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10], [0, 0.31, 0.45,0.55,0.62,0.65,0.65,0.65,0.65,0.65,0.65,0.65]) #Englhardt 2019
-    structural_damages_type4b = interp1d([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10], [0,0.2,0.3,0.4,0.45,0.5,0.55,0.6,0.62,0.64,0.65,0.65]) #Englhardt 2019
-        
-    #if options["WBUS2"] == 1:
-    #    WBUS2_20yr = pd.read_excel("C:/Users/Charlotte Liotta/Desktop/cape_town/2. Data/Flood plains - from Claus/WBUS2_20yr.xlsx")
-    #    WBUS2_50yr = pd.read_excel("C:/Users/Charlotte Liotta/Desktop/cape_town/2. Data/Flood plains - from Claus/WBUS2_50yr.xlsx")
-    #    WBUS2_100yr = pd.read_excel("C:/Users/Charlotte Liotta/Desktop/cape_town/2. Data/Flood plains - from Claus/WBUS2_100yr.xlsx")
-    #    d['FD_20yr'].prop_flood_prone = np.fmax(d['FD_20yr'].prop_flood_prone, WBUS2_20yr.prop_flood_prone)
-    #    d['FD_50yr'].prop_flood_prone = np.fmax(d['FD_50yr'].prop_flood_prone, WBUS2_50yr.prop_flood_prone)
-    #    d['FD_100yr'].prop_flood_prone = np.fmax(d['FD_100yr'].prop_flood_prone, WBUS2_100yr.prop_flood_prone)
-    #    d['FD_20yr'].flood_depth = np.maximum(d['FD_20yr'].prop_flood_prone, param["depth_WBUS2_20yr"])
-    #    d['FD_50yr'].flood_depth = np.maximum(d['FD_50yr'].prop_flood_prone, param["depth_WBUS2_50yr"])
-    #    d['FD_100yr'].flood_depth = np.maximum(d['FD_100yr'].prop_flood_prone, param["depth_WBUS2_100yr"])
+        d_pluvial[flood] = np.squeeze(
+            pd.read_excel(path_data + flood + ".xlsx")
+            )
 
-    def compute_fraction_capital_destroyed(d, type_flood, damage_function, housing_type):
-    
-        interval0 = 1 - (1/5)    
-        interval1 = (1/5) - (1/10)
-        interval2 = (1/10) - (1/20)
-        interval3 = (1/20) - (1/50)
-        interval4 = (1/50) - (1/75)
-        interval5 = (1/75) - (1/100)
-        interval6 = (1/100) - (1/200)
-        interval7 = (1/200) - (1/250)
-        interval8 = (1/250) - (1/500)
-        interval9 = (1/500) - (1/1000)
-        interval10 = (1/1000)
-        
-        if ((type_flood == 'P') & (housing_type == 'formal')):
-            d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_20yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
-            d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
-            d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
-        elif (type_flood == 'P') & ((housing_type == 'subsidized') | (housing_type == 'backyard')):
-            d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
-            d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
-        
-        damages0 = (d[type_flood + '_5yr'].prop_flood_prone * damage_function(d[type_flood + '_5yr'].flood_depth)) + (d[type_flood + '_5yr'].prop_flood_prone * damage_function(d[type_flood + '_10yr'].flood_depth))
-        damages1 = (d[type_flood + '_5yr'].prop_flood_prone * damage_function(d[type_flood + '_5yr'].flood_depth)) + (d[type_flood + '_10yr'].prop_flood_prone * damage_function(d[type_flood + '_10yr'].flood_depth))
-        damages2 = (d[type_flood + '_10yr'].prop_flood_prone * damage_function(d[type_flood + '_10yr'].flood_depth)) + (d[type_flood + '_20yr'].prop_flood_prone * damage_function(d[type_flood + '_20yr'].flood_depth))
-        damages3 = (d[type_flood + '_20yr'].prop_flood_prone * damage_function(d[type_flood + '_20yr'].flood_depth)) + (d[type_flood + '_50yr'].prop_flood_prone * damage_function(d[type_flood + '_50yr'].flood_depth))
-        damages4 = (d[type_flood + '_50yr'].prop_flood_prone * damage_function(d[type_flood + '_50yr'].flood_depth)) + (d[type_flood + '_75yr'].prop_flood_prone * damage_function(d[type_flood + '_75yr'].flood_depth))
-        damages5 = (d[type_flood + '_75yr'].prop_flood_prone * damage_function(d[type_flood + '_75yr'].flood_depth)) + (d[type_flood + '_100yr'].prop_flood_prone * damage_function(d[type_flood + '_100yr'].flood_depth))
-        damages6 = (d[type_flood + '_100yr'].prop_flood_prone * damage_function(d[type_flood + '_100yr'].flood_depth)) + (d[type_flood + '_200yr'].prop_flood_prone * damage_function(d[type_flood + '_200yr'].flood_depth))
-        damages7 = (d[type_flood + '_200yr'].prop_flood_prone * damage_function(d[type_flood + '_200yr'].flood_depth)) + (d[type_flood + '_250yr'].prop_flood_prone * damage_function(d[type_flood + '_250yr'].flood_depth))
-        damages8 = (d[type_flood + '_250yr'].prop_flood_prone * damage_function(d[type_flood + '_250yr'].flood_depth)) + (d[type_flood + '_500yr'].prop_flood_prone * damage_function(d[type_flood + '_500yr'].flood_depth))
-        damages9 = (d[type_flood + '_500yr'].prop_flood_prone * damage_function(d[type_flood + '_500yr'].flood_depth)) + (d[type_flood + '_1000yr'].prop_flood_prone * damage_function(d[type_flood + '_1000yr'].flood_depth))
-        damages10 = (d[type_flood + '_1000yr'].prop_flood_prone * damage_function(d[type_flood + '_1000yr'].flood_depth)) + (d[type_flood + '_1000yr'].prop_flood_prone * damage_function(d[type_flood + '_1000yr'].flood_depth))
-    
-        return 0.5 * ((interval0 * damages0) + (interval1 * damages1) + (interval2 * damages2) + (interval3 * damages3) + (interval4 * damages4) + (interval5 * damages5) + (interval6 * damages6) + (interval7 * damages7) + (interval8 * damages8) + (interval9 * damages9) + (interval10 * damages10))
+    # Depth-damage functions (from de Villiers, 2007)
+    structural_damages_small_houses = interp1d(
+        [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
+        [0, 0.0479, 0.1312, 0.1795, 0.3591, 1, 1]
+        )
+    structural_damages_medium_houses = interp1d(
+        [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
+        [0, 0.083, 0.2273, 0.3083, 0.62, 1, 1]
+        )
+    structural_damages_large_houses = interp1d(
+        [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
+        [0, 0.0799, 0.2198, 0.2997, 0.5994, 1, 1]
+        )
+    content_damages = interp1d(
+        [0, 0.1, 0.3, 0.6, 1.2, 1.5, 2.4, 10],
+        [0, 0.06, 0.15, 0.35, 0.77, 0.95, 1, 1]
+        )
 
+    # Depth-damage functions (from Englhardt, 2019)
+    structural_damages_type1 = interp1d(
+        [0, 0.5, 1, 1.25, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
+        [0, 0.5, 0.9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        )
+    structural_damages_type2 = interp1d(
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
+        [0, 0.45, 0.65, 0.82, 0.95, 1, 1, 1, 1, 1, 1, 1]
+        )
+    structural_damages_type3a = interp1d(
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
+        [0, 0.4, 0.55, 0.7, 0.78, 0.81, 0.81, 0.81, 0.81, 0.81, 0.81, 0.81]
+        )
+    structural_damages_type3b = interp1d(
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
+        [0, 0.25, 0.4, 0.48, 0.58, 0.62, 0.65, 0.75, 0.78, 0.8, 0.81, 0.81]
+        )
+    structural_damages_type4a = interp1d(
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
+        [0, 0.31, 0.45, 0.55, 0.62, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65, 0.65]
+        )
+    structural_damages_type4b = interp1d(
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
+        [0, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.62, 0.64, 0.65, 0.65]
+        )
+
+    if options["WBUS2"] == 1:
+        WBUS2_20yr = pd.read_excel(
+            path_folder + "Flood plains - from Claus/WBUS2_20yr.xlsx")
+        WBUS2_50yr = pd.read_excel(
+            path_folder + "Flood plains - from Claus/WBUS2_50yr.xlsx")
+        WBUS2_100yr = pd.read_excel(
+            path_folder + "Flood plains - from Claus/WBUS2_100yr.xlsx")
+        d_fluvial['FD_20yr'].prop_flood_prone = np.fmax(
+            d_fluvial['FD_20yr'].prop_flood_prone, WBUS2_20yr.prop_flood_prone)
+        d_fluvial['FD_50yr'].prop_flood_prone = np.fmax(
+            d_fluvial['FD_50yr'].prop_flood_prone, WBUS2_50yr.prop_flood_prone)
+        d_fluvial['FD_100yr'].prop_flood_prone = np.fmax(
+            d_fluvial['FD_100yr'].prop_flood_prone,
+            WBUS2_100yr.prop_flood_prone)
+        d_fluvial['FD_20yr'].flood_depth = np.maximum(
+            d_fluvial['FD_20yr'].prop_flood_prone, param["depth_WBUS2_20yr"])
+        d_fluvial['FD_50yr'].flood_depth = np.maximum(
+            d_fluvial['FD_50yr'].prop_flood_prone, param["depth_WBUS2_50yr"])
+        d_fluvial['FD_100yr'].flood_depth = np.maximum(
+            d_fluvial['FD_100yr'].prop_flood_prone, param["depth_WBUS2_100yr"])
+
+    return (structural_damages_small_houses, structural_damages_medium_houses,
+            structural_damages_large_houses, content_damages,
+            structural_damages_type1, structural_damages_type2,
+            structural_damages_type3a, structural_damages_type3b,
+            structural_damages_type4a, structural_damages_type4b,
+            d_fluvial, d_pluvial)
+
+
+def compute_fraction_capital_destroyed(d, type_flood, damage_function,
+                                       housing_type, options):
+    """Define function used to get fraction of capital destroyed by floods."""
+    interval0 = 1 - (1/5)
+    interval1 = (1/5) - (1/10)
+    interval2 = (1/10) - (1/20)
+    interval3 = (1/20) - (1/50)
+    interval4 = (1/50) - (1/75)
+    interval5 = (1/75) - (1/100)
+    interval6 = (1/100) - (1/200)
+    interval7 = (1/200) - (1/250)
+    interval8 = (1/250) - (1/500)
+    interval9 = (1/500) - (1/1000)
+    interval10 = (1/1000)
+
+    if ((type_flood == 'P') & (housing_type == 'formal')):
+        d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
+        d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
+        d[type_flood + '_20yr'].prop_flood_prone = np.zeros(24014)
+        d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
+        d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+        d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
+    elif ((type_flood == 'P')
+          & ((housing_type == 'subsidized') | (housing_type == 'backyard'))):
+        d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
+        d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
+        d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
+        d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+
+    damages0 = ((d[type_flood + '_5yr'].prop_flood_prone
+                * damage_function(d[type_flood + '_5yr'].flood_depth))
+                + (d[type_flood + '_5yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_10yr'].flood_depth)))
+    damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_5yr'].flood_depth))
+                + (d[type_flood + '_10yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_10yr'].flood_depth)))
+    damages2 = ((d[type_flood + '_10yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_10yr'].flood_depth))
+                + (d[type_flood + '_20yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_20yr'].flood_depth)))
+    damages3 = ((d[type_flood + '_20yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_20yr'].flood_depth))
+                + (d[type_flood + '_50yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_50yr'].flood_depth)))
+    damages4 = ((d[type_flood + '_50yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_50yr'].flood_depth))
+                + (d[type_flood + '_75yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_75yr'].flood_depth)))
+    damages5 = ((d[type_flood + '_75yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_75yr'].flood_depth))
+                + (d[type_flood + '_100yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_100yr'].flood_depth)))
+    damages6 = ((d[type_flood + '_100yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_100yr'].flood_depth))
+                + (d[type_flood + '_200yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_200yr'].flood_depth)))
+    damages7 = ((d[type_flood + '_200yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_200yr'].flood_depth))
+                + (d[type_flood + '_250yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_250yr'].flood_depth)))
+    damages8 = ((d[type_flood + '_250yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_250yr'].flood_depth))
+                + (d[type_flood + '_500yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_500yr'].flood_depth)))
+    damages9 = ((d[type_flood + '_500yr'].prop_flood_prone
+                 * damage_function(d[type_flood + '_500yr'].flood_depth))
+                + (d[type_flood + '_1000yr'].prop_flood_prone
+                   * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+    damages10 = ((d[type_flood + '_1000yr'].prop_flood_prone
+                  * damage_function(d[type_flood + '_1000yr'].flood_depth))
+                 + (d[type_flood + '_1000yr'].prop_flood_prone
+                    * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+
+    return (0.5
+            * ((interval0 * damages0) + (interval1 * damages1)
+               + (interval2 * damages2) + (interval3 * damages3)
+               + (interval4 * damages4) + (interval5 * damages5)
+               + (interval6 * damages6) + (interval7 * damages7)
+               + (interval8 * damages8) + (interval9 * damages9)
+               + (interval10 * damages10)))
+
+
+def import_full_floods_data(options, param, path_folder):
+    """Add fraction of capital destroyed by floods to initial floods data."""
     fraction_capital_destroyed = pd.DataFrame()
-    
+
+    (structural_damages_small_houses, structural_damages_medium_houses,
+     structural_damages_large_houses, content_damages,
+     structural_damages_type1, structural_damages_type2,
+     structural_damages_type3a, structural_damages_type3b,
+     structural_damages_type4a, structural_damages_type4b,
+     d_fluvial, d_pluvial) = import_init_floods_data(
+         options, param, path_folder)
+
     if options["pluvial"] == 0:
-        fraction_capital_destroyed["contents_formal"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'formal')
-        fraction_capital_destroyed["contents_informal"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'informal')
-        fraction_capital_destroyed["contents_backyard"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'backyard')
-        fraction_capital_destroyed["contents_subsidized"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'subsidized')
-        fraction_capital_destroyed["structure_formal_1"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4a, 'formal')
-        fraction_capital_destroyed["structure_formal_2"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4b, 'formal')
-        fraction_capital_destroyed["structure_subsidized_1"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4a, 'subsidized')
-        fraction_capital_destroyed["structure_subsidized_2"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4b, 'subsidized')
-        fraction_capital_destroyed["structure_informal_settlements"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type2, 'informal')
-        fraction_capital_destroyed["structure_informal_backyards"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type2, 'backyard')
-        fraction_capital_destroyed["structure_formal_backyards"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type3a, 'backyard')
+        (fraction_capital_destroyed["contents_formal"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'formal')
+        (fraction_capital_destroyed["contents_informal"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'informal')
+        (fraction_capital_destroyed["contents_backyard"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'backyard')
+        (fraction_capital_destroyed["contents_subsidized"]
+         ) = compute_fraction_capital_destroyed
+        (d_fluvial, 'FD', content_damages, 'subsidized')
+        (fraction_capital_destroyed["structure_formal_1"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'formal')
+        (fraction_capital_destroyed["structure_formal_2"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'formal')
+        (fraction_capital_destroyed["structure_subsidized_1"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'subsidized')
+        (fraction_capital_destroyed["structure_subsidized_2"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'subsidized')
+        (fraction_capital_destroyed["structure_informal_settlements"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'informal')
+        (fraction_capital_destroyed["structure_informal_backyards"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'backyard')
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3a, 'backyard')
     elif options["pluvial"] == 1:
-        fraction_capital_destroyed["contents_formal"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'formal') + compute_fraction_capital_destroyed(d_pluvial, 'P', content_damages, 'formal')
-        fraction_capital_destroyed["contents_informal"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'informal') + compute_fraction_capital_destroyed(d_pluvial, 'P', content_damages, 'informal')
-        fraction_capital_destroyed["contents_backyard"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'backyard') + compute_fraction_capital_destroyed(d_pluvial, 'P', content_damages, 'backyard')
-        fraction_capital_destroyed["contents_subsidized"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', content_damages, 'subsidized') + compute_fraction_capital_destroyed(d_pluvial, 'P', content_damages, 'subsidized')
-        fraction_capital_destroyed["structure_formal_1"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4a, 'formal') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type4a, 'formal')
-        fraction_capital_destroyed["structure_formal_2"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4b, 'formal') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type4b, 'formal')
-        fraction_capital_destroyed["structure_subsidized_1"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4a, 'subsidized') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type4a, 'subsidized')
-        fraction_capital_destroyed["structure_subsidized_2"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type4b, 'subsidized') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type4b, 'subsidized')
-        fraction_capital_destroyed["structure_informal_settlements"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type2, 'informal') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type2, 'informal')
-        fraction_capital_destroyed["structure_informal_backyards"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type2, 'backyard') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type2, 'backyard')
-        fraction_capital_destroyed["structure_formal_backyards"] = compute_fraction_capital_destroyed(d_fluvial, 'FD', structural_damages_type3a, 'backyard') + compute_fraction_capital_destroyed(d_pluvial, 'P', structural_damages_type3a, 'backyard')
-        
-    fraction_capital_destroyed["structure_backyards"] = ((16216 * fraction_capital_destroyed["structure_formal_backyards"]) + (74916 * fraction_capital_destroyed["structure_informal_backyards"])) / 91132
-    
-    return fraction_capital_destroyed, content_damages, structural_damages_type4b, structural_damages_type4a, structural_damages_type2, structural_damages_type3a
+        (fraction_capital_destroyed["contents_formal"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'formal')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'formal'))
+        (fraction_capital_destroyed["contents_informal"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'informal')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'informal'))
+        (fraction_capital_destroyed["contents_backyard"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'backyard')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'backyard'))
+        (fraction_capital_destroyed["contents_subsidized"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'subsidized')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'subsidized'))
+        (fraction_capital_destroyed["structure_formal_1"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'formal')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4a, 'formal'))
+        (fraction_capital_destroyed["structure_formal_2"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'formal')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4b, 'formal'))
+        (fraction_capital_destroyed["structure_subsidized_1"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'subsidized')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4a, 'subsidized'))
+        (fraction_capital_destroyed["structure_subsidized_2"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'subsidized')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4b, 'subsidized'))
+        (fraction_capital_destroyed["structure_informal_settlements"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'informal')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type2, 'informal'))
+        (fraction_capital_destroyed["structure_informal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'backyard')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type2, 'backyard'))
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3a, 'backyard')
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type3a, 'backyard'))
+
+    (fraction_capital_destroyed["structure_backyards"]
+     ) = (
+         (16216 * fraction_capital_destroyed["structure_formal_backyards"])
+         + (74916 * fraction_capital_destroyed["structure_informal_backyards"])
+         ) / 91132
+
+    return (fraction_capital_destroyed, structural_damages_small_houses,
+            structural_damages_medium_houses, structural_damages_large_houses,
+            content_damages, structural_damages_type1,
+            structural_damages_type2, structural_damages_type3a,
+            structural_damages_type3b, structural_damages_type4a,
+            structural_damages_type4b)
 
 
+def infer_WBUS2_depth(housing_types, param, path_folder):
+    """Update parameters with flood depth."""
+    path_data = path_folder + "FATHOM/"
+    FATHOM_20yr = np.squeeze(pd.read_excel(path_data + 'FD_20yr' + ".xlsx"))
+    FATHOM_50yr = np.squeeze(pd.read_excel(path_data + 'FD_50yr' + ".xlsx"))
+    FATHOM_100yr = np.squeeze(pd.read_excel(path_data + 'FD_100yr' + ".xlsx"))
+
+    FATHOM_20yr.pop_flood_prone = (
+        FATHOM_20yr.prop_flood_prone
+        * (housing_types.informal_grid
+           + housing_types.formal_grid
+           + housing_types.backyard_formal_grid
+           + housing_types.backyard_informal_grid)
+        )
+    FATHOM_50yr.pop_flood_prone = (
+        FATHOM_50yr.prop_flood_prone
+        * (housing_types.informal_grid
+           + housing_types.formal_grid
+           + housing_types.backyard_formal_grid
+           + housing_types.backyard_informal_grid)
+        )
+    FATHOM_100yr.pop_flood_prone = (
+        FATHOM_100yr.prop_flood_prone
+        * (housing_types.informal_grid
+           + housing_types.formal_grid
+           + housing_types.backyard_formal_grid
+           + housing_types.backyard_informal_grid)
+        )
+
+    param["depth_WBUS2_20yr"] = (np.nansum(
+        FATHOM_20yr.pop_flood_prone * FATHOM_20yr.flood_depth)
+        / np.nansum(FATHOM_20yr.pop_flood_prone))
+    param["depth_WBUS2_50yr"] = (np.nansum(
+        FATHOM_50yr.pop_flood_prone * FATHOM_50yr.flood_depth)
+        / np.nansum(FATHOM_50yr.pop_flood_prone))
+    param["depth_WBUS2_100yr"] = (np.nansum(
+        FATHOM_100yr.pop_flood_prone * FATHOM_100yr.flood_depth)
+        / np.nansum(FATHOM_100yr.pop_flood_prone))
+
+    return param
 
 
+# TODO: Determine if the following is still useful
 
 def import_basile_simulation():
-    mat1 = scipy.io.loadmat('C:/Users/charl/OneDrive/Bureau/Cape Town - pour Charlotte/Modèle/projet_le_cap/simulations scenarios - 201908.mat')
-    #mat1 = scipy.io.loadmat('C:/Users/Charlotte Liotta/Desktop/Cape Town - pour Charlotte/Modèle/projet_le_cap/simulations - 201907.mat')
+    """Import obsolete data."""
+    mat1 = scipy.io.loadmat(
+        'C:/Users/charl/OneDrive/Bureau/Cape Town - pour Charlotte/Modèle/'
+        + 'projet_le_cap/simulations scenarios - 201908.mat')
     simul1 = mat1["simulation_noUE"]
     simul1_error = simul1["error"][0][0]
     simul1_utility = simul1["utility"][0][0]
@@ -752,27 +974,54 @@ def import_basile_simulation():
     simul1_rent = simul1["rent"][0][0]
     simul1_dwelling_size = simul1["dwellingSize"][0][0]
     simul1_households_center = simul1["householdsCenter"][0][0]
-    data = scipy.io.loadmat('C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/0. Precalculated inputs/data.mat')['data']
+    data = scipy.io.loadmat(
+        'C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/'
+        + '0. Precalculated inputs/data.mat')['data']
     SP_code = data["spCode"][0][0].squeeze()
-    return simul1_error, simul1_utility, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, simul1_households_center, SP_code
 
-def SP_to_grid_2011_1(data_SP, grid): #we take SP_Code argument out 
-    grid_intersect = pd.read_csv('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/2. Data/data_Cape_Town/grid_SP_intersect.csv', sep = ';')   
-    data_grid = np.zeros(len(grid.dist))   
-    for index in range(0, len(grid.dist)):  
-        intersect = np.unique(grid_intersect.SP_CODE[grid_intersect.ID_grille == grid.id[index]])
-        area_exclu = 0       
-        for i in range(0, len(intersect)):     
-            if len(data_SP[sp_code == intersect[i]]) == 0: #name of the column in data_sp, we'll se if this allows to take SP_code out of arguments                      
-                area_exclu = area_exclu + sum(grid_intersect.Area[(grid_intersect.ID_grille == grid.id[index]) & (grid_intersect.SP_CODE == intersect[i])])
+    return (simul1_error, simul1_utility, simul1_households_housing_type,
+            simul1_rent, simul1_dwelling_size, simul1_households_center,
+            SP_code)
+
+
+def SP_to_grid_2011_1(data_SP, grid, path_data):
+    """Adapt SP data to grid dimension."""
+    grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
+    data_grid = np.zeros(len(grid.dist))
+    for index in range(0, len(grid.dist)):
+        intersect = np.unique(
+            grid_intersect.SP_CODE[grid_intersect.ID_grille == grid.id[index]]
+            )
+        area_exclu = 0
+        for i in range(0, len(intersect)):
+            if len(data_SP['sp_code' == intersect[i]]) == 0:
+                area_exclu = (
+                    area_exclu
+                    + sum(grid_intersect.Area[(
+                        grid_intersect.ID_grille == grid.id[index])
+                        & (grid_intersect.SP_CODE == intersect[i])])
+                    )
             else:
-                data_grid[index] = data_grid[index] + sum(grid_intersect.Area[(grid_intersect.ID_grille == grid.id[index]) & (grid_intersect.SP_CODE == intersect[i])]) * data_SP[sp_code == intersect[i]]      #same as above  
-        if area_exclu > 0.9 * sum(grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]):
-            data_grid[index] = np.nan         
+                data_grid[index] = (
+                    data_grid[index]
+                    + sum(grid_intersect.Area[(
+                        grid_intersect.ID_grille == grid.id[index])
+                        & (grid_intersect.SP_CODE == intersect[i])])
+                    * data_SP['sp_code' == intersect[i]]
+                    )
+        if area_exclu > (0.9 * sum(
+                grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
+                )):
+            data_grid[index] = np.nan
+        elif sum(
+               grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
+               ) - area_exclu > 0:
+            data_grid[index] = (
+                data_grid[index]
+                / (sum(grid_intersect.Area[
+                    grid_intersect.ID_grille == grid.id[index]]
+                    ) - area_exclu))
         else:
-            if (sum(grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]) - area_exclu) > 0:
-                data_grid[index] = data_grid[index] / (sum(grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]) - area_exclu)
-            else:
-               data_grid[index] = np.nan 
-                
+            data_grid[index] = np.nan
+
     return data_grid

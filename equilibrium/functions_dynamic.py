@@ -9,12 +9,11 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import numpy as np
 import numpy.matlib
-# import copy
 
 
 def import_scenarios(income_2011, param, grid, path_scenarios):
     """Return linear regression splines for various scenarios."""
-    # Import Scenarios (include in inputs?)
+    # Import Scenarios
     scenario_income_distribution = pd.read_csv(
         path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
     scenario_population = pd.read_csv(

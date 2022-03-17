@@ -11,6 +11,7 @@ import numpy.matlib
 import time
 import datetime
 
+# See Aux data/disamenity_workbook?
 
 # %% Calibration
 
@@ -185,6 +186,7 @@ for index in range(0, index_max):
               str(datetime.timedelta(seconds=round(time_elapsed))),f"elapsed ({round(time_elapsed/iteration_number)}s per iteration). There remains",
               str(datetime.timedelta(seconds=round(time_elapsed/iteration_number*(number_total_iterations-iteration_number))))
             )
+
 
 index_min = np.argmin(metrics)
 metrics[index_min]

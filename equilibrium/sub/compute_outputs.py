@@ -13,9 +13,11 @@ def compute_outputs(housing_type,
                     amenities,
                     param,
                     income_net_of_commuting_costs,
+                    fraction_capital_destroyed,
                     grid,
                     income_class_by_housing_type,
-                    options, housing_limit,
+                    options,
+                    housing_limit,
                     agricultural_rent,
                     interest_rate,
                     coeff_land,
@@ -30,7 +32,8 @@ def compute_outputs(housing_type,
     if housing_type == 'formal':
 
         dwelling_size = eqsol.compute_dwelling_size_formal(
-            utility, amenities, param, income_net_of_commuting_costs)
+            utility, amenities, param, income_net_of_commuting_costs,
+            fraction_capital_destroyed)
 
         # Here, we introduce the minimum lot-size
         dwelling_size = np.maximum(dwelling_size, param["mini_lot_size"])
@@ -55,7 +58,7 @@ def compute_outputs(housing_type,
     # %% Bid rent functions in selected pixels per (endogenous) housing type
 
     # What is the point? Set as parameter?
-    fraction_capital_destroyed = 0
+    # fraction_capital_destroyed = 0
 
     if housing_type == 'formal':
 

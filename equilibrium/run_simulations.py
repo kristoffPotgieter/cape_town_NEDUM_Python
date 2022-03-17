@@ -65,11 +65,12 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility, 
             minimum_housing_supply = spline_minimum_housing_supply(year_temp)
             income_mult = average_income / mean_income
             number_properties_RDP = spline_estimate_RDP(year_temp)        
+            # Why not just scale factor?
             construction_param = (mean_income / param["income_year_reference"])**(-param["coeff_b"]) * param["coeff_A"]        
             coeff_land = import_coeff_land(spline_land_constraints, spline_land_backyard, spline_land_informal, spline_land_RDP, param, year_temp)
             agricultural_rent = spline_agricultural_rent(year_temp) ** (param["coeff_a"]) * (interest_rate) / (construction_param * param["coeff_b"] ** param["coeff_b"])
-            
-            tmpi_utility, tmpi_error, tmpi_simulated_jobs, tmpi_households_housing_types, tmpi_household_centers, tmpi_households, tmpi_dwelling_size, tmpi_housing_supply, tmpi_rent, tmpi_rent_matrix, tmpi_capital_land, tmpi_average_income, tmpi_limit_city = compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, construction_param)
+            #  TODO: we had to remove fraction_capital_destroyed as a parameter: does it make sense?
+            tmpi_utility, tmpi_error, tmpi_simulated_jobs, tmpi_households_housing_types, tmpi_household_centers, tmpi_households, tmpi_dwelling_size, tmpi_housing_supply, tmpi_rent, tmpi_rent_matrix, tmpi_capital_land, tmpi_average_income, tmpi_limit_city = compute_equilibrium(amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, construction_param)
 
             #Estimation of the derivation of housing supply between t and t+1
             deriv_housing_temp = evolution_housing_supply(housing_limit, param, options, years_simulations[index_iter], years_simulations[index_iter - 1], tmpi_housing_supply[0, :], stat_temp_housing_supply[0, :])
@@ -78,7 +79,7 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility, 
             #Run a new simulation with fixed housing
             print('Simulation with constraint')
             options["adjust_housing_supply"] = 0   
-            initial_state_utility, initial_state_error, initial_state_simulated_jobs, initial_state_households_housing_types, initial_state_household_centers, initial_state_households, initial_state_dwelling_size, initial_state_housing_supply, initial_state_rent, initial_state_rent_matrix, initial_state_capital_land, initial_state_average_income, initial_state_limit_city = compute_equilibrium(fraction_capital_destroyed, amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, construction_param)
+            initial_state_utility, initial_state_error, initial_state_simulated_jobs, initial_state_households_housing_types, initial_state_household_centers, initial_state_households, initial_state_dwelling_size, initial_state_housing_supply, initial_state_rent, initial_state_rent_matrix, initial_state_capital_land, initial_state_average_income, initial_state_limit_city = compute_equilibrium(amenities, param, housing_limit, population, households_per_income_class, total_RDP, coeff_land, income_net_of_commuting_costs, grid, options, agricultural_rent, interest_rate, number_properties_RDP, average_income, mean_income, income_class_by_housing_type, minimum_housing_supply, construction_param)
 
             #Ro de la simulation libre
             stat_temp_utility = copy.deepcopy(tmpi_utility)

@@ -6,7 +6,7 @@
 ```shell
 .
 ├── 2. Data
-│   ├── 0. Precalculated inputs
+    ├── 0. Precalculated inputs
     ├── data_Cape_Town
     ├── FATHOM
 │   ├── Flood plains - from Claus
