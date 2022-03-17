@@ -110,7 +110,7 @@ housing_types[np.isnan(housing_types)] = 0
 
 # LAND USE PROJECTIONS
 
-(spline_RDP, spline_estimate_RDP, spline_land_RDP, coeff_land_backyard,
+(spline_RDP, spline_estimate_RDP, spline_land_RDP,
  spline_land_backyard, spline_land_informal, spline_land_constraints,
  number_properties_RDP) = (
      inpdt.import_land_use(grid, options, param, data_rdp, housing_types,
@@ -169,6 +169,7 @@ elif options["agents_anticipate_floods"] == 0:
 # %% Compute initial state
 
 # TODO: Go through underlying modules
+# Find SettingWithCopyWarning
 
 print("\n*** Solver initial state ***\n")
 (initial_state_utility,

@@ -234,7 +234,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # Nb of informal dwellings per pixel (realized scenario)
     informal_settlements_2020 = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
-    # TODO: Why do we correct by max_land here?
+    # TODO: Why do we correct by max_land here? Supposedly to make it
+    # comparable with land_use_data_old...
     informal_risks_2020 = (
         informal_settlements_2020.inf_dwellings_2020
         * param["shack_size"] * (1 / param["max_land_use_settlement"]))
@@ -403,10 +404,10 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  We take the max from two different definitions to be conservative: we
     #  consider the maximum risk of backyard settlements
     #  This yields a pixel share potential for new structures
-    coeff_land_backyard = np.fmax(coeff_land_backyard, actual_backyards)
+    # coeff_land_backyard = np.fmax(coeff_land_backyard, actual_backyards)
     #  TODO: should we multiply by the max share of land available here?
-    coeff_land_backyard = coeff_land_backyard * param["max_land_use_backyard"]
-    coeff_land_backyard[coeff_land_backyard < 0] = 0
+    # coeff_land_backyard = coeff_land_backyard * param["max_land_use_backyard"]
+    # coeff_land_backyard[coeff_land_backyard < 0] = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -584,7 +585,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 # 7. Function output
 
     return (spline_RDP, spline_estimate_RDP, spline_land_RDP,
-            coeff_land_backyard, spline_land_backyard, spline_land_informal,
+            spline_land_backyard, spline_land_informal,
             spline_land_constraints, number_properties_RDP)
 
 
@@ -925,21 +926,21 @@ def infer_WBUS2_depth(housing_types, param, path_folder):
     FATHOM_50yr = np.squeeze(pd.read_excel(path_data + 'FD_50yr' + ".xlsx"))
     FATHOM_100yr = np.squeeze(pd.read_excel(path_data + 'FD_100yr' + ".xlsx"))
 
-    FATHOM_20yr.pop_flood_prone = (
+    FATHOM_20yr['pop_flood_prone'] = (
         FATHOM_20yr.prop_flood_prone
         * (housing_types.informal_grid
            + housing_types.formal_grid
            + housing_types.backyard_formal_grid
            + housing_types.backyard_informal_grid)
         )
-    FATHOM_50yr.pop_flood_prone = (
+    FATHOM_50yr['pop_flood_prone'] = (
         FATHOM_50yr.prop_flood_prone
         * (housing_types.informal_grid
            + housing_types.formal_grid
            + housing_types.backyard_formal_grid
            + housing_types.backyard_informal_grid)
         )
-    FATHOM_100yr.pop_flood_prone = (
+    FATHOM_100yr['pop_flood_prone'] = (
         FATHOM_100yr.prop_flood_prone
         * (housing_types.informal_grid
            + housing_types.formal_grid

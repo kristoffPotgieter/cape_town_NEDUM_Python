@@ -82,19 +82,6 @@ def import_scenarios(income_2011, param, grid, path_scenarios):
             ~np.isnan(scenario_interest_rate.real_interest_rate)],
         'linear')
 
-    # Spline for RDP population
-    #  Note that this is inconsistent with inpdt.import_land_use! Clarify...
-    RDP_2011 = 2.2666e+05
-    RDP_2001 = 1.1718e+05
-    spline_RDP = interp1d(
-        [2001 - param["baseline_year"],
-         2011 - param["baseline_year"],
-         2018 - param["baseline_year"],
-         2041 - param["baseline_year"]],
-        [RDP_2001, RDP_2011, RDP_2011 + 7*5000,
-         RDP_2011 + 7*5000 + 23 * param["future_rate_public_housing"]],
-        'linear')
-
     # Spline for minimum housing_supply per pixel (always zero?)
     minimum_housing_2011 = param["minimum_housing_supply"]
     spline_minimum_housing_supply = interp1d(
@@ -168,7 +155,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios):
     spline_income = interp1d(
         year_inc - param["baseline_year"], inc_year_infla, 'linear')
 
-    return (spline_agricultural_rent, spline_interest_rate, spline_RDP,
+    return (spline_agricultural_rent, spline_interest_rate,
             spline_population_income_distribution, spline_inflation,
             spline_income_distribution, spline_population,
             spline_interest_rate, spline_income, spline_minimum_housing_supply,

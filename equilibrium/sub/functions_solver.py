@@ -17,14 +17,15 @@ def compute_dwelling_size_formal(utility, amenities, param,
                                  fraction_capital_destroyed):
     """Return optimal dwelling size per income group for formal housing."""
     # What is the point? Set as parameter?
-    fraction_capital_destroyed = 0
+    # fraction_capital_destroyed = 0
 
     income_temp = copy.deepcopy(income_net_of_commuting_costs)
     income_temp[income_temp < 0] = np.nan
 
+    # What to do with multi-indexing?
     # According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B
     # (draft, p.11), see theoretical expression in implicit_qfunc()
-    left_side = (utility[:, None] / amenities[None, :]) * ((1 + (param["fraction_z_dwellings"] * fraction_capital_destroyed.contents_formal[None, :])) ** (param["alpha"])) / ((param["alpha"] * income_temp) ** param["alpha"])
+    left_side = (np.array(utility)[:, None] / np.array(amenities)[None, :]) * ((1 + (param["fraction_z_dwellings"] * np.array(fraction_capital_destroyed.contents_formal)[None, :])) ** (param["alpha"])) / ((param["alpha"] * income_temp) ** param["alpha"])
 
     # approx = left_side ** (1/param["beta"])
 
@@ -56,7 +57,8 @@ def compute_dwelling_size_formal(utility, amenities, param,
 
 def implicit_qfunc(q, q_0, alpha):
     """Implicitely define optimal dwelling size."""
-    return ((q - q_0) / ((q - (alpha * q_0)) ** alpha))
+    # Note that with above x definition, q-alpha*q_0 can be negative
+    return (q - q_0) / (np.sign(q - (alpha * q_0))*np.abs(q - (alpha * q_0)) ** alpha)
 
 # TODO: Update with capital_destroyed?
 def compute_housing_supply_formal(
@@ -106,7 +108,17 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
     capital_destroyed[dwelling_size > param["threshold"]] = fraction_capital_destroyed.structure_subsidized_2[dwelling_size > param["threshold"]]
     capital_destroyed[dwelling_size <= param["threshold"]] = fraction_capital_destroyed.structure_subsidized_1[dwelling_size <= param["threshold"]]
 
-    housing_supply = (param["alpha"] * (param["RDP_size"] + param["backyard_size"] - param["q0"]) / (param["backyard_size"])) - (param["beta"] * (income_net_of_commuting_costs[0,:] - (capital_destroyed * param["subsidized_structure_value"])) / (param["backyard_size"] * R))
+    # Note that the term is not defined for groups 3 and 4
+    np.seterr(invalid='ignore')
+    housing_supply = (
+        (param["alpha"]*
+         (param["RDP_size"] + param["backyard_size"] - param["q0"])
+         / (param["backyard_size"]))
+        - (param["beta"]
+           * (income_net_of_commuting_costs[0,:]
+              - (capital_destroyed * param["subsidized_structure_value"]))
+           / (param["backyard_size"] * R))
+        )
     
     housing_supply[R == 0] = 0
     housing_supply = np.minimum(housing_supply, 1)

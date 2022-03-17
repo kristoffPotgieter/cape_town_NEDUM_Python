@@ -32,7 +32,7 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility, 
     simulation_deriv_housing = np.zeros((len(t), len(grid.dist)))
     
     #Import Scenarios
-    spline_agricultural_rent, spline_interest_rate, spline_RDP, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid, path_scenarios)
+    spline_agricultural_rent, spline_interest_rate, spline_population_income_distribution, spline_inflation, spline_income_distribution, spline_population, spline_interest_rate, spline_income, spline_minimum_housing_supply, spline_fuel = import_scenarios(income_2011, param, grid, path_scenarios)
 
     for index_iter in range(0, len(years_simulations)):
     

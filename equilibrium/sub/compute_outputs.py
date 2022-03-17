@@ -75,7 +75,7 @@ def compute_outputs(housing_type,
         R_mat = (
             (1 / param["shack_size"])
             * (income_net_of_commuting_costs
-               - ((1 + fraction_capital_destroyed
+               - ((1 + np.array(fraction_capital_destroyed.contents_backyard)[None, :] 
                    * param["fraction_z_dwellings"])
                   * ((utility[:, None] / (amenities[None, :]
                                           * param_backyards_pockets[None, :]
@@ -84,7 +84,7 @@ def compute_outputs(housing_type,
                      ** (1 / param["alpha"])))
                - (param["informal_structure_value"]
                   * (interest_rate + param["depreciation_rate"]))
-               - (fraction_capital_destroyed
+               - (np.array(fraction_capital_destroyed.structure_backyards)[None, :]
                   * param["informal_structure_value"]))
             )
         R_mat[income_class_by_housing_type.backyard == 0, :] = 0
@@ -95,7 +95,7 @@ def compute_outputs(housing_type,
         R_mat = (
             (1 / param["shack_size"])
             * (income_net_of_commuting_costs
-               - ((1 + fraction_capital_destroyed
+               - ((1 + np.array(fraction_capital_destroyed.contents_informal)[None, :]
                    * param["fraction_z_dwellings"])
                   * ((utility[:, None] / (amenities[None, :]
                                           * param_pockets[None, :]
@@ -104,7 +104,7 @@ def compute_outputs(housing_type,
                      ** (1 / param["alpha"])))
                - (param["informal_structure_value"]
                   * (interest_rate + param["depreciation_rate"]))
-               - (fraction_capital_destroyed
+               - (np.array(fraction_capital_destroyed.structure_informal_settlements)[None, :]
                   * param["informal_structure_value"]))
             )
         R_mat[income_class_by_housing_type.settlement == 0, :] = 0
@@ -139,10 +139,10 @@ def compute_outputs(housing_type,
     # %% Housing supply
     
     if housing_type == 'formal':
-        housing_supply = eqsol.compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, minimum_housing_supply, construction_param, housing_in, dwelling_size)
+        housing_supply = eqsol.compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, fraction_capital_destroyed, minimum_housing_supply, construction_param, housing_in, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'backyard':
-        housing_supply = eqsol.compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, dwelling_size)
+        housing_supply = eqsol.compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, fraction_capital_destroyed, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'informal':
         housing_supply = 1000000 * np.ones(len(which_group))
@@ -157,7 +157,7 @@ def compute_outputs(housing_type,
     people_init_land = people_init * coeff_land * 0.25
     
     
-    people_center = people_init_land[None, :] * proba
+    people_center = np.array(people_init_land)[None, :] * proba
     people_center[np.isnan(people_center)] = 0
     job_simul = np.nansum(people_center, 1)
     
