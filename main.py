@@ -85,17 +85,13 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 #  TODO: Ask why we need another parameter
 param["income_year_reference"] = mean_income
 
-#  Import income net of commuting costs, as calibrated in Pfeiffer et al.
-#  (see part 3.1 or appendix C3)
-income_net_of_commuting_costs = np.load(
-    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
-
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
 #  Import population density per pixel, by housing type
 #  Note that there is no RDP, but both formal and informal backyard
+#  TODO: create precalc file from sub.small_areas_data.py
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 # Replace missing values by zero
 housing_types[np.isnan(housing_types)] = 0
@@ -164,6 +160,45 @@ elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed["structure_informal_settlements"
                                ] = np.zeros(24014)
 
+# SCENARIOS
+
+(spline_agricultural_rent, spline_interest_rate, spline_RDP,
+ spline_population_income_distribution, spline_inflation,
+ spline_income_distribution, spline_population, spline_interest_rate,
+ spline_income, spline_minimum_housing_supply, spline_fuel
+ ) = inpdt.import_scenarios(income_2011, param, grid, path_scenarios)
+
+for t_temp in np.arange(0, 30):
+    print(t_temp)
+    (incomeNetOfCommuting, modalShares, ODflows, averageIncome
+     ) = inpdt.import_transport_data(
+         grid, param, t_temp, spline_inflation, spline_fuel, path_precalc_inp,
+         income_2011)
+
+for t_temp in np.arange(0, 30):
+    print(t_temp)
+    (incomeNetOfCommuting, modalShares, ODflows, averageIncome
+     ) = inpdt.import_transport_data(grid, param, t_temp, spline_inflation,
+                                     spline_fuel)
+    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
+            + "precalculated_transport/carbon_tax_car_20211103/averageIncome_"
+            + str(t_temp), averageIncome)
+    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
+            + "precalculated_transport/carbon_tax_car_20211103/"
+            + "incomeNetOfCommuting_" + str(t_temp), incomeNetOfCommuting)
+    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
+            + "precalculated_transport/carbon_tax_car_20211103/modalShares_"
+            + str(t_temp), modalShares)
+    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
+            + "precalculated_transport/carbon_tax_car_20211103/ODflows_"
+            + str(t_temp), ODflows)
+
+#  Import income net of commuting costs, as calibrated in Pfeiffer et al.
+#  (see part 3.1 or appendix C3)
+#  TODO: create precalc file from sub.import_transport_data
+income_net_of_commuting_costs = np.load(
+    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+
 
 # %% Compute initial state
 
@@ -221,6 +256,8 @@ np.save(path_outputs + name + '/initial_state_rent.npy',
 # %% Scenarios
 
 # TODO: Go through underlying modules
+
+# TODO: Should we import scenarios from the beginning to avoid doing it again
 
 # RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
 (simulation_households_center,

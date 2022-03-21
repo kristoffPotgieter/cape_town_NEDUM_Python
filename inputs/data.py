@@ -8,7 +8,10 @@ Created on Tue Oct 27 15:57:41 2020.
 import numpy as np
 import scipy.io
 import pandas as pd
+import copy
 from scipy.interpolate import interp1d
+
+import equilibrium.functions_dynamic as eqdyn
 
 
 def import_grid(path_data):
@@ -1026,3 +1029,252 @@ def SP_to_grid_2011_1(data_SP, grid, path_data):
             data_grid[index] = np.nan
 
     return data_grid
+
+
+def import_transport_data(grid, param, yearTraffic, spline_inflation,
+                          spline_fuel, path_precalc_inp,
+                          spline_population_income_distribution,
+                          spline_income_distribution,
+                          households_per_income_class, average_income):
+    """Compute travel times and costs."""
+    # STEP 1: IMPORT TRAVEL TIMES AND COSTS
+
+    # Import travel times and distances
+    transport_times = scipy.io.loadmat(path_precalc_inp
+                                       + 'Transport_times_GRID.mat')
+
+    # Price per km
+    priceTrainPerKMMonth = (
+        0.164 * spline_inflation(2011 - param["baseline_year"])
+        / spline_inflation(2013 - param["baseline_year"])
+                            )
+    priceTrainFixedMonth = (
+        4.48 * 40 * spline_inflation(2011 - param["baseline_year"])
+        / spline_inflation(2013 - param["baseline_year"])
+        )
+    priceTaxiPerKMMonth = (
+        0.785 * spline_inflation(2011 - param["baseline_year"])
+        / spline_inflation(2013 - param["baseline_year"])
+        )
+    priceTaxiFixedMonth = (
+        4.32 * 40 * spline_inflation(2011 - param["baseline_year"])
+        / spline_inflation(2013 - param["baseline_year"])
+        )
+    priceBusPerKMMonth = (
+        0.522 * spline_inflation(2011 - param["baseline_year"])
+        / spline_inflation(2013 - param["baseline_year"])
+        )
+    priceBusFixedMonth = (
+        6.24 * 40 * spline_inflation(2011 - param["baseline_year"])
+        / spline_inflation(2013 - param["baseline_year"])
+        )
+    inflation = spline_inflation(yearTraffic)
+    infla_2012 = spline_inflation(2012 - param["baseline_year"])
+    priceTrainPerKMMonth = priceTrainPerKMMonth * inflation / infla_2012
+    priceTrainFixedMonth = priceTrainFixedMonth * inflation / infla_2012
+    priceTaxiPerKMMonth = priceTaxiPerKMMonth * inflation / infla_2012
+    priceTaxiFixedMonth = priceTaxiFixedMonth * inflation / infla_2012
+    priceBusPerKMMonth = priceBusPerKMMonth * inflation / infla_2012
+    priceBusFixedMonth = priceBusFixedMonth * inflation / infla_2012
+    priceFuelPerKMMonth = spline_fuel(yearTraffic)
+    if yearTraffic > 8:
+        priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
+        # priceBusPerKMMonth = priceBusPerKMMonth * 1.2
+        # priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
+
+    # Fixed costs
+    priceFixedVehiculeMonth = 400
+    priceFixedVehiculeMonth = priceFixedVehiculeMonth * inflation / infla_2012
+
+    # STEP 2: TRAVEL TIMES AND COSTS AS MATRIX
+
+    # Parameters
+    numberDaysPerYear = 235
+    numberHourWorkedPerDay = 8
+    annualToHourly = 1 / (8*20*12)
+
+    # Time taken by each mode in both direction (in min)
+    timeOutput = np.empty(
+        (transport_times["durationTrain"].shape[0],
+         transport_times["durationTrain"].shape[1], 5)
+        )
+    timeOutput[:] = np.nan
+    timeOutput[:, :, 0] = (transport_times["distanceCar"]
+                           / param["walking_speed"] * 60 * 1.2 * 2)
+    timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
+    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])
+    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])
+    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])
+    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])
+
+    # Length (in km) using each mode
+    multiplierPrice = np.empty((timeOutput.shape))
+    multiplierPrice[:] = np.nan
+    multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
+    multiplierPrice[:, :, 1] = transport_times["distanceCar"]
+    multiplierPrice[:, :, 2] = transport_times["distanceCar"]
+    multiplierPrice[:, :, 3] = transport_times["distanceCar"]
+    multiplierPrice[:, :, 4] = transport_times["distanceCar"]
+
+    # Multiplying by 235 (nb of working days per year)
+    pricePerKM = np.empty(5)
+    pricePerKM[:] = np.nan
+    pricePerKM[0] = np.zeros(1)
+    pricePerKM[1] = priceTrainPerKMMonth*numberDaysPerYear
+    pricePerKM[2] = priceFuelPerKMMonth*numberDaysPerYear
+    pricePerKM[3] = priceTaxiPerKMMonth*numberDaysPerYear
+    pricePerKM[4] = priceBusPerKMMonth*numberDaysPerYear
+
+    # Distances (not useful to calculate price but useful output)
+    distanceOutput = np.empty((timeOutput.shape))
+    distanceOutput[:] = np.nan
+    distanceOutput[:, :, 0] = transport_times["distanceCar"]
+    distanceOutput[:, :, 1] = transport_times["distanceCar"]
+    distanceOutput[:, :, 2] = transport_times["distanceCar"]
+    distanceOutput[:, :, 3] = transport_times["distanceCar"]
+    distanceOutput[:, :, 4] = transport_times["distanceCar"]
+
+    # Monetary price per year
+    monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
+    trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
+    for index2 in range(0, 5):
+        monetaryCost[:, :, index2] = (pricePerKM[index2]
+                                      * multiplierPrice[:, :, index2])
+
+    #  Train (monthly fare)
+    monetaryCost[:, :, 1] = monetaryCost[:, :, 1] + priceTrainFixedMonth * 12
+    #  Private car
+    monetaryCost[:, :, 2] = (monetaryCost[:, :, 2] + priceFixedVehiculeMonth
+                             * 12)
+    #  Minibus/taxi
+    monetaryCost[:, :, 3] = monetaryCost[:, :, 3] + priceTaxiFixedMonth * 12
+    #  Bus
+    monetaryCost[:, :, 4] = monetaryCost[:, :, 4] + priceBusFixedMonth * 12
+    trans_monetaryCost = copy.deepcopy(monetaryCost)
+
+    # STEP 3: COMPUTE PROBA TO WORK IN C, EXPECTED INCOME, AND EXPECTED NB OF
+    # RESIDENTS OF INCOME GROUP I WORKING IN C
+
+    # In transport hours per working hour
+    costTime = ((timeOutput * param["time_cost"])
+                / (60 * numberHourWorkedPerDay))
+    costTime[np.isnan(costTime)] = 10 ** 2
+    param_lambda = param["lambda"].squeeze()
+
+    incomeNetOfCommuting = np.zeros(
+        (param["nb_of_income_classes"],
+         transport_times["durationCar"].shape[1])
+        )
+    averageIncome = np.zeros(
+        (param["nb_of_income_classes"],
+         transport_times["durationCar"].shape[1])
+        )
+    modalShares = np.zeros(
+        (185, transport_times["durationCar"].shape[1], 5,
+         param["nb_of_income_classes"])
+        )
+    ODflows = np.zeros(
+        (185, transport_times["durationCar"].shape[1],
+         param["nb_of_income_classes"])
+        )
+
+    # Income
+    incomeGroup, households_per_income_class = eqdyn.compute_average_income(
+        spline_population_income_distribution, spline_income_distribution,
+        param, yearTraffic)
+    # Income centers
+    income_centers_init = scipy.io.loadmat(
+        path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    incomeCenters = income_centers_init * incomeGroup / average_income
+
+    # Switch to hourly
+    monetaryCost = trans_monetaryCost * annualToHourly
+    monetaryCost[np.isnan(monetaryCost)] = 10**3 * annualToHourly
+    incomeCenters = incomeCenters * annualToHourly
+
+    # xInterp = grid.x
+    # yInterp = grid.y
+
+    # If changes?
+    # (monetaryCost[:, (grid.dist < 15) & (grid.dist > 10), :]
+    #  ) = monetaryCost[:, (grid.dist < 15) & (grid.dist > 10), :] * 1.2
+    # (monetaryCost[:, (grid.dist < 30) & (grid.dist > 22), :]
+    #  ) = monetaryCost[:, (grid.dist < 30) & (grid.dist > 22), :] * 0.7
+    # (costTime[:, (grid.dist < 15) & (grid.dist > 10), :]
+    #  ) = costTime[:, (grid.dist < 15) & (grid.dist > 10), :] * 1.2
+    # (costTime[:, (grid.dist < 30) & (grid.dist > 22), :]
+    #  ) = costTime[:, (grid.dist < 30) & (grid.dist > 22), :] * 0.7
+    # (monetaryCost[:, (grid.dist < 25) & (grid.dist > 22), :]
+    #  ) = monetaryCost[:, (grid.dist < 25) & (grid.dist > 22), :] * 0.8
+    # (costTime[:, (grid.dist < 25) & (grid.dist > 22), :]
+    #  ) = costTime[:, (grid.dist < 25) & (grid.dist > 22), :] * 0.8
+    # (monetaryCost[:, (grid.dist < 11) & (grid.dist > 8), :]
+    #  ) = monetaryCost[:, (grid.dist < 11) & (grid.dist > 8), :] * 0.8
+    # (costTime[:, (grid.dist < 11) & (grid.dist > 8), :]
+    #  ) = costTime[:, (grid.dist < 11) & (grid.dist > 8), :] * 0.8
+    # (monetaryCost[:, (grid.dist < 22) & (grid.dist > 14), :]
+    #  ) = monetaryCost[:, (grid.dist < 22) & (grid.dist > 14), :] * 0.8
+    # (costTime[:, (grid.dist < 22) & (grid.dist > 14), :]
+    #  ) = costTime[:, (grid.dist < 22) & (grid.dist > 14), :] * 0.8
+
+    for j in range(0, param["nb_of_income_classes"]):
+
+        # Household size varies with transport costs
+        householdSize = param["household_size"][j]
+        whichCenters = incomeCenters[:, j] > -100000
+        incomeCentersGroup = incomeCenters[whichCenters, j]
+
+        # Transport costs and employment allocation (cout par heure)
+        transportCostModes = (
+            (householdSize * monetaryCost[whichCenters, :, :]
+             + (costTime[whichCenters, :, :]
+                * incomeCentersGroup[:, None, None]))
+            )
+
+        # To prevent exp from diverging to infinity?
+        valueMax = (np.min(param_lambda * transportCostModes, axis=2) - 500)
+
+        # Modal shares
+        modalShares[whichCenters, :, :, j] = (np.exp(
+            - param_lambda * transportCostModes + valueMax[:, :, None])
+            / np.nansum(np.exp(- param_lambda * transportCostModes
+                               + valueMax[:, :, None]), 2)[:, :, None]
+            )
+
+        # Transport costs
+        transportCost = (
+            - 1 / param_lambda
+            * (np.log(np.nansum(np.exp(- param_lambda * transportCostModes
+                                       + valueMax[:, :, None]), 2)) - valueMax)
+            )
+
+        # To prevent diverging exponentials?
+        minIncome = (np.nanmax(
+            param_lambda * (incomeCentersGroup[:, None] - transportCost), 0)
+            - 700)
+
+        # OD flows
+        ODflows[whichCenters, :, j] = (
+            np.exp(param_lambda * (incomeCentersGroup[:, None] - transportCost)
+                   - minIncome)
+            / np.nansum(np.exp(param_lambda * (incomeCentersGroup[:, None]
+                                               - transportCost) - minIncome),
+                        0)[None, :]
+            )
+
+        # Income net of commuting costs (correct formula)
+        incomeNetOfCommuting[j, :] = (
+            1/param_lambda * (np.log(np.nansum(np.exp(
+                param_lambda * (incomeCentersGroup[:, None] - transportCost)
+                - minIncome),
+                0)) + minIncome)
+            )
+
+        # Average income earned per worker
+        averageIncome[j, :] = np.nansum(
+            ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
+
+    incomeNetOfCommuting = incomeNetOfCommuting / annualToHourly
+    averageIncome = averageIncome / annualToHourly
+
+    return incomeNetOfCommuting, modalShares, ODflows, averageIncome
