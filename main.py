@@ -5,13 +5,6 @@ Created on Tue Oct 27 15:33:37 2020.
 @author: Charlotte Liotta
 """
 
-# TO DO LATER
-# Change names and repo structure
-# Set explicit dynamic parameters
-# Go through calibration (note that we run on precalibrated data)
-# Write user guide with main features, files and functions to interact with
-# Check warnings (need to go into modules)
-
 
 # %% Preamble
 
@@ -28,6 +21,7 @@ import inputs.parameters_and_options as inpprm
 
 import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.run_simulations as eqsim
+import equilibrium.functions_dynamic as eqdyn
 
 
 # DEFINE FILE PATHS
@@ -75,6 +69,12 @@ grid, center = inpdt.import_grid(path_data)
 amenities = inpdt.import_amenities(path_precalc_inp)
 
 
+# MACRO DATA
+
+(interest_rate, population, housing_type_data, total_RDP
+ ) = inpdt.import_macro_data(param, path_scenarios)
+
+
 # HOUSEHOLDS AND INCOME DATA
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
@@ -91,17 +91,14 @@ param["income_year_reference"] = mean_income
 
 #  Import population density per pixel, by housing type
 #  Note that there is no RDP, but both formal and informal backyard
-#  TODO: create precalc file from sub.small_areas_data.py
+
+# Long tu run: uncomment if need to update 'housing_types_grid_sal.xlsx'
+# housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
+#                                       housing_type_data)
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
-# Replace missing values by zero
+
+# TODO: Run import_sal_data again before removing
 housing_types[np.isnan(housing_types)] = 0
-
-
-# MACRO DATA
-
-(interest_rate, population, housing_type_data, total_RDP
- ) = inpdt.import_macro_data(param, path_scenarios)
-
 
 # LAND USE PROJECTIONS
 
@@ -138,14 +135,15 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 
 # FLOOD DATA
 #  TODO: create a new variable instead of storing in param
-param = inpdt.infer_WBUS2_depth(housing_types, param, path_folder)
+param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,
      content_damages, structural_damages_type1, structural_damages_type2,
      structural_damages_type3a, structural_damages_type3b,
      structural_damages_type4a, structural_damages_type4b
-     ) = inpdt.import_full_floods_data(options, param, path_folder)
+     ) = inpdt.import_full_floods_data(options, param, path_folder,
+                                       housing_type_data)
 elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed = pd.DataFrame()
     fraction_capital_destroyed["structure_formal_2"] = np.zeros(24014)
@@ -162,48 +160,31 @@ elif options["agents_anticipate_floods"] == 0:
 
 # SCENARIOS
 
-(spline_agricultural_rent, spline_interest_rate, spline_RDP,
+(spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population, spline_interest_rate,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = inpdt.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
-for t_temp in np.arange(0, 30):
-    print(t_temp)
-    (incomeNetOfCommuting, modalShares, ODflows, averageIncome
-     ) = inpdt.import_transport_data(
-         grid, param, t_temp, spline_inflation, spline_fuel, path_precalc_inp,
-         income_2011)
+# Long to run: uncomment if need to update scenarios for transport data
 
-for t_temp in np.arange(0, 30):
-    print(t_temp)
-    (incomeNetOfCommuting, modalShares, ODflows, averageIncome
-     ) = inpdt.import_transport_data(grid, param, t_temp, spline_inflation,
-                                     spline_fuel)
-    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
-            + "precalculated_transport/carbon_tax_car_20211103/averageIncome_"
-            + str(t_temp), averageIncome)
-    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
-            + "precalculated_transport/carbon_tax_car_20211103/"
-            + "incomeNetOfCommuting_" + str(t_temp), incomeNetOfCommuting)
-    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
-            + "precalculated_transport/carbon_tax_car_20211103/modalShares_"
-            + str(t_temp), modalShares)
-    np.save("C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/"
-            + "precalculated_transport/carbon_tax_car_20211103/ODflows_"
-            + str(t_temp), ODflows)
+# for t_temp in np.arange(0, 30):
+#     print(t_temp)
+#     (incomeNetOfCommuting, modalShares, ODflows, averageIncome
+#      ) = inpdt.import_transport_data(
+#          grid, param, t_temp, households_per_income_class, average_income,
+#          spline_inflation, spline_fuel,
+#          spline_population_income_distribution, spline_income_distribution,
+#          path_precalc_inp, path_precalc_transp)
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-#  TODO: create precalc file from sub.import_transport_data
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 
 
 # %% Compute initial state
 
-# TODO: Go through underlying modules
-# Find SettingWithCopyWarning
 
 print("\n*** Solver initial state ***\n")
 (initial_state_utility,

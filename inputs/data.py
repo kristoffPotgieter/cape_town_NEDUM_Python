@@ -409,7 +409,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  This yields a pixel share potential for new structures
     # coeff_land_backyard = np.fmax(coeff_land_backyard, actual_backyards)
     #  TODO: should we multiply by the max share of land available here?
-    # coeff_land_backyard = coeff_land_backyard * param["max_land_use_backyard"]
+    # coeff_land_backyard = coeff_land_backyard
+    # * param["max_land_use_backyard"]
     # coeff_land_backyard[coeff_land_backyard < 0] = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
@@ -617,10 +618,9 @@ def import_housing_limit(grid, param):
     """Return height limit within and out of historic city radius."""
     center_regulation = (grid["dist"] <= param["historic_radius"])
     outside_regulation = (grid["dist"] > param["historic_radius"])
-    # Set high height multiplier to make as if no constraints
     housing_limit = (
-        param["limit_height_center"] * 1000000 * center_regulation
-        + param["limit_height_out"] * 1000000 * outside_regulation
+        param["limit_height_center"] * center_regulation
+        + param["limit_height_out"] * outside_regulation
                      )
 
     return housing_limit
@@ -648,6 +648,9 @@ def import_init_floods_data(options, param, path_folder):
         d_pluvial[flood] = np.squeeze(
             pd.read_excel(path_data + flood + ".xlsx")
             )
+
+    # Damage functions give damage as a % of good considered, as a function
+    # of flood depth in meters
 
     # Depth-damage functions (from de Villiers, 2007)
     structural_damages_small_houses = interp1d(
@@ -693,6 +696,7 @@ def import_init_floods_data(options, param, path_folder):
         [0, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.62, 0.64, 0.65, 0.65]
         )
 
+    # Take the max from the two sources to be conservative
     if options["WBUS2"] == 1:
         WBUS2_20yr = pd.read_excel(
             path_folder + "Flood plains - from Claus/WBUS2_20yr.xlsx")
@@ -737,6 +741,8 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     interval9 = (1/500) - (1/1000)
     interval10 = (1/1000)
 
+    # We consider that formal housing is not vulnerable to pluvial floods over
+    # medium run, and that RDP and backyard are not over short run
     if ((type_flood == 'P') & (housing_type == 'formal')):
         d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
         d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
@@ -750,6 +756,9 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
         d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
         d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+
+    # Damage scenarios are incremented using damage functions multiplied by
+    # flood-prone area (yields size of destructed area)
 
     damages0 = ((d[type_flood + '_5yr'].prop_flood_prone
                 * damage_function(d[type_flood + '_5yr'].flood_depth))
@@ -796,6 +805,8 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                  + (d[type_flood + '_1000yr'].prop_flood_prone
                     * damage_function(d[type_flood + '_1000yr'].flood_depth)))
 
+# TODO: What does it correspond to?
+
     return (0.5
             * ((interval0 * damages0) + (interval1 * damages1)
                + (interval2 * damages2) + (interval3 * damages3)
@@ -805,7 +816,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                + (interval10 * damages10)))
 
 
-def import_full_floods_data(options, param, path_folder):
+def import_full_floods_data(options, param, path_folder, housing_type_data):
     """Add fraction of capital destroyed by floods to initial floods data."""
     fraction_capital_destroyed = pd.DataFrame()
 
@@ -816,6 +827,8 @@ def import_full_floods_data(options, param, path_folder):
      structural_damages_type4a, structural_damages_type4b,
      d_fluvial, d_pluvial) = import_init_floods_data(
          options, param, path_folder)
+
+# We take only fluvial as a baseline, and pluvial as an option
 
     if options["pluvial"] == 0:
         (fraction_capital_destroyed["contents_formal"]
@@ -908,11 +921,21 @@ def import_full_floods_data(options, param, path_folder):
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type3a, 'backyard'))
 
+    # We take a weighted average for structures in bricks and shacks among
+    # all backyard structures
+
+    backyards_by_material = pd.read_excel(
+        path_folder
+        + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
+        sheet_name="Analysis", header=None, names=None, usecols="G:H",
+        skiprows=9, nrows=2)
+
     (fraction_capital_destroyed["structure_backyards"]
-     ) = (
-         (16216 * fraction_capital_destroyed["structure_formal_backyards"])
-         + (74916 * fraction_capital_destroyed["structure_informal_backyards"])
-         ) / 91132
+     ) = ((backyards_by_material[0, 6]
+           * fraction_capital_destroyed["structure_formal_backyards"])
+          + (backyards_by_material[1, 6]
+              * fraction_capital_destroyed["structure_informal_backyards"])
+          ) / housing_type_data[1]
 
     return (fraction_capital_destroyed, structural_damages_small_houses,
             structural_damages_medium_houses, structural_damages_large_houses,
@@ -922,12 +945,12 @@ def import_full_floods_data(options, param, path_folder):
             structural_damages_type4b)
 
 
-def infer_WBUS2_depth(housing_types, param, path_folder):
+def infer_WBUS2_depth(housing_types, param, path_floods):
     """Update parameters with flood depth."""
-    path_data = path_folder + "FATHOM/"
-    FATHOM_20yr = np.squeeze(pd.read_excel(path_data + 'FD_20yr' + ".xlsx"))
-    FATHOM_50yr = np.squeeze(pd.read_excel(path_data + 'FD_50yr' + ".xlsx"))
-    FATHOM_100yr = np.squeeze(pd.read_excel(path_data + 'FD_100yr' + ".xlsx"))
+    FATHOM_20yr = np.squeeze(pd.read_excel(path_floods + 'FD_20yr' + ".xlsx"))
+    FATHOM_50yr = np.squeeze(pd.read_excel(path_floods + 'FD_50yr' + ".xlsx"))
+    FATHOM_100yr = np.squeeze(pd.read_excel(
+        path_floods + 'FD_100yr' + ".xlsx"))
 
     FATHOM_20yr['pop_flood_prone'] = (
         FATHOM_20yr.prop_flood_prone
@@ -988,6 +1011,8 @@ def import_basile_simulation():
             SP_code)
 
 
+# TODO: Determine if the following is still useful
+
 def SP_to_grid_2011_1(data_SP, grid, path_data):
     """Adapt SP data to grid dimension."""
     grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
@@ -1031,11 +1056,15 @@ def SP_to_grid_2011_1(data_SP, grid, path_data):
     return data_grid
 
 
-def import_transport_data(grid, param, yearTraffic, spline_inflation,
-                          spline_fuel, path_precalc_inp,
+# TODO: Study underlying assumptions
+
+def import_transport_data(grid, param, yearTraffic,
+                          households_per_income_class, average_income,
+                          spline_inflation,
+                          spline_fuel,
                           spline_population_income_distribution,
                           spline_income_distribution,
-                          households_per_income_class, average_income):
+                          path_precalc_inp, path_precalc_transp):
     """Compute travel times and costs."""
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
@@ -1277,4 +1306,108 @@ def import_transport_data(grid, param, yearTraffic, spline_inflation,
     incomeNetOfCommuting = incomeNetOfCommuting / annualToHourly
     averageIncome = averageIncome / annualToHourly
 
+    np.save(path_precalc_transp + "averageIncome_" + str(yearTraffic),
+            averageIncome)
+    np.save(path_precalc_transp + "incomeNetOfCommuting_" + str(yearTraffic),
+            incomeNetOfCommuting)
+    np.save(path_precalc_transp + "modalShares_" + str(yearTraffic),
+            modalShares)
+    np.save(path_precalc_transp + "ODflows_" + str(yearTraffic), ODflows)
+
     return incomeNetOfCommuting, modalShares, ODflows, averageIncome
+
+
+def import_sal_data(grid, path_folder, path_data, housing_type_data):
+    """Import SAL data for population density by housing type."""
+    sal_data = pd.read_excel(
+        path_folder
+        + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
+        header=6)
+    sal_data["informal"] = sal_data[
+        "Informal dwelling (shack; not in backyard; e.g. in an"
+        + " informal/squatter settlement or on a farm)"]
+    sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
+    sal_data["backyard_informal"] = sal_data[
+        "Informal dwelling (shack; in backyard)"]
+    sal_data["formal"] = np.nansum(sal_data.iloc[:, 3:15], 1)
+
+    grid_intersect = pd.read_csv(
+        path_data + 'grid_SAL_intersect.csv', sep=';')
+
+    informal_grid = small_areas_to_grid(
+        grid, grid_intersect, sal_data["informal"],
+        sal_data["Small Area Code"])
+    backyard_formal_grid = small_areas_to_grid(
+        grid, grid_intersect, sal_data["backyard_formal"],
+        sal_data["Small Area Code"])
+    backyard_informal_grid = small_areas_to_grid(
+        grid, grid_intersect, sal_data["backyard_informal"],
+        sal_data["Small Area Code"])
+    formal_grid = small_areas_to_grid(
+        grid, grid_intersect, sal_data["formal"], sal_data["Small Area Code"])
+
+    # We multiply the number of dwellings per housing type by?
+    informal_grid = (informal_grid * (np.nansum(sal_data["informal"])
+                                      / np.nansum(informal_grid)))
+    backyard_formal_grid = (backyard_formal_grid
+                            * (np.nansum(sal_data["backyard_formal"])
+                               / np.nansum(backyard_formal_grid)))
+    backyard_informal_grid = (backyard_informal_grid
+                              * (np.nansum(sal_data["backyard_informal"])
+                                 / np.nansum(backyard_informal_grid)))
+    # We devide
+    formal_grid = formal_grid * (
+        (housing_type_data[0] + housing_type_data[3])
+        / np.nansum(formal_grid))
+
+    # total_formal + total_RDP
+
+    housing_types_grid_sal = pd.DataFrame()
+    housing_types_grid_sal["informal_grid"] = informal_grid
+    housing_types_grid_sal["backyard_formal_grid"] = backyard_formal_grid
+    housing_types_grid_sal["backyard_informal_grid"] = backyard_informal_grid
+    housing_types_grid_sal["formal_grid"] = formal_grid
+
+    # Replace missing values by zero
+    housing_types_grid_sal[np.isnan(housing_types_grid_sal)] = 0
+
+    housing_types_grid_sal.to_excel(
+        path_folder + 'housing_types_grid_sal.xlsx')
+
+    return housing_types_grid_sal
+
+
+# TODO: Check how this works
+
+def small_areas_to_grid(grid, grid_intersect, small_area_data,
+                        small_area_code):
+    """Convert SAL to grid dimensions."""
+    grid_data = np.zeros(len(grid.dist))
+    for index in range(0, len(grid.dist)):
+        intersect = np.unique(
+            grid_intersect.SAL_CODE[grid_intersect.ID_grille == grid.id[index]]
+            )
+        if len(intersect) == 0:
+            grid_data[index] = np.nan
+        else:
+            for i in range(0, len(intersect)):
+                sal_code = intersect[i]
+                sal_area_intersect = np.nansum(
+                    grid_intersect.Area_inter[
+                        (grid_intersect.ID_grille == grid.id[index])
+                        & (grid_intersect.SAL_CODE == sal_code)
+                        ].squeeze())
+                sal_area = np.nansum(
+                    grid_intersect.Area_inter[
+                        (grid_intersect.SAL_CODE == sal_code)]
+                    )
+                if len(small_area_data[
+                        small_area_code == sal_code]) > 0:
+                    # Yields number of dwellings given by the intersection
+                    add = (small_area_data[small_area_code == sal_code]
+                           * (sal_area_intersect / sal_area))
+                else:
+                    add = 0
+                grid_data[index] = grid_data[index] + add
+
+    return grid_data

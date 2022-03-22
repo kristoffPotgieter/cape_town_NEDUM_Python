@@ -154,7 +154,7 @@ def import_param(path_precalc_inp, path_outputs):
     param["threshold"] = 130
 
     # Make copies of parameters that may change
-    # TODO : check if useful
+    # TODO: check if useful
     param["informal_structure_value_ref"] = copy.deepcopy(
         param["informal_structure_value"])
     param["subsidized_structure_value_ref"] = copy.deepcopy(

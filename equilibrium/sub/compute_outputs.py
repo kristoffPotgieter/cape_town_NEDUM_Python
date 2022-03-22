@@ -75,8 +75,8 @@ def compute_outputs(housing_type,
         R_mat = (
             (1 / param["shack_size"])
             * (income_net_of_commuting_costs
-               - ((1 + np.array(fraction_capital_destroyed.contents_backyard)[None, :] 
-                   * param["fraction_z_dwellings"])
+               - ((1 + np.array(fraction_capital_destroyed.contents_backyard)[
+                   None, :] * param["fraction_z_dwellings"])
                   * ((utility[:, None] / (amenities[None, :]
                                           * param_backyards_pockets[None, :]
                                           * ((dwelling_size - param["q0"])
@@ -84,8 +84,8 @@ def compute_outputs(housing_type,
                      ** (1 / param["alpha"])))
                - (param["informal_structure_value"]
                   * (interest_rate + param["depreciation_rate"]))
-               - (np.array(fraction_capital_destroyed.structure_backyards)[None, :]
-                  * param["informal_structure_value"]))
+               - (np.array(fraction_capital_destroyed.structure_backyards)[
+                   None, :] * param["informal_structure_value"]))
             )
         R_mat[income_class_by_housing_type.backyard == 0, :] = 0
 
@@ -95,8 +95,8 @@ def compute_outputs(housing_type,
         R_mat = (
             (1 / param["shack_size"])
             * (income_net_of_commuting_costs
-               - ((1 + np.array(fraction_capital_destroyed.contents_informal)[None, :]
-                   * param["fraction_z_dwellings"])
+               - ((1 + np.array(fraction_capital_destroyed.contents_informal)[
+                   None, :] * param["fraction_z_dwellings"])
                   * ((utility[:, None] / (amenities[None, :]
                                           * param_pockets[None, :]
                                           * ((dwelling_size - param["q0"])
@@ -104,8 +104,9 @@ def compute_outputs(housing_type,
                      ** (1 / param["alpha"])))
                - (param["informal_structure_value"]
                   * (interest_rate + param["depreciation_rate"]))
-               - (np.array(fraction_capital_destroyed.structure_informal_settlements)[None, :]
-                  * param["informal_structure_value"]))
+               - (np.array(
+                   fraction_capital_destroyed.structure_informal_settlements
+                   )[None, :] * param["informal_structure_value"]))
             )
         R_mat[income_class_by_housing_type.settlement == 0, :] = 0
 
@@ -113,17 +114,16 @@ def compute_outputs(housing_type,
     R_mat[R_mat < 0] = 0
     R_mat[np.isnan(R_mat)] = 0
 
-    #Income group in each location
+    # Income group in each location
     proba = (R_mat == np.nanmax(R_mat, 0))
-    #proba[~np.isnan(param["multi_proba_group"])] = param["multi_proba_group"][~np.isnan(param["multi_proba_group"])]
-    limit = (income_net_of_commuting_costs > 0) & (proba > 0) & (~np.isnan(income_net_of_commuting_costs)) & (R_mat > 0)
+    limit = ((income_net_of_commuting_costs > 0)
+             & (proba > 0)
+             & (~np.isnan(income_net_of_commuting_costs))
+             & (R_mat > 0))
     proba = proba * limit
 
     which_group = np.nanargmax(R_mat, 0)
-    #which_group[~np.isnan(multiProbaGroup(1,:))] = sum(repmat([1:param.numberIncomeGroup]', 1, sum(~isnan(multiProbaGroup(1,:)))).*proba(:,~isnan(multiProbaGroup(1,:))));
-    #temp = np.arange(0, income_net_of_commuting_costs.shape[1])) * size(transTemp.incomeNetOfCommuting,1)
-    #which_group_temp = which_group + temp; 
-    
+
     R = np.empty(len(which_group))
     R[:] = np.nan
     dwelling_size_temp = np.empty(len(which_group))
@@ -131,38 +131,38 @@ def compute_outputs(housing_type,
     for i in range(0, len(which_group)):
         R[i] = R_mat[int(which_group[i]), i]
         dwelling_size_temp[i] = dwelling_size[int(which_group[i]), i]
-        
+
     dwelling_size = dwelling_size_temp
-    
-    
-    
+
     # %% Housing supply
-    
+
     if housing_type == 'formal':
-        housing_supply = eqsol.compute_housing_supply_formal(R, options, housing_limit, param, agricultural_rent, interest_rate, fraction_capital_destroyed, minimum_housing_supply, construction_param, housing_in, dwelling_size)
+        housing_supply = eqsol.compute_housing_supply_formal(
+            R, options, housing_limit, param, agricultural_rent, interest_rate,
+            fraction_capital_destroyed, minimum_housing_supply,
+            construction_param, housing_in, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'backyard':
-        housing_supply = eqsol.compute_housing_supply_backyard(R, param, income_net_of_commuting_costs, fraction_capital_destroyed, dwelling_size)
+        housing_supply = eqsol.compute_housing_supply_backyard(
+            R, param, income_net_of_commuting_costs,
+            fraction_capital_destroyed, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'informal':
         housing_supply = 1000000 * np.ones(len(which_group))
         housing_supply[R == 0] = 0
-    
 
-    
     # %% Outputs
-    
-    people_init = housing_supply / dwelling_size * (np.nansum(limit,0) > 0)
+
+    people_init = housing_supply / dwelling_size * (np.nansum(limit, 0) > 0)
     people_init[np.isnan(people_init)] = 0
     people_init_land = people_init * coeff_land * 0.25
-    
-    
+
     people_center = np.array(people_init_land)[None, :] * proba
     people_center[np.isnan(people_center)] = 0
     job_simul = np.nansum(people_center, 1)
-    
+
     if housing_type == 'formal':
         R = np.maximum(R, agricultural_rent)
-      
-    return job_simul, R, people_init, people_center, housing_supply, dwelling_size, R_mat
-    
+
+    return (job_simul, R, people_init, people_center, housing_supply,
+            dwelling_size, R_mat)
