@@ -22,7 +22,6 @@ def compute_dwelling_size_formal(utility, amenities, param,
     income_temp = copy.deepcopy(income_net_of_commuting_costs)
     income_temp[income_temp < 0] = np.nan
 
-    # What to do with multi-indexing?
     # According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B
     # (draft, p.11), see theoretical expression in implicit_qfunc()
     left_side = (
@@ -36,7 +35,8 @@ def compute_dwelling_size_formal(utility, amenities, param,
     # approx = left_side ** (1/param["beta"])
 
     # We get a regression spline expressing q as a function of
-    #  implicit_qfunc(q) for some arbitrarily chosen q?
+    # implicit_qfunc(q) for some arbitrarily chosen q
+    # TODO: Is it that arbitrary?
     x = np.concatenate((
         [10 ** (-8), 10 ** (-7), 10 ** (-6), 10 ** (-5), 10 ** (-4),
          10 ** (-3), 10 ** (-2), 10 ** (-1)],
@@ -54,7 +54,7 @@ def compute_dwelling_size_formal(utility, amenities, param,
                  x, fill_value="extrapolate")
 
     # We define dwelling size as q corresponding to true values of
-    #  implicit_qfunc(q), for each selected pixel and each income group
+    # implicit_qfunc(q), for each selected pixel and each income group
     dwelling_size = f(left_side)
 
     # We cap dwelling size to 10**12 (why?)
@@ -71,15 +71,15 @@ def implicit_qfunc(q, q_0, alpha):
             / (np.sign(q - (alpha * q_0))*np.abs(q - (alpha * q_0)) ** alpha))
 
 
-# TODO: Update with capital_destroyed?
 def compute_housing_supply_formal(
         R, options, housing_limit, param, agricultural_rent, interest_rate,
         fraction_capital_destroyed, minimum_housing_supply, construction_param,
         housing_in, dwelling_size
         ):
-    """Calculate the housing construction as a function of rents."""
+    """Calculate the formal housing supply as a function of rents."""
     if options["adjust_housing_supply"] == 1:
-
+        # We consider two different damage functions above and below some
+        # exogenous dwelling size threshold
         capital_destroyed = np.ones(
             len(fraction_capital_destroyed.structure_formal_2))
         (capital_destroyed[dwelling_size > param["threshold"]]
@@ -91,6 +91,9 @@ def compute_housing_supply_formal(
              dwelling_size <= param["threshold"]
              ]
 
+        # See research note, p.10
+        # TODO: What does 1000000 correspond to?
+        # TODO: Why do we take R, and not R_FP as in the formula?
         housing_supply = (
             1000000
             * (construction_param ** (1/param["coeff_a"]))
@@ -121,7 +124,8 @@ def compute_housing_supply_formal(
 
 def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
                                     fraction_capital_destroyed, dwelling_size):
-    """Compute backyard area available for construct as a func of rents."""
+    """Compute backyard housing supply as a function of rents."""
+    # Same as before
     capital_destroyed = np.ones(
         len(fraction_capital_destroyed.structure_formal_2))
     capital_destroyed[dwelling_size > param["threshold"]
@@ -131,8 +135,10 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
                       ] = fraction_capital_destroyed.structure_subsidized_1[
                           dwelling_size <= param["threshold"]]
 
-    # Note that the term is not defined for groups 3 and 4
+    # See research note, p.11
+    # TODO: Check that divide by zero come from groups 3 and 4
     np.seterr(divide='ignore', invalid='ignore')
+    # TODO: same as before
     housing_supply = (
         (param["alpha"] *
          (param["RDP_size"] + param["backyard_size"] - param["q0"])
@@ -143,6 +149,7 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
            / (param["backyard_size"] * R))
     )
 
+    # TODO: As before with 1000000
     housing_supply[R == 0] = 0
     housing_supply = np.minimum(housing_supply, 1)
     housing_supply = np.maximum(housing_supply, 0)

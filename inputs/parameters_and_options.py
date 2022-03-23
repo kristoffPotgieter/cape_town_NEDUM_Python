@@ -86,9 +86,11 @@ def import_param(path_precalc_inp, path_outputs):
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
     #  Comes from Claus (Aux data/HH Income per DU & housing_contents)
+    #  TODO: Integrate data properly
     param["fraction_z_dwellings"] = 0.49
     #  Value of a social housing dwelling unit (in rands)
     #  For floods destruction
+    #  TODO: How to determine it?
     param["subsidized_structure_value"] = 150000
 
     # Max % of land that can be built for housing (to take roads into account),
@@ -125,7 +127,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  Nb of jobs above which we keep employment center in the analysis
     param["threshold_jobs"] = 20000
     #  Avg nb of employed workers per household of each income class
-    #  (see table B1)
+    #  (see appendix B1: 2*ksi)
     param["household_size"] = [1.14, 1.94, 1.92, 1.94]
 
     # Transportation cost parameters

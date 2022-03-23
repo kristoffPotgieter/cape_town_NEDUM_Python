@@ -81,11 +81,11 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
                 precalculated_transport + "incomeNetOfCommuting_"
                 + str(int(year_temp)) + ".npy")
             (param["subsidized_structure_value"]
-             ) = param["subsidized_structure_value_ref"]
-            * (spline_inflation(year_temp) / spline_inflation(0))
+             ) = (param["subsidized_structure_value_ref"]
+                  * (spline_inflation(year_temp) / spline_inflation(0)))
             (param["informal_structure_value"]
-             ) = param["informal_structure_value_ref"]
-            * (spline_inflation(year_temp) / spline_inflation(0))
+             ) = (param["informal_structure_value_ref"]
+                  * (spline_inflation(year_temp) / spline_inflation(0)))
             mean_income = spline_income(year_temp)
             interest_rate = eqdyn.interpolate_interest_rate(
                 spline_interest_rate, year_temp)

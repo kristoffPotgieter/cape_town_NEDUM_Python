@@ -618,6 +618,7 @@ def import_housing_limit(grid, param):
     """Return height limit within and out of historic city radius."""
     center_regulation = (grid["dist"] <= param["historic_radius"])
     outside_regulation = (grid["dist"] > param["historic_radius"])
+    # TODO: Binding if no *1000000?
     housing_limit = (
         param["limit_height_center"] * center_regulation
         + param["limit_height_out"] * outside_regulation
@@ -729,6 +730,8 @@ def import_init_floods_data(options, param, path_folder):
 def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                                        housing_type):
     """Define function used to get fraction of capital destroyed by floods."""
+# This defines a probability rule (summing to 1) for each time interval defined
+# in FATHOM (the more distant, the less likely)
     interval0 = 1 - (1/5)
     interval1 = (1/5) - (1/10)
     interval2 = (1/10) - (1/20)
@@ -743,6 +746,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
 
     # We consider that formal housing is not vulnerable to pluvial floods over
     # medium run, and that RDP and backyard are not over short run
+    # TODO: discuss these assumptions
     if ((type_flood == 'P') & (housing_type == 'formal')):
         d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
         d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
@@ -828,7 +832,9 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
      d_fluvial, d_pluvial) = import_init_floods_data(
          options, param, path_folder)
 
-# We take only fluvial as a baseline, and pluvial as an option
+# We take only fluvial as a baseline, and pluvial as an option.
+# According to Claus, FATHOM data is less reliable for pluvial (which depends
+# on many factors), hence we take it as an option.
 
     if options["pluvial"] == 0:
         (fraction_capital_destroyed["contents_formal"]
@@ -931,9 +937,9 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
         skiprows=9, nrows=2)
 
     (fraction_capital_destroyed["structure_backyards"]
-     ) = ((backyards_by_material[0, 6]
+     ) = ((backyards_by_material.iloc[0, 0]
            * fraction_capital_destroyed["structure_formal_backyards"])
-          + (backyards_by_material[1, 6]
+          + (backyards_by_material.iloc[1, 0]
               * fraction_capital_destroyed["structure_informal_backyards"])
           ) / housing_type_data[1]
 
@@ -1072,7 +1078,9 @@ def import_transport_data(grid, param, yearTraffic,
     transport_times = scipy.io.loadmat(path_precalc_inp
                                        + 'Transport_times_GRID.mat')
 
-    # Price per km
+    # TODO: Where does it come from?
+
+    # Price per km: see appendix B2 and Roux(2013), table 4.15
     priceTrainPerKMMonth = (
         0.164 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
@@ -1112,12 +1120,13 @@ def import_transport_data(grid, param, yearTraffic,
         # priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
 
     # Fixed costs
+    #  See appendix B2
     priceFixedVehiculeMonth = 400
     priceFixedVehiculeMonth = priceFixedVehiculeMonth * inflation / infla_2012
 
     # STEP 2: TRAVEL TIMES AND COSTS AS MATRIX
 
-    # Parameters
+    # Parameters: see appendix B2
     numberDaysPerYear = 235
     numberHourWorkedPerDay = 8
     annualToHourly = 1 / (8*20*12)
@@ -1128,6 +1137,7 @@ def import_transport_data(grid, param, yearTraffic,
          transport_times["durationTrain"].shape[1], 5)
         )
     timeOutput[:] = np.nan
+    # TODO: What are 1.2 and 2?
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
@@ -1163,7 +1173,7 @@ def import_transport_data(grid, param, yearTraffic,
     distanceOutput[:, :, 3] = transport_times["distanceCar"]
     distanceOutput[:, :, 4] = transport_times["distanceCar"]
 
-    # Monetary price per year
+    # Monetary price per year (for each employment center)
     monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
     trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
     for index2 in range(0, 5):
@@ -1187,6 +1197,9 @@ def import_transport_data(grid, param, yearTraffic,
     # In transport hours per working hour
     costTime = ((timeOutput * param["time_cost"])
                 / (60 * numberHourWorkedPerDay))
+    # TODO: Is it right to assume that people not taking some transport mode
+    # have a extra high cost of doing so? At least it should not change
+    # anything
     costTime[np.isnan(costTime)] = 10 ** 2
     param_lambda = param["lambda"].squeeze()
 
@@ -1211,9 +1224,12 @@ def import_transport_data(grid, param, yearTraffic,
     incomeGroup, households_per_income_class = eqdyn.compute_average_income(
         spline_population_income_distribution, spline_income_distribution,
         param, yearTraffic)
-    # Income centers
+    # Income centers: corresponds to expected income associated with each
+    # income center and income group?
+    # TODO: Where from calibrated?
     income_centers_init = scipy.io.loadmat(
         path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    # TODO: useful?
     incomeCenters = income_centers_init * incomeGroup / average_income
 
     # Switch to hourly
@@ -1248,12 +1264,17 @@ def import_transport_data(grid, param, yearTraffic,
 
     for j in range(0, param["nb_of_income_classes"]):
 
-        # Household size varies with transport costs
+        # Household size varies with income group / transport costs
         householdSize = param["household_size"][j]
+        # TODO: useful?
         whichCenters = incomeCenters[:, j] > -100000
         incomeCentersGroup = incomeCenters[whichCenters, j]
 
-        # Transport costs and employment allocation (cout par heure)
+        # Transport costs and employment allocation (cost per hour)
+        # Corresponds to t_mj; note that incomeCentersGroup correspond to y_ic,
+        # hence ksi_i is already taken into account as a multiplier of w_ic,
+        # therefore there is no need to multiply the second term by
+        # householdSize
         transportCostModes = (
             (householdSize * monetaryCost[whichCenters, :, :]
              + (costTime[whichCenters, :, :]
@@ -1264,13 +1285,14 @@ def import_transport_data(grid, param, yearTraffic,
         valueMax = (np.min(param_lambda * transportCostModes, axis=2) - 500)
 
         # Modal shares
+        # TODO: Where from?
         modalShares[whichCenters, :, :, j] = (np.exp(
             - param_lambda * transportCostModes + valueMax[:, :, None])
             / np.nansum(np.exp(- param_lambda * transportCostModes
                                + valueMax[:, :, None]), 2)[:, :, None]
             )
 
-        # Transport costs
+        # Transport costs (min_m(t_mj))
         transportCost = (
             - 1 / param_lambda
             * (np.log(np.nansum(np.exp(- param_lambda * transportCostModes
@@ -1282,7 +1304,8 @@ def import_transport_data(grid, param, yearTraffic,
             param_lambda * (incomeCentersGroup[:, None] - transportCost), 0)
             - 700)
 
-        # OD flows
+        # OD flows: corresponds to pi_c|ix
+        # TODO: why do we re-multiply by lambda?
         ODflows[whichCenters, :, j] = (
             np.exp(param_lambda * (incomeCentersGroup[:, None] - transportCost)
                    - minIncome)
@@ -1292,6 +1315,7 @@ def import_transport_data(grid, param, yearTraffic,
             )
 
         # Income net of commuting costs (correct formula)
+        # TODO: really?
         incomeNetOfCommuting[j, :] = (
             1/param_lambda * (np.log(np.nansum(np.exp(
                 param_lambda * (incomeCentersGroup[:, None] - transportCost)
@@ -1299,7 +1323,8 @@ def import_transport_data(grid, param, yearTraffic,
                 0)) + minIncome)
             )
 
-        # Average income earned per worker
+        # Average income earned per worker: should correspond to ~y_i(x)~
+        # TODO: Is - transportCost lacking?
         averageIncome[j, :] = np.nansum(
             ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
 
@@ -1346,7 +1371,7 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     formal_grid = small_areas_to_grid(
         grid, grid_intersect, sal_data["formal"], sal_data["Small Area Code"])
 
-    # We multiply the number of dwellings per housing type by?
+    # TODO: We multiply the number of dwellings per housing type by?
     informal_grid = (informal_grid * (np.nansum(sal_data["informal"])
                                       / np.nansum(informal_grid)))
     backyard_formal_grid = (backyard_formal_grid
@@ -1355,12 +1380,11 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     backyard_informal_grid = (backyard_informal_grid
                               * (np.nansum(sal_data["backyard_informal"])
                                  / np.nansum(backyard_informal_grid)))
-    # We devide
+    # We adapt the fraction given for formal housing to our initial data:
+    # housing_type_data[0] + housing_type_data[3] = total_formal + total_RDP
     formal_grid = formal_grid * (
         (housing_type_data[0] + housing_type_data[3])
         / np.nansum(formal_grid))
-
-    # total_formal + total_RDP
 
     housing_types_grid_sal = pd.DataFrame()
     housing_types_grid_sal["informal_grid"] = informal_grid
@@ -1403,7 +1427,8 @@ def small_areas_to_grid(grid, grid_intersect, small_area_data,
                     )
                 if len(small_area_data[
                         small_area_code == sal_code]) > 0:
-                    # Yields number of dwellings given by the intersection
+                    # Yields number of dwellings/people given by the
+                    # intersection
                     add = (small_area_data[small_area_code == sal_code]
                            * (sal_area_intersect / sal_area))
                 else:

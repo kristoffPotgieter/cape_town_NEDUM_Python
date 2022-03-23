@@ -133,7 +133,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     interest_rate
     )
 
-# FLOOD DATA
+# FLOOD DATA (takes some time)
 #  TODO: create a new variable instead of storing in param
 param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:

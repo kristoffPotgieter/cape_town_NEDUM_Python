@@ -26,7 +26,7 @@ def compute_outputs(housing_type,
                     housing_in,
                     param_pockets,
                     param_backyards_pockets):
-    """d."""
+    """Compute equilibrium outputs from theoretical formulas."""
     # %% Dwelling size in selected pixels per (endogenous) housing type
 
     if housing_type == 'formal':
@@ -70,8 +70,7 @@ def compute_outputs(housing_type,
 
     elif housing_type == 'backyard':
 
-        # See research note, p.12: shouldn't we distinguish between structural
-        # and content damage in fraction_capital_destroyed?
+        # See research note, p.12
         R_mat = (
             (1 / param["shack_size"])
             * (income_net_of_commuting_costs
@@ -114,16 +113,21 @@ def compute_outputs(housing_type,
     R_mat[R_mat < 0] = 0
     R_mat[np.isnan(R_mat)] = 0
 
-    # Income group in each location
+    # We select highest bidder (income group) in each location
     proba = (R_mat == np.nanmax(R_mat, 0))
+    # We correct the matrix if binding budget constraint
+    # (and other precautions)
     limit = ((income_net_of_commuting_costs > 0)
              & (proba > 0)
              & (~np.isnan(income_net_of_commuting_costs))
              & (R_mat > 0))
     proba = proba * limit
 
+    # Yields directly the selected income group for each location
     which_group = np.nanargmax(R_mat, 0)
 
+    # Then we recover rent and dwelling size associated with the selected
+    # income group in each location
     R = np.empty(len(which_group))
     R[:] = np.nan
     dwelling_size_temp = np.empty(len(which_group))
@@ -148,6 +152,7 @@ def compute_outputs(housing_type,
             fraction_capital_destroyed, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'informal':
+        # TODO: Meaning of 1000000?
         housing_supply = 1000000 * np.ones(len(which_group))
         housing_supply[R == 0] = 0
 
@@ -155,6 +160,7 @@ def compute_outputs(housing_type,
 
     people_init = housing_supply / dwelling_size * (np.nansum(limit, 0) > 0)
     people_init[np.isnan(people_init)] = 0
+    # TODO: Meaning?
     people_init_land = people_init * coeff_land * 0.25
 
     people_center = np.array(people_init_land)[None, :] * proba

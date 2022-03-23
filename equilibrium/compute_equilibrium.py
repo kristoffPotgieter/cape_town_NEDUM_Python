@@ -19,7 +19,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                         number_properties_RDP, average_income, mean_income,
                         income_class_by_housing_type, minimum_housing_supply,
                         construction_param):
-    """d."""
+    """Determine static equilibrium allocation from iterative algorithm."""
     # Adjust the population to remove the population in RDP
     #  We augment the number of households per income class to include RDP
     ratio = population / sum(households_per_income_class)
@@ -31,8 +31,10 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Shorten the grid
     #  We select pixels with constructible shares for all housing types > 0.01
     #  and a positive maximum income net of commuting costs across classes
-    selected_pixels = (np.sum(coeff_land, 0) > 0.01).squeeze() & (
-        np.nanmax(income_net_of_commuting_costs, 0) > 0)  # 4,043
+    selected_pixels = (
+        (np.sum(coeff_land, 0) > 0.01).squeeze()
+        & (np.nanmax(income_net_of_commuting_costs, 0) > 0)
+        )
     coeff_land = coeff_land[:, selected_pixels]
     grid_temp = copy.deepcopy(grid)
     grid = grid.iloc[selected_pixels, :]
@@ -74,10 +76,10 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # Initialisation solver
     utility = np.zeros((param["max_iter"], param["nb_of_income_classes"]))
-    #  Is it totally arbitrary?
+    #  TODO: Is it totally arbitrary?
     utility[0, :] = np.array([1501, 4819, 16947, 79809])
     index_iteration = 0
-    #  Why set as param? Meaning?
+    #  TODO: Why set as param? Meaning?
     param["convergence_factor"] = (
         0.02 * (np.nanmean(average_income) / mean_income) ** 0.4
         )  # 0.045
@@ -121,10 +123,16 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
          )
 
     # Compute error and adjust utility
+
+    #  We first update the first iteration of output vector
     total_simulated_jobs[index_iteration, :] = np.sum(
         simulated_jobs[index_iteration, :, :], 0)
 
-    # deriv_U will be used to adjust the utility levels
+    #  deriv_U will be used to adjust the utility levels
+    #  We compare total population for each income group obtained from
+    #  equilibrium condition (total_simulated_jobs) with target population
+    #  allocation (households_per_income_class)
+    #  TODO: What does the formula mean?
     diff_utility[index_iteration, :] = np.log(
         (total_simulated_jobs[index_iteration, :] + 10)
         / (households_per_income_class + 10))
