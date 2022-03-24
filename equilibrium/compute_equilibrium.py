@@ -84,7 +84,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         0.02 * (np.nanmean(average_income) / mean_income) ** 0.4
         )  # 0.045
 
-    # Compute outputs solver - First iteration (for each housing type)
+    # Compute outputs solver - First iteration (for each housing type, no RDP)
     #  Formal housing
     (simulated_jobs[index_iteration, 0, :], rent_matrix[index_iteration, 0, :],
      simulated_people_housing_types[index_iteration, 0, :],
@@ -128,7 +128,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     total_simulated_jobs[index_iteration, :] = np.sum(
         simulated_jobs[index_iteration, :, :], 0)
 
-    #  deriv_U will be used to adjust the utility levels
+    #  diff_utility will be used to adjust the utility levels
     #  We compare total population for each income group obtained from
     #  equilibrium condition (total_simulated_jobs) with target population
     #  allocation (households_per_income_class)
@@ -145,6 +145,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Difference with reality
     error[index_iteration, :] = (total_simulated_jobs[index_iteration, :]
                                  / households_per_income_class - 1) * 100
+    #  This is the parameter of interest for optimization
     error_max_abs[index_iteration] = np.nanmax(
         np.abs(total_simulated_jobs[index_iteration, :]
                / households_per_income_class - 1))
@@ -156,8 +157,9 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         np.abs(total_simulated_jobs[index_iteration, :]
                / households_per_income_class - 1) > param["precision"])
 
-    # Iteration
+    # Iteration (no RDP)
     # with alive_bar(param["max_iter"],title='compute equilibrium') as bar:
+    # We use a progression bar
     with tqdm(total=param["max_iter"],
               desc="stops when error_max_abs <" + str(param["precision"])
               ) as pbar:
@@ -166,9 +168,11 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
             # Adjust parameters to how close we are from the objective
             index_iteration = index_iteration + 1
+            # TODO: How is the formula chosen?
             utility[index_iteration, :] = np.exp(
                 np.log(utility[index_iteration - 1, :])
                 + diff_utility[index_iteration - 1, :])
+            # TODO: What does this mean?
             utility[index_iteration, utility[index_iteration, :] < 0] = 10
             convergence_factor = (
                 param["convergence_factor"] / (
@@ -180,6 +184,8 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                 convergence_factor
                 * (1 - 0.6 * index_iteration / param["max_iter"])
                 )
+
+            # Now, we do the same as in the initalization phase
 
             # Compute outputs solver - first iteration
 
@@ -235,7 +241,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
             total_simulated_jobs[index_iteration, :] = np.sum(
                 simulated_jobs[index_iteration, :, :], 0)
 
-            # deriv_U will be used to adjust the utility levels
+            # diff_utility will be used to adjust the utility levels
             diff_utility[index_iteration, :] = np.log(
                 (total_simulated_jobs[index_iteration, :] + 10)
                 / (households_per_income_class + 10))
@@ -270,14 +276,18 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
             pbar.update()
 
     # RDP houses
+    #  TODO: Has to do with initial expansion? Is data_rdp not trustworthy?
     households_RDP = (number_properties_RDP * total_RDP
                       / sum(number_properties_RDP))
+    #  Share of housing (no backyard) in RDP surface
+    #  TODO: Why *1000000?
     construction_RDP = np.matlib.repmat(
         param["RDP_size"] / (param["RDP_size"] + param["backyard_size"]),
         1, len(grid_temp.dist)) * 1000000
     dwelling_size_RDP = np.matlib.repmat(
         param["RDP_size"], 1, len(grid_temp.dist))
 
+    # We fill the vector for each housing type
     simulated_people_with_RDP = np.zeros((4, 4, len(grid_temp.dist)))
     simulated_people_with_RDP[0, :, selected_pixels] = np.transpose(
         simulated_people[0, :, :, ])
@@ -290,13 +300,18 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Outputs of the solver
 
     initial_state_error = error[index_iteration, :]
+    #  Note that this does not contain RDP
+    #  TODO: is it normal that none of the poorest live in the formal?
     initial_state_simulated_jobs = simulated_jobs[index_iteration, :, :]
+    #  We sum across income groups (axis=1)
     initial_state_households_housing_types = np.sum(simulated_people_with_RDP,
                                                     1)
+    #  We sum across housing types (axis=0)
     initial_state_household_centers = np.sum(simulated_people_with_RDP, 0)
+    #  We keep both dimensions
     initial_state_households = simulated_people_with_RDP
 
-    # Housing stock and dwelling size
+    # Housing stock and dwelling size (fill with RDP)
     housing_supply_export = np.zeros((3, len(grid_temp.dist)))
     dwelling_size_export = np.zeros((3, len(grid_temp.dist)))
     housing_supply_export[:, selected_pixels] = housing_supply
@@ -307,7 +322,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     initial_state_housing_supply = np.vstack(
         [housing_supply_export, construction_RDP])
 
-    # Rents (hh in RDP pay a rent of 0)
+    # Rents (HHs in RDP pay a rent of 0)
     rent_temp = copy.deepcopy(rent_matrix[index_iteration, :, :])
     rent_export = np.zeros((3, len(grid_temp.dist)))
     rent_export[:, selected_pixels] = copy.deepcopy(rent_temp)
@@ -321,6 +336,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     initial_state_rent_matrix = copy.deepcopy(rent_matrix_export)
 
     # Other outputs
+    #  See research note, p.10
     initial_state_capital_land = ((housing_supply / (construction_param))
                                   ** (1 / param["coeff_b"]))
     initial_state_average_income = copy.deepcopy(average_income)

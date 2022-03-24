@@ -13,7 +13,7 @@ import equilibrium.compute_equilibrium as eqcmp
 import inputs.data as inpdt
 
 
-def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
+def run_simulation(t, options, param, grid, initial_state_utility,
                    initial_state_error, initial_state_households,
                    initial_state_households_housing_types,
                    initial_state_housing_supply,
@@ -23,14 +23,25 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
                    amenities, housing_limit, spline_estimate_RDP,
                    spline_land_constraints, spline_land_backyard,
                    spline_land_RDP, spline_land_informal,
-                   income_class_by_housing_type, path_scenarios,
-                   precalculated_transport, spline_RDP):
-    """d."""
+                   income_class_by_housing_type,
+                   precalculated_transport, spline_RDP,
+                   spline_agricultural_rent, spline_interest_rate,
+                   spline_population_income_distribution, spline_inflation,
+                   spline_income_distribution, spline_population,
+                   spline_income,
+                   spline_minimum_housing_supply, spline_fuel):
+    """Run simulations over several years according to scenarios."""
     # Parameters and options of the scenario
-    freq_iter = 1  # One iteration every year
+
+    #  Nb of iterations per year
+    freq_iter = param["iter_calc_lite"]
+    #  Here, we are going to run separate simulations with and without
+    #  dynamics, hence the need for a new parameter
+    #  TODO: maybe do it before and plug this back in functions_solver
     options["adjust_housing_init"] = copy.deepcopy(
         options["adjust_housing_supply"])
     options["adjust_housing_supply"] = 0
+    #  Setting the timeline
     years_simulations = np.arange(
         t[0], t[len(t) - 1] + 1, (t[1] - t[0])/freq_iter)
 
@@ -45,19 +56,14 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
     simulation_utility = np.zeros((len(t), 4))
     simulation_deriv_housing = np.zeros((len(t), len(grid.dist)))
 
-    # Import Scenarios
-    (spline_agricultural_rent, spline_interest_rate,
-     spline_population_income_distribution, spline_inflation,
-     spline_income_distribution, spline_population, spline_interest_rate,
-     spline_income, spline_minimum_housing_supply, spline_fuel
-     ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
-
+    # Starting the simulation
     for index_iter in range(0, len(years_simulations)):
 
         print(index_iter)
 
         year_temp = copy.deepcopy(years_simulations[index_iter])
         # stat_temp_utility = copy.deepcopy(initial_state_utility)
+        # TODO: Note that we need nothing more than the housing supply
         stat_temp_housing_supply = copy.deepcopy(initial_state_housing_supply)
         stat_temp_rent = copy.deepcopy(initial_state_rent)
         # stat_temp_average_income = copy.deepcopy(
@@ -68,11 +74,11 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
             if index_iter == len(t):
                 print('stop')
 
-            # Simulation with equilibrium housing stock
+            # SIMULATION WITH EQUILIBRIUM HOUSING STOCK
             print('Simulation without constraint')
             options["adjust_housing_supply"] = 1
 
-            # Tout ce qui évolue
+            # All that changes
             (average_income, households_per_income_class
              ) = eqdyn.compute_average_income(
                 spline_population_income_distribution,
@@ -94,7 +100,7 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
             minimum_housing_supply = spline_minimum_housing_supply(year_temp)
             # income_mult = average_income / mean_income
             number_properties_RDP = spline_estimate_RDP(year_temp)
-            # Why not just scale factor?
+            # TODO: Why not just scale factor?
             construction_param = (
                 (mean_income / param["income_year_reference"])
                 ** (- param["coeff_b"]) * param["coeff_A"]
@@ -107,7 +113,8 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
                 ** (param["coeff_a"]) * (interest_rate)
                 / (construction_param * param["coeff_b"] ** param["coeff_b"])
                 )
-            #  TODO: with or without fraction_capital_destroyed
+
+            # We compute a new static equilibrium for next period
             (tmpi_utility, tmpi_error, tmpi_simulated_jobs,
              tmpi_households_housing_types, tmpi_household_centers,
              tmpi_households, tmpi_dwelling_size, tmpi_housing_supply,
@@ -121,14 +128,20 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
                 minimum_housing_supply, construction_param)
 
             # Estimation of the derivation of housing supply between t and t+1
+            # (only for formal housing)
             deriv_housing_temp = eqdyn.evolution_housing_supply(
                 housing_limit, param, options, years_simulations[index_iter],
                 years_simulations[index_iter - 1], tmpi_housing_supply[0, :],
                 stat_temp_housing_supply[0, :])
+            # We update the initial housing parameter as it will give the
+            # housing supply when developers do not adjust
+            # TODO: create a copy to plug back in functions_solver
             param["housing_in"] = stat_temp_housing_supply[0, :]
             + deriv_housing_temp
 
-            # Run a new simulation with fixed housing
+            # RUN A NEW SIMULATION WITH FIXED HOUSING
+            # This allows to get a constrained "dynamic" equilibrium after
+            # taking inertia and depreciation into account
             print('Simulation with constraint')
             options["adjust_housing_supply"] = 0
             (initial_state_utility, initial_state_error,
@@ -146,18 +159,20 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
                 average_income, mean_income, income_class_by_housing_type,
                 minimum_housing_supply, construction_param)
 
-            # Ro de la simulation libre
             # stat_temp_utility = copy.deepcopy(tmpi_utility)
             stat_temp_deriv_housing = copy.deepcopy(deriv_housing_temp)
 
+        # We initialize the derivation vector
         else:
             stat_temp_deriv_housing = np.zeros(len(stat_temp_rent[0, :]))
 
 ###
 
+        # TODO: isn't it always the case? What happens else?
         if ((index_iter - 1) / param["iter_calc_lite"]
                 - np.floor((index_iter - 1) / param["iter_calc_lite"])) == 0:
-
+            # We retain the new constrained equilibrium with dynamic housing
+            # supply as an output
             simulation_households_center[int(
                 (index_iter - 1) / param["iter_calc_lite"] + 1), :, :
                     ] = copy.deepcopy(initial_state_household_centers)
@@ -188,12 +203,17 @@ def run_simulation(t, options, income_2011, param, grid, initial_state_utility,
 
 ###
 
+    # In case we have more than one simulation per year, we collapse timeline
+    # to yearly
     if len(t) < len(years_simulations):
         T = copy.deepcopy(t)
+    # Else, we just keep it as it is
     else:
         T = copy.deepcopy(years_simulations)
 
+    # We retain this timeline as an output for our plots
     simulation_T = copy.deepcopy(T)
+    # We reinitialize parameter
     options["adjust_housing_supply"] = copy.deepcopy(
         options["adjust_housing_init"])
 

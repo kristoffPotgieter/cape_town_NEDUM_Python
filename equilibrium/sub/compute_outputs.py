@@ -160,7 +160,7 @@ def compute_outputs(housing_type,
 
     people_init = housing_supply / dwelling_size * (np.nansum(limit, 0) > 0)
     people_init[np.isnan(people_init)] = 0
-    # TODO: Meaning?
+    # TODO: Meaning? Important as it corrects for construction constraints
     people_init_land = people_init * coeff_land * 0.25
 
     people_center = np.array(people_init_land)[None, :] * proba

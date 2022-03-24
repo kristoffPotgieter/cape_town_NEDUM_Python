@@ -396,7 +396,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We reweight max pixel share available for backyarding (both formal and
     #  informal) by a ratio of how densely populated the pixel is: this yields
-    #  an alternative definition of coeef_land_backyard
+    #  an alternative definition of coeff_land_backyard
     actual_backyards = (
         (housing_types.backyard_formal_grid
          + housing_types.backyard_informal_grid)
@@ -653,7 +653,8 @@ def import_init_floods_data(options, param, path_folder):
     # Damage functions give damage as a % of good considered, as a function
     # of flood depth in meters
 
-    # Depth-damage functions (from de Villiers, 2007)
+    # Depth-damage functions (from de Villiers, 2007: ratios from table 3, and
+    # table 4)
     structural_damages_small_houses = interp1d(
         [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
         [0, 0.0479, 0.1312, 0.1795, 0.3591, 1, 1]
@@ -671,7 +672,7 @@ def import_init_floods_data(options, param, path_folder):
         [0, 0.06, 0.15, 0.35, 0.77, 0.95, 1, 1]
         )
 
-    # Depth-damage functions (from Englhardt, 2019)
+    # Depth-damage functions (from Englhardt, 2019: figure 2)
     structural_damages_type1 = interp1d(
         [0, 0.5, 1, 1.25, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10],
         [0, 0.5, 0.9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -746,7 +747,8 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
 
     # We consider that formal housing is not vulnerable to pluvial floods over
     # medium run, and that RDP and backyard are not over short run
-    # TODO: discuss these assumptions
+    # This is based on CCT Minimum Standards for Stormwater Design 2014 (p.37)
+    # and Govender 2011 (fig.8 and p.30): see Aux data and discussion w/ CLaus
     if ((type_flood == 'P') & (housing_type == 'formal')):
         d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
         d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
@@ -1197,9 +1199,8 @@ def import_transport_data(grid, param, yearTraffic,
     # In transport hours per working hour
     costTime = ((timeOutput * param["time_cost"])
                 / (60 * numberHourWorkedPerDay))
-    # TODO: Is it right to assume that people not taking some transport mode
-    # have a extra high cost of doing so? At least it should not change
-    # anything
+    # We assume that people not taking some transport mode
+    # have a extra high cost of doing so
     costTime[np.isnan(costTime)] = 10 ** 2
     param_lambda = param["lambda"].squeeze()
 
@@ -1229,7 +1230,8 @@ def import_transport_data(grid, param, yearTraffic,
     # TODO: Where from calibrated?
     income_centers_init = scipy.io.loadmat(
         path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-    # TODO: useful?
+    # This allows to correct incomes for RDP people not taken into account in
+    # initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income
 
     # Switch to hourly
@@ -1371,7 +1373,8 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     formal_grid = small_areas_to_grid(
         grid, grid_intersect, sal_data["formal"], sal_data["Small Area Code"])
 
-    # TODO: We multiply the number of dwellings per housing type by?
+    # We correct the number of dwellings per pixel by reweighting with the
+    # ratio of total original number over total estimated number
     informal_grid = (informal_grid * (np.nansum(sal_data["informal"])
                                       / np.nansum(informal_grid)))
     backyard_formal_grid = (backyard_formal_grid
@@ -1400,8 +1403,6 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
 
     return housing_types_grid_sal
 
-
-# TODO: Check how this works
 
 def small_areas_to_grid(grid, grid_intersect, small_area_data,
                         small_area_code):

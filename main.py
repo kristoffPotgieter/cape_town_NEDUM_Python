@@ -89,7 +89,7 @@ param["income_year_reference"] = mean_income
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
-#  Import population density per pixel, by housing type
+#  Import nb of households per pixel, by housing type
 #  Note that there is no RDP, but both formal and informal backyard
 
 # Long tu run: uncomment if need to update 'housing_types_grid_sal.xlsx'
@@ -162,7 +162,7 @@ elif options["agents_anticipate_floods"] == 0:
 
 (spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
- spline_income_distribution, spline_population, spline_interest_rate,
+ spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
@@ -185,6 +185,7 @@ income_net_of_commuting_costs = np.load(
 
 # %% Compute initial state
 
+# TODO: Note that we use a CD production function all along!
 
 print("\n*** Solver initial state ***\n")
 (initial_state_utility,
@@ -253,7 +254,6 @@ np.save(path_outputs + name + '/initial_state_rent.npy',
  simulation_T) = eqsim.run_simulation(
      t,
      options,
-     income_2011,
      param,
      grid,
      initial_state_utility,
@@ -274,9 +274,17 @@ np.save(path_outputs + name + '/initial_state_rent.npy',
      spline_land_RDP,
      spline_land_informal,
      income_class_by_housing_type,
-     path_scenarios,
      path_precalc_transp,
-     spline_RDP
+     spline_RDP,
+     spline_agricultural_rent,
+     spline_interest_rate,
+     spline_population_income_distribution,
+     spline_inflation,
+     spline_income_distribution,
+     spline_population,
+     spline_income,
+     spline_minimum_housing_supply,
+     spline_fuel
      )
 
 # Save outputs

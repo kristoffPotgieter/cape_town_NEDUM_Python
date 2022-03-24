@@ -158,7 +158,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios):
     return (spline_agricultural_rent, spline_interest_rate,
             spline_population_income_distribution, spline_inflation,
             spline_income_distribution, spline_population,
-            spline_interest_rate, spline_income, spline_minimum_housing_supply,
+            spline_income, spline_minimum_housing_supply,
             spline_fuel)
 
 ###
@@ -166,7 +166,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios):
 
 def compute_average_income(spline_population_income_distribution,
                            spline_income_distribution, param, t):
-    """d."""
+    """Compute average income from scenario data (includes RDP)."""
     total_bracket = spline_population_income_distribution(t)
     avg_income_bracket = spline_income_distribution(t)
 
@@ -185,7 +185,7 @@ def compute_average_income(spline_population_income_distribution,
 
 
 def interpolate_interest_rate(spline_interest_rate, t):
-    """d."""
+    """Return an average interest rate over some period of interest."""
     nb_years = 3
     interest_rate_n_years = spline_interest_rate(np.arange(t - nb_years, t))
     interest_rate_n_years[interest_rate_n_years < 0] = np.nan
@@ -194,14 +194,18 @@ def interpolate_interest_rate(spline_interest_rate, t):
 
 def evolution_housing_supply(housing_limit, param, option, t1, t0,
                              housing_supply_1, housing_supply_0):
-    """d."""
+    """Yield dynamic housing supply with time inertia and depreciation."""
     # New housing supply (accounting for inertia and depreciation w/ time)
+    # See working paper, eq.15
     if t1 - t0 > 0:
+        # Yields the difference in housing supply (if growing) weighted by
+        # time inertia, minus housing stock depreciation
         diff_housing = ((housing_supply_1 - housing_supply_0)
                         * (housing_supply_1 > housing_supply_0)
                         * (t1 - t0) / param["time_invest_housing"]
                         - housing_supply_0 * (t1 - t0)
                         / param["time_depreciation_buildings"])
+    # This allows to run backward simulations
     else:
         diff_housing = ((housing_supply_1 - housing_supply_0)
                         * (housing_supply_1 < housing_supply_0)
@@ -209,10 +213,11 @@ def evolution_housing_supply(housing_limit, param, option, t1, t0,
                         - housing_supply_0 * (t1 - t0)
                         / param["time_depreciation_buildings"])
 
+    # We set the target "non-equilibrium" housing supply target
     housing_supply_target = housing_supply_0 + diff_housing
-
-    # Housing height is limited by potential regulations
+    # We bound it upwards as housing height is limited by potential regulations
     housing_supply_target = np.minimum(housing_supply_target, housing_limit)
+    # TODO: Has to do with Mitchells Plain?
     minimum_housing_supply_interp = interp1d(
         np.array([2001, 2011, 2100]) - param["baseline_year"],
         np.transpose([np.zeros(len(param["minimum_housing_supply"])),
@@ -220,7 +225,9 @@ def evolution_housing_supply(housing_limit, param, option, t1, t0,
                       param["minimum_housing_supply"]])
         )
     minimum_housing_supply_interp = minimum_housing_supply_interp(t1)
+    # We also bound it downwards
     housing_supply_target = np.maximum(
         housing_supply_target, minimum_housing_supply_interp)
 
+    # Finally, we return diff_housing after taking corrections into account
     return housing_supply_target - housing_supply_0

@@ -85,9 +85,9 @@ def import_param(path_precalc_inp, path_outputs):
     param["informal_structure_value"] = 4000
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
-    #  Comes from Claus (Aux data/HH Income per DU & housing_contents)
-    #  TODO: Integrate data properly
-    param["fraction_z_dwellings"] = 0.49
+    #  Correspond to average share of durable and semi-durable goods in total
+    #  HH budget (excluding rent) : see Aux data/HH Income per DU - CL
+    param["fraction_z_dwellings"] = 0.53
     #  Value of a social housing dwelling unit (in rands)
     #  For floods destruction
     #  TODO: How to determine it?
