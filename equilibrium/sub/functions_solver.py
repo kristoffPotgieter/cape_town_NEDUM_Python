@@ -93,7 +93,6 @@ def compute_housing_supply_formal(
 
         # See research note, p.10
         # TODO: What does 1000000 correspond to?
-        # TODO: Why do we take R, and not R_FP as in the formula?
         housing_supply = (
             1000000
             * (construction_param ** (1/param["coeff_a"]))
@@ -138,7 +137,6 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
     # See research note, p.11
     # TODO: Check that divide by zero come from groups 3 and 4
     np.seterr(divide='ignore', invalid='ignore')
-    # TODO: same as before
     housing_supply = (
         (param["alpha"] *
          (param["RDP_size"] + param["backyard_size"] - param["q0"])
