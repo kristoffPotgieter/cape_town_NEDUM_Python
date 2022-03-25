@@ -138,7 +138,7 @@ def compute_outputs(housing_type,
 
     dwelling_size = dwelling_size_temp
 
-    # %% Housing supply
+    # %% Housing supply (per unit of land)
 
     if housing_type == 'formal':
         housing_supply = eqsol.compute_housing_supply_formal(
@@ -158,9 +158,11 @@ def compute_outputs(housing_type,
 
     # %% Outputs
 
+    # Yields population density in each pixel
     people_init = housing_supply / dwelling_size * (np.nansum(limit, 0) > 0)
     people_init[np.isnan(people_init)] = 0
-    # TODO: Meaning? Important as it corrects for construction constraints
+    # Yields number of people per pixel, as 0.25 is the area of a pixel
+    # (0.5*0.5 km) and coeff_land reduces it to inhabitable area
     people_init_land = people_init * coeff_land * 0.25
 
     people_center = np.array(people_init_land)[None, :] * proba

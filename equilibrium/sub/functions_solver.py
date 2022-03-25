@@ -36,7 +36,6 @@ def compute_dwelling_size_formal(utility, amenities, param,
 
     # We get a regression spline expressing q as a function of
     # implicit_qfunc(q) for some arbitrarily chosen q
-    # TODO: Is it that arbitrary?
     x = np.concatenate((
         [10 ** (-8), 10 ** (-7), 10 ** (-6), 10 ** (-5), 10 ** (-4),
          10 ** (-3), 10 ** (-2), 10 ** (-1)],

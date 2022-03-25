@@ -76,7 +76,8 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # Initialisation solver
     utility = np.zeros((param["max_iter"], param["nb_of_income_classes"]))
-    #  TODO: Is it totally arbitrary?
+    #  We take arbitrary utility levels, not too far from what we would expect,
+    #  to make computation quicker
     utility[0, :] = np.array([1501, 4819, 16947, 79809])
     index_iteration = 0
     #  TODO: Why set as param? Meaning?
@@ -129,10 +130,14 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         simulated_jobs[index_iteration, :, :], 0)
 
     #  diff_utility will be used to adjust the utility levels
+
     #  We compare total population for each income group obtained from
     #  equilibrium condition (total_simulated_jobs) with target population
     #  allocation (households_per_income_class)
-    #  TODO: What does the formula mean?
+
+    #  We arbitrarily set a strictly positive minimum utility level at 10
+    #  (as utility will be adjusted multiplicatively, we do not want to break
+    #  the model with zero terms)
     diff_utility[index_iteration, :] = np.log(
         (total_simulated_jobs[index_iteration, :] + 10)
         / (households_per_income_class + 10))
@@ -168,12 +173,14 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
             # Adjust parameters to how close we are from the objective
             index_iteration = index_iteration + 1
-            # TODO: How is the formula chosen?
+            # When population is overestimated, we augment utility to reduce
+            # population (cf. population constraint from standard model)
             utility[index_iteration, :] = np.exp(
                 np.log(utility[index_iteration - 1, :])
                 + diff_utility[index_iteration - 1, :])
-            # TODO: What does this mean?
+            # This is a precaution as utility cannot be negative
             utility[index_iteration, utility[index_iteration, :] < 0] = 10
+            # TODO: To what does this adjustment correspond?
             convergence_factor = (
                 param["convergence_factor"] / (
                     1 + 0.5 * np.abs((
@@ -276,7 +283,8 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
             pbar.update()
 
     # RDP houses
-    #  TODO: Has to do with initial expansion? Is data_rdp not trustworthy?
+    #  We correct output coming from data_RDP with more reliable estimations
+    #  from Claus
     households_RDP = (number_properties_RDP * total_RDP
                       / sum(number_properties_RDP))
     #  Share of housing (no backyard) in RDP surface
@@ -301,7 +309,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     initial_state_error = error[index_iteration, :]
     #  Note that this does not contain RDP
-    #  TODO: is it normal that none of the poorest live in the formal?
     initial_state_simulated_jobs = simulated_jobs[index_iteration, :, :]
     #  We sum across income groups (axis=1)
     initial_state_households_housing_types = np.sum(simulated_people_with_RDP,

@@ -100,7 +100,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
             minimum_housing_supply = spline_minimum_housing_supply(year_temp)
             # income_mult = average_income / mean_income
             number_properties_RDP = spline_estimate_RDP(year_temp)
-            # TODO: Why not just scale factor?
+            # TODO: Ask Vincent about evolution of the scale factor
             construction_param = (
                 (mean_income / param["income_year_reference"])
                 ** (- param["coeff_b"]) * param["coeff_A"]
