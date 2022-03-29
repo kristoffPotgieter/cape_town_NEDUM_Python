@@ -34,6 +34,7 @@ def import_param(path_precalc_inp, path_outputs):
     param = {"baseline_year": 2011}
 
     # Utility function parameters, as calibrated in Pfeiffer et al. (table C7)
+    # TODO: check calibration
     #  Surplus housing elasticity
     param["beta"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_beta.mat'
@@ -47,6 +48,7 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
+    # TODO: check calibration
     #  Capital elasticity
     param["coeff_b"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
@@ -59,11 +61,12 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
+    # TODO: check calibration
     param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
                                        )["lambdaKeep"].squeeze()
 
     # Discount factors
-    #  TODO: check inconsistency with the paper (from Viguié et al., 2014)
+    #  TODO: correct inconsistency with the paper (from Viguié et al., 2014)
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
     param["interest_rate"] = 0.025
@@ -95,13 +98,13 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Max % of land that can be built for housing (to take roads into account),
     # by housing type
-    #  TODO: Ask Basile where this comes from
+    #  TODO: Check R code from Basile
     param["max_land_use"] = 0.7
     param["max_land_use_backyard"] = 0.45
     param["max_land_use_settlement"] = 0.4
 
     # Constraints on housing supply (in meters)
-    #  TODO: Ask Basile where this comes from
+    #  A priori not binding
     param["historic_radius"] = 100
     param["limit_height_center"] = 10
     param["limit_height_out"] = 10
@@ -110,7 +113,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  Corresponds to the ninth decile in the sales data sets, when
     #  selecting only agricultural properties in rural areas
     param["agricultural_rent_2011"] = 807.2
-    #  TODO: Ask Basile where this comes from
+    #  Estimated the same way
     param["agricultural_rent_2001"] = 70.7
 
     # Year urban edge constraint kicks in
@@ -155,8 +158,7 @@ def import_param(path_precalc_inp, path_outputs):
     # TODO: Where from?
     param["threshold"] = 130
 
-    # Make copies of parameters that may change
-    # TODO: check if useful
+    # Make copies of parameters that may change (to be used in simulations)
     param["informal_structure_value_ref"] = copy.deepcopy(
         param["informal_structure_value"])
     param["subsidized_structure_value_ref"] = copy.deepcopy(
@@ -165,6 +167,7 @@ def import_param(path_precalc_inp, path_outputs):
     # Disamenity parameters for informal settlements and backyard shacks,
     # coming from location-based calibration, as opposed to general calibration
     # used in Pfeiffer et al. (appendix C5)
+    # TODO: check calibration
     param["pockets"] = np.load(
         path_outputs+'fluvial_and_pluvial/param_pockets.npy')
     param["backyard_pockets"] = np.load(
@@ -186,7 +189,8 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # share of built formal area (times 1.1) for areas with some formal housing
     # This gives the density for formal area instead of just the pixel area:
     # we therefore consider that developers always provide one surface unit of
-    # housing per household per unit of land
+    # housing per household per unit of land. In practice, this is not used.
+    # NB: HFA = habitable floor area
     (param["housing_in"][coeff_land[0, :] != 0]
      ) = (grid_formal_density_HFA[coeff_land[0, :] != 0]
           / coeff_land[0, :][coeff_land[0, :] != 0]
@@ -198,13 +202,12 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # Put a cap and a floor on values
     param["housing_in"][param["housing_in"] > 2 * (10**6)] = 2 * (10**6)
     param["housing_in"][param["housing_in"] < 0] = 0
-    # TODO: Ask Basile where all this comes from
 
     # In Mitchells Plain, housing supply is given exogenously (planning),
-    # and households of group 2 live there (coloured neighborhood)
+    # and only households of group 2 live there (coloured neighborhood).
     # We do the same as before with a starting supply of 1 in Mitchells Plain:
-    # the idea is to have a min housing supply in this zone
-    # TODO: Ask Basile how does this work
+    # the idea is to have a min housing supply in this zone whose density might
+    # be underestimated by the model
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
     cond = mitchells_plain_grid_2011 * coeff_land[0, :]
     (param["minimum_housing_supply"][cond != 0]
@@ -229,7 +232,9 @@ def import_construction_parameters(param, grid, housing_types_sp,
             ]
         )
 
-    # TODO: Ask Basile what this means (link with footnote 16?)
+    # Comes from zero profit condition: allows to convert land prices into
+    # housing prices
+    # TODO: it seems that it lacks a term * param[coeff_a]**(-param[coeff_a])
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)

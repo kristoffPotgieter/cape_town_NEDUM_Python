@@ -82,7 +82,9 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011) = inpdt.import_income_classes_data(param, path_data)
 
-#  TODO: Ask why we need another parameter
+#  We create this parameter to maintain money illusion in simulations
+#  (see eqsim.run_simulation)
+#  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
@@ -97,8 +99,6 @@ param["income_year_reference"] = mean_income
 #                                       housing_type_data)
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 
-# TODO: Run import_sal_data again before removing
-housing_types[np.isnan(housing_types)] = 0
 
 # LAND USE PROJECTIONS
 
@@ -122,7 +122,6 @@ coeff_land = inpdt.import_coeff_land(
     spline_land_RDP, param, 0)
 
 #  We update land use parameters at baseline (relies on data)
-
 housing_limit = inpdt.import_housing_limit(grid, param)
 
 #  TODO: plug outputs in a new variable (not param) and adapt linked functions
@@ -237,10 +236,6 @@ np.save(path_outputs + name + '/initial_state_rent.npy',
 
 # %% Scenarios
 
-# TODO: Go through underlying modules
-
-# TODO: Should we import scenarios from the beginning to avoid doing it again
-
 # RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
 (simulation_households_center,
  simulation_households_housing_type,
@@ -288,7 +283,6 @@ np.save(path_outputs + name + '/initial_state_rent.npy',
      )
 
 # Save outputs
-# TODO: Is it the right way to do so?
 
 try:
     os.mkdir(path_outputs + name)

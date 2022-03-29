@@ -80,7 +80,15 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  to make computation quicker
     utility[0, :] = np.array([1501, 4819, 16947, 79809])
     index_iteration = 0
-    #  TODO: Why set as param? Meaning?
+    #  We need to apply some convergence factor to our error terms to make them
+    #  converge in our optimization: the formula comes from trial and error,
+    #  but the intuition is that we put more weight on the error for households
+    #  with high relative income as it will magnify the effect on rents, hence
+    #  housing supply and resulting population distribution
+
+    #  TODO: run simulations with different convergence parameters to ensure
+    #  that we do not get stuck in some local optimum (unlikely as distribution
+    #  of households is monotonous wrt utility changes)
     param["convergence_factor"] = (
         0.02 * (np.nanmean(average_income) / mean_income) ** 0.4
         )  # 0.045
@@ -180,13 +188,23 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                 + diff_utility[index_iteration - 1, :])
             # This is a precaution as utility cannot be negative
             utility[index_iteration, utility[index_iteration, :] < 0] = 10
-            # TODO: To what does this adjustment correspond?
+
+            # We augment the convergence factor at each iteration in propotion
+            # with the estimation error to augment the importance of later
+            # compared to earlier errors (as algorithm should improve across
+            # iterations)
+
+            # NB: we assume the minimum error is 100 not to break model with
+            # zeros
             convergence_factor = (
                 param["convergence_factor"] / (
                     1 + 0.5 * np.abs((
                         total_simulated_jobs[index_iteration, :] + 100
                         ) / (households_per_income_class + 100) - 1))
                 )
+
+            # At the same time, we also reduce it while time passes, not to
+            # demand too much of the algorithm and to help convergence
             convergence_factor = (
                 convergence_factor
                 * (1 - 0.6 * index_iteration / param["max_iter"])
@@ -287,8 +305,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  from Claus
     households_RDP = (number_properties_RDP * total_RDP
                       / sum(number_properties_RDP))
-    #  Share of housing (no backyard) in RDP surface
-    #  TODO: Why *1000000?
+    #  Share of housing (no backyard) in RDP surface (with land in km²)
     construction_RDP = np.matlib.repmat(
         param["RDP_size"] / (param["RDP_size"] + param["backyard_size"]),
         1, len(grid_temp.dist)) * 1000000
@@ -326,6 +343,8 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
+    # TODO: not sure to understand construction_RDP here: shouldn't multiply
+    # with households_RDP and dwelling_size_RDP
     initial_state_housing_supply = np.vstack(
         [housing_supply_export, construction_RDP])
 

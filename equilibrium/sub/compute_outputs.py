@@ -152,7 +152,9 @@ def compute_outputs(housing_type,
             fraction_capital_destroyed, dwelling_size)
         housing_supply[R == 0] = 0
     elif housing_type == 'informal':
-        # TODO: Meaning of 1000000?
+        # We simply take a supply equal to the available constructible land,
+        # hence ones when considering supply per land unit (informal
+        # settlements are assumed not costly to build), then convert to km²
         housing_supply = 1000000 * np.ones(len(which_group))
         housing_supply[R == 0] = 0
 

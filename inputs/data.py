@@ -34,6 +34,7 @@ def import_grid(path_data):
 def import_amenities(path_precalc_inp):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
+    # TODO: check calibration
     precalculated_amenities = scipy.io.loadmat(
         path_precalc_inp + 'calibratedAmenities.mat')
     # Normalize index by mean of values
@@ -93,6 +94,7 @@ def import_income_classes_data(param, path_data):
 def import_households_data(path_precalc_inp):
     """Import geographic data with class distributions for households."""
     # Import a structure of characteristics (for pixels and SPs mostly)
+    # TODO: check calibration
     data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
 
     #  Get maximum thresholds for model income classes (4)
@@ -209,7 +211,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # Land cover for informal settlements (see R code for details)
 
-    # Set the area of a pixel in m^2
+    # Set the area of a pixel in m²
     area_pixel = (0.5 ** 2) * 1000000
 
     # General surface data on land use (urban, agricultural...)
@@ -237,8 +239,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # Nb of informal dwellings per pixel (realized scenario)
     informal_settlements_2020 = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
-    # TODO: Why do we correct by max_land here? Supposedly to make it
-    # comparable with land_use_data_old...
+    # Here we correct by max_land_use to make it comparable with
+    # land_use_data_old (this will be removed afterwards as it does not
+    # correspond to reality)
     informal_risks_2020 = (
         informal_settlements_2020.inf_dwellings_2020
         * param["shack_size"] * (1 / param["max_land_use_settlement"]))
@@ -246,7 +249,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     informal_risks_2020[informal_risks_2020 < area_pixel/100] = 0
     informal_risks_2020[np.isnan(informal_risks_2020)] = 0
 
-    # TODO: Ask Basile where this comes from
+    # TODO: Ask Claus where this comes from
     polygon_medium_timing = pd.read_excel(
         path_folder + 'Land occupation/polygon_medium_timing.xlsx',
         header=None)
@@ -403,15 +406,6 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         / np.nanmax(housing_types.backyard_formal_grid
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
-
-    #  We take the max from two different definitions to be conservative: we
-    #  consider the maximum risk of backyard settlements
-    #  This yields a pixel share potential for new structures
-    # coeff_land_backyard = np.fmax(coeff_land_backyard, actual_backyards)
-    #  TODO: should we multiply by the max share of land available here?
-    # coeff_land_backyard = coeff_land_backyard
-    # * param["max_land_use_backyard"]
-    # coeff_land_backyard[coeff_land_backyard < 0] = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -618,16 +612,15 @@ def import_housing_limit(grid, param):
     """Return height limit within and out of historic city radius."""
     center_regulation = (grid["dist"] <= param["historic_radius"])
     outside_regulation = (grid["dist"] > param["historic_radius"])
-    # TODO: Binding if no *1000000?
-    housing_limit = (
+    # We get the maximum amount of housing we can get per km² (hence the
+    # multiplier as pixel area is given in m²)
+    housing_limit = 1000000 * (
         param["limit_height_center"] * center_regulation
         + param["limit_height_out"] * outside_regulation
                      )
 
     return housing_limit
 
-
-# TODO: Study underlying assumptions
 
 def import_init_floods_data(options, param, path_folder):
     """Import initial floods data and damage functions."""
@@ -731,8 +724,8 @@ def import_init_floods_data(options, param, path_folder):
 def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                                        housing_type):
     """Define function used to get fraction of capital destroyed by floods."""
-# This defines a probability rule (summing to 1) for each time interval defined
-# in FATHOM (the more distant, the less likely)
+    # This defines a probability rule (summing to 1) for each time interval
+    # defined in FATHOM (the more distant, the less likely)
     interval0 = 1 - (1/5)
     interval1 = (1/5) - (1/10)
     interval2 = (1/10) - (1/20)
@@ -764,7 +757,9 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
 
     # Damage scenarios are incremented using damage functions multiplied by
-    # flood-prone area (yields size of destructed area)
+    # flood-prone area (yields pixel share of destructed area), so as to
+    # define damage intervals to be used in final computation
+    # TODO: What about lower and upper bounds?
 
     damages0 = ((d[type_flood + '_5yr'].prop_flood_prone
                 * damage_function(d[type_flood + '_5yr'].flood_depth))
@@ -811,7 +806,14 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                  + (d[type_flood + '_1000yr'].prop_flood_prone
                     * damage_function(d[type_flood + '_1000yr'].flood_depth)))
 
-# TODO: What does it correspond to?
+    # The formula for expected fraction of capital destroyed is given by the
+    # integral of damage according to time (or rather, inverse probability).
+    # Assuming that damage increase linearly with time (or inverse
+    # probability), we can approximate this area as a sum of rectangles
+    # defined for each of our intervals: this yields the following formula
+
+    # NB: for more graphical intuition, see
+    # https://storymaps.arcgis.com/stories/7878c89c592e4a78b45f03b4b696ccac
 
     return (0.5
             * ((interval0 * damages0) + (interval1 * damages1)
@@ -997,30 +999,6 @@ def infer_WBUS2_depth(housing_types, param, path_floods):
 
 # TODO: Determine if the following is still useful
 
-def import_basile_simulation():
-    """Import obsolete data."""
-    mat1 = scipy.io.loadmat(
-        'C:/Users/charl/OneDrive/Bureau/Cape Town - pour Charlotte/Modèle/'
-        + 'projet_le_cap/simulations scenarios - 201908.mat')
-    simul1 = mat1["simulation_noUE"]
-    simul1_error = simul1["error"][0][0]
-    simul1_utility = simul1["utility"][0][0]
-    simul1_households_housing_type = simul1["householdsHousingType"][0][0]
-    simul1_rent = simul1["rent"][0][0]
-    simul1_dwelling_size = simul1["dwellingSize"][0][0]
-    simul1_households_center = simul1["householdsCenter"][0][0]
-    data = scipy.io.loadmat(
-        'C:/Users/charl/OneDrive/Bureau/cape_town/2. Data/'
-        + '0. Precalculated inputs/data.mat')['data']
-    SP_code = data["spCode"][0][0].squeeze()
-
-    return (simul1_error, simul1_utility, simul1_households_housing_type,
-            simul1_rent, simul1_dwelling_size, simul1_households_center,
-            SP_code)
-
-
-# TODO: Determine if the following is still useful
-
 def SP_to_grid_2011_1(data_SP, grid, path_data):
     """Adapt SP data to grid dimension."""
     grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
@@ -1064,8 +1042,6 @@ def SP_to_grid_2011_1(data_SP, grid, path_data):
     return data_grid
 
 
-# TODO: Study underlying assumptions
-
 def import_transport_data(grid, param, yearTraffic,
                           households_per_income_class, average_income,
                           spline_inflation,
@@ -1077,10 +1053,11 @@ def import_transport_data(grid, param, yearTraffic,
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
     # Import travel times and distances
+    # TODO: check calibration
     transport_times = scipy.io.loadmat(path_precalc_inp
                                        + 'Transport_times_GRID.mat')
 
-    # TODO: Where does it come from?
+    # TODO: Check tables from Basile to link with data
 
     # Price per km: see appendix B2 and Roux(2013), table 4.15
     priceTrainPerKMMonth = (
@@ -1126,7 +1103,7 @@ def import_transport_data(grid, param, yearTraffic,
     priceFixedVehiculeMonth = 400
     priceFixedVehiculeMonth = priceFixedVehiculeMonth * inflation / infla_2012
 
-    # STEP 2: TRAVEL TIMES AND COSTS AS MATRIX
+    # STEP 2: TRAVEL TIMES AND COSTS AS MATRIX (no endogenous congestion)
 
     # Parameters: see appendix B2
     numberDaysPerYear = 235
@@ -1134,12 +1111,16 @@ def import_transport_data(grid, param, yearTraffic,
     annualToHourly = 1 / (8*20*12)
 
     # Time taken by each mode in both direction (in min)
+    # Includes walking time to station and other features from EMME/2 model
     timeOutput = np.empty(
         (transport_times["durationTrain"].shape[0],
          transport_times["durationTrain"].shape[1], 5)
         )
     timeOutput[:] = np.nan
-    # TODO: What are 1.2 and 2?
+    # To get walking times, we take 2 times the distances by car (to get trips
+    # in both directions) multiplied by 1.2 (sinusoity coefficient), divided
+    # by the walking speed (in km/h), which we multiply by 60 to get minutes
+    # TODO: Ask Vincent about reference for sinusoity coefficient
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
@@ -1148,7 +1129,7 @@ def import_transport_data(grid, param, yearTraffic,
     timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])
     timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])
 
-    # Length (in km) using each mode
+    # Length (in km) using each mode (in direct line)
     multiplierPrice = np.empty((timeOutput.shape))
     multiplierPrice[:] = np.nan
     multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
@@ -1226,8 +1207,8 @@ def import_transport_data(grid, param, yearTraffic,
         spline_population_income_distribution, spline_income_distribution,
         param, yearTraffic)
     # Income centers: corresponds to expected income associated with each
-    # income center and income group?
-    # TODO: Where from calibrated?
+    # income center and income group
+    # TODO: Check calibration
     income_centers_init = scipy.io.loadmat(
         path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
     # This allows to correct incomes for RDP people not taken into account in
@@ -1268,26 +1249,34 @@ def import_transport_data(grid, param, yearTraffic,
 
         # Household size varies with income group / transport costs
         householdSize = param["household_size"][j]
-        # TODO: useful?
+        # Here, -100000 corresponds to an arbitrary value given to incomes in
+        # centers with too few jobs to have convergence in calibration (could
+        # have been nan): we exclude those centers from the analysis
+        # TODO: check calibration
         whichCenters = incomeCenters[:, j] > -100000
         incomeCentersGroup = incomeCenters[whichCenters, j]
 
         # Transport costs and employment allocation (cost per hour)
-        # Corresponds to t_mj; note that incomeCentersGroup correspond to y_ic,
-        # hence ksi_i is already taken into account as a multiplier of w_ic,
-        # therefore there is no need to multiply the second term by
-        # householdSize
+
+        # Corresponds to t_mj without error term (explained cost)
+        #  Note that incomeCentersGroup correspond to y_ic, hence ksi_i is
+        #  already taken into account as a multiplier of w_ic, therefore there
+        #  is no need to multiply the second term by householdSize
         transportCostModes = (
             (householdSize * monetaryCost[whichCenters, :, :]
              + (costTime[whichCenters, :, :]
                 * incomeCentersGroup[:, None, None]))
             )
 
-        # To prevent exp from diverging to infinity?
+        # TODO: this supposedly prevents exponentials from diverging towards
+        # infinity, but how would it be possible with negative terms?
+        # In any case, this is neutral on the result
         valueMax = (np.min(param_lambda * transportCostModes, axis=2) - 500)
 
         # Modal shares
-        # TODO: Where from?
+        # This comes from the multinomial model resulting from extreme value
+        # theory with a Gumbel distribution (generalized EV type-I) used to
+        # model the minimum (vs. the maximum) of a number of i.i.d. variables
         modalShares[whichCenters, :, :, j] = (np.exp(
             - param_lambda * transportCostModes + valueMax[:, :, None])
             / np.nansum(np.exp(- param_lambda * transportCostModes
@@ -1301,13 +1290,15 @@ def import_transport_data(grid, param, yearTraffic,
                                        + valueMax[:, :, None]), 2)) - valueMax)
             )
 
-        # To prevent diverging exponentials?
+        # TODO: this is more intuitive regarding diverging exponentials, but
+        # does Python have the same limitations as Matlab? Still neutral
         minIncome = (np.nanmax(
             param_lambda * (incomeCentersGroup[:, None] - transportCost), 0)
             - 700)
 
         # OD flows: corresponds to pi_c|ix
-        # TODO: why do we re-multiply by lambda?
+        # We re-multiply by lambda as it is again the inverse of the parameter
+        # of a Gumbel distribution (correct typo in paper)
         ODflows[whichCenters, :, j] = (
             np.exp(param_lambda * (incomeCentersGroup[:, None] - transportCost)
                    - minIncome)
@@ -1317,7 +1308,7 @@ def import_transport_data(grid, param, yearTraffic,
             )
 
         # Income net of commuting costs (correct formula)
-        # TODO: really?
+        # TODO: check eq.1?
         incomeNetOfCommuting[j, :] = (
             1/param_lambda * (np.log(np.nansum(np.exp(
                 param_lambda * (incomeCentersGroup[:, None] - transportCost)
@@ -1325,8 +1316,7 @@ def import_transport_data(grid, param, yearTraffic,
                 0)) + minIncome)
             )
 
-        # Average income earned per worker: should correspond to ~y_i(x)~
-        # TODO: Is - transportCost lacking?
+        # Average income (not net of commuting costs) earned per worker
         averageIncome[j, :] = np.nansum(
             ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
 

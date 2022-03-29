@@ -91,7 +91,7 @@ def compute_housing_supply_formal(
              ]
 
         # See research note, p.10
-        # TODO: What does 1000000 correspond to?
+        # NB: we convert to supply per km²
         housing_supply = (
             1000000
             * (construction_param ** (1/param["coeff_a"]))
@@ -146,7 +146,7 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
            / (param["backyard_size"] * R))
     )
 
-    # TODO: As before with 1000000
+    # TNB: we convert units to km²
     housing_supply[R == 0] = 0
     housing_supply = np.minimum(housing_supply, 1)
     housing_supply = np.maximum(housing_supply, 0)
