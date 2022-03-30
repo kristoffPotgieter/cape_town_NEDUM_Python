@@ -217,7 +217,8 @@ def evolution_housing_supply(housing_limit, param, option, t1, t0,
     housing_supply_target = housing_supply_0 + diff_housing
     # We bound it upwards as housing height is limited by potential regulations
     housing_supply_target = np.minimum(housing_supply_target, housing_limit)
-    # TODO: Has to do with Mitchells Plain?
+    # We also consider minimum housing supply in the future
+    # (cf. Mitchells Plain)
     minimum_housing_supply_interp = interp1d(
         np.array([2001, 2011, 2100]) - param["baseline_year"],
         np.transpose([np.zeros(len(param["minimum_housing_supply"])),

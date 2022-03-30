@@ -1049,7 +1049,7 @@ def import_transport_data(grid, param, yearTraffic,
                           spline_population_income_distribution,
                           spline_income_distribution,
                           path_precalc_inp, path_precalc_transp):
-    """Compute travel times and costs."""
+    """Compute job center distribution, commuting and net income."""
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
     # Import travel times and distances
@@ -1108,6 +1108,7 @@ def import_transport_data(grid, param, yearTraffic,
     # Parameters: see appendix B2
     numberDaysPerYear = 235
     numberHourWorkedPerDay = 8
+    #  We assume 8 working hours per day and 20 working days per month
     annualToHourly = 1 / (8*20*12)
 
     # Time taken by each mode in both direction (in min)
@@ -1120,7 +1121,7 @@ def import_transport_data(grid, param, yearTraffic,
     # To get walking times, we take 2 times the distances by car (to get trips
     # in both directions) multiplied by 1.2 (sinusoity coefficient), divided
     # by the walking speed (in km/h), which we multiply by 60 to get minutes
-    # TODO: Ask Vincent about reference for sinusoity coefficient
+    # NB: see Viguié et al. (2014), table B.1 for sinusoity estimate
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
@@ -1307,8 +1308,9 @@ def import_transport_data(grid, param, yearTraffic,
                         0)[None, :]
             )
 
-        # Income net of commuting costs (correct formula)
-        # TODO: check eq.1?
+        # Income net of commuting costs (correct formula): cf. log-sum
+        # calculation ans selection bias with weighted sum if we include error
+        # terms
         incomeNetOfCommuting[j, :] = (
             1/param_lambda * (np.log(np.nansum(np.exp(
                 param_lambda * (incomeCentersGroup[:, None] - transportCost)

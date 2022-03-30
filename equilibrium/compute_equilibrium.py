@@ -343,10 +343,10 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
-    # TODO: not sure to understand construction_RDP here: shouldn't multiply
-    # with households_RDP and dwelling_size_RDP
     initial_state_housing_supply = np.vstack(
-        [housing_supply_export, construction_RDP])
+        [housing_supply_export,
+         construction_RDP * dwelling_size_RDP * households_RDP]
+        )
 
     # Rents (HHs in RDP pay a rent of 0)
     rent_temp = copy.deepcopy(rent_matrix[index_iteration, :, :])

@@ -66,7 +66,7 @@ def import_param(path_precalc_inp, path_outputs):
                                        )["lambdaKeep"].squeeze()
 
     # Discount factors
-    #  TODO: correct inconsistency with the paper (from Viguié et al., 2014)
+    #  From Viguié et al. (2014)
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
     param["interest_rate"] = 0.025
@@ -97,8 +97,7 @@ def import_param(path_precalc_inp, path_outputs):
     param["subsidized_structure_value"] = 150000
 
     # Max % of land that can be built for housing (to take roads into account),
-    # by housing type
-    #  TODO: Check R code from Basile
+    # by housing type: comes from analogy with Viguié et al., 2014 (table B1)
     param["max_land_use"] = 0.7
     param["max_land_use_backyard"] = 0.45
     param["max_land_use_settlement"] = 0.4
@@ -208,6 +207,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # We do the same as before with a starting supply of 1 in Mitchells Plain:
     # the idea is to have a min housing supply in this zone whose density might
     # be underestimated by the model
+    # TODO: check error in pre-treatment when importing density from the area
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
     cond = mitchells_plain_grid_2011 * coeff_land[0, :]
     (param["minimum_housing_supply"][cond != 0]
@@ -233,12 +233,13 @@ def import_construction_parameters(param, grid, housing_types_sp,
         )
 
     # Comes from zero profit condition: allows to convert land prices into
-    # housing prices
-    # TODO: it seems that it lacks a term * param[coeff_a]**(-param[coeff_a])
+    # housing prices (cf. also inversion from footnote 16)
+    # TODO: check in sales registry that this is not housing price already
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)
-        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
+           * param["coeff_a"] ** param["coeff_a"])
         )
 
     return param, minimum_housing_supply, agricultural_rent

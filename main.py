@@ -178,6 +178,7 @@ elif options["agents_anticipate_floods"] == 0:
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
+#  TODO: does this allow us to abstract from unemployment rate (appendix)
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 

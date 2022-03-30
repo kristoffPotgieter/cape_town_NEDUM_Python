@@ -63,7 +63,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
 
         year_temp = copy.deepcopy(years_simulations[index_iter])
         # stat_temp_utility = copy.deepcopy(initial_state_utility)
-        # TODO: Note that we need nothing more than the housing supply
+        # Note that we actually need nothing more than the housing supply
         stat_temp_housing_supply = copy.deepcopy(initial_state_housing_supply)
         stat_temp_rent = copy.deepcopy(initial_state_rent)
         # stat_temp_average_income = copy.deepcopy(
