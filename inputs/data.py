@@ -1276,8 +1276,8 @@ def import_transport_data(grid, param, yearTraffic,
 
         # Modal shares
         # This comes from the multinomial model resulting from extreme value
-        # theory with a Gumbel distribution (generalized EV type-I) used to
-        # model the minimum (vs. the maximum) of a number of i.i.d. variables
+        # theory with a Gumbel distribution (generalized EV type-I)
+        # NB: here, we consider minimum Gumbel
         modalShares[whichCenters, :, :, j] = (np.exp(
             - param_lambda * transportCostModes + valueMax[:, :, None])
             / np.nansum(np.exp(- param_lambda * transportCostModes
@@ -1285,6 +1285,7 @@ def import_transport_data(grid, param, yearTraffic,
             )
 
         # Transport costs (min_m(t_mj))
+        # NB: here, we consider the Gumbel quantile function
         transportCost = (
             - 1 / param_lambda
             * (np.log(np.nansum(np.exp(- param_lambda * transportCostModes
@@ -1298,8 +1299,7 @@ def import_transport_data(grid, param, yearTraffic,
             - 700)
 
         # OD flows: corresponds to pi_c|ix
-        # We re-multiply by lambda as it is again the inverse of the parameter
-        # of a Gumbel distribution (correct typo in paper)
+        # NB: here, we consider maximum Gumbel
         ODflows[whichCenters, :, j] = (
             np.exp(param_lambda * (incomeCentersGroup[:, None] - transportCost)
                    - minIncome)
@@ -1308,9 +1308,9 @@ def import_transport_data(grid, param, yearTraffic,
                         0)[None, :]
             )
 
-        # Income net of commuting costs (correct formula): cf. log-sum
-        # calculation ans selection bias with weighted sum if we include error
-        # terms
+        # Expected income net of commuting costs (correct formula): cf. log-sum
+        # calculation ans selection bias with weighted sum and error terms
+        # NB: here, we consider maximum Gumbel
         incomeNetOfCommuting[j, :] = (
             1/param_lambda * (np.log(np.nansum(np.exp(
                 param_lambda * (incomeCentersGroup[:, None] - transportCost)
@@ -1319,6 +1319,7 @@ def import_transport_data(grid, param, yearTraffic,
             )
 
         # Average income (not net of commuting costs) earned per worker
+        # NB: here, we just take the weighted average as there is no error
         averageIncome[j, :] = np.nansum(
             ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
 

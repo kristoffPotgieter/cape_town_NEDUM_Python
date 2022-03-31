@@ -4,6 +4,7 @@ Created on Wed Oct 28 16:01:05 2020.
 
 @author: Charlotte Liotta
 """
+
 import numpy as np
 import equilibrium.sub.functions_solver as eqsol
 
@@ -160,15 +161,19 @@ def compute_outputs(housing_type,
 
     # %% Outputs
 
-    # Yields population density in each pixel
+    # Yields population density in each selected pixel
     people_init = housing_supply / dwelling_size * (np.nansum(limit, 0) > 0)
     people_init[np.isnan(people_init)] = 0
     # Yields number of people per pixel, as 0.25 is the area of a pixel
     # (0.5*0.5 km) and coeff_land reduces it to inhabitable area
     people_init_land = people_init * coeff_land * 0.25
 
+    # We associate people in each selected pixel to the highest bidding income
+    # group
     people_center = np.array(people_init_land)[None, :] * proba
     people_center[np.isnan(people_center)] = 0
+    # Then we sum across pixels and get the number of people in each income
+    # group for given housing type
     job_simul = np.nansum(people_center, 1)
 
     if housing_type == 'formal':

@@ -146,7 +146,7 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
            / (param["backyard_size"] * R))
     )
 
-    # TNB: we convert units to km²
+    # NB: we convert units to km²
     housing_supply[R == 0] = 0
     housing_supply = np.minimum(housing_supply, 1)
     housing_supply = np.maximum(housing_supply, 0)

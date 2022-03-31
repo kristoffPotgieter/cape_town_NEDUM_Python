@@ -31,10 +31,12 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Shorten the grid
     #  We select pixels with constructible shares for all housing types > 0.01
     #  and a positive maximum income net of commuting costs across classes
+    #  NB: we will have no output in other pixels (numeric simplification)
     selected_pixels = (
         (np.sum(coeff_land, 0) > 0.01).squeeze()
         & (np.nanmax(income_net_of_commuting_costs, 0) > 0)
         )
+    coeff_land_full = copy.deepcopy(coeff_land)
     coeff_land = coeff_land[:, selected_pixels]
     grid_temp = copy.deepcopy(grid)
     grid = grid.iloc[selected_pixels, :]
@@ -133,11 +135,17 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # Compute error and adjust utility
 
-    #  We first update the first iteration of output vector
+    #  We first update the first iteration of output vector with the sum of
+    #  simulated people per income group across housing types (no RDP)
     total_simulated_jobs[index_iteration, :] = np.sum(
         simulated_jobs[index_iteration, :, :], 0)
 
     #  diff_utility will be used to adjust the utility levels
+    #  Note that optimization is made to stick to households_per_income_class,
+    #  which does not include people living in RDP (as we take this as
+    #  exogenous), see equilibrium condition (i)
+    #  TODO: can we consider that condition (v) will be automatically satisfied
+    #  by Walras's law?
 
     #  We compare total population for each income group obtained from
     #  equilibrium condition (total_simulated_jobs) with target population
@@ -309,6 +317,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     construction_RDP = np.matlib.repmat(
         param["RDP_size"] / (param["RDP_size"] + param["backyard_size"]),
         1, len(grid_temp.dist)) * 1000000
+    #  RDP dwelling size
     dwelling_size_RDP = np.matlib.repmat(
         param["RDP_size"], 1, len(grid_temp.dist))
 
@@ -341,11 +350,16 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     housing_supply_export[:, selected_pixels] = housing_supply
     dwelling_size_export[:, selected_pixels] = copy.deepcopy(dwelling_size)
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
+    housing_supply_RDP = (
+        construction_RDP * dwelling_size_RDP * households_RDP
+        / coeff_land_full[3, :])
+    housing_supply_RDP[housing_supply_RDP <= 0] = np.nan
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
+    # Cf. equilibrium condition (iv)
+    # TODO: check again
     initial_state_housing_supply = np.vstack(
-        [housing_supply_export,
-         construction_RDP * dwelling_size_RDP * households_RDP]
+        [housing_supply_export, housing_supply_RDP]
         )
 
     # Rents (HHs in RDP pay a rent of 0)
@@ -362,9 +376,10 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     initial_state_rent_matrix = copy.deepcopy(rent_matrix_export)
 
     # Other outputs
-    #  See research note, p.10
+    #  See research note, p.10 (Cobb-Douglas)
     initial_state_capital_land = ((housing_supply / (construction_param))
                                   ** (1 / param["coeff_b"]))
+    #  NB: this is not an output of the model
     initial_state_average_income = copy.deepcopy(average_income)
     initial_state_limit_city = [initial_state_households > 1]
     initial_state_utility = utility[index_iteration, :]

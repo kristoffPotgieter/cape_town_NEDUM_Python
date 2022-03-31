@@ -79,6 +79,8 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
+# TODO: this does not correspond to census data?
+
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011) = inpdt.import_income_classes_data(param, path_data)
 
@@ -181,6 +183,10 @@ elif options["agents_anticipate_floods"] == 0:
 #  TODO: does this allow us to abstract from unemployment rate (appendix)
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+ODflows = np.load(
+    path_precalc_transp + 'ODflows_0.npy')
+averageIncome = np.load(
+    path_precalc_transp + 'averageIncome_0.npy')
 
 
 # %% Compute initial state
@@ -222,6 +228,36 @@ print("\n*** Solver initial state ***\n")
      param["coeff_A"])
 
 
+# TODO: Are we simulating people or households? Link with ksi...
+
+# Note on outputs (with dimensions in same order as axes):
+# initial_state_utility = utility for each income group (no RDP)
+#   after optimization
+# initial_state_error = value of error term for each group after optimization
+# initial_state_simulated_jobs = total number of households per housing type
+#   (no RDP) and income group
+# initial_state_households_housing_types = number of households
+#   per housing type (with RDP) per pixel
+# initial_state_household_centers = number of households per income group
+#   per pixel
+# initial_state_households = number of households in each housing type
+#   and income group per pixel
+# initial_state_dwelling_size = dwelling size (in m²) for each housing type
+#   per pixel
+# initial_state_housing_supply = housing surface built (in m²) per unit of
+#   available land (in km²) for each housing type in each pixel
+# initial_state_rent = average rent (in rands/m²) for each housing type
+#   in each pixel
+# initial_state_rent_matrix = average willingness to pay (in rands)
+#   for each housing type (no RDP) and each income group in each pixel
+# initial_state_capital_land = value of the (housing construction sector)
+#   capital stock (in rands) per unit of available land (in km²)
+#   in each housing type (no RDP) and each selected pixel
+# initial_state_average_income = average income per income group
+#   (not an output of the model)
+# initial_state_limit_city = indicator dummy for having strictly more
+#   than one household per housing type and income group in each pixel
+
 try:
     os.mkdir(path_outputs + name)
 except OSError as error:
@@ -233,6 +269,31 @@ np.save(path_outputs + name + '/initial_state_household_centers.npy',
         initial_state_household_centers)
 np.save(path_outputs + name + '/initial_state_rent.npy',
         initial_state_rent)
+
+
+# %% Validation exercises
+
+# TODO: need to check calibration fit for average income?
+# TODO: should we use ksi or household_size?
+
+ksi = [size / 2 for size in param["household_size"]]
+household_size = param["household_size"]
+
+cal_average_income = np.nanmean(averageIncome, 1)
+cal_average_wage = household_size * cal_average_income
+
+# Note that equilibrium constraints are satisfied by definition
+# TODO: What about condition (v)?
+# TODO: do more validation exercises
+
+W_mat = np.zeros((np.ma.size(ODflows, 0), param["nb_of_income_classes"]))
+
+for i in range(np.ma.size(ODflows, 0) - 1):
+    W_mat[i, :] = household_size * np.nansum(
+        ODflows[i, :, :] * initial_state_household_centers.T, 0)
+
+left = np.nansum(W_mat, 0)
+right = np.nansum(household_size * initial_state_household_centers.T, 0)
 
 
 # %% Scenarios
