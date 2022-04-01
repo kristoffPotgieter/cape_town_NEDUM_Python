@@ -599,6 +599,8 @@ def import_coeff_land(spline_land_constraints, spline_land_backyard,
                            * param["max_land_use_backyard"])
     # We do not need to reweight RDP available pixel share as we directly have
     # the true value from construction plans
+    # TODO: but isn't it inconsistent with the other non-corrected terms used
+    # to define coeff_land_private?
     coeff_land_RDP = spline_land_RDP(t)
     coeff_land_settlement = (spline_land_informal(t)
                              * param["max_land_use_settlement"])

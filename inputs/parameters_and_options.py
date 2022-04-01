@@ -52,12 +52,15 @@ def import_param(path_precalc_inp, path_outputs):
     #  Capital elasticity
     param["coeff_b"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
+    # param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
     # Land elasticity
     param["coeff_a"] = 1 - param["coeff_b"]
     #  Scale parameter
     param["coeff_A"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedHousing_kappa.mat'
         )["coeffKappa"].squeeze()
+    # param["coeff_A"] = np.load(
+    #     path_precalc_inp + 'calibratedHousing_kappa.npy')
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
@@ -78,6 +81,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  Size of a social housing dwelling unit (m^2), see table C6
     param["RDP_size"] = 40
     #  Size of backyard dwelling unit (m^2), see table C6 (not rented fraction)
+    #  NB: in theory, a backyard can therefore host up to 5 households
     param["backyard_size"] = 70
     #  Nb of social housing units built per year (cf. Housing Pipeline)
     #  Doesn't correspond to scenario from WP (cf. Claus for post-2020)

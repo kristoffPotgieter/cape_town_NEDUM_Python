@@ -17,6 +17,7 @@ import copy
 import scipy.io
 from sklearn.linear_model import LinearRegression
 import seaborn as sns
+import os
 
 import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
@@ -251,8 +252,16 @@ coeff_a = 1 - coeff_b
 coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
               * np.exp(model_construction.intercept_))
 
+try:
+    os.mkdir(path_precalc_inp)
+except OSError as error:
+    print(error)
+
+np.save(path_precalc_inp + 'calibratedHousing_b.npy', coeff_b)
+np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
+
+
 # TODO: What about CES parameters?
-# TODO: save results!
 
 # # Correcting data for rents
 # dataRent = (
@@ -286,16 +295,18 @@ coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
 # list_lambda = 10 ** np.arange(0.6, 0.65, 0.01)
 list_lambda = 10 ** np.arange(0.6, 0.605, 0.005)
 
+job_centers = calcmp.import_employment_data(
+    households_per_income_class, param, path_data)
+
+###
+
 (timeOutput, distanceOutput, monetaryCost, costTime
  ) = calcmp.import_transport_costs(
      income_2011, param, grid, 0, path_precalc_inp, spline_inflation,
      spline_fuel)
 
-job_centers = calcmp.import_employment_data(
-    households_per_income_class, param, path_data)
-
 incomeCenters, distanceDistribution = calcmp.EstimateIncome(
-    param, timeOutput, distanceOutput, monetaryCost, costTime, job_centers,
+    param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime, job_centers,
     average_income, income_distribution, list_lambda)
 
 ###

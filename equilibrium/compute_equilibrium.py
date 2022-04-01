@@ -350,14 +350,16 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     housing_supply_export[:, selected_pixels] = housing_supply
     dwelling_size_export[:, selected_pixels] = copy.deepcopy(dwelling_size)
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
+    # See equilibrium condition (iv)
     housing_supply_RDP = (
         construction_RDP * dwelling_size_RDP * households_RDP
-        / coeff_land_full[3, :])
-    housing_supply_RDP[housing_supply_RDP <= 0] = np.nan
+        / (coeff_land_full[3, :] * 0.25)
+        )
+    housing_supply_RDP[np.isnan(housing_supply_RDP)] = 0
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
-    # Cf. equilibrium condition (iv)
-    # TODO: check again
+    # Note that RDP housing supply per unit of land has nothing to do with
+    # backyard housing supply per unit of land
     initial_state_housing_supply = np.vstack(
         [housing_supply_export, housing_supply_RDP]
         )

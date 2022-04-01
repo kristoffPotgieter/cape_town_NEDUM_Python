@@ -230,6 +230,9 @@ print("\n*** Solver initial state ***\n")
 
 # TODO: Are we simulating people or households? Link with ksi...
 
+# Reminder: income groups are ranked from poorer to richer, and housing types
+# follow the order formal-backyard-informal-RDP
+
 # Note on outputs (with dimensions in same order as axes):
 # initial_state_utility = utility for each income group (no RDP)
 #   after optimization
@@ -251,8 +254,8 @@ print("\n*** Solver initial state ***\n")
 # initial_state_rent_matrix = average willingness to pay (in rands)
 #   for each housing type (no RDP) and each income group in each pixel
 # initial_state_capital_land = value of the (housing construction sector)
-#   capital stock (in rands) per unit of available land (in km²)
-#   in each housing type (no RDP) and each selected pixel
+#   capital stock (in available-land unit equivalent) per unit of available
+#   land (in km²) in each housing type (no RDP) and each selected pixel
 # initial_state_average_income = average income per income group
 #   (not an output of the model)
 # initial_state_limit_city = indicator dummy for having strictly more
@@ -263,37 +266,20 @@ try:
 except OSError as error:
     print(error)
 
-np.save(path_outputs + name + '/initial_state_households_housing_types.npy',
+np.save(path_outputs + name + 'initial_state_households_housing_types.npy',
         initial_state_households_housing_types)
-np.save(path_outputs + name + '/initial_state_household_centers.npy',
+np.save(path_outputs + name + 'initial_state_household_centers.npy',
         initial_state_household_centers)
-np.save(path_outputs + name + '/initial_state_rent.npy',
+np.save(path_outputs + name + 'initial_state_households.npy',
+        initial_state_households)
+np.save(path_outputs + name + 'initial_state_housing_supply.npy',
+        initial_state_housing_supply)
+np.save(path_outputs + name + 'initial_state_rent.npy',
         initial_state_rent)
-
-
-# %% Validation exercises
-
-# TODO: need to check calibration fit for average income?
-# TODO: should we use ksi or household_size?
-
-ksi = [size / 2 for size in param["household_size"]]
-household_size = param["household_size"]
-
-cal_average_income = np.nanmean(averageIncome, 1)
-cal_average_wage = household_size * cal_average_income
-
-# Note that equilibrium constraints are satisfied by definition
-# TODO: What about condition (v)?
-# TODO: do more validation exercises
-
-W_mat = np.zeros((np.ma.size(ODflows, 0), param["nb_of_income_classes"]))
-
-for i in range(np.ma.size(ODflows, 0) - 1):
-    W_mat[i, :] = household_size * np.nansum(
-        ODflows[i, :, :] * initial_state_household_centers.T, 0)
-
-left = np.nansum(W_mat, 0)
-right = np.nansum(household_size * initial_state_household_centers.T, 0)
+np.save(path_outputs + name + 'initial_state_rent_matrix.npy',
+        initial_state_rent_matrix)
+np.save(path_outputs + name + 'initial_state_capital_land.npy',
+        initial_state_capital_land)
 
 
 # %% Scenarios

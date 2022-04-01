@@ -298,6 +298,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                 averageIncomeGroup
                 * (popCenters / np.nanmean(popCenters)) ** (0.1)
                 )
+            # TODO: elicit later
             error[:, 0] = funSolve(incomeCenters[:, 0])
 
             while ((iter <= maxIter - 1) & (errorMax > tolerance)):
@@ -376,17 +377,19 @@ def funSolve(incomeCentersTemp):
 def fun0(incomeCentersTemp, averageIncomeGroup, popCenters, popResidence,
          monetaryCost, timeCost, param_lambda):
     """Compute error in employment allocation."""
-    # Redress the average income
+    # We redress the average income in each group per job center to match
+    # income data
+    # TODO: correspond to wages? Or timeCost already includes unemployment?
     incomeCentersFull = (
         incomeCentersTemp * averageIncomeGroup
         / ((np.nansum(incomeCentersTemp * popCenters) / np.nansum(popCenters)))
         )
 
     # Transport costs and employment allocation
-    transportCostModes = monetaryCost + timeCost * \
-        incomeCentersFull[:, None, None]  # Eq 1
+    transportCostModes = (
+        monetaryCost + timeCost * incomeCentersFull[:, None, None])
 
-    # Value max is to prevent the exp to diverge to infinity (in matlab: exp(800) = Inf)
+    # To prevent the exp to diverge to infinity (in matlab: exp(800) = Inf)
     valueMax = np.nanmin(param_lambda * transportCostModes, 2) - 500
 
     # Transport costs
