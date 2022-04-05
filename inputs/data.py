@@ -765,10 +765,9 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     # define damage intervals to be used in final computation
     # TODO: What about lower and upper bounds?
 
-    damages0 = ((d[type_flood + '_5yr'].prop_flood_prone
+    # We take zero value at t = 0
+    damages0 = (d[type_flood + '_5yr'].prop_flood_prone
                 * damage_function(d[type_flood + '_5yr'].flood_depth))
-                + (d[type_flood + '_5yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_5yr'].flood_depth)))
     damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
                  * damage_function(d[type_flood + '_5yr'].flood_depth))
                 + (d[type_flood + '_10yr'].prop_flood_prone
@@ -805,6 +804,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                  * damage_function(d[type_flood + '_500yr'].flood_depth))
                 + (d[type_flood + '_1000yr'].prop_flood_prone
                    * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+    # We assume that value stays the same when t = +inf
     damages10 = ((d[type_flood + '_1000yr'].prop_flood_prone
                   * damage_function(d[type_flood + '_1000yr'].flood_depth))
                  + (d[type_flood + '_1000yr'].prop_flood_prone
