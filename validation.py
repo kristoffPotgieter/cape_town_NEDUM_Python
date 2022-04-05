@@ -205,6 +205,17 @@ initial_state_capital_land = np.load(
 
 # %% Validation exercises
 
+# Note that we only have the poorest income group in backyard and informal
+# settlements: shouldn't we observe some from the second poorest as well?
+# Without actual_backyards, we again find coherent distributions of backyards
+# wrt RDP
+
+total_households = np.nansum(initial_state_households, 2)
+
+test = coeff_land[[1, 3], :]
+test = test[:, test[0, :] > 0]
+test = np.vstack([test, test[0, :] / test[1, :]])
+
 # TODO: need to check calibration fit for average income?
 # TODO: should we use ksi or household_size?
 

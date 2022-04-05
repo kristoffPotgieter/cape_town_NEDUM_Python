@@ -12,17 +12,24 @@ import math
 from calibration.estimate_parameters_by_scanning import *
 from calibration.loglikelihood import *
 
-def EstimateParametersByScanning(incomeNetOfCommuting, dataRent, dataDwellingSize, dataIncomeGroup, dataHouseholdDensity, selectedDensity, xData, yData, selectedSP, tableAmenities, variablesRegression, initRho, listBeta, listBasicQ, initUti2, listUti3, listUti4):
-    """ Automated estimation of the parameters of NEDUM by maximizing log likelihood 
-    
-    Here we scan a set of values for each parameters and determine the value
-    of the log-likelihood (to see how the model behaves). 
-    
-    In EstimateParameters By Optimization, we use the minimization algorithm from Matlab to converge towards solution """ 
 
-    #Data as matrices, where should we regress (remove where we have no data)
-    #Where is which class
-    net_income = incomeNetOfCommuting[1:4,:] #We remove income group 1
+def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
+                                 dataDwellingSize, dataIncomeGroup,
+                                 dataHouseholdDensity, selectedDensity,
+                                 xData, yData, selectedSP, tableAmenities,
+                                 variablesRegression, initRho, listBeta,
+                                 listBasicQ, initUti2, listUti3, listUti4):
+    """Estimate parameters by maximizing log likelihood."""
+    # Here we scan a set of values for each parameter and determine the value
+    # of the log-likelihood (to see how the model behaves).
+    # NB: In EstimateParameters By Optimization, we use the minimization
+    # algorithm from Matlab to converge towards the solution
+
+    # Data as matrices, where should we regress (remove where we have no data)
+    # Where is which class
+
+    # We remove poorest income group
+    net_income = incomeNetOfCommuting[1:4,:]
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
         groupLivingSpMatrix[i, data_income_group != i] = np.zeros(1, 'bool')

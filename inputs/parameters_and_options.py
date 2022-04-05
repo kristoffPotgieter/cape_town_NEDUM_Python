@@ -50,17 +50,17 @@ def import_param(path_precalc_inp, path_outputs):
     # (table C7)
     # TODO: check calibration
     #  Capital elasticity
-    param["coeff_b"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
-    # param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
+    # param["coeff_b"] = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
+    param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
     # Land elasticity
     param["coeff_a"] = 1 - param["coeff_b"]
     #  Scale parameter
-    param["coeff_A"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedHousing_kappa.mat'
-        )["coeffKappa"].squeeze()
-    # param["coeff_A"] = np.load(
-    #     path_precalc_inp + 'calibratedHousing_kappa.npy')
+    # param["coeff_A"] = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedHousing_kappa.mat'
+    #     )["coeffKappa"].squeeze()
+    param["coeff_A"] = np.load(
+        path_precalc_inp + 'calibratedHousing_kappa.npy')
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3

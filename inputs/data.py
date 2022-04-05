@@ -343,12 +343,14 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
 # 3. RDP pixel share
 
-    # Getting areas
+    # Getting areas: note that we divide by max_land_use as original data is
+    # already corrected and we want to make the spline coherent with other
+    # non-corrected housing types
 
     #  % of the pixel area dedicated to RDP (after accounting for backyard)
     area_RDP = (data_rdp["area"] * param["RDP_size"]
                 / (param["backyard_size"] + param["RDP_size"])
-                / area_pixel)
+                / area_pixel) / param["max_land_use"]
 
     #  For the RDP constructed area, we take the min between declared value and
     #  extrapolation from our initial size parameters
@@ -358,7 +360,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         construction_rdp.area_ST,
         (param["backyard_size"] + param["RDP_size"])
         * construction_rdp.total_yield_DU_ST
-        )
+        ) / param["max_land_use"]
     #  Then for the LT, while capping the constructed area at the pixel size
     #  (just in case)
     area_RDP_long_term = np.minimum(
@@ -369,7 +371,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                + construction_rdp.total_yield_DU_LT)
             ),
         area_pixel
-        )
+        ) / param["max_land_use"]
 
     # Regression spline
 
@@ -399,13 +401,16 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We reweight max pixel share available for backyarding (both formal and
     #  informal) by a ratio of how densely populated the pixel is: this yields
-    #  an alternative definition of coeff_land_backyard
+    #  an alternative definition of coeff_land_backyard that includes formal
+    #  backyarding and may be used for flood damage estimations
+    #  TODO: pb with floods
     actual_backyards = (
         (housing_types.backyard_formal_grid
          + housing_types.backyard_informal_grid)
         / np.nanmax(housing_types.backyard_formal_grid
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
+    # actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -458,6 +463,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         )
 
     # Regression spline
+    # TODO: why take the max?
 
     spline_land_backyard = interp1d(
         year_data_informal,
@@ -597,11 +603,7 @@ def import_coeff_land(spline_land_constraints, spline_land_backyard,
     coeff_land_private[coeff_land_private < 0] = 0
     coeff_land_backyard = (spline_land_backyard(t)
                            * param["max_land_use_backyard"])
-    # We do not need to reweight RDP available pixel share as we directly have
-    # the true value from construction plans
-    # TODO: but isn't it inconsistent with the other non-corrected terms used
-    # to define coeff_land_private?
-    coeff_land_RDP = spline_land_RDP(t)
+    coeff_land_RDP = spline_land_RDP(t) * param["max_land_use"]
     coeff_land_settlement = (spline_land_informal(t)
                              * param["max_land_use_settlement"])
     coeff_land = np.array([coeff_land_private, coeff_land_backyard,
@@ -766,7 +768,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     damages0 = ((d[type_flood + '_5yr'].prop_flood_prone
                 * damage_function(d[type_flood + '_5yr'].flood_depth))
                 + (d[type_flood + '_5yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_10yr'].flood_depth)))
+                   * damage_function(d[type_flood + '_5yr'].flood_depth)))
     damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
                  * damage_function(d[type_flood + '_5yr'].flood_depth))
                 + (d[type_flood + '_10yr'].prop_flood_prone
@@ -999,51 +1001,6 @@ def infer_WBUS2_depth(housing_types, param, path_floods):
     return param
 
 
-# TODO: Determine if the following is still useful
-
-def SP_to_grid_2011_1(data_SP, grid, path_data):
-    """Adapt SP data to grid dimension."""
-    grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
-    data_grid = np.zeros(len(grid.dist))
-    for index in range(0, len(grid.dist)):
-        intersect = np.unique(
-            grid_intersect.SP_CODE[grid_intersect.ID_grille == grid.id[index]]
-            )
-        area_exclu = 0
-        for i in range(0, len(intersect)):
-            if len(data_SP['sp_code' == intersect[i]]) == 0:
-                area_exclu = (
-                    area_exclu
-                    + sum(grid_intersect.Area[(
-                        grid_intersect.ID_grille == grid.id[index])
-                        & (grid_intersect.SP_CODE == intersect[i])])
-                    )
-            else:
-                data_grid[index] = (
-                    data_grid[index]
-                    + sum(grid_intersect.Area[(
-                        grid_intersect.ID_grille == grid.id[index])
-                        & (grid_intersect.SP_CODE == intersect[i])])
-                    * data_SP['sp_code' == intersect[i]]
-                    )
-        if area_exclu > (0.9 * sum(
-                grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
-                )):
-            data_grid[index] = np.nan
-        elif sum(
-               grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
-               ) - area_exclu > 0:
-            data_grid[index] = (
-                data_grid[index]
-                / (sum(grid_intersect.Area[
-                    grid_intersect.ID_grille == grid.id[index]]
-                    ) - area_exclu))
-        else:
-            data_grid[index] = np.nan
-
-    return data_grid
-
-
 def import_transport_data(grid, param, yearTraffic,
                           households_per_income_class, average_income,
                           spline_inflation,
@@ -1214,6 +1171,7 @@ def import_transport_data(grid, param, yearTraffic,
     # TODO: Check calibration
     income_centers_init = scipy.io.loadmat(
         path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
     # This allows to correct incomes for RDP people not taken into account in
     # initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income
@@ -1355,18 +1313,20 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
 
     grid_intersect = pd.read_csv(
         path_data + 'grid_SAL_intersect.csv', sep=';')
+    grid_intersect.rename(columns={"Area_inter": "Area"}, inplace=True)
 
-    informal_grid = small_areas_to_grid(
+    informal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["informal"],
-        sal_data["Small Area Code"])
-    backyard_formal_grid = small_areas_to_grid(
+        sal_data["Small Area Code"], 'SAL')
+    backyard_formal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["backyard_formal"],
-        sal_data["Small Area Code"])
-    backyard_informal_grid = small_areas_to_grid(
+        sal_data["Small Area Code"], 'SAL')
+    backyard_informal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["backyard_informal"],
-        sal_data["Small Area Code"])
-    formal_grid = small_areas_to_grid(
-        grid, grid_intersect, sal_data["formal"], sal_data["Small Area Code"])
+        sal_data["Small Area Code"], 'SAL')
+    formal_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, sal_data["formal"], sal_data["Small Area Code"],
+        'SAL')
 
     # We correct the number of dwellings per pixel by reweighting with the
     # ratio of total original number over total estimated number
@@ -1398,6 +1358,48 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
 
     return housing_types_grid_sal
 
+
+def convert_income_distribution(income_distribution, grid, path_data, data_sp):
+    """Import SP data for income distribution in grid form."""
+    grid_intersect = pd.read_csv(
+        path_data + 'grid_SP_intersect.csv', sep=';')
+
+    income0_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 0],
+        data_sp["sp_code"], 'SP')
+    income1_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 1],
+        data_sp["sp_code"], 'SP')
+    income2_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 2],
+        data_sp["sp_code"], 'SP')
+    income3_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 3],
+        data_sp["sp_code"], 'SP')
+
+    # We correct the values per pixel by reweighting with the
+    # ratio of total original number over total estimated number
+    income0_grid = (income0_grid * (np.nansum(income_distribution[:, 0])
+                                    / np.nansum(income0_grid)))
+    income1_grid = (income1_grid * (np.nansum(income_distribution[:, 1])
+                                    / np.nansum(income1_grid)))
+    income2_grid = (income2_grid * (np.nansum(income_distribution[:, 2])
+                                    / np.nansum(income2_grid)))
+    income3_grid = (income3_grid * (np.nansum(income_distribution[:, 3])
+                                    / np.nansum(income3_grid)))
+
+    income_grid = np.stack(
+        [income0_grid, income1_grid, income2_grid, income3_grid])
+
+    # Replace missing values by zero
+    income_grid[np.isnan(income_grid)] = 0
+
+    np.save(path_data + "income_distrib_grid.npy", income_grid)
+
+    return income_grid
+
+
+# TODO: Erase after test (deprecated)
 
 def small_areas_to_grid(grid, grid_intersect, small_area_data,
                         small_area_code):
@@ -1432,3 +1434,92 @@ def small_areas_to_grid(grid, grid_intersect, small_area_data,
                 grid_data[index] = grid_data[index] + add
 
     return grid_data
+
+
+def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
+                            small_area_code, unit):
+    """Convert SAL/SP to grid dimensions."""
+    grid_data = np.zeros(len(grid.dist))
+    for index in range(0, len(grid.dist)):
+        intersect = np.unique(
+            grid_intersect[unit + '_CODE'][grid_intersect.ID_grille
+                                           == grid.id[index]]
+            )
+        if len(intersect) == 0:
+            grid_data[index] = np.nan
+        else:
+            for i in range(0, len(intersect)):
+                small_code = intersect[i]
+                small_area_intersect = np.nansum(
+                    grid_intersect.Area[
+                        (grid_intersect.ID_grille == grid.id[index])
+                        & (grid_intersect[unit + '_CODE'] == small_code)
+                        ].squeeze())
+                small_area = np.nansum(
+                    grid_intersect.Area[
+                        (grid_intersect[unit + '_CODE'] == small_code)]
+                    )
+                if len(small_area_data[
+                        small_area_code == small_code]) > 0:
+                    # Yields number of dwellings/people given by the
+                    # intersection
+                    add = (small_area_data[small_area_code == small_code]
+                           * (small_area_intersect / small_area))
+                else:
+                    add = 0
+                grid_data[index] = grid_data[index] + add
+
+    return grid_data
+
+# TODO: check if deprecated with Basile
+
+
+def SP_to_grid_2011_1(data_SP, grid, path_data):
+    """Adapt SP data to grid dimension."""
+    grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
+    data_grid = np.zeros(len(grid.dist))
+    for index in range(0, len(grid.dist)):
+        # A priori, each SP code is associated to several pixels
+        intersect = np.unique(
+            grid_intersect.SP_CODE[grid_intersect.ID_grille == grid.id[index]]
+            )
+        area_exclu = 0
+        for i in range(0, len(intersect)):
+            if len(data_SP['sp_code' == intersect[i]]) == 0:
+                # We exclude the area of (all) pixel(s) corresponding to
+                # unmatched SP
+                area_exclu = (
+                    area_exclu
+                    + sum(grid_intersect.Area[(
+                        grid_intersect.ID_grille == grid.id[index])
+                        & (grid_intersect.SP_CODE == intersect[i])])
+                    )
+            else:
+                # We add the SP data times the area of matched pixel(s)
+                data_grid[index] = (
+                    data_grid[index]
+                    + sum(grid_intersect.Area[(
+                        grid_intersect.ID_grille == grid.id[index])
+                        & (grid_intersect.SP_CODE == intersect[i])])
+                    * data_SP['sp_code' == intersect[i]]
+                    )
+        # We do not update data if excluded area is bigger than 90% of the
+        # matched SP area (not used in practice)
+        if area_exclu > (0.9 * sum(
+                grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
+                )):
+            data_grid[index] = np.nan
+        # Else, if there is some positive matching, we update data with
+        # nonsense?
+        elif sum(
+               grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
+               ) - area_exclu > 0:
+            data_grid[index] = (
+                data_grid[index]
+                / (sum(grid_intersect.Area[
+                    grid_intersect.ID_grille == grid.id[index]]
+                    ) - area_exclu))
+        else:
+            data_grid[index] = np.nan
+
+    return data_grid
