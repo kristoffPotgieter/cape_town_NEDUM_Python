@@ -79,7 +79,7 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-# TODO: this does not correspond to census data?
+# TODO: does this correspond to census data?
 
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011) = inpdt.import_income_classes_data(param, path_data)
@@ -180,20 +180,16 @@ elif options["agents_anticipate_floods"] == 0:
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-#  TODO: does this allow us to abstract from unemployment rate (appendix)
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
-ODflows = np.load(
-    path_precalc_transp + 'ODflows_0.npy')
-averageIncome = np.load(
-    path_precalc_transp + 'averageIncome_0.npy')
 
 
 # %% Compute initial state
 
-# TODO: Note that we use a CD production function all along!
+# TODO: Note that we use a Cobb-Douglas production function all along!
+# TODO: Also note that we simulate households as two representative agents
+# (not as in the paper)
 
-print("\n*** Solver initial state ***\n")
 (initial_state_utility,
  initial_state_error,
  initial_state_simulated_jobs,
@@ -228,10 +224,8 @@ print("\n*** Solver initial state ***\n")
      param["coeff_A"])
 
 
-# TODO: Are we simulating people or households? Link with ksi...
-
 # Reminder: income groups are ranked from poorer to richer, and housing types
-# follow the order formal-backyard-informal-RDP
+# follow the following order: formal-backyard-informal-RDP
 
 # Note on outputs (with dimensions in same order as axes):
 # initial_state_utility = utility for each income group (no RDP)
@@ -260,6 +254,8 @@ print("\n*** Solver initial state ***\n")
 #   (not an output of the model)
 # initial_state_limit_city = indicator dummy for having strictly more
 #   than one household per housing type and income group in each pixel
+
+# Save outputs
 
 try:
     os.mkdir(path_outputs + name)

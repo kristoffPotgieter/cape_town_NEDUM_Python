@@ -34,7 +34,6 @@ def import_grid(path_data):
 def import_amenities(path_precalc_inp):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
-    # TODO: check calibration
     precalculated_amenities = scipy.io.loadmat(
         path_precalc_inp + 'calibratedAmenities.mat')
     # Normalize index by mean of values
@@ -94,7 +93,6 @@ def import_income_classes_data(param, path_data):
 def import_households_data(path_precalc_inp):
     """Import geographic data with class distributions for households."""
     # Import a structure of characteristics (for pixels and SPs mostly)
-    # TODO: check calibration
     data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
 
     #  Get maximum thresholds for model income classes (4)
@@ -403,14 +401,14 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  informal) by a ratio of how densely populated the pixel is: this yields
     #  an alternative definition of coeff_land_backyard that includes formal
     #  backyarding and may be used for flood damage estimations
-    #  TODO: pb with floods
+    #  TODO: check pb with floods
     actual_backyards = (
         (housing_types.backyard_formal_grid
          + housing_types.backyard_informal_grid)
         / np.nanmax(housing_types.backyard_formal_grid
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
-    # actual_backyards = 0
+    actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -463,7 +461,6 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         )
 
     # Regression spline
-    # TODO: why take the max?
 
     spline_land_backyard = interp1d(
         year_data_informal,
@@ -763,7 +760,6 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     # Damage scenarios are incremented using damage functions multiplied by
     # flood-prone area (yields pixel share of destructed area), so as to
     # define damage intervals to be used in final computation
-    # TODO: What about lower and upper bounds?
 
     # We take zero value at t = 0
     damages0 = (d[type_flood + '_5yr'].prop_flood_prone
@@ -1012,7 +1008,6 @@ def import_transport_data(grid, param, yearTraffic,
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
     # Import travel times and distances
-    # TODO: check calibration
     transport_times = scipy.io.loadmat(path_precalc_inp
                                        + 'Transport_times_GRID.mat')
 
@@ -1168,7 +1163,6 @@ def import_transport_data(grid, param, yearTraffic,
         param, yearTraffic)
     # Income centers: corresponds to expected income associated with each
     # income center and income group
-    # TODO: Check calibration
     income_centers_init = scipy.io.loadmat(
         path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
     # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
@@ -1213,7 +1207,6 @@ def import_transport_data(grid, param, yearTraffic,
         # Here, -100000 corresponds to an arbitrary value given to incomes in
         # centers with too few jobs to have convergence in calibration (could
         # have been nan): we exclude those centers from the analysis
-        # TODO: check calibration
         whichCenters = incomeCenters[:, j] > -100000
         incomeCentersGroup = incomeCenters[whichCenters, j]
 
@@ -1399,43 +1392,6 @@ def convert_income_distribution(income_distribution, grid, path_data, data_sp):
     return income_grid
 
 
-# TODO: Erase after test (deprecated)
-
-def small_areas_to_grid(grid, grid_intersect, small_area_data,
-                        small_area_code):
-    """Convert SAL to grid dimensions."""
-    grid_data = np.zeros(len(grid.dist))
-    for index in range(0, len(grid.dist)):
-        intersect = np.unique(
-            grid_intersect.SAL_CODE[grid_intersect.ID_grille == grid.id[index]]
-            )
-        if len(intersect) == 0:
-            grid_data[index] = np.nan
-        else:
-            for i in range(0, len(intersect)):
-                sal_code = intersect[i]
-                sal_area_intersect = np.nansum(
-                    grid_intersect.Area_inter[
-                        (grid_intersect.ID_grille == grid.id[index])
-                        & (grid_intersect.SAL_CODE == sal_code)
-                        ].squeeze())
-                sal_area = np.nansum(
-                    grid_intersect.Area_inter[
-                        (grid_intersect.SAL_CODE == sal_code)]
-                    )
-                if len(small_area_data[
-                        small_area_code == sal_code]) > 0:
-                    # Yields number of dwellings/people given by the
-                    # intersection
-                    add = (small_area_data[small_area_code == sal_code]
-                           * (sal_area_intersect / sal_area))
-                else:
-                    add = 0
-                grid_data[index] = grid_data[index] + add
-
-    return grid_data
-
-
 def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
                             small_area_code, unit):
     """Convert SAL/SP to grid dimensions."""
@@ -1471,9 +1427,8 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
 
     return grid_data
 
+
 # TODO: check if deprecated with Basile
-
-
 def SP_to_grid_2011_1(data_SP, grid, path_data):
     """Adapt SP data to grid dimension."""
     grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')

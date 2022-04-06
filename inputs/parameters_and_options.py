@@ -12,7 +12,7 @@ import copy
 
 def import_options():
     """Import default options."""
-    # Not useful for now (for coding green belt)
+    # Useful for coding green belt
     options = {"urban_edge": 0}
     # Used in solver_equil (dummy for housing supply adaptability)
     options["adjust_housing_supply"] = 1
@@ -34,7 +34,6 @@ def import_param(path_precalc_inp, path_outputs):
     param = {"baseline_year": 2011}
 
     # Utility function parameters, as calibrated in Pfeiffer et al. (table C7)
-    # TODO: check calibration
     #  Surplus housing elasticity
     param["beta"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_beta.mat'
@@ -48,7 +47,6 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
-    # TODO: check calibration
     #  Capital elasticity
     # param["coeff_b"] = scipy.io.loadmat(
     #     path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
@@ -64,7 +62,6 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
-    # TODO: check calibration
     param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
                                        )["lambdaKeep"].squeeze()
 
@@ -170,7 +167,6 @@ def import_param(path_precalc_inp, path_outputs):
     # Disamenity parameters for informal settlements and backyard shacks,
     # coming from location-based calibration, as opposed to general calibration
     # used in Pfeiffer et al. (appendix C5)
-    # TODO: check calibration
     param["pockets"] = np.load(
         path_outputs+'fluvial_and_pluvial/param_pockets.npy')
     param["backyard_pockets"] = np.load(
@@ -238,7 +234,6 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
     # Comes from zero profit condition: allows to convert land prices into
     # housing prices (cf. also inversion from footnote 16)
-    # TODO: check in sales registry that this is not housing price already
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)

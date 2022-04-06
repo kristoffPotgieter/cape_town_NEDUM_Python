@@ -16,25 +16,19 @@ import numpy.matlib
 import copy
 import scipy.io
 from sklearn.linear_model import LinearRegression
-import seaborn as sns
 import os
 import math
+import seaborn as sns
 
 import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
-# import inputs.WBUS2_depth as inpwbu
 
-import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.functions_dynamic as eqdyn
-import equilibrium.run_simulations as eqsim
-
-import outputs.flood_outputs as outfld
-import outputs.export_outputs_floods as outval
-import outputs.export_outputs as outexp
 
 import calibration.compute_income as calcmp
 import calibration.import_employment_data as calemp
 import calibration.estimate_parameters_by_scanning as calscan
+import calibration.import_amenities as calam
 
 
 # DEFINE FILE PATHS
@@ -51,27 +45,16 @@ path_floods = path_folder + "FATHOM/"
 
 # %% Import parameters and options
 
-print("\n*** Load parameters and options ***\n")
-
 
 # IMPORT DEFAULT PARAMETERS AND OPTIONS
 
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
-# TODO: Set timeline for what?
-t = np.arange(0, 1)
-
-# OPTIONS FOR THIS SIMULATION
-# TODO: check if still relevant
-# options["coeff_land"] = 'old'
-# options["WBUS2"] = 1
-
 
 # %% Load data
 
-print("\n*** Load data ***\n")
-
+# TODO: erase useless imports
 
 # BASIC GEOGRAPHIC DATA
 
@@ -94,7 +77,6 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
-#  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
@@ -103,9 +85,9 @@ param["income_year_reference"] = mean_income
 
 # We convert income distribution data (at SP level) to grid dimensions for use
 # in income calibration: long to run, uncomment only if needed
-# income_distribution = inpdt.convert_income_distribution(
+# income_distribution_grid = inpdt.convert_income_distribution(
 #     income_distribution, grid, path_data, data_sp)
-income_distribution = np.load(path_data + "income_distrib_grid.npy")
+income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
 
 #  Import nb of households per pixel, by housing type
 #  Note that there is no RDP, but both formal and informal backyard
@@ -125,12 +107,6 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
                            housing_type_data, path_data, path_folder)
      )
 
-#  TODO: Why do we need this correction?
-param["pockets"][
-    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-    ] = 0.79
-
-
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
 coeff_land = inpdt.import_coeff_land(
@@ -140,7 +116,6 @@ coeff_land = inpdt.import_coeff_land(
 #  We update land use parameters at baseline (relies on data)
 housing_limit = inpdt.import_housing_limit(grid, param)
 
-#  TODO: plug outputs in a new variable (not param) and adapt linked functions
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -149,7 +124,6 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     )
 
 # FLOOD DATA (takes some time)
-#  TODO: create a new variable instead of storing in param
 param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
@@ -181,22 +155,6 @@ elif options["agents_anticipate_floods"] == 0:
  spline_income, spline_minimum_housing_supply, spline_fuel
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
-# Long to run: uncomment if need to update scenarios for transport data
-
-# for t_temp in np.arange(0, 30):
-#     print(t_temp)
-#     (incomeNetOfCommuting, modalShares, ODflows, averageIncome
-#      ) = inpdt.import_transport_data(
-#          grid, param, t_temp, households_per_income_class, average_income,
-#          spline_inflation, spline_fuel,
-#          spline_population_income_distribution, spline_income_distribution,
-#          path_precalc_inp, path_precalc_transp)
-
-#  Import income net of commuting costs, as calibrated in Pfeiffer et al.
-#  (see part 3.1 or appendix C3)
-incomeNetOfCommuting = np.load(
-    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
-
 
 # %% Estimation of coefficients of construction function
 
@@ -211,12 +169,6 @@ data_number_formal = (
     housing_types_sp.total_dwellings_SP_2011
     - housing_types_sp.backyard_SP_2011
     - housing_types_sp.informal_SP_2011)
-
-# We then deduce the built density in associated buildable land (per km²)
-# data_density = (
-#     data_number_formal
-#     / (data_sp["unconstrained_area"] * param["max_land_use"] / 1000000)
-#     )
 
 # We select the data points we are going to use.
 # As Cobb-Douglas log-linear relation is only true for the formal sector, we
@@ -269,16 +221,6 @@ np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
 
 # TODO: What about CES parameters?
 
-# # Correcting data for rents
-# dataRent = (
-#     dataPrice ** (coeff_a)
-#     * (param["depreciation_rate"]
-#        + InterpolateInterestRateEvolution(macro_data, t[0]))
-#     / (coeffKappa * coeff_b ** coeff_b)
-#     )
-# interestRate = (param["depreciation_rate"]
-#                 + InterpolateInterestRateEvolution(macro_data, t[0]))
-
 # # Cobb-Douglas:
 # simulHousing_CD = (
 #     coeffKappa ** (1/coeff_a) * (coeff_b/interestRate) ** (coeff_b/coeff_a)
@@ -313,9 +255,10 @@ job_centers = calemp.import_employment_data(
                                    spline_income_distribution,
                                    path_precalc_inp, path_precalc_transp)
 
+# Note that this is long to run
 incomeCenters, distanceDistribution = calcmp.EstimateIncome(
     param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
-    job_centers, average_income, income_distribution.T, list_lambda)
+    job_centers, average_income, income_distribution_grid.T, list_lambda)
 
 # TODO: Gives aggregate statistics for % of commuters per distance bracket:
 # where from?
@@ -355,11 +298,11 @@ np.save(path_precalc_inp + 'incomeCentersKeep.npy', incomeCentersKeep)
 # Plot difference with initial input from Matlab
 incomeCentersKeep_mat = scipy.io.loadmat(
     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-# sns.distplot(
-#     np.abs((
-#         (incomeCentersKeep - incomeCentersKeep_mat) / incomeCentersKeep_mat
-#         ) * 100)
-#     )
+sns.distplot(
+    np.abs((
+        (incomeCentersKeep - incomeCentersKeep_mat) / incomeCentersKeep_mat
+        ) * 100)
+    )
 
 # lambdaKeep = 10 ** 0.605
 
@@ -385,6 +328,9 @@ selectedSP = (
 listBeta = np.arange(0.1, 0.55, 0.2)
 listBasicQ = np.arange(5, 16, 5)
 
+# Coefficient for spatial autocorrelation
+listRho = 0
+
 # Utilities for simulations (arbitrary)
 utilityTarget = np.array([300, 1000, 3000, 10000])
 # TODO: meaning?
@@ -394,6 +340,8 @@ listUti3 = utilityTarget[2] * listVariation
 listUti4 = utilityTarget[3] * listVariation
 
 # Cf. inversion of footnote 16
+# TODO: why not use param["interest_rate"]?
+# TODO: correct typo in paper
 dataRent = (
     data_sp["price"] ** (coeff_a)
     * (param["depreciation_rate"]
@@ -401,14 +349,93 @@ dataRent = (
     / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
     )
 
-# NB: Need to re-run import_transport_data
+# We get the built density in associated buildable land (per km²)
+data_density = (
+    data_number_formal
+    / (data_sp["unconstrained_area"] * param["max_land_use"] / 1000000)
+    )
+
+# We define the dominant income in each SP and the associated income net of
+# commuting costs
+# TODO: check pb of units
+dataIncomeGroup = np.nanmax(income_distribution, 1)
+
+transportCostModes = (
+    (householdSize * monetaryCost[whichCenters, :, :]
+     + (costTime[whichCenters, :, :]
+        * incomeCentersGroup[:, None, None]))
+    )
+
+       # TODO: this supposedly prevents exponentials from diverging towards
+       # infinity, but how would it be possible with negative terms?
+       # In any case, this is neutral on the result
+       valueMax = (np.min(param_lambda * transportCostModes, axis=2) - 500)
+
+       # Modal shares
+       # This comes from the multinomial model resulting from extreme value
+       # theory with a Gumbel distribution (generalized EV type-I)
+       # NB: here, we consider minimum Gumbel
+       modalShares[whichCenters, :, :, j] = (np.exp(
+           - param_lambda * transportCostModes + valueMax[:, :, None])
+           / np.nansum(np.exp(- param_lambda * transportCostModes
+                              + valueMax[:, :, None]), 2)[:, :, None]
+           )
+
+       # Transport costs (min_m(t_mj))
+       # NB: here, we consider the Gumbel quantile function
+       transportCost = (
+           - 1 / param_lambda
+           * (np.log(np.nansum(np.exp(- param_lambda * transportCostModes
+                                      + valueMax[:, :, None]), 2)) - valueMax)
+           )
+
+       # TODO: this is more intuitive regarding diverging exponentials, but
+       # does Python have the same limitations as Matlab? Still neutral
+       minIncome = (np.nanmax(
+           param_lambda * (incomeCentersGroup[:, None] - transportCost), 0)
+           - 700)
+
+       # OD flows: corresponds to pi_c|ix
+       # NB: here, we consider maximum Gumbel
+       ODflows[whichCenters, :, j] = (
+           np.exp(param_lambda * (incomeCentersGroup[:, None] - transportCost)
+                  - minIncome)
+           / np.nansum(np.exp(param_lambda * (incomeCentersGroup[:, None]
+                                              - transportCost) - minIncome),
+                       0)[None, :]
+           )
+
+       # Expected income net of commuting costs (correct formula): cf. log-sum
+       # calculation ans selection bias with weighted sum and error terms
+       # NB: here, we consider maximum Gumbel
+       incomeNetOfCommuting[j, :] = (
+           1/param_lambda * (np.log(np.nansum(np.exp(
+               param_lambda * (incomeCentersGroup[:, None] - transportCost)
+               - minIncome),
+               0)) + minIncome)
+           )
+
+       # Average income (not net of commuting costs) earned per worker
+       # NB: here, we just take the weighted average as there is no error
+       averageIncome[j, :] = np.nansum(
+           ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
+
+# Import amenities at the SP level
+amenities_sp = calam.import_amenities_SP(path_data, path_precalc_inp)
+# We select amenity variables to be used in regression from table C5
+# NB: choice has to do with relevance and exogenity of variables
+variables_regression = [
+    'distance_ocean', 'distance_ocean_2_4', 'slope_1_5', 'slope_5',
+    'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
+    'distance_train', 'distance_urban_herit']
+
 
 (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
  parametersHousing, _) = calscan.EstimateParametersByScanning(
-     incomeNetOfCommuting, dataRent, dataDwellingSize, dataIncomeGroup,
-     dataDensity, selectedDensity, xData, yData, selectedSPForEstimation,
-     tableAmenities, variablesRegression, listRho, listBeta, listBasicQ,
-     initUti2, listUti3, listUti4)
+     incomeNetOfCommuting, dataRent, data_sp["dwelling_size"], dataIncomeGroup,
+     data_density, selected_density, housing_types_sp["x_sp"],
+     housing_types_sp["y_sp"], selectedSP, amenities_sp, variables_regression,
+     listRho, listBeta, listBasicQ, initUti2, listUti3, listUti4)
 
 # Now run the optimization algo with identified value of the parameters
 initBeta = parametersScan[0]
@@ -443,76 +470,6 @@ calibratedUtility_q0 = parameters(2)
 
 
 
-
-
-
-# TODO: Put in side script
-
-
-def import_amenities_SP():
-    """Import relevant amenity data at SP level."""
-    # Load aemnity files
-    amenity_data = pd.read_csv(path_data + 'SP_amenities.csv', sep=',')
-
-    # We replace values for airport cone amenities with a dummy for being
-    # located in the airport cone
-    airport_cone = copy.deepcopy(amenity_data.airport_cone)
-    airport_cone[airport_cone == 55] = 1
-    airport_cone[airport_cone == 60] = 1
-    airport_cone[airport_cone == 65] = 1
-    airport_cone[airport_cone == 70] = 1
-    airport_cone[airport_cone == 75] = 1
-
-    # Load distance to RDP house dummies
-    SP_distance_RDP = scipy.io.loadmat(
-        path_precalc_inp + 'SPdistanceRDP.mat')["SP_distance_RDP"].squeeze()
-
-    # We store relevant data in an output table
-    # NB: we only consider dummies for amenity data crossing some thresholds.
-    # This is done by trial and error to simplify calibration process
-    table_amenities = pd.DataFrame(
-        data=np.transpose(np.array(
-            [amenity_data.SP_CODE,
-             amenity_data.distance_distr_parks < 2,
-             amenity_data.distance_ocean < 2,
-             ((amenity_data.distance_ocean > 2)
-              & (amenity_data.distance_ocean < 4)),
-             amenity_data.distance_world_herit < 2,
-             ((amenity_data.distance_world_herit > 2)
-              & (amenity_data.distance_world_herit < 4)),
-             amenity_data.distance_urban_herit < 2,
-             amenity_data.distance_UCT < 2,
-             airport_cone,
-             ((amenity_data.slope > 1) & (amenity_data.slope < 5)),
-             amenity_data.slope > 5,
-             amenity_data.distance_train < 2,
-             amenity_data.distance_protected_envir < 2,
-             ((amenity_data.distance_protected_envir > 2)
-              & (amenity_data.distance_protected_envir < 4)),
-             SP_distance_RDP,
-             amenity_data.distance_power_station < 2,
-             amenity_data.distance_biosphere_reserve < 2])
-            ),
-        columns=['SP_CODE', 'distance_distr_parks', 'distance_ocean',
-                 'distance_ocean_2_4', 'distance_world_herit',
-                 'distance_world_herit_2_4', 'distance_urban_herit',
-                 'distance_UCT', 'airport_cone2', 'slope_1_5', 'slope_5',
-                 'distance_train', 'distance_protected_envir',
-                 'distance_protected_envir_2_4', 'RDP_proximity',
-                 'distance_power_station', 'distance_biosphere_reserve']
-        )
-
-    return table_amenities
-
-
-# Import amenities at the SP level
-amenities_sp = import_amenities_SP()
-# We select amenity variables to be used in regression from table C5
-# NB: choice has to do with relevance and exogenity of variables
-variables_regression = [
-    'distance_ocean', 'distance_ocean_2_4', 'slope_1_5', 'slope_5',
-    'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
-    'distance_train', 'distance_urban_herit']
 
 
 

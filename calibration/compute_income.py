@@ -13,6 +13,7 @@ import math
 import equilibrium.functions_dynamic as eqdyn
 
 
+# TODO: call directly into inpdt.import_transport_data instead of copying
 def import_transport_costs(grid, param, yearTraffic,
                            households_per_income_class,
                            spline_inflation, spline_fuel,
@@ -23,7 +24,6 @@ def import_transport_costs(grid, param, yearTraffic,
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
     # Import travel times and distances
-    # TODO: check calibration
     transport_times = scipy.io.loadmat(path_precalc_inp
                                        + 'Transport_times_GRID.mat')
 
@@ -33,27 +33,27 @@ def import_transport_costs(grid, param, yearTraffic,
     priceTrainPerKMMonth = (
         0.164 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
-                            )
+    )
     priceTrainFixedMonth = (
         4.48 * 40 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
-        )
+    )
     priceTaxiPerKMMonth = (
         0.785 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
-        )
+    )
     priceTaxiFixedMonth = (
         4.32 * 40 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
-        )
+    )
     priceBusPerKMMonth = (
         0.522 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
-        )
+    )
     priceBusFixedMonth = (
         6.24 * 40 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
-        )
+    )
     inflation = spline_inflation(yearTraffic)
     infla_2012 = spline_inflation(2012 - param["baseline_year"])
     priceTrainPerKMMonth = priceTrainPerKMMonth * inflation / infla_2012
@@ -86,7 +86,7 @@ def import_transport_costs(grid, param, yearTraffic,
     timeOutput = np.empty(
         (transport_times["durationTrain"].shape[0],
          transport_times["durationTrain"].shape[1], 5)
-        )
+    )
     timeOutput[:] = np.nan
     # To get walking times, we take 2 times the distances by car (to get trips
     # in both directions) multiplied by 1.2 (sinusoity coefficient), divided
@@ -173,7 +173,8 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
     """Solve for income per employment center for some values of lambda."""
     # Setting time and space
 
-    #  TODO: meaning?
+    #  Corresponds to the brackets for which we have aggregate statistics on
+    #  the nb of commuters to fit our calibration
     bracketsDistance = np.array([0, 5, 10, 15, 20, 25, 30, 35, 40, 200])
 
     #  We initialize income and distance output vectors
@@ -227,7 +228,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                 income_distribution[:, j]
                 * sum(job_centers[whichCenters, j])
                 / sum(income_distribution[:, j])
-                )
+            )
 
             # Numeric parameters come from trial and error and do not change
             # results a priori
@@ -251,7 +252,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                 averageIncomeGroup
                 * (popCenters / np.nanmean(popCenters))
                 ** (0.1)
-                )
+            )
             # Initial error corresponds to the difference between observed
             # and simulated population working in each job center
             error[:, 0], _ = funSolve(incomeCenters[:, 0], averageIncomeGroup,
@@ -272,7 +273,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                     * averageIncomeGroup
                     * error[:, max(iter - 1, 0)]
                     / popCenters
-                    )
+                )
 
                 # We also update the error term before and store some values
                 # before iterating over
@@ -313,7 +314,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                 incomeCenters[:, iter-1] * averageIncomeGroup
                 / ((np.nansum(incomeCenters[:, iter-1] * popCenters)
                     / np.nansum(popCenters)))
-                )
+            )
 
             # Then we update the output vector for the given income group
             # (with lambda still fixed)
@@ -328,11 +329,13 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
         distanceDistribution[:, i] = (
             np.nansum(distanceDistributionGroup, 1)
             / np.nansum(np.nansum(distanceDistributionGroup))
-            )
+        )
 
     return incomeCentersSave, distanceDistribution
 
 
+# TODO: Call directly into inpdt.import_transport_data instead of copying?
+# Note that we might encounter problems with matrix dimensions
 def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
              popResidence, monetaryCost, costTime, param_lambda, householdSize,
              whichCenters, bracketsDistance, distanceOutput):
@@ -343,7 +346,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         incomeCentersTemp * averageIncomeGroup
         / ((np.nansum(incomeCentersTemp * popCenters)
             / np.nansum(popCenters)))
-        )
+    )
 
     # Corresponds to t_mj without error term (explained cost)
     #  Note that incomeCentersFull correspond to y_ic, hence ksi_i is
@@ -353,7 +356,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         (householdSize * monetaryCost[whichCenters, :, :]
          + (costTime[whichCenters, :, :]
             * incomeCentersFull[:, None, None]))
-        )
+    )
 
     # TODO: this supposedly prevents exponentials from diverging towards
     # infinity, but how would it be possible with negative terms?
@@ -366,7 +369,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         - 1 / param_lambda
         * (np.log(np.nansum(np.exp(- param_lambda * transportCostModes
                                    + valueMax[:, :, None]), 2)) - valueMax)
-        )
+    )
 
     # TODO: this is more intuitive regarding diverging exponentials, but
     # does Python have the same limitations as Matlab? Still neutral
@@ -382,7 +385,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         / np.nansum(np.exp(param_lambda * (incomeCentersFull[:, None]
                                            - transportCost) - minIncome),
                     0)[None, :]
-        )
+    )
 
     # We compare the true population distribution with its theoretical
     # equivalent computed from simulated net income distribution: the closer
@@ -402,105 +405,3 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         nbCommuters[k] = np.nansum(which * ODflows * popResidence[None, :])
 
     return score, nbCommuters
-
-
-# TODO: Check if deprecated before erasing
-
-def computeDistributionCommutingDistances(
-        incomeCenters, popCenters, popResidence, monetaryCost, timeCost,
-        transportDistance, bracketsDistance, param_lambda):
-    """d."""
-    # Transport cost by modes
-    transportCostModes = (
-        monetaryCost + timeCost * incomeCenters[:, None, None])
-
-    # Value max is to prevent the exp to diverge to infinity
-    # (in matlab: exp(800) = Inf)
-    valueMax = np.nanmin(param_lambda * transportCostModes, 2) - 500
-
-    # Note that modalSharesTemp is useless in what follows!
-    # Compute modal shares
-    modalSharesTemp = np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]) / np.nansum(
-        np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]), 2)[:, :, None]
-
-    # Multiply by OD flows
-    transportCost = - 1/param_lambda * (np.log(np.nansum(
-        np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]), 2)) - valueMax)
-
-    # minIncome is also to prevent diverging exponentials
-    minIncome = np.nanmax(
-        np.nanmax(param_lambda * (incomeCenters[:, None] - transportCost))) - 500
-
-    # Total distribution of times
-    nbCommuters = np.zeros(len(bracketsDistance) - 1)
-    for k in range(0, len(bracketsDistance)-1):
-        which = (transportDistance > bracketsDistance[k]) & (
-            transportDistance <= bracketsDistance[k + 1]) & (~np.isnan(transportDistance))
-        nbCommuters[k] = np.nansum(np.nansum(np.nansum(which[:, :, None] * modalSharesTemp * np.exp(param_lambda * (incomeCenters[:, None] - transportCost) - minIncome)[
-                                   :, :, None] / np.nansum(np.exp(param_lambda * (incomeCenters[:, None] - transportCost) - minIncome), 0)[None, :, None] * popResidence[None, :, None], 1)))
-
-    return nbCommuters
-
-
-def modalShares(incomeCenters, popCenters, popResidence, monetaryCost, timeCost, param_lambda):
-    """ Computes total modal shares """
-
-    # Transport cost by modes
-    transportCostModes = monetaryCost + timeCost * incomeCenters[:, None, None]
-
-    # Value max is to prevent the exp to diverge to infinity (in matlab: exp(800) = Inf)
-    valueMax = np.nanmin(param_lambda * transportCostModes, 2) - 500
-
-    # Compute modal shares
-    modalSharesTemp = np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]) / np.nansum(
-        np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]), 2)[:, :, None]
-
-    # Multiply by OD flows
-    transportCost = - 1 / param_lambda * (np.log(np.nansum(
-        np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]), 2)) - valueMax)
-
-    # minIncome is also to prevent diverging exponentials
-    minIncome = np.nanmax(
-        np.nanmax(param_lambda * (incomeCenters[:, None] - transportCost))) - 500
-
-    # Total modal shares
-    modalSharesTot = np.nansum(np.nansum(modalSharesTemp * (np.exp(param_lambda * (incomeCenters[:, None] - transportCost) - minIncome) / np.nansum(
-        np.exp(param_lambda * (incomeCenters[:, None] - transportCost) - minIncome)))[:, :, None] * popResidence, 1), 0)
-    #modalSharesTot = np.tranpose(modalSharesTot, (2,0,1))
-
-    return modalSharesTot
-
-
-def computeDistributionCommutingTimes(incomeCenters, popCenters, popResidence, monetaryCost, timeCost, transportTime, bracketsTime, param_lambda):
-    #incomeCentersRescaled, popCenters, popResidence, monetary_cost[whichJobsCenters,:,:] * householdSize, timeCost[whichJobsCenters,:,:] * householdSize, transportDistances[whichJobsCenters,:], bracketsDistance, param_lambda
-
-    # Transport cost by modes
-    transportCostModes = monetaryCost + timeCost * incomeCenters[:, None, None]
-
-    # Value max is to prevent the exp to diverge to infinity (in matlab: exp(800) = Inf)
-    valueMax = np.nanmin(param_lambda * transportCostModes, 2) - 600
-
-    # Compute modal shares
-    modalSharesTemp = np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]) / np.nansum(
-        np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]), 2)[:, :, None]
-
-    # Multiply by OD flows
-    transportCost = - 1 / param_lambda * (np.log(np.nansum(
-        np.exp(- param_lambda * transportCostModes + valueMax[:, :, None]), 2)) - valueMax)
-
-    # minIncome is also to prevent diverging exponentials
-    minIncome = np.nanmax(
-        np.nanmax(param_lambda * (incomeCenters[:, None] - transportCost))) - 600
-
-    # Total distribution of times
-    nbCommuters = np.zeros(len(bracketsTime) - 1)
-    for k in range(0, len(bracketsTime)-1):
-        which = (transportTime > bracketsTime[k]) & (
-            transportTime <= bracketsTime[k + 1]) & (~np.isnan(transportTime))
-        nbCommuters[k] = np.nansum(np.nansum(np.nansum(which * modalSharesTemp * np.exp(param_lambda * (incomeCenters[:, None] - transportCost) - minIncome)[
-                                   :, :, None] / np.nansum(np.exp(param_lambda * (incomeCenters[:, None] - transportCost) - minIncome)) * popResidence, 1)))
-
-    return nbCommuters
-
-
-

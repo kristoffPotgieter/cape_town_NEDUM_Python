@@ -91,7 +91,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     #Estimate the function to get the parameters for amenities
     optionRegression = 1
-    [~, ~, ~, ~, ~, parametersAmenities, modelAmenity, parametersHousing] = LogLikelihoodModel(parameters, initUti2, incomeNetOfCommuting, groupLivingSpMatrix, dataDwellingSize, selectedDwellingSize, xData, yData, dataRent, selectedRents, dataHouseholdDensity, selectedDensity, predictorsAmenitiesMatrix, tableRegression, variablesRegression, CalculateDwellingSize, ComputeLogLikelihood, optionRegression);
+    [_, parametersAmenities, modelAmenity, parametersHousing] = LogLikelihoodModel(parameters, initUti2, incomeNetOfCommuting, groupLivingSpMatrix, dataDwellingSize, selectedDwellingSize, xData, yData, dataRent, selectedRents, dataHouseholdDensity, selectedDensity, predictorsAmenitiesMatrix, tableRegression, variablesRegression, CalculateDwellingSize, ComputeLogLikelihood, optionRegression);
     
     return parameters, scoreTot, parametersAmenities, modelAmenity, parametersHousing, selectedRents
 
@@ -116,7 +116,7 @@ def confidence_interval(indices_max, quoi_indices, compute_score):
         indices_ici = indices_max
         dd_l_beta = -(score_tmp2 + score_tmp3 - 2 * score_tmp) / (indices_ici[index] * (d_beta - 1)) ** 2
         beta_interval[index] = 1.96 / (np.sqrt(np.abs(dd_l_beta)))
-        fprintf('%s\t\t%g (%g ; %g)\n', quoi_indices{index}, indices_ici[index], indices_ici[index] - beta_interval[index], indices_ici[index] + beta_interval[index])
+        # fprintf('%s\t\t%g (%g ; %g)\n', quoi_indices{index}, indices_ici[index], indices_ici[index] - beta_interval[index], indices_ici[index] + beta_interval[index])
 
     return np.array([indices_ici - beta_interval, indices_ici + beta_interval])
 
