@@ -55,9 +55,12 @@ t = np.arange(0, 30)
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-date = 'no_floods_scenario'
-name = date + '_' + str(options["pluvial"]) + '_' + str(
-    options["informal_land_constrained"])
+options["agents_anticipate_floods"] = 0
+options["informal_land_constrained"] = 1
+
+name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
+        + 'informal' + str(options["informal_land_constrained"]) + '_'
+        + 'fbackyard0')
 
 
 # %% Load data
@@ -262,21 +265,33 @@ try:
 except OSError as error:
     print(error)
 
-np.save(path_outputs + name + 'initial_state_households_housing_types.npy',
-        initial_state_households_housing_types)
-np.save(path_outputs + name + 'initial_state_household_centers.npy',
-        initial_state_household_centers)
-np.save(path_outputs + name + 'initial_state_households.npy',
-        initial_state_households)
-np.save(path_outputs + name + 'initial_state_housing_supply.npy',
-        initial_state_housing_supply)
-np.save(path_outputs + name + 'initial_state_rent.npy',
-        initial_state_rent)
-np.save(path_outputs + name + 'initial_state_rent_matrix.npy',
-        initial_state_rent_matrix)
-np.save(path_outputs + name + 'initial_state_capital_land.npy',
-        initial_state_capital_land)
 
+np.save(path_outputs + name + '/initial_state_utility.npy',
+        initial_state_utility)
+np.save(path_outputs + name + '/initial_state_error.npy',
+        initial_state_error)
+np.save(path_outputs + name + '/initial_state_simulated_jobs.npy',
+        initial_state_simulated_jobs)
+np.save(path_outputs + name + '/initial_state_households_housing_types.npy',
+        initial_state_households_housing_types)
+np.save(path_outputs + name + '/initial_state_household_centers.npy',
+        initial_state_household_centers)
+np.save(path_outputs + name + '/initial_state_households.npy',
+        initial_state_households)
+np.save(path_outputs + name + '/initial_state_dwelling_size.npy',
+        initial_state_dwelling_size)
+np.save(path_outputs + name + '/initial_state_housing_supply.npy',
+        initial_state_housing_supply)
+np.save(path_outputs + name + '/initial_state_rent.npy',
+        initial_state_rent)
+np.save(path_outputs + name + '/initial_state_rent_matrix.npy',
+        initial_state_rent_matrix)
+np.save(path_outputs + name + '/initial_state_capital_land.npy',
+        initial_state_capital_land)
+np.save(path_outputs + name + '/initial_state_average_income.npy',
+        initial_state_average_income)
+np.save(path_outputs + name + '/initial_state_limit_city.npy',
+        initial_state_limit_city)
 
 # %% Scenarios
 
@@ -335,11 +350,21 @@ except OSError as error:
 
 np.save(path_outputs + name + '/simulation_households_center.npy',
         simulation_households_center)
-np.save(path_outputs + name + '/simulation_dwelling_size.npy',
-        simulation_dwelling_size)
-np.save(path_outputs + name + '/simulation_rent.npy', simulation_rent)
 np.save(path_outputs + name + '/simulation_households_housing_type.npy',
         simulation_households_housing_type)
+np.save(path_outputs + name + '/simulation_dwelling_size.npy',
+        simulation_dwelling_size)
+np.save(path_outputs + name + '/simulation_rent.npy',
+        simulation_rent)
 np.save(path_outputs + name + '/simulation_households.npy',
         simulation_households)
-np.save(path_outputs + name + '/simulation_utility.npy', simulation_utility)
+np.save(path_outputs + name + '/simulation_error.npy',
+        simulation_error)
+np.save(path_outputs + name + '/simulation_housing_supply.npy',
+        simulation_housing_supply)
+np.save(path_outputs + name + '/simulation_utility.npy',
+        simulation_utility)
+np.save(path_outputs + name + '/simulation_deriv_housing.npy',
+        simulation_deriv_housing)
+np.save(path_outputs + name + '/simulation_T.npy',
+        simulation_T)

@@ -46,13 +46,10 @@ start = time.process_time()
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
-#  Set timeline for simulations
-t = np.arange(0, 30)
-
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-date = 'no_floods_scenario'
+date = 'floods_scenario'
 name = date + '_' + str(options["pluvial"]) + '_' + str(
     options["informal_land_constrained"])
 
@@ -76,14 +73,11 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-# TODO: this does not correspond to census data?
-
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
-#  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
@@ -108,11 +102,9 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
                            housing_type_data, path_data, path_folder)
      )
 
-#  TODO: Why do we need this correction?
 param["pockets"][
     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
     ] = 0.79
-
 
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
@@ -123,7 +115,6 @@ coeff_land = inpdt.import_coeff_land(
 #  We update land use parameters at baseline (relies on data)
 housing_limit = inpdt.import_housing_limit(grid, param)
 
-#  TODO: plug outputs in a new variable (not param) and adapt linked functions
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -132,7 +123,6 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     )
 
 # FLOOD DATA (takes some time)
-#  TODO: create a new variable instead of storing in param
 param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
@@ -177,31 +167,68 @@ elif options["agents_anticipate_floods"] == 0:
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-#  TODO: does this allow us to abstract from unemployment rate (appendix)
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
-ODflows = np.load(
-    path_precalc_transp + 'ODflows_0.npy')
-averageIncome = np.load(
-    path_precalc_transp + 'averageIncome_0.npy')
+# ODflows = np.load(
+#     path_precalc_transp + 'ODflows_0.npy')
+# averageIncome = np.load(
+#     path_precalc_transp + 'averageIncome_0.npy')
 
 #  Import equilibrium outputs
 
+initial_state_utility = np.load(
+    path_outputs + name + '/initial_state_utility.npy')
+initial_state_error = np.load(
+    path_outputs + name + '/initial_state_error.npy')
+initial_state_simulated_jobs = np.load(
+    path_outputs + name + '/initial_state_simulated_jobs.npy')
 initial_state_households_housing_types = np.load(
-    path_outputs + name + 'initial_state_households_housing_types.npy')
+    path_outputs + name + '/initial_state_households_housing_types.npy')
 initial_state_household_centers = np.load(
-    path_outputs + name + 'initial_state_household_centers.npy')
+    path_outputs + name + '/initial_state_household_centers.npy')
 initial_state_households = np.load(
-    path_outputs + name + 'initial_state_households.npy')
+    path_outputs + name + '/initial_state_households.npy')
+initial_state_dwelling_size = np.load(
+    path_outputs + name + '/initial_state_dwelling_size.npy')
 initial_state_housing_supply = np.load(
-    path_outputs + name + 'initial_state_housing_supply.npy')
+    path_outputs + name + '/initial_state_housing_supply.npy')
 initial_state_rent = np.load(
-    path_outputs + name + 'initial_state_rent.npy')
+    path_outputs + name + '/initial_state_rent.npy')
 initial_state_rent_matrix = np.load(
-    path_outputs + name + 'initial_state_rent_matrix.npy')
+    path_outputs + name + '/initial_state_rent_matrix.npy')
 initial_state_capital_land = np.load(
-    path_outputs + name + 'initial_state_capital_land.npy')
+    path_outputs + name + '/initial_state_capital_land.npy')
+initial_state_average_income = np.load(
+    path_outputs + name + '/initial_state_average_income.npy')
+initial_state_limit_city = np.load(
+    path_outputs + name + '/initial_state_limit_city.npy')
 
+
+#  Import simulation outputs
+
+simulation_households_center = np.load(
+    path_outputs + name + '/simulation_households_center.npy')
+simulation_households_housing_type = np.load(
+    path_outputs + name + '/simulation_households_housing_type.npy')
+simulation_dwelling_size = np.load(
+    path_outputs + name + '/simulation_dwelling_size.npy')
+simulation_rent = np.load(
+    path_outputs + name + '/simulation_rent.npy')
+simulation_households = np.load(
+    path_outputs + name + '/simulation_households.npy')
+simulation_error = np.load(
+    path_outputs + name + '/simulation_error.npy')
+simulation_housing_supply = np.load(
+    path_outputs + name + '/simulation_housing_supply.npy')
+simulation_utility = np.load(
+    path_outputs + name + '/simulation_utility.npy')
+simulation_deriv_housing = np.load(
+    path_outputs + name + '/simulation_deriv_housing.npy')
+simulation_T = np.load(
+    path_outputs + name + '/simulation_T.npy')
+
+
+# %% Figures from working paper (with floods and no actual backyards): no scenario
 
 # %% Validation exercises
 

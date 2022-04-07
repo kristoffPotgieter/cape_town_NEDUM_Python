@@ -144,8 +144,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  Note that optimization is made to stick to households_per_income_class,
     #  which does not include people living in RDP (as we take this as
     #  exogenous), see equilibrium condition (i)
-    #  TODO: can we consider that condition (v) will be automatically satisfied
-    #  by Walras's law?
 
     #  We compare total population for each income group obtained from
     #  equilibrium condition (total_simulated_jobs) with target population

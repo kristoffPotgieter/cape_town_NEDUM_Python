@@ -13,7 +13,6 @@ Created on Mon Nov  9 10:31:00 2020.
 import pandas as pd
 import numpy as np
 import numpy.matlib
-import copy
 import scipy.io
 from sklearn.linear_model import LinearRegression
 import os
@@ -28,6 +27,7 @@ import equilibrium.functions_dynamic as eqdyn
 import calibration.compute_income as calcmp
 import calibration.import_employment_data as calemp
 import calibration.estimate_parameters_by_scanning as calscan
+import calibration.estimate_parameters_by_optimization as calopt
 import calibration.import_amenities as calam
 
 
@@ -314,6 +314,7 @@ cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
 
 
 # %% Calibration of utility function parameters
+# TODO: have a meeting to clarify the procedure
 
 # We select in which areas we actually measure the likelihood
 # NB: We remove the areas where there is informal housing, because dwelling
@@ -358,67 +359,8 @@ data_density = (
 # We define the dominant income in each SP and the associated income net of
 # commuting costs
 # TODO: check pb of units
+# TODO: why do we reason in terms of dominant group?
 dataIncomeGroup = np.nanmax(income_distribution, 1)
-
-transportCostModes = (
-    (householdSize * monetaryCost[whichCenters, :, :]
-     + (costTime[whichCenters, :, :]
-        * incomeCentersGroup[:, None, None]))
-    )
-
-       # TODO: this supposedly prevents exponentials from diverging towards
-       # infinity, but how would it be possible with negative terms?
-       # In any case, this is neutral on the result
-       valueMax = (np.min(param_lambda * transportCostModes, axis=2) - 500)
-
-       # Modal shares
-       # This comes from the multinomial model resulting from extreme value
-       # theory with a Gumbel distribution (generalized EV type-I)
-       # NB: here, we consider minimum Gumbel
-       modalShares[whichCenters, :, :, j] = (np.exp(
-           - param_lambda * transportCostModes + valueMax[:, :, None])
-           / np.nansum(np.exp(- param_lambda * transportCostModes
-                              + valueMax[:, :, None]), 2)[:, :, None]
-           )
-
-       # Transport costs (min_m(t_mj))
-       # NB: here, we consider the Gumbel quantile function
-       transportCost = (
-           - 1 / param_lambda
-           * (np.log(np.nansum(np.exp(- param_lambda * transportCostModes
-                                      + valueMax[:, :, None]), 2)) - valueMax)
-           )
-
-       # TODO: this is more intuitive regarding diverging exponentials, but
-       # does Python have the same limitations as Matlab? Still neutral
-       minIncome = (np.nanmax(
-           param_lambda * (incomeCentersGroup[:, None] - transportCost), 0)
-           - 700)
-
-       # OD flows: corresponds to pi_c|ix
-       # NB: here, we consider maximum Gumbel
-       ODflows[whichCenters, :, j] = (
-           np.exp(param_lambda * (incomeCentersGroup[:, None] - transportCost)
-                  - minIncome)
-           / np.nansum(np.exp(param_lambda * (incomeCentersGroup[:, None]
-                                              - transportCost) - minIncome),
-                       0)[None, :]
-           )
-
-       # Expected income net of commuting costs (correct formula): cf. log-sum
-       # calculation ans selection bias with weighted sum and error terms
-       # NB: here, we consider maximum Gumbel
-       incomeNetOfCommuting[j, :] = (
-           1/param_lambda * (np.log(np.nansum(np.exp(
-               param_lambda * (incomeCentersGroup[:, None] - transportCost)
-               - minIncome),
-               0)) + minIncome)
-           )
-
-       # Average income (not net of commuting costs) earned per worker
-       # NB: here, we just take the weighted average as there is no error
-       averageIncome[j, :] = np.nansum(
-           ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
 
 # Import amenities at the SP level
 amenities_sp = calam.import_amenities_SP(path_data, path_precalc_inp)
@@ -429,6 +371,10 @@ variables_regression = [
     'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
     'distance_train', 'distance_urban_herit']
 
+# TODO: Aren't we supposed to estimate the dominant net income vector
+# associated with SPs rather than pixels?
+incomeNetOfCommuting = np.load(
+    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 
 (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
  parametersHousing, _) = calscan.EstimateParametersByScanning(
@@ -446,30 +392,19 @@ initUti3 = parametersScan[2]
 initUti4 = parametersScan[3]
 
 (parameters, scoreTot, parametersAmenities, modelAmenity, parametersHousing,
- selectedSPRent) = EstimateParametersByOptimization(
-     incomeNetOfCommuting, dataRent, dataDwellingSize, dataIncomeGroup,
-     dataDensity, selectedDensity, xData, yData, selectedSPForEstimation,
-     tableAmenities, variablesRegression, listRho, initBeta, initBasicQ,
-     initUti2, initUti3, initUti4)
+ selectedSPRent) = calopt.EstimateParametersByOptimization(
+     incomeNetOfCommuting, dataRent, data_sp["dwelling_size"], dataIncomeGroup,
+     data_density, selected_density, housing_types_sp["x_sp"],
+     housing_types_sp["y_sp"], selectedSP, amenities_sp, variables_regression,
+     listRho, initBeta, initBasicQ, initUti2, initUti3, initUti4)
 
 # Generating the map of amenities
 
+# TODO: in which format?
 modelAmenity.save(path_precalc_inp + 'modelAmenity')
-# ImportAmenitiesGrid
-# amenities = exp(parametersAmenities[2:]
-#                 * table2array(tableAmenitiesGrid[:, variablesRegression]))
 
 # Exporting and saving
+# TODO: link with data import
 utilitiesCorrected = parameters[3:] / np.exp(parametersAmenities[1])
 calibratedUtility_beta = parameters(1)
 calibratedUtility_q0 = parameters(2)
-
-
-
-
-
-
-
-
-
-

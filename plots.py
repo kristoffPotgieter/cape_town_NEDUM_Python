@@ -5,7 +5,6 @@ Created on Wed Feb  2 16:40:37 2022.
 @author: vincentviguie
 """
 
-# TODO: Check warnings and graphs, go into modules
 
 # %% Preamble
 
@@ -16,6 +15,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import copy
+import os
 
 import inputs.data as inpdt
 import inputs.parameters_and_options as inpprm
@@ -44,9 +45,10 @@ path_floods = path_folder + "FATHOM/"
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
-date = 'no_floods_scenario'
-name = date + '_' + str(options["pluvial"]) + '_' + str(
-    options["informal_land_constrained"])
+name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
+        + 'informal' + str(options["informal_land_constrained"]) + '_'
+        + 'fbackyard0')
+plot_repo = name + '/plots/'
 
 
 # %% Load data
@@ -65,7 +67,6 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011) = inpdt.import_income_classes_data(param, path_data)
 
-#  TODO: Ask why we need another parameter
 param["income_year_reference"] = mean_income
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
@@ -74,6 +75,11 @@ income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 income_net_of_commuting_costs_29 = np.load(
     path_precalc_transp + 'incomeNetofCommuting_29.npy')
+
+# average_income_2011 = np.load(
+#     path_precalc_transp + 'average_income_year_0.npy')
+# average_income_2040 = np.load(
+#     path_precalc_transp + 'average_income_year_28.npy')
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
@@ -101,11 +107,9 @@ housing_types[np.isnan(housing_types)] = 0
                            housing_type_data, path_data, path_folder)
      )
 
-#  TODO: Why do we need this correction?
 param["pockets"][
     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
     ] = 0.79
-
 
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
@@ -117,12 +121,10 @@ coeff_land_28 = inpdt.import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal,
     spline_land_RDP, param, 28)
 
-
 #  We update land use parameters at baseline (relies on data)
 
 housing_limit = inpdt.import_housing_limit(grid, param)
 
-#  TODO: plug outputs in a new variable (not param) and adapt linked functions
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -131,15 +133,15 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     )
 
 # FLOOD DATA
-#  TODO: create a new variable instead of storing in param
-param = inpdt.infer_WBUS2_depth(housing_types, param, path_folder)
+param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,
      content_damages, structural_damages_type1, structural_damages_type2,
      structural_damages_type3a, structural_damages_type3b,
      structural_damages_type4a, structural_damages_type4b
-     ) = inpdt.import_full_floods_data(options, param, path_folder)
+     ) = inpdt.import_full_floods_data(options, param, path_folder,
+                                       housing_type_data)
 elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed = pd.DataFrame()
     fraction_capital_destroyed["structure_formal_2"] = np.zeros(24014)
@@ -181,12 +183,11 @@ simulation_utility = np.load(path_outputs + name + '/simulation_utility.npy')
 
 (spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
- spline_income_distribution, spline_population, spline_interest_rate,
+ spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
 
-# TODO: Look for meaning
 construction_coeff = ((spline_income(0) / param["income_year_reference"])
                       ** (-param["coeff_b"])
                       * param["coeff_A"])
@@ -241,7 +242,7 @@ z = (
      )
 U = (z ** (1 - param["beta"])) * (q ** param["beta"]) * amenities[subset] * B
 
-sns.distplot(U, hist=True, kde=False)
+sns.histplot(U)
 Umed_formal = np.nanmedian(U)
 
 
@@ -253,7 +254,7 @@ subset = income_class_2011[2, :] == class_income
 q = simulation_dwelling_size[0, 2, :][subset]
 r = simulation_rent[0, 2, :][subset]
 Y = income_net_of_commuting_costs_29[class_income, :][subset]
-B = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
+B = np.load(path_precalc_inp + 'param_pockets.npy')
 
 z = (
      Y - (q*r)
@@ -265,7 +266,7 @@ z = (
 U = ((z ** (1 - param["beta"])) * (q ** param["beta"]) * amenities[subset]
      * B[subset])
 
-sns.distplot(U, hist=True, kde=False)
+sns.histplot(U)
 Umed_informal = np.nanmedian(U)
 
 
@@ -277,7 +278,7 @@ subset = income_class_2011[1, :] == class_income
 q = simulation_dwelling_size[0, 1, :][subset]
 r = simulation_rent[0, 1, :][subset]
 Y = income_net_of_commuting_costs_29[class_income, :][subset]
-B = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+B = np.load(path_precalc_inp + 'param_backyards.npy')
 
 z = (
      Y - (q*r)
@@ -289,39 +290,42 @@ z = (
 U = ((z ** (1 - param["beta"])) * (q ** param["beta"]) * amenities[subset]
      * B[subset])
 
-sns.distplot(U, hist=True, kde=False)
+sns.histplot(U)
 Umed_backyard = np.nanmedian(U)
 
 
 # %% Validation: draw maps and figures
 
-# TODO: Go through underlying modules and add legends + integrate in plots.py?
-
-
 # GENERAL VALIDATION
+
+try:
+    os.mkdir(path_outputs + plot_repo)
+except OSError as error:
+    print(error)
 
 outexp.export_housing_types(
     initial_state_households_housing_types, initial_state_household_centers,
     housing_type_data, households_per_income_class, 'Simulation', 'Data',
-    path_outputs+name
+    path_outputs + plot_repo
     )
 
 outexp.validation_density(
     grid, initial_state_households_housing_types, housing_types,
-    path_outputs+name
+    path_outputs + plot_repo
     )
 outexp.validation_density_housing_types(
     grid, initial_state_households_housing_types, housing_types, 0,
-    path_outputs+name
+    path_outputs + plot_repo
     )
 outexp.validation_housing_price(
     grid, initial_state_rent, interest_rate, param, center, path_precalc_inp,
-    path_outputs+name
+    path_outputs + plot_repo
     )
 
 # TODO: Is this function still useful?
 outexp.plot_diagnosis_map_informl(
-    grid, coeff_land, initial_state_households_housing_types, path_outputs+name
+    grid, coeff_land, initial_state_households_housing_types,
+    path_outputs + plot_repo
     )
 
 
@@ -398,40 +402,64 @@ label = ["Formal private", "Formal subsidized", "Informal \n settlements",
          "Informal \n in backyards"]
 
 stats_2011_1 = [
-    stats_per_housing_type_2011_fluvial.fraction_formal_in_flood_prone_area[2],
-    stats_per_housing_type_2011_fluvial.fraction_subsidized_in_flood_prone_area[2],
-    stats_per_housing_type_2011_fluvial.fraction_informal_in_flood_prone_area[2],
-    stats_per_housing_type_2011_fluvial.fraction_backyard_in_flood_prone_area[2]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_formal_in_flood_prone_area'][2],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][2],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_informal_in_flood_prone_area'][2],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_backyard_in_flood_prone_area'][2]
     ]
 stats_2011_2 = [
-    stats_per_housing_type_2011_fluvial.fraction_formal_in_flood_prone_area[3],
-    stats_per_housing_type_2011_fluvial.fraction_subsidized_in_flood_prone_area[3],
-    stats_per_housing_type_2011_fluvial.fraction_informal_in_flood_prone_area[3],
-    stats_per_housing_type_2011_fluvial.fraction_backyard_in_flood_prone_area[3]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_formal_in_flood_prone_area'][3],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][3],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_informal_in_flood_prone_area'][3],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_backyard_in_flood_prone_area'][3]
     ]
 stats_2011_3 = [
-    stats_per_housing_type_2011_fluvial.fraction_formal_in_flood_prone_area[5],
-    stats_per_housing_type_2011_fluvial.fraction_subsidized_in_flood_prone_area[5],
-    stats_per_housing_type_2011_fluvial.fraction_informal_in_flood_prone_area[5],
-    stats_per_housing_type_2011_fluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_formal_in_flood_prone_area'][5],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][5],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_informal_in_flood_prone_area'][5],
+    stats_per_housing_type_2011_fluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     ]
 stats_2040_1 = [
-    stats_per_housing_type_2040_fluvial.fraction_formal_in_flood_prone_area[2],
-    stats_per_housing_type_2040_fluvial.fraction_subsidized_in_flood_prone_area[2],
-    stats_per_housing_type_2040_fluvial.fraction_informal_in_flood_prone_area[2],
-    stats_per_housing_type_2040_fluvial.fraction_backyard_in_flood_prone_area[2]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_formal_in_flood_prone_area'][2],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][2],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_informal_in_flood_prone_area'][2],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_backyard_in_flood_prone_area'][2]
     ]
 stats_2040_2 = [
-    stats_per_housing_type_2040_fluvial.fraction_formal_in_flood_prone_area[3],
-    stats_per_housing_type_2040_fluvial.fraction_subsidized_in_flood_prone_area[3],
-    stats_per_housing_type_2040_fluvial.fraction_informal_in_flood_prone_area[3],
-    stats_per_housing_type_2040_fluvial.fraction_backyard_in_flood_prone_area[3]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_formal_in_flood_prone_area'][3],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][3],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_informal_in_flood_prone_area'][3],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_backyard_in_flood_prone_area'][3]
     ]
 stats_2040_3 = [
-    stats_per_housing_type_2040_fluvial.fraction_formal_in_flood_prone_area[5],
-    stats_per_housing_type_2040_fluvial.fraction_subsidized_in_flood_prone_area[5],
-    stats_per_housing_type_2040_fluvial.fraction_informal_in_flood_prone_area[5],
-    stats_per_housing_type_2040_fluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_formal_in_flood_prone_area'][5],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][5],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_informal_in_flood_prone_area'][5],
+    stats_per_housing_type_2040_fluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     ]
 
 colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
@@ -461,42 +489,50 @@ plt.xticks(r, label)
 plt.ylim(0, 75000)
 plt.text(
     r[0] - 0.1,
-    stats_per_housing_type_2011_fluvial.fraction_formal_in_flood_prone_area[5]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_formal_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
     r[1] - 0.1,
-    stats_per_housing_type_2011_fluvial.fraction_subsidized_in_flood_prone_area[5]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
     r[2] - 0.1,
-    stats_per_housing_type_2011_fluvial.fraction_informal_in_flood_prone_area[5]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_informal_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
     r[3] - 0.1,
-    stats_per_housing_type_2011_fluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2011_fluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
     r[0] + 0.15,
-    stats_per_housing_type_2040_fluvial.fraction_formal_in_flood_prone_area[5]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_formal_in_flood_prone_area'][5]
     + 0.005,
     '2040')
 plt.text(
     r[1] + 0.15,
-    stats_per_housing_type_2040_fluvial.fraction_subsidized_in_flood_prone_area[5]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_subsidized_in_flood_prone_area'][5]
     + 0.005,
     '2040')
 plt.text(
     r[2] + 0.15,
-    stats_per_housing_type_2040_fluvial.fraction_informal_in_flood_prone_area[5]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_informal_in_flood_prone_area'][5]
     + 0.005,
-    '2040') 
+    '2040')
 plt.text(
     r[3] + 0.15,
-    stats_per_housing_type_2040_fluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2040_fluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     + 0.005,
     '2040')
 plt.tick_params(labelbottom=True)
@@ -508,17 +544,23 @@ plt.show()
 (stats_per_housing_type_2011_fluvial["tot"]
  ) = (
       stats_per_housing_type_2011_fluvial.fraction_formal_in_flood_prone_area
-      + np.array(stats_per_housing_type_2011_fluvial.fraction_backyard_in_flood_prone_area)
-      + stats_per_housing_type_2011_fluvial.fraction_subsidized_in_flood_prone_area
-      + stats_per_housing_type_2011_fluvial.fraction_informal_in_flood_prone_area
+      + np.array(stats_per_housing_type_2011_fluvial[
+          'fraction_backyard_in_flood_prone_area'])
+      + stats_per_housing_type_2011_fluvial[
+          'fraction_subsidized_in_flood_prone_area']
+      + stats_per_housing_type_2011_fluvial[
+          'fraction_informal_in_flood_prone_area']
       )
-      
+
 (stats_per_housing_type_2040_fluvial["tot"]
  ) = (
       stats_per_housing_type_2040_fluvial.fraction_formal_in_flood_prone_area
-      + np.array(stats_per_housing_type_2040_fluvial.fraction_backyard_in_flood_prone_area)
-      + stats_per_housing_type_2040_fluvial.fraction_subsidized_in_flood_prone_area
-      + stats_per_housing_type_2040_fluvial.fraction_informal_in_flood_prone_area
+      + np.array(stats_per_housing_type_2040_fluvial[
+          'fraction_backyard_in_flood_prone_area'])
+      + stats_per_housing_type_2040_fluvial[
+          'fraction_subsidized_in_flood_prone_area']
+      + stats_per_housing_type_2040_fluvial[
+          'fraction_informal_in_flood_prone_area']
       )
 
 plt.figure(figsize=(10, 7))
@@ -532,7 +574,8 @@ barWidth = 0.25
       / sum(np.nansum(simulation_households_housing_type[0, :, :], 1)),
       vec_2011_formal[2], vec_2011_formal[3], vec_2011_formal[5]]
 (vec_2011_subsidized
- ) = (stats_per_housing_type_2011_fluvial.fraction_subsidized_in_flood_prone_area
+ ) = (stats_per_housing_type_2011_fluvial[
+     'fraction_subsidized_in_flood_prone_area']
       / stats_per_housing_type_2011_fluvial["tot"])
 (vec_2011_subsidized
  ) = [np.nansum(simulation_households_housing_type[0, :, :], 1)[3]
@@ -560,7 +603,8 @@ barWidth = 0.25
       / sum(np.nansum(simulation_households_housing_type[28, :, :], 1)),
       vec_2040_formal[2], vec_2040_formal[3], vec_2040_formal[5]]
 (vec_2040_subsidized
- ) = (stats_per_housing_type_2040_fluvial.fraction_subsidized_in_flood_prone_area
+ ) = (stats_per_housing_type_2040_fluvial[
+     'fraction_subsidized_in_flood_prone_area']
       / stats_per_housing_type_2040_fluvial["tot"])
 (vec_2040_subsidized
  ) = [np.nansum(simulation_households_housing_type[28, :, :], 1)[3]
@@ -642,42 +686,60 @@ label = ["Formal private", "Formal subsidized", "Informal \n settlements",
          "Informal \n in backyards"]
 stats_2011_1 = [
     stats_per_housing_type_2011_pluvial.fraction_formal_in_flood_prone_area[2],
-    stats_per_housing_type_2011_pluvial.fraction_subsidized_in_flood_prone_area[2],
-    stats_per_housing_type_2011_pluvial.fraction_informal_in_flood_prone_area[2],
-    stats_per_housing_type_2011_pluvial.fraction_backyard_in_flood_prone_area[2]
+    stats_per_housing_type_2011_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][2],
+    stats_per_housing_type_2011_pluvial[
+        'fraction_informal_in_flood_prone_area'][2],
+    stats_per_housing_type_2011_pluvial[
+        'fraction_backyard_in_flood_prone_area'][2]
     ]
 stats_2011_2 = [
     stats_per_housing_type_2011_pluvial.fraction_formal_in_flood_prone_area[3],
-    stats_per_housing_type_2011_pluvial.fraction_subsidized_in_flood_prone_area[3],
-    stats_per_housing_type_2011_pluvial.fraction_informal_in_flood_prone_area[3],
-    stats_per_housing_type_2011_pluvial.fraction_backyard_in_flood_prone_area[3]
+    stats_per_housing_type_2011_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][3],
+    stats_per_housing_type_2011_pluvial[
+        'fraction_informal_in_flood_prone_area'][3],
+    stats_per_housing_type_2011_pluvial[
+        'fraction_backyard_in_flood_prone_area'][3]
     ]
 stats_2011_3 = [
     stats_per_housing_type_2011_pluvial.fraction_formal_in_flood_prone_area[5],
-    stats_per_housing_type_2011_pluvial.fraction_subsidized_in_flood_prone_area[5],
-    stats_per_housing_type_2011_pluvial.fraction_informal_in_flood_prone_area[5],
-    stats_per_housing_type_2011_pluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2011_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][5],
+    stats_per_housing_type_2011_pluvial[
+        'fraction_informal_in_flood_prone_area'][5],
+    stats_per_housing_type_2011_pluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     ]
 stats_2040_1 = [
     stats_per_housing_type_2040_pluvial.fraction_formal_in_flood_prone_area[2],
-    stats_per_housing_type_2040_pluvial.fraction_subsidized_in_flood_prone_area[2],
-    stats_per_housing_type_2040_pluvial.fraction_informal_in_flood_prone_area[2],
-    stats_per_housing_type_2040_pluvial.fraction_backyard_in_flood_prone_area[2]
+    stats_per_housing_type_2040_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][2],
+    stats_per_housing_type_2040_pluvial[
+        'fraction_informal_in_flood_prone_area'][2],
+    stats_per_housing_type_2040_pluvial[
+        'fraction_backyard_in_flood_prone_area'][2]
     ]
 stats_2040_2 = [
     stats_per_housing_type_2040_pluvial.fraction_formal_in_flood_prone_area[3],
-    stats_per_housing_type_2040_pluvial.fraction_subsidized_in_flood_prone_area[3],
-    stats_per_housing_type_2040_pluvial.fraction_informal_in_flood_prone_area[3],
-    stats_per_housing_type_2040_pluvial.fraction_backyard_in_flood_prone_area[3]
+    stats_per_housing_type_2040_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][3],
+    stats_per_housing_type_2040_pluvial[
+        'fraction_informal_in_flood_prone_area'][3],
+    stats_per_housing_type_2040_pluvial[
+        'fraction_backyard_in_flood_prone_area'][3]
     ]
 stats_2040_3 = [
     stats_per_housing_type_2040_pluvial.fraction_formal_in_flood_prone_area[5],
-    stats_per_housing_type_2040_pluvial.fraction_subsidized_in_flood_prone_area[5],
-    stats_per_housing_type_2040_pluvial.fraction_informal_in_flood_prone_area[5],
-    stats_per_housing_type_2040_pluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2040_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][5],
+    stats_per_housing_type_2040_pluvial[
+        'fraction_informal_in_flood_prone_area'][5],
+    stats_per_housing_type_2040_pluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     ]
 
-colors = ['#FF9999', '#00BFFF','#C1FFC1','#CAE1FF','#FFDEAD']
+colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
 r = np.arange(4)
 barWidth = 0.25
 
@@ -709,17 +771,20 @@ plt.text(
     "2011")
 plt.text(
     r[1] - 0.1,
-    stats_per_housing_type_2011_pluvial.fraction_subsidized_in_flood_prone_area[5]
+    stats_per_housing_type_2011_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
     r[2] - 0.1,
-    stats_per_housing_type_2011_pluvial.fraction_informal_in_flood_prone_area[5]
+    stats_per_housing_type_2011_pluvial[
+        'fraction_informal_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
     r[3] - 0.1,
-    stats_per_housing_type_2011_pluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2011_pluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     + 0.005,
     "2011")
 plt.text(
@@ -729,17 +794,20 @@ plt.text(
     '2040')
 plt.text(
     r[1] + 0.15,
-    stats_per_housing_type_2040_pluvial.fraction_subsidized_in_flood_prone_area[5]
+    stats_per_housing_type_2040_pluvial[
+        'fraction_subsidized_in_flood_prone_area'][5]
     + 0.005,
     '2040')
 plt.text(
     r[2] + 0.15,
-    stats_per_housing_type_2040_pluvial.fraction_informal_in_flood_prone_area[5]
+    stats_per_housing_type_2040_pluvial[
+        'fraction_informal_in_flood_prone_area'][5]
     + 0.005,
     '2040')
 plt.text(
     r[3] + 0.15,
-    stats_per_housing_type_2040_pluvial.fraction_backyard_in_flood_prone_area[5]
+    stats_per_housing_type_2040_pluvial[
+        'fraction_backyard_in_flood_prone_area'][5]
     + 0.005,
     '2040')
 plt.tick_params(labelbottom=True)
@@ -751,15 +819,21 @@ plt.show()
 
 (stats_per_housing_type_2011_pluvial["tot"]
  ) = (stats_per_housing_type_2011_pluvial.fraction_formal_in_flood_prone_area
-      + np.array(stats_per_housing_type_2011_pluvial.fraction_backyard_in_flood_prone_area)
-      + stats_per_housing_type_2011_pluvial.fraction_subsidized_in_flood_prone_area
-      + stats_per_housing_type_2011_pluvial.fraction_informal_in_flood_prone_area)
+      + np.array(stats_per_housing_type_2011_pluvial[
+          'fraction_backyard_in_flood_prone_area'])
+      + stats_per_housing_type_2011_pluvial[
+          'fraction_subsidized_in_flood_prone_area']
+      + stats_per_housing_type_2011_pluvial[
+          'fraction_informal_in_flood_prone_area'])
 
 (stats_per_housing_type_2040_pluvial["tot"]
  ) = (stats_per_housing_type_2040_pluvial.fraction_formal_in_flood_prone_area
-      + np.array(stats_per_housing_type_2040_pluvial.fraction_backyard_in_flood_prone_area)
-      + stats_per_housing_type_2040_pluvial.fraction_subsidized_in_flood_prone_area
-      + stats_per_housing_type_2040_pluvial.fraction_informal_in_flood_prone_area)
+      + np.array(stats_per_housing_type_2040_pluvial[
+          'fraction_backyard_in_flood_prone_area'])
+      + stats_per_housing_type_2040_pluvial[
+          'fraction_subsidized_in_flood_prone_area']
+      + stats_per_housing_type_2040_pluvial[
+          'fraction_informal_in_flood_prone_area'])
 
 plt.figure(figsize=(10, 7))
 barWidth = 0.25
@@ -772,7 +846,8 @@ barWidth = 0.25
       / sum(np.nansum(simulation_households_housing_type[0, :, :], 1)),
       vec_2011_formal[2], vec_2011_formal[3], vec_2011_formal[5]]
 (vec_2011_subsidized
- ) = (stats_per_housing_type_2011_pluvial.fraction_subsidized_in_flood_prone_area
+ ) = (stats_per_housing_type_2011_pluvial[
+     'fraction_subsidized_in_flood_prone_area']
       / stats_per_housing_type_2011_pluvial["tot"])
 (vec_2011_subsidized
  ) = [np.nansum(simulation_households_housing_type[0, :, :], 1)[3]
@@ -800,7 +875,8 @@ barWidth = 0.25
       / sum(np.nansum(simulation_households_housing_type[28, :, :], 1)),
       vec_2040_formal[2], vec_2040_formal[3], vec_2040_formal[5]]
 (vec_2040_subsidized
- ) = (stats_per_housing_type_2040_pluvial.fraction_subsidized_in_flood_prone_area
+ ) = (stats_per_housing_type_2040_pluvial[
+     'fraction_subsidized_in_flood_prone_area']
       / stats_per_housing_type_2040_pluvial["tot"])
 (vec_2040_subsidized
  ) = [np.nansum(simulation_households_housing_type[28, :, :], 1)[3]
@@ -1061,7 +1137,7 @@ subset = df2011[
     (~np.isnan(df2011.formal_damages)) & (df2011.formal_pop_flood_prone > 0)
     ]
 
-sns.distplot(subset.formal_damages, hist=True, kde=False,
+sns.displot(subset.formal_damages, hist=True, kde=False,
              hist_kws={'weights': subset.formal_pop_flood_prone})
 
 
@@ -1372,3 +1448,655 @@ df["pop_2040"] = pop_2040
 (df["fraction_capital_destroyed"]
  ) = fraction_capital_destroyed["structure_formal_2"]
 df.to_excel(path_outputs + name + "/map_data.xlsx")
+
+
+# %% Plot damages per household
+
+# 0. Flood damages per household
+
+floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
+          'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
+# floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
+#           'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
+option = "percent"
+# option = "absolu"
+
+formal_structure_cost_2011 = outfld.compute_formal_structure_cost_method2(
+    simulation_rent[0, :, :],
+    param,
+    eqdyn.interpolate_interest_rate(spline_interest_rate, 0),
+    coeff_land,
+    simulation_households_housing_type[0, :, :],
+    construction_coeff)
+content_cost_2011 = outfld.compute_content_cost(
+    simulation_households_center[0, :, :],
+    income_net_of_commuting_costs,
+    param,
+    fraction_capital_destroyed,
+    simulation_rent[0, :, :],
+    simulation_dwelling_size[0, :, :],
+    eqdyn.interpolate_interest_rate(spline_interest_rate, 0))
+formal_structure_cost_2040 = outfld.compute_formal_structure_cost_method2(
+    simulation_rent[28, :, :],
+    param,
+    eqdyn.interpolate_interest_rate(spline_interest_rate, 28),
+    coeff_land_28,
+    simulation_households_housing_type[28, :, :],
+    construction_coeff_28)
+content_cost_2040 = outfld.compute_content_cost(
+    simulation_households_center[28, :, :],
+    income_net_of_commuting_costs_29,
+    param,
+    fraction_capital_destroyed,
+    simulation_rent[28, :, :],
+    simulation_dwelling_size[28, :, :],
+    eqdyn.interpolate_interest_rate(spline_interest_rate, 28))
+
+
+for item in floods:
+
+    param["subsidized_structure_value_ref"] = 150000
+    param["informal_structure_value_ref"] = 4000
+    df2011 = pd.DataFrame()
+    df2040 = pd.DataFrame()
+    type_flood = copy.deepcopy(item)
+    data_flood = np.squeeze(pd.read_excel(path_floods + item + ".xlsx"))
+
+    formal_damages = structural_damages_type4a(data_flood['flood_depth'])
+    (formal_damages[simulation_dwelling_size[0, 0, :] > param["threshold"]]
+     ) = structural_damages_type4b(
+         data_flood.flood_depth[
+             simulation_dwelling_size[0, 0, :] > param["threshold"]]
+         )
+    subsidized_damages = structural_damages_type4a(data_flood['flood_depth'])
+    (subsidized_damages[simulation_dwelling_size[0, 3, :] > param["threshold"]]
+     ) = structural_damages_type4b(
+         data_flood.flood_depth[
+             simulation_dwelling_size[0, 3, :] > param["threshold"]]
+         )
+
+    df2011['formal_structure_damages'] = (
+        formal_structure_cost_2011 * formal_damages)
+    df2011['subsidized_structure_damages'] = (
+        param["subsidized_structure_value_ref"] * subsidized_damages)
+    df2011['informal_structure_damages'] = param["informal_structure_value_ref"] * \
+        structural_damages_type2(data_flood['flood_depth'])
+    df2011['backyard_structure_damages'] = (
+        16216 * param["informal_structure_value_ref"]
+        * structural_damages_type2(data_flood['flood_depth'])
+        + 74916 * param["informal_structure_value_ref"]
+        * structural_damages_type3a(data_flood['flood_depth'])
+        ) / (74916 + 16216)
+
+    df2011['formal_content_damages'] = content_cost_2011.formal * \
+        content_damages(data_flood['flood_depth'])
+    df2011['subsidized_content_damages'] = content_cost_2011.subsidized * \
+        content_damages(data_flood['flood_depth'])
+    df2011['informal_content_damages'] = content_cost_2011.informal * \
+        content_damages(data_flood['flood_depth'])
+    df2011['backyard_content_damages'] = content_cost_2011.backyard * \
+        content_damages(data_flood['flood_depth'])
+
+    formal_damages = structural_damages_type4a(data_flood['flood_depth'])
+    (formal_damages[simulation_dwelling_size[28, 0, :] > param["threshold"]]
+     ) = structural_damages_type4b(
+         data_flood.flood_depth[
+             simulation_dwelling_size[28, 0, :] > param["threshold"]]
+         )
+    subsidized_damages = structural_damages_type4a(data_flood['flood_depth'])
+    subsidized_damages[
+        simulation_dwelling_size[28, 3, :] > param["threshold"]
+        ] = structural_damages_type4b(
+            data_flood.flood_depth[
+                simulation_dwelling_size[28, 3, :] > param["threshold"]]
+            )
+
+    df2040['formal_structure_damages'] = (
+        formal_structure_cost_2040 * formal_damages)
+    df2040['subsidized_structure_damages'] = (
+        param["subsidized_structure_value_ref"]
+        * (spline_inflation(28) / spline_inflation(0)) * subsidized_damages
+        )
+    df2040['informal_structure_damages'] = (
+        param["informal_structure_value_ref"]
+        * (spline_inflation(28) / spline_inflation(0))
+        * structural_damages_type2(data_flood['flood_depth'])
+        )
+    df2040['backyard_structure_damages'] = (
+        16216 * param["informal_structure_value_ref"]
+        * (spline_inflation(28) / spline_inflation(0))
+        * structural_damages_type2(data_flood['flood_depth'])
+        + 74916 * param["informal_structure_value_ref"]
+        * (spline_inflation(28) / spline_inflation(0))
+        * structural_damages_type3a(data_flood['flood_depth'])
+        ) / (74916 + 16216)
+
+    df2040['formal_content_damages'] = (
+        content_cost_2040.formal * content_damages(data_flood['flood_depth']))
+    df2040['subsidized_content_damages'] = (
+        content_cost_2040.subsidized
+        * content_damages(data_flood['flood_depth']))
+    df2040['informal_content_damages'] = (
+        content_cost_2040.informal
+        * content_damages(data_flood['flood_depth']))
+    df2040['backyard_content_damages'] = (
+        content_cost_2040.backyard * content_damages(data_flood['flood_depth'])
+        )
+
+    df2011["formal_pop_flood_prone"] = (
+        simulation_households_housing_type[0, 0, :]
+        * data_flood["prop_flood_prone"])
+    df2011["backyard_pop_flood_prone"] = (
+        simulation_households_housing_type[0, 1, :]
+        * data_flood["prop_flood_prone"])
+    df2011["informal_pop_flood_prone"] = (
+        simulation_households_housing_type[0, 2, :]
+        * data_flood["prop_flood_prone"])
+    df2011["subsidized_pop_flood_prone"] = (
+        simulation_households_housing_type[0, 3, :]
+        * data_flood["prop_flood_prone"])
+
+    df2040["formal_pop_flood_prone"] = (
+        simulation_households_housing_type[28, 0, :]
+        * data_flood["prop_flood_prone"])
+    df2040["backyard_pop_flood_prone"] = (
+        simulation_households_housing_type[28, 1, :]
+        * data_flood["prop_flood_prone"])
+    df2040["informal_pop_flood_prone"] = (
+        simulation_households_housing_type[28, 2, :]
+        * data_flood["prop_flood_prone"])
+    df2040["subsidized_pop_flood_prone"] = (
+        simulation_households_housing_type[28, 3, :]
+        * data_flood["prop_flood_prone"])
+
+    df2011["formal_damages"] = (
+        df2011['formal_structure_damages'] + df2011['formal_content_damages'])
+    df2011["informal_damages"] = (
+        df2011['informal_structure_damages']
+        + df2011['informal_content_damages'])
+    df2011["subsidized_damages"] = (
+        df2011['subsidized_structure_damages']
+        + df2011['subsidized_content_damages'])
+    df2011["backyard_damages"] = (
+        df2011['backyard_structure_damages']
+        + df2011['backyard_content_damages'])
+
+    df2040["formal_damages"] = (
+        df2040['formal_structure_damages'] + df2040['formal_content_damages'])
+    df2040["informal_damages"] = (
+        df2040['informal_structure_damages']
+        + df2040['informal_content_damages'])
+    df2040["subsidized_damages"] = (
+        df2040['subsidized_structure_damages']
+        + df2040['subsidized_content_damages'])
+    df2040["backyard_damages"] = (
+        df2040['backyard_structure_damages']
+        + df2040['backyard_content_damages'])
+
+    if item == "P_20yr":
+        df2011["formal_damages"] = 0
+        df2040["formal_damages"] = 0
+        df2011["formal_pop_flood_prone"] = 0
+        df2040["formal_pop_flood_prone"] = 0
+    elif ((item == "P_5yr") | (item == "P_10yr")):
+        df2011["formal_damages"] = 0
+        df2040["formal_damages"] = 0
+        df2011["subsidized_damages"] = 0
+        df2040["subsidized_damages"] = 0
+        df2011["backyard_damages"] = 0
+        df2040["backyard_damages"] = 0
+        df2011["formal_pop_flood_prone"] = 0
+        df2040["formal_pop_flood_prone"] = 0
+        df2011["backyard_pop_flood_prone"] = 0
+        df2040["backyard_pop_flood_prone"] = 0
+        df2011["subsidized_pop_flood_prone"] = 0
+        df2040["subsidized_pop_flood_prone"] = 0
+    writer = pd.ExcelWriter(
+        path_outputs + name + '/damages_' + str(item) + '_2011.xlsx')
+    df2011.to_excel(excel_writer=writer)
+    writer.save()
+    writer = pd.ExcelWriter(
+        path_outputs + name + '/damages_' + str(item) + '_2040.xlsx')
+
+    df2040.to_excel(excel_writer=writer)
+    writer.save()
+
+damages_5yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_5yr' + '_2011.xlsx')
+damages_10yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_10yr' + '_2011.xlsx')
+damages_20yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_20yr' + '_2011.xlsx')
+damages_50yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_50yr' + '_2011.xlsx')
+damages_75yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_75yr' + '_2011.xlsx')
+damages_100yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_100yr' + '_2011.xlsx')
+damages_200yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_200yr' + '_2011.xlsx')
+damages_250yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_250yr' + '_2011.xlsx')
+damages_500yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_500yr' + '_2011.xlsx')
+damages_1000yr_2011 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_1000yr' + '_2011.xlsx')
+
+damages_5yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_5yr' + '_2040.xlsx')
+damages_10yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_10yr' + '_2040.xlsx')
+damages_20yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_20yr' + '_2040.xlsx')
+damages_50yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_50yr' + '_2040.xlsx')
+damages_75yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_75yr' + '_2040.xlsx')
+damages_100yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_100yr' + '_2040.xlsx')
+damages_200yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_200yr' + '_2040.xlsx')
+damages_250yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_250yr' + '_2040.xlsx')
+damages_500yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_500yr' + '_2040.xlsx')
+damages_1000yr_2040 = pd.read_excel(
+    path_outputs + name + '/damages_' + 'FD_1000yr' + '_2040.xlsx')
+
+damages_10yr_2011.iloc[:, 9:13] = (
+    damages_10yr_2011.iloc[:, 9:13] - damages_5yr_2011.iloc[:, 9:13])
+damages_20yr_2011.iloc[:, 9:13] = (
+    damages_20yr_2011.iloc[:, 9:13] - damages_10yr_2011.iloc[:, 9:13]
+    - damages_5yr_2011.iloc[:, 9:13])
+damages_50yr_2011.iloc[:, 9:13] = (
+    damages_50yr_2011.iloc[:, 9:13] - damages_20yr_2011.iloc[:, 9:13]
+    - damages_10yr_2011.iloc[:, 9:13] - damages_5yr_2011.iloc[:, 9:13])
+damages_75yr_2011.iloc[:, 9:13] = (
+    damages_75yr_2011.iloc[:, 9:13] - damages_50yr_2011.iloc[:, 9:13]
+    - damages_20yr_2011.iloc[:, 9:13] - damages_10yr_2011.iloc[:, 9:13]
+    - damages_5yr_2011.iloc[:, 9:13])
+damages_100yr_2011.iloc[:, 9:13] = (
+    damages_100yr_2011.iloc[:, 9:13] - damages_75yr_2011.iloc[:, 9:13]
+    - damages_50yr_2011.iloc[:, 9:13] - damages_20yr_2011.iloc[:, 9:13]
+    - damages_10yr_2011.iloc[:, 9:13] - damages_5yr_2011.iloc[:, 9:13])
+damages_200yr_2011.iloc[:, 9:13] = (
+    damages_200yr_2011.iloc[:, 9:13] - damages_100yr_2011.iloc[:, 9:13]
+    - damages_75yr_2011.iloc[:, 9:13] - damages_50yr_2011.iloc[:, 9:13]
+    - damages_20yr_2011.iloc[:, 9:13] - damages_10yr_2011.iloc[:, 9:13]
+    - damages_5yr_2011.iloc[:, 9:13])
+damages_250yr_2011.iloc[:, 9:13] = (
+    damages_250yr_2011.iloc[:, 9:13] - damages_200yr_2011.iloc[:, 9:13]
+    - damages_100yr_2011.iloc[:, 9:13] - damages_75yr_2011.iloc[:, 9:13]
+    - damages_50yr_2011.iloc[:, 9:13] - damages_20yr_2011.iloc[:, 9:13]
+    - damages_10yr_2011.iloc[:, 9:13] - damages_5yr_2011.iloc[:, 9:13])
+damages_500yr_2011.iloc[:, 9:13] = (
+    damages_500yr_2011.iloc[:, 9:13] - damages_250yr_2011.iloc[:, 9:13]
+    - damages_200yr_2011.iloc[:, 9:13] - damages_100yr_2011.iloc[:, 9:13]
+    - damages_75yr_2011.iloc[:, 9:13] - damages_50yr_2011.iloc[:, 9:13]
+    - damages_20yr_2011.iloc[:, 9:13] - damages_10yr_2011.iloc[:, 9:13]
+    - damages_5yr_2011.iloc[:, 9:13])
+damages_1000yr_2011.iloc[:, 9:13] = (
+    damages_1000yr_2011.iloc[:, 9:13] - damages_500yr_2011.iloc[:, 9:13]
+    - damages_250yr_2011.iloc[:, 9:13] - damages_200yr_2011.iloc[:, 9:13]
+    - damages_100yr_2011.iloc[:, 9:13] - damages_75yr_2011.iloc[:, 9:13]
+    - damages_50yr_2011.iloc[:, 9:13] - damages_20yr_2011.iloc[:, 9:13]
+    - damages_10yr_2011.iloc[:, 9:13] - damages_5yr_2011.iloc[:, 9:13])
+
+damages_10yr_2040.iloc[:, 9:13] = (
+    damages_10yr_2040.iloc[:, 9:13] - damages_5yr_2040.iloc[:, 9:13])
+damages_20yr_2040.iloc[:, 9:13] = (
+    damages_20yr_2040.iloc[:, 9:13] - damages_10yr_2040.iloc[:, 9:13]
+    - damages_5yr_2040.iloc[:, 9:13])
+damages_50yr_2040.iloc[:, 9:13] = (
+    damages_50yr_2040.iloc[:, 9:13] - damages_20yr_2040.iloc[:, 9:13]
+    - damages_10yr_2040.iloc[:, 9:13] - damages_5yr_2040.iloc[:, 9:13])
+damages_75yr_2040.iloc[:, 9:13] = (
+    damages_75yr_2040.iloc[:, 9:13] - damages_50yr_2040.iloc[:, 9:13]
+    - damages_20yr_2040.iloc[:, 9:13] - damages_10yr_2040.iloc[:, 9:13]
+    - damages_5yr_2040.iloc[:, 9:13])
+damages_100yr_2040.iloc[:, 9:13] = (
+    damages_100yr_2040.iloc[:, 9:13] - damages_75yr_2040.iloc[:, 9:13]
+    - damages_50yr_2040.iloc[:, 9:13] - damages_20yr_2040.iloc[:, 9:13]
+    - damages_10yr_2040.iloc[:, 9:13] - damages_5yr_2040.iloc[:, 9:13])
+damages_200yr_2040.iloc[:, 9:13] = (
+    damages_200yr_2040.iloc[:, 9:13] - damages_100yr_2040.iloc[:, 9:13]
+    - damages_75yr_2040.iloc[:, 9:13] - damages_50yr_2040.iloc[:, 9:13]
+    - damages_20yr_2040.iloc[:, 9:13] - damages_10yr_2040.iloc[:, 9:13]
+    - damages_5yr_2040.iloc[:, 9:13])
+damages_250yr_2040.iloc[:, 9:13] = (
+    damages_250yr_2040.iloc[:, 9:13] - damages_200yr_2040.iloc[:, 9:13]
+    - damages_100yr_2040.iloc[:, 9:13] - damages_75yr_2040.iloc[:, 9:13]
+    - damages_50yr_2040.iloc[:, 9:13] - damages_20yr_2040.iloc[:, 9:13]
+    - damages_10yr_2040.iloc[:, 9:13] - damages_5yr_2040.iloc[:, 9:13])
+damages_500yr_2040.iloc[:, 9:13] = (
+    damages_500yr_2040.iloc[:, 9:13] - damages_250yr_2040.iloc[:, 9:13]
+    - damages_200yr_2040.iloc[:, 9:13] - damages_100yr_2040.iloc[:, 9:13]
+    - damages_75yr_2040.iloc[:, 9:13] - damages_50yr_2040.iloc[:, 9:13]
+    - damages_20yr_2040.iloc[:, 9:13] - damages_10yr_2040.iloc[:, 9:13]
+    - damages_5yr_2040.iloc[:, 9:13])
+damages_1000yr_2040.iloc[:, 9:13] = (
+    damages_1000yr_2040.iloc[:, 9:13] - damages_500yr_2040.iloc[:, 9:13]
+    - damages_250yr_2040.iloc[:, 9:13] - damages_200yr_2040.iloc[:, 9:13]
+    - damages_100yr_2040.iloc[:, 9:13] - damages_75yr_2040.iloc[:, 9:13]
+    - damages_50yr_2040.iloc[:, 9:13] - damages_20yr_2040.iloc[:, 9:13]
+    - damages_10yr_2040.iloc[:, 9:13] - damages_5yr_2040.iloc[:, 9:13]
+    )
+
+damages_5yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [damages_5yr_2011.iloc[:, 13:17], damages_10yr_2011.iloc[:, 13:17],
+     damages_20yr_2011.iloc[:, 13:17], damages_50yr_2011.iloc[:, 13:17],
+     damages_75yr_2011.iloc[:, 13:17], damages_100yr_2011.iloc[:, 13:17],
+     damages_200yr_2011.iloc[:, 13:17], damages_250yr_2011.iloc[:, 13:17],
+     damages_500yr_2011.iloc[:, 13:17], damages_1000yr_2011.iloc[:, 13:17]])
+damages_10yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, damages_10yr_2011.iloc[:, 13:17], damages_20yr_2011.iloc[:, 13:17],
+     damages_50yr_2011.iloc[:, 13:17], damages_75yr_2011.iloc[:, 13:17],
+     damages_100yr_2011.iloc[:, 13:17], damages_200yr_2011.iloc[:, 13:17],
+     damages_250yr_2011.iloc[:, 13:17], damages_500yr_2011.iloc[:, 13:17],
+     damages_1000yr_2011.iloc[:, 13:17]])
+damages_20yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, damages_20yr_2011.iloc[:, 13:17], damages_50yr_2011.iloc[:, 13:17],
+     damages_75yr_2011.iloc[:, 13:17], damages_100yr_2011.iloc[:, 13:17],
+     damages_200yr_2011.iloc[:, 13:17], damages_250yr_2011.iloc[:, 13:17],
+     damages_500yr_2011.iloc[:, 13:17], damages_1000yr_2011.iloc[:, 13:17]])
+damages_50yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, damages_50yr_2011.iloc[:, 13:17],
+     damages_75yr_2011.iloc[:, 13:17], damages_100yr_2011.iloc[:, 13:17],
+     damages_200yr_2011.iloc[:, 13:17], damages_250yr_2011.iloc[:, 13:17],
+     damages_500yr_2011.iloc[:, 13:17], damages_1000yr_2011.iloc[:, 13:17]])
+damages_75yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, damages_75yr_2011.iloc[:, 13:17],
+     damages_100yr_2011.iloc[:, 13:17], damages_200yr_2011.iloc[:, 13:17],
+     damages_250yr_2011.iloc[:, 13:17], damages_500yr_2011.iloc[:, 13:17],
+     damages_1000yr_2011.iloc[:, 13:17]])
+damages_100yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, damages_100yr_2011.iloc[:, 13:17],
+     damages_200yr_2011.iloc[:, 13:17], damages_250yr_2011.iloc[:, 13:17],
+     damages_500yr_2011.iloc[:, 13:17], damages_1000yr_2011.iloc[:, 13:17]])
+damages_200yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, damages_200yr_2011.iloc[:, 13:17],
+     damages_250yr_2011.iloc[:, 13:17], damages_500yr_2011.iloc[:, 13:17],
+     damages_1000yr_2011.iloc[:, 13:17]])
+damages_250yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, 0, damages_250yr_2011.iloc[:, 13:17],
+     damages_500yr_2011.iloc[:, 13:17], damages_1000yr_2011.iloc[:, 13:17]])
+damages_500yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, 0, 0, damages_500yr_2011.iloc[:, 13:17],
+     damages_1000yr_2011.iloc[:, 13:17]])
+damages_1000yr_2011.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, damages_1000yr_2011.iloc[:, 13:17]])
+
+damages_5yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [damages_5yr_2040.iloc[:, 13:17], damages_10yr_2040.iloc[:, 13:17],
+     damages_20yr_2040.iloc[:, 13:17], damages_50yr_2040.iloc[:, 13:17],
+     damages_75yr_2040.iloc[:, 13:17], damages_100yr_2040.iloc[:, 13:17],
+     damages_200yr_2040.iloc[:, 13:17], damages_250yr_2040.iloc[:, 13:17],
+     damages_500yr_2040.iloc[:, 13:17], damages_1000yr_2040.iloc[:, 13:17]])
+damages_10yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, damages_10yr_2040.iloc[:, 13:17], damages_20yr_2040.iloc[:, 13:17],
+     damages_50yr_2040.iloc[:, 13:17], damages_75yr_2040.iloc[:, 13:17],
+     damages_100yr_2040.iloc[:, 13:17], damages_200yr_2040.iloc[:, 13:17],
+     damages_250yr_2040.iloc[:, 13:17], damages_500yr_2040.iloc[:, 13:17],
+     damages_1000yr_2040.iloc[:, 13:17]])
+damages_20yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, damages_20yr_2040.iloc[:, 13:17], damages_50yr_2040.iloc[:, 13:17],
+     damages_75yr_2040.iloc[:, 13:17], damages_100yr_2040.iloc[:, 13:17],
+     damages_200yr_2040.iloc[:, 13:17], damages_250yr_2040.iloc[:, 13:17],
+     damages_500yr_2040.iloc[:, 13:17], damages_1000yr_2040.iloc[:, 13:17]])
+damages_50yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, damages_50yr_2040.iloc[:, 13:17],
+     damages_75yr_2040.iloc[:, 13:17], damages_100yr_2040.iloc[:, 13:17],
+     damages_200yr_2040.iloc[:, 13:17], damages_250yr_2040.iloc[:, 13:17],
+     damages_500yr_2040.iloc[:, 13:17], damages_1000yr_2040.iloc[:, 13:17]])
+damages_75yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, damages_75yr_2040.iloc[:, 13:17],
+     damages_100yr_2040.iloc[:, 13:17], damages_200yr_2040.iloc[:, 13:17],
+     damages_250yr_2040.iloc[:, 13:17], damages_500yr_2040.iloc[:, 13:17],
+     damages_1000yr_2040.iloc[:, 13:17]])
+damages_100yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, damages_100yr_2040.iloc[:, 13:17],
+     damages_200yr_2040.iloc[:, 13:17], damages_250yr_2040.iloc[:, 13:17],
+     damages_500yr_2040.iloc[:, 13:17], damages_1000yr_2040.iloc[:, 13:17]])
+damages_200yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, damages_200yr_2040.iloc[:, 13:17],
+     damages_250yr_2040.iloc[:, 13:17], damages_500yr_2040.iloc[:, 13:17],
+     damages_1000yr_2040.iloc[:, 13:17]])
+damages_250yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, 0, damages_250yr_2040.iloc[:, 13:17],
+     damages_500yr_2040.iloc[:, 13:17], damages_1000yr_2040.iloc[:, 13:17]])
+damages_500yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, 0, 0, damages_500yr_2040.iloc[:, 13:17],
+     damages_1000yr_2040.iloc[:, 13:17]])
+damages_1000yr_2040.iloc[:, 13:17] = outfld.annualize_damages(
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, damages_1000yr_2040.iloc[:, 13:17]])
+
+damages_5yr_2011 = damages_5yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_10yr_2011 = damages_10yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_20yr_2011 = damages_20yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_50yr_2011 = damages_50yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_75yr_2011 = damages_75yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_100yr_2011 = damages_100yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_200yr_2011 = damages_200yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_250yr_2011 = damages_250yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_500yr_2011 = damages_500yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_1000yr_2011 = damages_1000yr_2011.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+
+damages_5yr_2040 = damages_5yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_10yr_2040 = damages_10yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_20yr_2040 = damages_20yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_50yr_2040 = damages_50yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_75yr_2040 = damages_75yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_100yr_2040 = damages_100yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_200yr_2040 = damages_200yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_250yr_2040 = damages_250yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_500yr_2040 = damages_500yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+damages_1000yr_2040 = damages_1000yr_2040.loc[
+    :, 'formal_pop_flood_prone':'backyard_damages']
+
+
+income_class_2011 = np.argmax(simulation_households[0, :, :, :], 1)
+income_class_2040 = np.argmax(simulation_households[28, :, :, :], 1)
+
+real_income_2011 = np.empty((24014, 4))
+for i in range(0, 24014):
+    for j in range(0, 4):
+        print(i)
+        real_income_2011[i, j] = (
+            average_income_2011[np.array(income_class_2011)[j, i], i]
+            )
+
+real_income_2040 = np.empty((24014, 4))
+for i in range(0, 24014):
+    for j in range(0, 4):
+        print(i)
+        real_income_2040[i, j] = (
+            average_income_2040[np.array(income_class_2040)[j, i], i]
+            )
+
+real_income_2011 = np.matlib.repmat(real_income_2011, 10, 1).squeeze()
+real_income_2040 = np.matlib.repmat(real_income_2040, 10, 1).squeeze()
+
+total_2011 = np.vstack(
+    [damages_5yr_2011, damages_10yr_2011, damages_20yr_2011, damages_50yr_2011,
+     damages_75yr_2011, damages_100yr_2011, damages_200yr_2011,
+     damages_250yr_2011, damages_500yr_2011, damages_1000yr_2011])
+total_2040 = np.vstack(
+    [damages_5yr_2040, damages_10yr_2040, damages_20yr_2040, damages_50yr_2040,
+     damages_75yr_2040, damages_100yr_2040, damages_200yr_2040,
+     damages_250yr_2040, damages_500yr_2040, damages_1000yr_2040])
+
+total_2011[:, 4] = (total_2011[:, 4] / real_income_2011[:, 0]) * 100
+total_2011[:, 5] = (total_2011[:, 5] / real_income_2011[:, 2]) * 100
+total_2011[:, 6] = (total_2011[:, 6] / real_income_2011[:, 3]) * 100
+total_2011[:, 7] = (total_2011[:, 7] / real_income_2011[:, 1]) * 100
+
+total_2040[:, 4] = (total_2040[:, 4] / real_income_2040[:, 0]) * 100
+total_2040[:, 5] = (total_2040[:, 5] / real_income_2040[:, 2]) * 100
+total_2040[:, 6] = (total_2040[:, 6] / real_income_2040[:, 3]) * 100
+total_2040[:, 7] = (total_2040[:, 7] / real_income_2040[:, 1]) * 100
+
+# Reshape
+formal_2011 = total_2011[:, [0, 4]]
+backyard_2011 = total_2011[:, [1, 7]]
+informal_2011 = total_2011[:, [2, 5]]
+subsidized_2011 = total_2011[:, [3, 6]]
+
+formal_2040 = total_2040[:, [0, 4]]
+backyard_2040 = total_2040[:, [1, 7]]
+informal_2040 = total_2040[:, [2, 5]]
+subsidized_2040 = total_2040[:, [3, 6]]
+
+
+# Now we subset by income class
+
+income_class_2011_reshape = np.matlib.repmat(
+    income_class_2011, 1, 10).squeeze()
+income_class_2040_reshape = np.matlib.repmat(
+    income_class_2040, 1, 10).squeeze()
+
+formal_2011_class1 = formal_2011[income_class_2011_reshape[0, :] == 0]
+formal_2011_class2 = formal_2011[income_class_2011_reshape[0, :] == 1]
+formal_2011_class3 = formal_2011[income_class_2011_reshape[0, :] == 2]
+formal_2011_class4 = formal_2011[income_class_2011_reshape[0, :] == 3]
+
+formal_2040_class1 = formal_2040[income_class_2040_reshape[0, :] == 0]
+formal_2040_class2 = formal_2040[income_class_2040_reshape[0, :] == 1]
+formal_2040_class3 = formal_2040[income_class_2040_reshape[0, :] == 2]
+formal_2040_class4 = formal_2040[income_class_2040_reshape[0, :] == 3]
+
+subsidized_2011_class1 = subsidized_2011[income_class_2011_reshape[3, :] == 0]
+subsidized_2011_class2 = subsidized_2011[income_class_2011_reshape[3, :] == 1]
+subsidized_2011_class3 = subsidized_2011[income_class_2011_reshape[3, :] == 2]
+subsidized_2011_class4 = subsidized_2011[income_class_2011_reshape[3, :] == 3]
+
+subsidized_2040_class1 = subsidized_2040[income_class_2040_reshape[3, :] == 0]
+subsidized_2040_class2 = subsidized_2040[income_class_2040_reshape[3, :] == 1]
+subsidized_2040_class3 = subsidized_2040[income_class_2040_reshape[3, :] == 2]
+subsidized_2040_class4 = subsidized_2040[income_class_2040_reshape[3, :] == 3]
+
+backyard_2011_class1 = backyard_2011[income_class_2011_reshape[1, :] == 0]
+backyard_2011_class2 = backyard_2011[income_class_2011_reshape[1, :] == 1]
+backyard_2011_class3 = backyard_2011[income_class_2011_reshape[1, :] == 2]
+backyard_2011_class4 = backyard_2011[income_class_2011_reshape[1, :] == 3]
+
+backyard_2040_class1 = backyard_2040[income_class_2040_reshape[1, :] == 0]
+backyard_2040_class2 = backyard_2040[income_class_2040_reshape[1, :] == 1]
+backyard_2040_class3 = backyard_2040[income_class_2040_reshape[1, :] == 2]
+backyard_2040_class4 = backyard_2040[income_class_2040_reshape[1, :] == 3]
+
+informal_2011_class1 = informal_2011[income_class_2011_reshape[2, :] == 0]
+informal_2011_class2 = informal_2011[income_class_2011_reshape[2, :] == 1]
+informal_2011_class3 = informal_2011[income_class_2011_reshape[2, :] == 2]
+informal_2011_class4 = informal_2011[income_class_2011_reshape[2, :] == 3]
+
+informal_2040_class1 = informal_2040[income_class_2040_reshape[2, :] == 0]
+informal_2040_class2 = informal_2040[income_class_2040_reshape[2, :] == 1]
+informal_2040_class3 = informal_2040[income_class_2040_reshape[2, :] == 2]
+informal_2040_class4 = informal_2040[income_class_2040_reshape[2, :] == 3]
+
+# Total
+
+array_2011 = np.vstack(
+    [formal_2011, backyard_2011, informal_2011, subsidized_2011])
+subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
+array_2040 = np.vstack(
+    [formal_2040, backyard_2040, informal_2040, subsidized_2040])
+subset_2040 = array_2040[~np.isnan(array_2040[:, 1])]
+sns.displot(
+    subset_2011[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2011[:, 0]}, color='black', label="2011")
+sns.displot(
+    subset_2040[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2040[:, 0]}, label="2040")
+plt.legend()
+# plt.ylim(0, 320000)
+# plt.ylim(0, 50000)
+plt.xlabel("Share of the annual income destroyed by floods - annualized (%)")
+plt.ylabel("Number of households")
+
+# Class 1
+array_2011 = np.vstack([formal_2011_class1, backyard_2011_class1,
+                       informal_2011_class1, subsidized_2011_class1])
+subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
+array_2040 = np.vstack([formal_2040_class1, backyard_2040_class1,
+                       informal_2040_class1, subsidized_2040_class1])
+subset_2040 = array_2040[~np.isnan(array_2040[:, 1])]
+sns.displot(
+    subset_2011[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2011[:, 0]}, color='black', label="2011")
+sns.displot(
+    subset_2040[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2040[:, 0]}, label="2040")
+plt.legend()
+plt.xlabel("Share of the annual income destroyed by floods - annualized (%)")
+plt.ylabel("Number of households")
+
+# Class 2
+array_2011 = np.vstack([formal_2011_class2, backyard_2011_class2,
+                       informal_2011_class2, subsidized_2011_class2])
+subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
+array_2040 = np.vstack([formal_2040_class2, backyard_2040_class2,
+                       informal_2040_class2, subsidized_2040_class2])
+subset_2040 = array_2040[~np.isnan(array_2040[:, 1])]
+sns.displot(
+    subset_2011[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2011[:, 0]}, color='black', label="2011")
+sns.displot(
+    subset_2040[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2040[:, 0]}, label="2040")
+plt.legend()
+plt.xlabel("Share of the annual income destroyed by floods - annualized (%)")
+plt.ylabel("Number of households")
+
+# Class 3
+array_2011 = np.vstack([formal_2011_class3, backyard_2011_class3,
+                       informal_2011_class3, subsidized_2011_class3])
+subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
+array_2040 = np.vstack([formal_2040_class3, backyard_2040_class3,
+                       informal_2040_class3, subsidized_2040_class3])
+subset_2040 = array_2040[~np.isnan(array_2040[:, 1])]
+sns.displot(
+    subset_2011[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2011[:, 0]}, color='black', label="2011")
+sns.displot(
+    subset_2040[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2040[:, 0]}, label="2040")
+plt.legend()
+plt.xlabel("Share of the annual income destroyed by floods - annualized (%)")
+plt.ylabel("Number of households")
+
+# Class 4
+array_2011 = np.vstack([formal_2011_class4, backyard_2011_class4,
+                       informal_2011_class4, subsidized_2011_class4])
+subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
+array_2040 = np.vstack([formal_2040_class4, backyard_2040_class4,
+                       informal_2040_class4, subsidized_2040_class4])
+subset_2040 = array_2040[~np.isnan(array_2040[:, 1])]
+sns.displot(
+    subset_2011[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2011[:, 0]}, color='black', label="2011")
+sns.displot(
+    subset_2040[:, 1], bins=np.arange(0, 0.7, 0.01), hist=True, kde=False,
+    hist_kws={'weights': subset_2040[:, 0]}, label="2040")
+plt.legend()
+plt.xlabel("Share of the annual income destroyed by floods - annualized (%)")
+plt.ylabel("Number of households")

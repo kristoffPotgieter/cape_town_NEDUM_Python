@@ -168,9 +168,9 @@ def import_param(path_precalc_inp, path_outputs):
     # coming from location-based calibration, as opposed to general calibration
     # used in Pfeiffer et al. (appendix C5)
     param["pockets"] = np.load(
-        path_outputs+'fluvial_and_pluvial/param_pockets.npy')
+        path_precalc_inp + 'param_pockets.npy')
     param["backyard_pockets"] = np.load(
-        path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+        path_precalc_inp + 'param_backyards.npy')
 
     return param
 
