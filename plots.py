@@ -277,17 +277,18 @@ outexp.validation_housing_price(
 outexp.plot_housing_demand(grid, initial_state_dwelling_size,
                            path_outputs + plot_repo)
 
+outexp.export_map(initial_state_households_housing_types[0, :], grid,
+                  path_outputs + plot_repo + 'formal_sim', 1200)
+
+outexp.export_map(housing_types.formal_grid, grid,
+                  path_outputs + plot_repo + 'formal_data', 1200)
+
 # TODO: Is this function still useful?
 outexp.plot_diagnosis_map_informl(
     grid, coeff_land, initial_state_households_housing_types,
     path_outputs + plot_repo
     )
 
-outexp.export_map(initial_state_households_housing_types[0, :], grid,
-                  path_outputs + plot_repo + 'formal_sim', 1200)
-
-outexp.export_map(housing_types.formal_grid, grid,
-                  path_outputs + plot_repo + 'formal_data', 1200)
 
 # TODO: FLOOD VALIDATION
 
