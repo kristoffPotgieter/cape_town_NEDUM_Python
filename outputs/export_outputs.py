@@ -301,7 +301,7 @@ def validation_density(
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.ySimul, color="green", label="Simulation")
     # axes = plt.axes()
-    ax.set_ylim([0, 2000])
+    ax.set_ylim(0)
     ax.set_xlim([0, 50])
     ax.fill_between(np.arange(
         max(df["round"] + 1)), q1_df.ySimul, q3_df.ySimul, color="lightgreen",
@@ -355,7 +355,7 @@ def validation_density_housing_types(
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.formal_simul, color="green", label="Simulation")
     # axes = plt.axes()
-    ax.set_ylim([0, 1700])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     # plt.title("Formal")
     plt.legend()
@@ -370,7 +370,7 @@ def validation_density_housing_types(
             new_df.informal_data, color="black", label="Data")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.informal_simul, color="green", label="Simulation")
-    ax.set_ylim([0, 350])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     # plt.title("Informal")
     plt.xlabel("Distance to the city center (km)")
@@ -391,7 +391,7 @@ def validation_density_housing_types(
             new_df.backyard_data, color="black", label="Data")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.backyard_simul, color="green", label="Simulation")
-    ax.set_ylim([0, 450])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     # plt.title("Backyard")
     plt.legend()
@@ -403,7 +403,7 @@ def validation_density_housing_types(
     fig, ax = plt.subplots(figsize=(10, 7))
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.rdp_simul, color="green")
-    ax.set_ylim([0, 250])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.tick_params(labelbottom=True)
     plt.xlabel("Distance to the city center (km)")
@@ -421,7 +421,7 @@ def validation_density_housing_types(
         ax.plot(np.arange(
             max(df["round"] + 1)), new_df2.formal_simul, color="green",
             label="Simulation")
-        ax.set_ylim([0, 130000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         # plt.title("Formal")
         plt.legend()
@@ -437,7 +437,7 @@ def validation_density_housing_types(
         ax.plot(np.arange(
             max(df["round"] + 1)), new_df2.informal_simul, color="green",
             label="Simulation")
-        ax.set_ylim([0, 20000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         # plt.title("Informal")
         plt.xlabel("Distance to the city center (km)")
@@ -453,7 +453,7 @@ def validation_density_housing_types(
         ax.plot(np.arange(
             max(df["round"] + 1)), new_df2.backyard_simul, color="green",
             label="Simulation")
-        ax.set_ylim([0, 9000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         # plt.title("Backyard")
         plt.legend()
@@ -466,7 +466,7 @@ def validation_density_housing_types(
         fig, ax = plt.subplots(figsize=(10, 7))
         ax.plot(np.arange(max(df["round"] + 1)),
                 new_df2.rdp_simul, color="green")
-        ax.set_ylim([0, 16000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         plt.tick_params(labelbottom=True)
         plt.xlabel("Distance to the city center (km)")
@@ -506,7 +506,7 @@ def validation_density_income_groups(
             new_df.poor_data, color="black", label="Data")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.poor_simul, color="green", label="Simulation")
-    ax.set_ylim([0, 600])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)
@@ -520,7 +520,7 @@ def validation_density_income_groups(
             new_df.midpoor_data, color="black", label="Data")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.midpoor_simul, color="green", label="Simulation")
-    ax.set_ylim([0, 800])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)
@@ -534,7 +534,7 @@ def validation_density_income_groups(
             new_df.midrich_data, color="black", label="Data")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.midrich_simul, color="green", label="Simulation")
-    ax.set_ylim([0, 900])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)
@@ -548,7 +548,7 @@ def validation_density_income_groups(
             new_df.rich_data, color="black", label="Data")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.rich_simul, color="green", label="Simulation")
-    ax.set_ylim([0, 700])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)
@@ -566,7 +566,7 @@ def validation_density_income_groups(
                 new_df2.poor_data, color="black", label="Data")
         ax.plot(np.arange(max(df["round"] + 1)),
                 new_df2.poor_simul, color="green", label="Simulation")
-        ax.set_ylim([0, 10000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         plt.legend()
         plt.tick_params(labelbottom=True)
@@ -580,7 +580,7 @@ def validation_density_income_groups(
                 new_df2.midpoor_data, color="black", label="Data")
         ax.plot(np.arange(max(df["round"] + 1)),
                 new_df2.midpoor_simul, color="green", label="Simulation")
-        ax.set_ylim([0, 13000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         plt.legend()
         plt.tick_params(labelbottom=True)
@@ -594,7 +594,7 @@ def validation_density_income_groups(
                 new_df2.midrich_data, color="black", label="Data")
         ax.plot(np.arange(max(df["round"] + 1)),
                 new_df2.midrich_simul, color="green", label="Simulation")
-        ax.set_ylim([0, 16000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         plt.legend()
         plt.tick_params(labelbottom=True)
@@ -608,7 +608,7 @@ def validation_density_income_groups(
                 new_df2.rich_data, color="black", label="Data")
         ax.plot(np.arange(max(df["round"] + 1)),
                 new_df2.rich_simul, color="green", label="Simulation")
-        ax.set_ylim([0, 6000])
+        ax.set_ylim(0)
         ax.set_xlim([0, 40])
         plt.legend()
         plt.tick_params(labelbottom=True)
@@ -645,9 +645,9 @@ def plot_housing_supply(grid, initial_state_housing_supply, coeff_land,
             new_df.backyard_simul, color="blue", label="Backyard")
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.informal_simul, color="green", label="Informal")
-    # ax.plot(np.arange(max(df["round"] + 1)),
-    #         new_df.rdp_simul, color="black", label="RDP")
-    ax.set_ylim([0, 1000000])
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.rdp_simul, color="black", label="RDP")
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)
@@ -668,39 +668,59 @@ def validation_housing_price(
     sp_price = data['spPrice'][0][0].squeeze()[2, :]
 
     priceSimul = (
-        ((initial_state_rent[0, :] * param["coeff_A"])
+        ((initial_state_rent[0:3, :] * param["coeff_A"])
          / (param["interest_rate"] + param["depreciation_rate"]))
         ** (1 / param["coeff_a"])
         * param["coeff_a"]
         * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
         )
 
-    priceSimulPricePoints = griddata(
+    priceSimulPricePoints_formal = griddata(
         np.transpose(np.array([grid.x, grid.y])),
-        priceSimul,
+        priceSimul[0, :],
+        np.transpose(np.array([sp_x, sp_y]))
+        )
+    priceSimulPricePoints_informal = griddata(
+        np.transpose(np.array([grid.x, grid.y])),
+        priceSimul[1, :],
+        np.transpose(np.array([sp_x, sp_y]))
+        )
+    priceSimulPricePoints_backyard = griddata(
+        np.transpose(np.array([grid.x, grid.y])),
+        priceSimul[2, :],
         np.transpose(np.array([sp_x, sp_y]))
         )
 
     xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
     yData = sp_price
     # xSimulation = xData
-    ySimulation = priceSimulPricePoints
+    ySimulation = priceSimulPricePoints_formal
+    informalSimul = priceSimulPricePoints_informal
+    backyardSimul = priceSimulPricePoints_backyard
 
     df = pd.DataFrame(
-        data=np.transpose(np.array([xData, yData, ySimulation])),
-        columns=["xData", "yData", "ySimulation"])
+        data=np.transpose(np.array([xData, yData, ySimulation, informalSimul,
+                                    backyardSimul])),
+        columns=["xData", "yData", "ySimulation", "informalSimul",
+                 "backyardSimul"])
     df["round"] = round(df.xData)
     new_df = df.groupby(['round']).mean()
 
     which = ~np.isnan(new_df.yData) & ~np.isnan(new_df.ySimulation)
+    which_informal = ~np.isnan(new_df.informalSimul)
+    which_backyard = ~np.isnan(new_df.backyardSimul)
 
     fig, ax = plt.subplots(figsize=(10, 7))
     ax.plot(new_df.xData[which], new_df.yData[which],
             color="black", label="Data")
     ax.plot(new_df.xData[which], new_df.ySimulation[which],
             color="green", label="Simul")
-    ax.set_ylim([0, 18000])
-    ax.set_xlim([0, 40])
+    ax.plot(new_df.xData[which_informal], new_df.informalSimul[which_informal],
+            color="red", label="Informal")
+    ax.plot(new_df.xData[which_backyard], new_df.backyardSimul[which_backyard],
+            color="blue", label="Backyard")
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
     plt.xlabel("Distance to the city center (km)")
     plt.ylabel("Price (R/m² of land)")
     plt.legend()
@@ -728,7 +748,7 @@ def plot_housing_demand(grid, initial_state_dwelling_size, path_outputs):
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.formal_simul, color="green")
 
-    ax.set_ylim([0, 2000])
+    ax.set_ylim(0)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)

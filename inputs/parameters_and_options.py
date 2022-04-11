@@ -215,10 +215,14 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # the idea is to have a min housing supply in this zone whose density might
     # be underestimated by the model
     # TODO: check error in pre-treatment when importing density from the area
+
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
-    cond = mitchells_plain_grid_2011 * coeff_land[0, :]
-    (param["minimum_housing_supply"][cond != 0]
-     ) = (mitchells_plain_grid_2011[cond != 0] / coeff_land[0, :][cond != 0])
+    param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
+        (grid_formal_density_HFA[mitchells_plain_grid_2011]
+         / coeff_land[0, :][mitchells_plain_grid_2011]))
+    # cond = mitchells_plain_grid_2011 * coeff_land[0, :]
+    # (param["minimum_housing_supply"][cond != 0]
+    #  ) = (mitchells_plain_grid_2011[cond != 0] / coeff_land[0, :][cond != 0])
     param["minimum_housing_supply"][
         (coeff_land[0, :] < 0.1) | (np.isnan(param["minimum_housing_supply"]))
         ] = 0

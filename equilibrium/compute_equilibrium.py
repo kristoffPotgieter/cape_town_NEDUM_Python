@@ -351,7 +351,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # TODO: See equilibrium condition (iv)
     housing_supply_RDP = (
         construction_RDP * dwelling_size_RDP * households_RDP
-        / (coeff_land_full[3, :] * 0.25) * 1000000
+        / (coeff_land_full[3, :] * 0.25)  # * 1000000
         )
     housing_supply_RDP[np.isnan(housing_supply_RDP)] = 0
     initial_state_dwelling_size = np.vstack(

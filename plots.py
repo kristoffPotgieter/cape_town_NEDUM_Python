@@ -178,6 +178,8 @@ initial_state_households_housing_types = np.load(
     path_outputs + name + '/initial_state_households_housing_types.npy')
 initial_state_household_centers = np.load(
     path_outputs + name + '/initial_state_household_centers.npy')
+initial_state_housing_supply = np.load(
+    path_outputs + name + '/initial_state_housing_supply.npy')
 initial_state_rent = np.load(
     path_outputs + name + '/initial_state_rent.npy')
 initial_state_dwelling_size = np.load(
@@ -237,7 +239,6 @@ outexp.export_households(
 # TODO: RDP? Formal backyard? Does not change much...
 # TODO: Does drop have to do with Mitchell's Plain? Overshoot with
 # disamenity parameters?
-# TODO: Do the same with nb of households?
 # TODO: Absurd number far from the center?
 outexp.validation_density(
     grid, initial_state_households_housing_types, housing_types,
@@ -256,8 +257,15 @@ outexp.validation_density_income_groups(
     path_outputs + plot_repo
     )
 
+outexp.plot_housing_supply(grid, initial_state_housing_supply, coeff_land,
+                           1, path_outputs + plot_repo)
+
 # TODO: Also do breakdown for poorest across housing types and backyards
 # vs. RDP
+
+# test = (initial_state_households_housing_types[1, :]
+#         / initial_state_households_housing_types[3, :])
+# test = test[test > 0]
 
 # TODO: does it matter if price distribution is shifted to the right?
 outexp.validation_housing_price(
@@ -275,6 +283,11 @@ outexp.plot_diagnosis_map_informl(
     path_outputs + plot_repo
     )
 
+outexp.export_map(initial_state_households_housing_types[0, :], grid,
+                  path_outputs + plot_repo + 'formal_sim', 1200)
+
+outexp.export_map(housing_types.formal_grid, grid,
+                  path_outputs + plot_repo + 'formal_data', 1200)
 
 # TODO: FLOOD VALIDATION
 
