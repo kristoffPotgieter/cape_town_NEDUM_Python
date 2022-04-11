@@ -39,6 +39,7 @@ def import_param(path_precalc_inp, path_outputs):
         path_precalc_inp + 'calibratedUtility_beta.mat'
         )["calibratedUtility_beta"].squeeze()
     #  Basic need in housing
+    #  TODO: not the same a in paper
     param["q0"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_q0.mat'
         )["calibratedUtility_q0"].squeeze()
@@ -132,6 +133,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  Avg nb of employed workers per household of each income class
     #  (see appendix B1: 2*ksi)
     param["household_size"] = [1.14, 1.94, 1.92, 1.94]
+    # param["household_size"] = [size / 2 for size in param["household_size"]]
 
     # Transportation cost parameters
     param["waiting_time_metro"] = 10  # in minutes
@@ -197,14 +199,12 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # we therefore consider that developers always provide one surface unit of
     # housing per household per unit of land. In practice, this is not used.
     # NB: HFA = habitable floor area
-    (param["housing_in"][coeff_land[0, :] != 0]
-     ) = (grid_formal_density_HFA[coeff_land[0, :] != 0]
-          / coeff_land[0, :][coeff_land[0, :] != 0]
-          * 1.1)
+    param["housing_in"] = grid_formal_density_HFA / coeff_land[0, :] * 1.1
+    param["housing_in"][~np.isfinite(param["housing_in"])] = 0
     # Deal with formally non-built or non-inhabited areas
-    param["housing_in"][
-        (coeff_land[0, :] == 0) | np.isnan(grid_formal_density_HFA)
-        ] = 0
+    # param["housing_in"][
+    #     (coeff_land[0, :] == 0) | np.isnan(param["housing_in"])
+    #     ] = 0
     # Put a cap and a floor on values
     param["housing_in"][param["housing_in"] > 2 * (10**6)] = 2 * (10**6)
     param["housing_in"][param["housing_in"] < 0] = 0

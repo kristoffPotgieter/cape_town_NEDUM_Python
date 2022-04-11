@@ -325,13 +325,13 @@ def validation_density_housing_types(
     """d."""
     # Housing types
     xData = grid.dist
-    formal_data = (housing_types.formal_grid) / 0.25
+    formal_data = (housing_types.formal_grid
+                   - initial_state_households_housing_types[3, :]) / 0.25
     backyard_data = (housing_types.backyard_formal_grid +
                      housing_types.backyard_informal_grid) / 0.25
     informal_data = (housing_types.informal_grid) / 0.25
     formal_simul = (
-        initial_state_households_housing_types[0, :]
-        + initial_state_households_housing_types[3, :]) / 0.25
+        initial_state_households_housing_types[0, :]) / 0.25
     informal_simul = (initial_state_households_housing_types[2, :]) / 0.25
     backyard_simul = (initial_state_households_housing_types[1, :]) / 0.25
     rdp_simul = (initial_state_households_housing_types[3, :]) / 0.25

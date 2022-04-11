@@ -176,16 +176,21 @@ elif options["agents_anticipate_floods"] == 0:
 # for t_temp in np.arange(0, 30):
 #     print(t_temp)
 #     (incomeNetOfCommuting, modalShares, ODflows, averageIncome
-#      ) = inpdt.import_transport_data(
-#          grid, param, t_temp, households_per_income_class, average_income,
-#          spline_inflation, spline_fuel,
-#          spline_population_income_distribution, spline_income_distribution,
-#          path_precalc_inp, path_precalc_transp)
+#       ) = inpdt.import_transport_data(
+#           grid, param, t_temp, households_per_income_class, average_income,
+#           spline_inflation, spline_fuel,
+#           spline_population_income_distribution, spline_income_distribution,
+#           path_precalc_inp, path_precalc_transp)
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-income_net_of_commuting_costs = np.load(
-    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+# income_net_of_commuting_costs = np.load(
+#     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
+     grid, param, 0, households_per_income_class, average_income,
+     spline_inflation, spline_fuel,
+     spline_population_income_distribution, spline_income_distribution,
+     path_precalc_inp, path_precalc_transp)
 
 
 # %% Compute initial state

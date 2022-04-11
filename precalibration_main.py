@@ -73,7 +73,8 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011) = inpdt.import_income_classes_data(param, path_data)
+ income_2011, households_per_income_and_housing
+ ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
@@ -207,6 +208,7 @@ model_construction = LinearRegression().fit(X, y)
 coeff_b = model_construction.coef_[0]
 coeff_a = 1 - coeff_b
 # Comes from zero profit condition combined with footnote 16 from optimization
+# TODO: not the same as in paper
 coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
               * np.exp(model_construction.intercept_))
 

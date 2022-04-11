@@ -246,6 +246,10 @@ outexp.validation_density(
     )
 # TODO: pb seems to come from formal sector essentially
 outexp.validation_density_housing_types(
+    grid, initial_state_households_housing_types, housing_types, 0,
+    path_outputs + plot_repo
+    )
+outexp.validation_density_housing_types(
     grid, initial_state_households_housing_types, housing_types, 1,
     path_outputs + plot_repo
     )
@@ -253,10 +257,16 @@ outexp.validation_density_housing_types(
 # Also midrich at 0 and 20, and rich at 10...
 # But then, is validation data trustworthy? Use griddata?
 outexp.validation_density_income_groups(
+    grid, initial_state_household_centers, income_distribution_grid, 0,
+    path_outputs + plot_repo
+    )
+outexp.validation_density_income_groups(
     grid, initial_state_household_centers, income_distribution_grid, 1,
     path_outputs + plot_repo
     )
 
+outexp.plot_housing_supply(grid, initial_state_housing_supply, coeff_land,
+                           0, path_outputs + plot_repo)
 outexp.plot_housing_supply(grid, initial_state_housing_supply, coeff_land,
                            1, path_outputs + plot_repo)
 
@@ -282,6 +292,9 @@ outexp.export_map(initial_state_households_housing_types[0, :], grid,
 
 outexp.export_map(housing_types.formal_grid, grid,
                   path_outputs + plot_repo + 'formal_data', 1200)
+
+
+#%%
 
 # TODO: Is this function still useful?
 outexp.plot_diagnosis_map_informl(
