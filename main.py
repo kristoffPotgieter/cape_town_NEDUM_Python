@@ -85,7 +85,8 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 # TODO: does this correspond to census data?
 
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011) = inpdt.import_income_classes_data(param, path_data)
+ income_2011, households_per_income_and_housing
+ ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
@@ -115,9 +116,9 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
      )
 
 #  TODO: Why do we need this correction?
-param["pockets"][
-    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-    ] = 0.79
+# param["pockets"][
+#     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
+#     ] = 0.79
 
 
 #  We correct areas for each housing type at baseline year for the amount of

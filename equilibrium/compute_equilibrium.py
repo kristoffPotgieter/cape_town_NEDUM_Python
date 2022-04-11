@@ -314,7 +314,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  Share of housing (no backyard) in RDP surface (with land in km²)
     construction_RDP = np.matlib.repmat(
         param["RDP_size"] / (param["RDP_size"] + param["backyard_size"]),
-        1, len(grid_temp.dist)) * 1000000
+        1, len(grid_temp.dist))
     #  RDP dwelling size
     dwelling_size_RDP = np.matlib.repmat(
         param["RDP_size"], 1, len(grid_temp.dist))
@@ -348,10 +348,10 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     housing_supply_export[:, selected_pixels] = housing_supply
     dwelling_size_export[:, selected_pixels] = copy.deepcopy(dwelling_size)
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
-    # See equilibrium condition (iv)
+    # TODO: See equilibrium condition (iv)
     housing_supply_RDP = (
         construction_RDP * dwelling_size_RDP * households_RDP
-        / (coeff_land_full[3, :] * 0.25)
+        / (coeff_land_full[3, :] * 0.25) * 1000000
         )
     housing_supply_RDP[np.isnan(housing_supply_RDP)] = 0
     initial_state_dwelling_size = np.vstack(

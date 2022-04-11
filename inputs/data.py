@@ -73,6 +73,10 @@ def import_income_classes_data(param, path_data):
     # Initialize income classes in model (4)
     average_income = np.zeros(param["nb_of_income_classes"])
     households_per_income_class = np.zeros(param["nb_of_income_classes"])
+    households_per_income_in_formal = np.zeros(param["nb_of_income_classes"])
+    households_per_income_in_backyard = np.zeros(
+        param["nb_of_income_classes"])
+    households_per_income_in_informal = np.zeros(param["nb_of_income_classes"])
 
     # Compute population and average income for each class in the model
     for j in range(0, param["nb_of_income_classes"]):
@@ -83,11 +87,27 @@ def import_income_classes_data(param, path_data):
             * nb_of_hh_bracket[param["income_distribution"] == j + 1]
             ) / households_per_income_class[j]
 
+        households_per_income_in_formal[j] = np.sum(
+            income_2011.formal[(param["income_distribution"] == j + 1)])
+        households_per_income_in_backyard[j] = np.sum(
+            income_2011.informal_backyard[
+                (param["income_distribution"] == j + 1)]
+            )
+        households_per_income_in_informal[j] = np.sum(
+            income_2011.informal_settlement[
+                (param["income_distribution"] == j + 1)]
+            )
+
     #  Compute ratio of average income per class over global income average
     income_mult = average_income / mean_income
 
+    # Store breakdown in unique array
+    households_per_income_and_housing = np.vstack(
+        [households_per_income_in_formal, households_per_income_in_backyard,
+         households_per_income_in_informal])
+
     return (mean_income, households_per_income_class, average_income,
-            income_mult, income_2011)
+            income_mult, income_2011, households_per_income_and_housing)
 
 
 def import_households_data(path_precalc_inp):

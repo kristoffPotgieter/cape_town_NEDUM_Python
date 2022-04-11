@@ -48,17 +48,17 @@ def import_param(path_precalc_inp, path_outputs):
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
     #  Capital elasticity
-    # param["coeff_b"] = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
-    param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
+    param["coeff_b"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
+    # param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
     # Land elasticity
     param["coeff_a"] = 1 - param["coeff_b"]
     #  Scale parameter
-    # param["coeff_A"] = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedHousing_kappa.mat'
-    #     )["coeffKappa"].squeeze()
-    param["coeff_A"] = np.load(
-        path_precalc_inp + 'calibratedHousing_kappa.npy')
+    param["coeff_A"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedHousing_kappa.mat'
+        )["coeffKappa"].squeeze()
+    # param["coeff_A"] = np.load(
+    #     path_precalc_inp + 'calibratedHousing_kappa.npy')
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
@@ -167,10 +167,17 @@ def import_param(path_precalc_inp, path_outputs):
     # Disamenity parameters for informal settlements and backyard shacks,
     # coming from location-based calibration, as opposed to general calibration
     # used in Pfeiffer et al. (appendix C5)
-    param["pockets"] = np.load(
-        path_precalc_inp + 'param_pockets.npy')
-    param["backyard_pockets"] = np.load(
-        path_precalc_inp + 'param_backyards.npy')
+    disamenity_param = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedParamAmenities.mat'
+        )["calibratedParamAmenities"].squeeze()
+    param["pockets"] = np.matlib.repmat(
+        disamenity_param[1], 24014, 1).squeeze()
+    param["backyard_pockets"] = np.matlib.repmat(
+        disamenity_param[0], 24014, 1).squeeze()
+    # param["pockets"] = np.load(
+    #     path_precalc_inp + 'param_pockets.npy')
+    # param["backyard_pockets"] = np.load(
+    #     path_precalc_inp + 'param_backyards.npy')
 
     return param
 
@@ -234,9 +241,10 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
     # Comes from zero profit condition: allows to convert land prices into
     # housing prices (cf. also inversion from footnote 16)
+    # TODO: use interest_rate or param["interest_rate"]?
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
-        * (param["depreciation_rate"] + interest_rate)
+        * (param["depreciation_rate"] + param["interest_rate"])
         / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
            * param["coeff_a"] ** param["coeff_a"])
         )

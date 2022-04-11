@@ -45,6 +45,9 @@ path_floods = path_folder + "FATHOM/"
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
+options["agents_anticipate_floods"] = 0
+options["informal_land_constrained"] = 1
+
 name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
         + 'informal' + str(options["informal_land_constrained"]) + '_'
         + 'fbackyard0')
@@ -65,7 +68,8 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011) = inpdt.import_income_classes_data(param, path_data)
+ income_2011, households_per_income_and_housing
+ ) = inpdt.import_income_classes_data(param, path_data)
 
 param["income_year_reference"] = mean_income
 
@@ -80,6 +84,13 @@ income_net_of_commuting_costs_29 = np.load(
 #     path_precalc_transp + 'average_income_year_0.npy')
 # average_income_2040 = np.load(
 #     path_precalc_transp + 'average_income_year_28.npy')
+
+# We convert income distribution data (at SP level) to grid dimensions for use
+# in income calibration: long to run, uncomment only if needed
+# income_distribution_grid = inpdt.convert_income_distribution(
+#     income_distribution, grid, path_data, data_sp)
+income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
+
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
@@ -107,9 +118,9 @@ housing_types[np.isnan(housing_types)] = 0
                            housing_type_data, path_data, path_folder)
      )
 
-param["pockets"][
-    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-    ] = 0.79
+# param["pockets"][
+#     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
+#     ] = 0.79
 
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
@@ -161,25 +172,29 @@ pluvial_100yr = pd.read_excel(path_floods + "P_100yr" + ".xlsx")
 
 # LOAD EQUILIBRIUM DATA (from main.py)
 
+initial_state_households = np.load(
+    path_outputs + name + '/initial_state_households.npy')
 initial_state_households_housing_types = np.load(
     path_outputs + name + '/initial_state_households_housing_types.npy')
 initial_state_household_centers = np.load(
     path_outputs + name + '/initial_state_household_centers.npy')
 initial_state_rent = np.load(
     path_outputs + name + '/initial_state_rent.npy')
+initial_state_dwelling_size = np.load(
+    path_outputs + name + '/initial_state_dwelling_size.npy')
 
 # LOAD SIMULATION DATA (from main.py)
 
-simulation_households_center = np.load(
-    path_outputs + name + '/simulation_households_center.npy')
-simulation_dwelling_size = np.load(
-    path_outputs + name + '/simulation_dwelling_size.npy')
-simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
-simulation_households_housing_type = np.load(
-    path_outputs + name + '/simulation_households_housing_type.npy')
-simulation_households = np.load(
-    path_outputs + name + '/simulation_households.npy')
-simulation_utility = np.load(path_outputs + name + '/simulation_utility.npy')
+# simulation_households_center = np.load(
+#     path_outputs + name + '/simulation_households_center.npy')
+# simulation_dwelling_size = np.load(
+#     path_outputs + name + '/simulation_dwelling_size.npy')
+# simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
+# simulation_households_housing_type = np.load(
+#     path_outputs + name + '/simulation_households_housing_type.npy')
+# simulation_households = np.load(
+#     path_outputs + name + '/simulation_households.npy')
+# simulation_utility = np.load(path_outputs + name + '/simulation_utility.npy')
 
 (spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
@@ -197,6 +212,119 @@ construction_coeff_28 = ((spline_income(28) / param["income_year_reference"])
 
 inflation = spline_inflation(28) / spline_inflation(0)
 
+
+# %% Validation: draw maps and figures
+
+# GENERAL VALIDATION
+
+try:
+    os.mkdir(path_outputs + plot_repo)
+except OSError as error:
+    print(error)
+
+# TODO: How can macro data stick more to simulation than income data on which
+# it was optimized? Because of coeff_land? Should we use weights?
+# TODO: Why not use SP data for validation?
+outexp.export_housing_types(
+    initial_state_households_housing_types, initial_state_household_centers,
+    housing_type_data, households_per_income_class, 'Simulation', 'Data',
+    path_outputs + plot_repo
+    )
+outexp.export_households(
+    initial_state_households, households_per_income_and_housing, 'Simulation',
+    'Data', path_outputs + plot_repo)
+
+# TODO: RDP? Formal backyard? Does not change much...
+# TODO: Does drop have to do with Mitchell's Plain? Overshoot with
+# disamenity parameters?
+# TODO: Do the same with nb of households?
+# TODO: Absurd number far from the center?
+outexp.validation_density(
+    grid, initial_state_households_housing_types, housing_types,
+    path_outputs + plot_repo
+    )
+# TODO: pb seems to come from formal sector essentially
+outexp.validation_density_housing_types(
+    grid, initial_state_households_housing_types, housing_types, 1,
+    path_outputs + plot_repo
+    )
+# TODO: More precisely, pb seems to come from midpoor households at 20km!
+# Also midrich at 0 and 20, and rich at 10...
+# But then, is validation data trustworthy? Use griddata?
+outexp.validation_density_income_groups(
+    grid, initial_state_household_centers, income_distribution_grid, 1,
+    path_outputs + plot_repo
+    )
+
+# TODO: Also do breakdown for poorest across housing types and backyards
+# vs. RDP
+
+# TODO: does it matter if price distribution is shifted to the right?
+outexp.validation_housing_price(
+    grid, initial_state_rent, interest_rate, param, center, path_precalc_inp,
+    path_outputs + plot_repo
+    )
+
+# TODO: how can dwelling size be so big?
+outexp.plot_housing_demand(grid, initial_state_dwelling_size,
+                           path_outputs + plot_repo)
+
+# TODO: Is this function still useful?
+outexp.plot_diagnosis_map_informl(
+    grid, coeff_land, initial_state_households_housing_types,
+    path_outputs + plot_repo
+    )
+
+
+# TODO: FLOOD VALIDATION
+
+#  Stats per housing type (flood depth and households in flood-prone areas)
+fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
+                  'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
+pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
+                  'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
+
+count_formal = (
+    housing_types.formal_grid
+    - (number_properties_RDP * total_RDP / sum(number_properties_RDP))
+    )
+count_formal[count_formal < 0] = 0
+
+stats_per_housing_type_data_fluvial = outfld.compute_stats_per_housing_type(
+    fluvial_floods, path_floods, count_formal,
+    (number_properties_RDP * total_RDP / sum(number_properties_RDP)),
+    housing_types.informal_grid,
+    housing_types.backyard_formal_grid + housing_types.backyard_informal_grid,
+    options, param, 0.01)
+
+stats_per_housing_type_fluvial = outfld.compute_stats_per_housing_type(
+    fluvial_floods, path_floods, initial_state_households_housing_types[0, :],
+    initial_state_households_housing_types[3, :],
+    initial_state_households_housing_types[2, :],
+    initial_state_households_housing_types[1, :],
+    options, param, 0.01)
+
+outval.validation_flood
+(name, stats_per_housing_type_data_fluvial, stats_per_housing_type_fluvial,
+ 'Data', 'Simul', 'fluvial')
+
+if options["pluvial"] == 1:
+    (stats_per_housing_type_data_pluvial
+     ) = outfld.compute_stats_per_housing_type(
+         pluvial_floods, path_floods, count_formal,
+         (number_properties_RDP * total_RDP / sum(number_properties_RDP)),
+         housing_types.informal_grid, housing_types.backyard_formal_grid
+         + housing_types.backyard_informal_grid, options, param, 0.01)
+    stats_per_housing_type_pluvial = outfld.compute_stats_per_housing_type(
+        pluvial_floods, path_floods,
+        initial_state_households_housing_types[0, :],
+        initial_state_households_housing_types[3, :],
+        initial_state_households_housing_types[2, :],
+        initial_state_households_housing_types[1, :],
+        options, param, 0.01)
+    outval.validation_flood(
+        name, stats_per_housing_type_data_pluvial,
+        stats_per_housing_type_pluvial, 'Data', 'Simul', 'pluvial')
 
 # %% Housing type scenarios
 
@@ -292,92 +420,6 @@ U = ((z ** (1 - param["beta"])) * (q ** param["beta"]) * amenities[subset]
 
 sns.histplot(U)
 Umed_backyard = np.nanmedian(U)
-
-
-# %% Validation: draw maps and figures
-
-# GENERAL VALIDATION
-
-try:
-    os.mkdir(path_outputs + plot_repo)
-except OSError as error:
-    print(error)
-
-outexp.export_housing_types(
-    initial_state_households_housing_types, initial_state_household_centers,
-    housing_type_data, households_per_income_class, 'Simulation', 'Data',
-    path_outputs + plot_repo
-    )
-
-outexp.validation_density(
-    grid, initial_state_households_housing_types, housing_types,
-    path_outputs + plot_repo
-    )
-outexp.validation_density_housing_types(
-    grid, initial_state_households_housing_types, housing_types, 0,
-    path_outputs + plot_repo
-    )
-outexp.validation_housing_price(
-    grid, initial_state_rent, interest_rate, param, center, path_precalc_inp,
-    path_outputs + plot_repo
-    )
-
-# TODO: Is this function still useful?
-outexp.plot_diagnosis_map_informl(
-    grid, coeff_land, initial_state_households_housing_types,
-    path_outputs + plot_repo
-    )
-
-
-# TODO: FLOOD VALIDATION
-
-#  Stats per housing type (flood depth and households in flood-prone areas)
-fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
-                  'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
-pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
-                  'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
-
-count_formal = (
-    housing_types.formal_grid
-    - (number_properties_RDP * total_RDP / sum(number_properties_RDP))
-    )
-count_formal[count_formal < 0] = 0
-
-stats_per_housing_type_data_fluvial = outfld.compute_stats_per_housing_type(
-    fluvial_floods, path_floods, count_formal,
-    (number_properties_RDP * total_RDP / sum(number_properties_RDP)),
-    housing_types.informal_grid,
-    housing_types.backyard_formal_grid + housing_types.backyard_informal_grid,
-    options, param, 0.01)
-
-stats_per_housing_type_fluvial = outfld.compute_stats_per_housing_type(
-    fluvial_floods, path_floods, initial_state_households_housing_types[0, :],
-    initial_state_households_housing_types[3, :],
-    initial_state_households_housing_types[2, :],
-    initial_state_households_housing_types[1, :],
-    options, param, 0.01)
-
-outval.validation_flood
-(name, stats_per_housing_type_data_fluvial, stats_per_housing_type_fluvial,
- 'Data', 'Simul', 'fluvial')
-
-if options["pluvial"] == 1:
-    (stats_per_housing_type_data_pluvial
-     ) = outfld.compute_stats_per_housing_type(
-         pluvial_floods, path_floods, count_formal,
-         (number_properties_RDP * total_RDP / sum(number_properties_RDP)),
-         housing_types.informal_grid, housing_types.backyard_formal_grid
-         + housing_types.backyard_informal_grid, options, param, 0.01)
-    stats_per_housing_type_pluvial = outfld.compute_stats_per_housing_type(
-        pluvial_floods, path_floods,
-        initial_state_households_housing_types[0, :],
-        initial_state_households_housing_types[3, :],
-        initial_state_households_housing_types[2, :],
-        initial_state_households_housing_types[1, :],
-        options, param, 0.01)
-    outval.validation_flood(
-        name, stats_per_housing_type_data_pluvial,
-        stats_per_housing_type_pluvial, 'Data', 'Simul', 'pluvial')
 
 
 # %% Flood prone area scenarios

@@ -2,7 +2,8 @@
 
 - Main script is ```main.py``` : it computes equilibrium allocation and runs dynamic simulations over several years.
 - ```plots.py``` plots various outputs from the model. Both scripts are cleaned and run correctly but the latter is not commented yet.
-- Main script runs on pre-calibrated data. We need to run ```calibration.py``` to recalibrate the parameters. This script is not fully reworked yet.
+- Main script runs on pre-calibrated data. We need to run ```precalibration_main.py``` and ```precalibration_disamenity.py``` to recalibrate the parameters. Those scripts are not fully functional yet.
+- ```validation.py``` is a notepad containing some validation exercises (ongoing).
 - Other files will be updated with the documentation.
 - To run properly, the code should be put in a folder that also contains the appropriate data, according to the following tree structure (to be updated).
 
@@ -27,13 +28,15 @@
     ├── inputs
     ├── outputs
     ├── LICENSE
-    ├── calibration.py
     ├── main.py
     ├── manage.py
     ├── plots.py
+    ├── precalibration_disamenity.py
+    ├── precalibration_main.py
     ├── README.md
     ├── requirements.txt
-    └── setup.py
+    ├── setup.py   
+    └── validation.py
   
     
 ```

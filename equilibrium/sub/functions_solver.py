@@ -36,6 +36,7 @@ def compute_dwelling_size_formal(utility, amenities, param,
 
     # We get a regression spline expressing q as a function of
     # implicit_qfunc(q) for some arbitrarily chosen q
+    # TODO: where does it come from?
     x = np.concatenate((
         [10 ** (-8), 10 ** (-7), 10 ** (-6), 10 ** (-5), 10 ** (-4),
          10 ** (-3), 10 ** (-2), 10 ** (-1)],
@@ -49,8 +50,7 @@ def compute_dwelling_size_formal(utility, amenities, param,
         [250, 300, 500, 1000, 2000, 200000, 1000000, 10 ** 12]))
 
     # TODO: Check whether extrapolation yields erroneous results
-    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]),
-                 x, fill_value="extrapolate")
+    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x)
 
     # We define dwelling size as q corresponding to true values of
     # implicit_qfunc(q), for each selected pixel and each income group
@@ -92,11 +92,12 @@ def compute_housing_supply_formal(
 
         # See research note, p.10
         # NB: we convert to supply per km²
+        # TODO: should we use interest_rate or param["interest_rate"]?
         housing_supply = (
             1000000
             * (construction_param ** (1/param["coeff_a"]))
             * ((param["coeff_b"]
-                / (interest_rate + param["depreciation_rate"]
+                / (param["interest_rate"] + param["depreciation_rate"]
                    + capital_destroyed))
                ** (param["coeff_b"]/param["coeff_a"]))
             * ((R) ** (param["coeff_b"]/param["coeff_a"]))
