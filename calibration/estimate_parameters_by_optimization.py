@@ -43,7 +43,12 @@ def EstimateParametersByOptimization(
     # For the regression of amenities
     tableRegression = tableAmenities.loc[selectedRents, :]
     predictorsAmenitiesMatrix = tableRegression.loc[:, variablesRegression]
-    modelAmenity = 0
+    # TODO: should be added?
+    predictorsAmenitiesMatrix = np.vstack(
+        [np.ones(predictorsAmenitiesMatrix.shape[0]),
+          predictorsAmenitiesMatrix.T]
+        ).T
+    # modelAmenity = 0
 
     # %% Useful functions (precalculations for rents and dwelling sizes,
     # likelihood function)
@@ -65,6 +70,7 @@ def EstimateParametersByOptimization(
     # %% Optimization algorithm
 
     # Initial value of parameters
+    # TODO: where does it come from? Why not use init values?
     initialVector = np.array(
         [0.25332341, 3.97137219, 18683.85807256, 86857.19233169])
 
@@ -72,6 +78,7 @@ def EstimateParametersByOptimization(
 
     # Function that will be minimized
     optionRegression = 0
+
     minusLogLikelihoodModel = (
         lambda X0:
             - callog.LogLikelihoodModel(
@@ -79,27 +86,32 @@ def EstimateParametersByOptimization(
                 selectedDwellingSize, dataRent, selectedRents, selectedDensity,
                 predictorsAmenitiesMatrix, tableRegression,
                 variablesRegression, CalculateDwellingSize,
-                ComputeLogLikelihood, optionRegression)
+                ComputeLogLikelihood, optionRegression)[0]
             )
 
     # Optimization w/ lower and upper bounds
-    lowerBounds = np.array([0.1, 3, 0, 0])
-    upperBounds = np.array([1, 18, 10 ** 6, 10 ** 7])
+    # lowerBounds = np.array([0.1, 3, 0, 0])
+    # upperBounds = np.array([1, 18, 10 ** 6, 10 ** 7])
+    bnds = ((0.1, 1), (3, 18), (0, 18 ** 6), (0, 10 ** 7))
 
-    (parameters, scoreTot, exitFlag) = scipy.optimize.minimize(
-        minusLogLikelihoodModel, initialVector, lowerBounds, upperBounds)
-    # bnds = ((0.1, 1), (3, 18), (0, 18 ** 6), (0, 10 ** 7))
-    # res = scipy.minimize(
-    #     minusLogLikelihoodModel, initialVector, bounds=bnds,
-    #     options={'maxiter': 10, 'disp': True})
+    # (parameters, scoreTot, exitFlag) = scipy.optimize.minimize(
+    #     minusLogLikelihoodModel, initialVector)
+
+    res = scipy.optimize.minimize(
+        minusLogLikelihoodModel, initialVector, bounds=bnds,
+        options={'maxiter': 10, 'disp': True})
+
+    parameters = res.x
+    scoreTot = res.fun
+    # exitFlag = res.success
 
     # Estimate the function to get the parameters for amenities
     optionRegression = 1
-    (_, parametersAmenities, modelAmenity, parametersHousing
+    (*_, parametersAmenities, modelAmenity, parametersHousing
      ) = callog.LogLikelihoodModel(
-         parameters, initUti2, incomeNetOfCommuting, groupLivingSpMatrix,
-         dataDwellingSize, selectedDwellingSize, xData, yData, dataRent,
-         selectedRents, dataHouseholdDensity, selectedDensity,
+         parameters, initUti2, net_income, groupLivingSpMatrix,
+         dataDwellingSize, selectedDwellingSize, dataRent,
+         selectedRents, selectedDensity,
          predictorsAmenitiesMatrix, tableRegression, variablesRegression,
          CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
 

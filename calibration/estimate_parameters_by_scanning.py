@@ -26,15 +26,21 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # Data as matrices, where should we regress (remove where we have no data)
     # Where is which class
 
-    # We remove poorest income group
+    # We remove poorest income group as it is crowded out of formal sector
+    # TODO: is it in line with the paper?
     net_income = incomeNetOfCommuting[1:4, :]
+    # We generate a matrix of dummies for dominant income group in each SP
+    # (can be always folse when dominant group is removed poorest)
+    # TODO: test alternative definitions of dominant groups?
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
         groupLivingSpMatrix[i, dataIncomeGroup != i] = np.zeros(1, 'bool')
 
+    # We generate an array of dummies for dominant being not poorest
     selectedTransportMatrix = (np.nansum(groupLivingSpMatrix, 0) == 1)
     net_income[net_income < 0] = np.nan
 
+    # We define a set of selection arrays
     selectedRents = ~np.isnan(dataRent) & selectedTransportMatrix & selectedSP
     selectedDwellingSize = (~np.isnan(dataDwellingSize)
                             & ~np.isnan(dataRent)
@@ -49,19 +55,21 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
         [np.ones(predictorsAmenitiesMatrix.shape[0]),
          predictorsAmenitiesMatrix.T]
         ).T
-    modelAmenity = 0
+    # modelAmenity = 0
 
     # %% Useful functions (precalculations for rents and dwelling sizes,
     # likelihood function)
 
     # Function for dwelling sizes
-    # We estimate calcule_hous directly from data from rents (no extrapolation)
+    # See equation 9
+    # TODO: correct typo in equation C3
     CalculateDwellingSize = (
         lambda beta, basic_q, incomeTemp, rentTemp:
             beta * incomeTemp / rentTemp + (1 - beta) * basic_q
             )
 
-    # Log likelihood for a lognormal law
+    # Log likelihood for a lognormal law of mean 0
+    # TODO: correct typo in paper
     ComputeLogLikelihood = (
         lambda sigma, error:
             np.nansum(- np.log(2 * math.pi * sigma ** 2) / 2
@@ -73,11 +81,13 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # Function that will be minimized
     optionRegression = 0
 
-    # Initial value of parameters
+    # Initial value of parameters (all possible combinations)
+    # Note that we do not consider rho here
     combinationInputs = np.array(
         np.meshgrid(listBeta, listBasicQ, listUti3, listUti4)).T.reshape(-1, 4)
 
     # Scanning of the list
+    # TODO: meaning?
     scoreAmenities = - 10000 * np.ones(combinationInputs.shape[0])
     scoreDwellingSize = - 10000 * np.ones(combinationInputs.shape[0])
     scoreIncomeSorting = - 10000 * np.ones(combinationInputs.shape[0])
@@ -86,8 +96,11 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     print('\nDone: ')
 
+    # TODO: why not use a list as for other income groups?
+    # Probably because it does need scanning
     Uo2 = 1000
 
+    # TODO: how strong are underlying Gumbel assumptions?
     for index in range(0, combinationInputs.shape[0]):
         print(index)
         (scoreTotal[index], scoreAmenities[index], scoreDwellingSize[index],
@@ -102,21 +115,26 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     print('\nScanning complete')
     print('\n')
 
+    # TODO: adds housing to score_total, but what does this mean?
+    # We just pick the parameters associated to the maximum score
     scoreVect = (scoreAmenities + scoreDwellingSize + scoreIncomeSorting
                  + scoreHousing)
     scoreTot = np.amax(scoreVect)
     which = np.argmax(scoreVect)
     parameters = combinationInputs[which, :]
 
-    # Estimate the function to get the parameters for amenities
+    # We just re-estimate the function to get the (right) parameters for
+    # amenities: we did not do it before as optionRegression = 0 is better for
+    # the rest. Note that paramaters remain the same, but model is a GLM and
+    # errors are Pearson residuals
     optionRegression = 1
-    (_, parametersAmenities, modelAmenity, parametersHousing
+    (*_, parametersAmenities, modelAmenities, parametersHousing
      ) = callog.LogLikelihoodModel(
-         parameters, initUti2, incomeNetOfCommuting, groupLivingSpMatrix,
-         dataDwellingSize, selectedDwellingSize, xData, yData, dataRent,
-         selectedRents, dataHouseholdDensity, selectedDensity,
+         parameters, Uo2, net_income, groupLivingSpMatrix,
+         dataDwellingSize, selectedDwellingSize, dataRent,
+         selectedRents, selectedDensity,
          predictorsAmenitiesMatrix, tableRegression, variablesRegression,
          CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
 
-    return (parameters, scoreTot, parametersAmenities, modelAmenity,
+    return (parameters, scoreTot, parametersAmenities, modelAmenities,
             parametersHousing, selectedRents)

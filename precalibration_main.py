@@ -7,6 +7,7 @@ Created on Mon Nov  9 10:31:00 2020.
 
 # %% Preamble
 
+# TODO: check warnings in code
 
 # IMPORT PACKAGES
 
@@ -18,6 +19,7 @@ from sklearn.linear_model import LinearRegression
 import os
 import math
 import seaborn as sns
+import copy
 
 import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
@@ -348,6 +350,7 @@ listBeta = np.arange(0.1, 0.55, 0.2)
 listBasicQ = np.arange(5, 16, 5)
 
 # Coefficient for spatial autocorrelation
+# TODO: how would this work if implemented?
 listRho = 0
 
 # Utilities for simulations (arbitrary)
@@ -384,12 +387,13 @@ data_density = (
 # commuting costs
 # TODO: check pb of units
 # TODO: why do we reason in terms of dominant group?
-cond = np.matlib.repmat(np.nanmax(income_distribution, 1), 4, 1)
-dataIncomeGroup_select = income_distribution == cond.T
-# TODO: find tie-breaking rule
-dataIncomeGroup = np.where(dataIncomeGroup_select == 1)
+# cond = np.matlib.repmat(np.nanmax(income_distribution, 1), 4, 1)
+# dataIncomeGroup_select = income_distribution == cond.T
+# # TODO: find tie-breaking rule
+# dataIncomeGroup = np.where(dataIncomeGroup_select == 1)
 
 # Import amenities at the SP level
+
 amenities_sp = calam.import_amenities_SP(path_data, path_precalc_inp)
 # We select amenity variables to be used in regression from table C5
 # NB: choice has to do with relevance and exogenity of variables
@@ -400,23 +404,28 @@ variables_regression = [
 
 # TODO: Aren't we supposed to estimate the dominant net income vector
 # associated with SPs rather than pixels?
-IncomeNetofCommuting, *_ = inpdt.import_transport_data(
-     grid, param, 0, households_per_income_class, average_income,
-     spline_inflation, spline_fuel,
-     spline_population_income_distribution, spline_income_distribution,
-     path_precalc_inp, path_precalc_transp, 'SP')
-# incomeNetOfCommuting = np.load(
-#     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+# IncomeNetofCommuting, *_ = inpdt.import_transport_data(
+#      grid, param, 0, households_per_income_class, average_income,
+#      spline_inflation, spline_fuel,
+#      spline_population_income_distribution, spline_income_distribution,
+#      path_precalc_inp, path_precalc_transp, 'SP')
+incomeNetOfCommuting = np.load(
+    path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
 
 (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
  parametersHousing, _) = calscan.EstimateParametersByScanning(
-     incomeNetOfCommuting, dataRent, data_sp["dwelling_size"], dataIncomeGroup,
-     data_density, selected_density, housing_types_sp["x_sp"],
-     housing_types_sp["y_sp"], selectedSP, amenities_sp, variables_regression,
-     listRho, listBeta, listBasicQ, initUti2, listUti3, listUti4)
+     incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
+     data_income_group, data_density, selected_density,
+     housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
+     amenities_sp, variables_regression, listRho, listBeta, listBasicQ,
+     initUti2, listUti3, listUti4)
 
-# Now run the optimization algo with identified value of the parameters
+# Now run the optimization algo with identified value of the parameters:
+# corresponds to interior-point algorithm
+
+# Note that we are not equal to the paper: what values to keep?
 initBeta = parametersScan[0]
+# TODO: meaning?
 initBasicQ = max(parametersScan[1], 5.1)
 
 # Utilities
@@ -425,18 +434,51 @@ initUti4 = parametersScan[3]
 
 (parameters, scoreTot, parametersAmenities, modelAmenity, parametersHousing,
  selectedSPRent) = calopt.EstimateParametersByOptimization(
-     incomeNetOfCommuting, dataRent, data_sp["dwelling_size"], dataIncomeGroup,
-     data_density, selected_density, housing_types_sp["x_sp"],
-     housing_types_sp["y_sp"], selectedSP, amenities_sp, variables_regression,
-     listRho, initBeta, initBasicQ, initUti2, initUti3, initUti4)
+     incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
+     data_income_group, data_density, selected_density,
+     housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
+     amenities_sp, variables_regression, listRho, initBeta, initBasicQ,
+     initUti2, initUti3, initUti4)
+
+# TODO: we do not get same parameters as in paper...
+
+# %%
 
 # Generating the map of amenities
 
-# TODO: in which format?
+# TODO: Note that this a problem with dummies: back to import_amenities
+# See ImportAmenitiesGrid
+
+amenity_data = pd.read_csv(path_data + 'grid_amenities.csv', sep=',')
+
+airport_cone = copy.deepcopy(amenity_data.airport_cone)
+airport_cone[airport_cone == 55] = 1
+airport_cone[airport_cone == 60] = 1
+airport_cone[airport_cone == 65] = 1
+airport_cone[airport_cone == 70] = 1
+airport_cone[airport_cone == 75] = 1
+
+# Distance to RDP housing
+if distanceRDP ~= 2
+    matrixDistance = ((repmat(grid.xCoord,length(grid.xCoord),1) - repmat(grid.xCoord',1,length(grid.xCoord))).^2 ... 
+                        + (repmat(grid.yCoord,length(grid.xCoord),1) - repmat(grid.yCoord',1,length(grid.xCoord))).^2)...
+                        < distanceRDP ^ 2;
+    gridDistanceRDP = (double(land.numberPropertiesRDP > 5) * (matrixDistance)')' > 1;
+    % save(strcat('.', slash, '0. Precalculated inputs', slash, 'gridDistanceRDP'), 'gridDistanceRDP')
+else 
+    load(strcat('.', slash, '0. Precalculated inputs', slash, 'gridDistanceRDP'))
+end
+
+# We store relevant data in an output table
+# ...
+
 modelAmenity.save(path_precalc_inp + 'modelAmenity')
 
 # Exporting and saving
 # TODO: link with data import
-utilitiesCorrected = parameters[3:] / np.exp(parametersAmenities[1])
-calibratedUtility_beta = parameters(1)
-calibratedUtility_q0 = parameters(2)
+# utilitiesCorrected = parameters[3:] / np.exp(parametersAmenities[1])
+calibratedUtility_beta = parameters[0]
+calibratedUtility_q0 = parameters[1]
+
+np.save(path_precalc_inp + 'calibratedUtility_beta', calibratedUtility_beta)
+np.save(path_precalc_inp + 'calibratedUtility_q0', calibratedUtility_q0)

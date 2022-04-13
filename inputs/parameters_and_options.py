@@ -38,11 +38,13 @@ def import_param(path_precalc_inp, path_outputs):
     param["beta"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_beta.mat'
         )["calibratedUtility_beta"].squeeze()
+    # param["beta"] = np.load(path_precalc_inp + 'calibratedUtility_beta.mat')
     #  Basic need in housing
     #  TODO: not the same a in paper
     param["q0"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_q0.mat'
         )["calibratedUtility_q0"].squeeze()
+    # param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.mat')
     #  Composite good elasticity
     param["alpha"] = 1 - param["beta"]
 

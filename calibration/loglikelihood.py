@@ -24,7 +24,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
     # %% Errors on the amenity
 
-    # Calculate amenities as a residual
+    # Calculate amenities as a residual: corresponds to ln(A_s), appendix C4
     residualAmenities = (
         np.log(Uo[:, None])
         - np.log(
@@ -33,6 +33,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
                - basicQ * dataRent[None, selectedRents])
             / (dataRent[None, selectedRents] ** beta))
         )
+    # We select amenities for dominant income groups and flatten the array
     residualAmenities = np.nansum(
         residualAmenities * groupLivingSpMatrix[:, selectedRents], 0)
     residualAmenities[np.abs(residualAmenities.imag) > 0] = np.nan
@@ -41,6 +42,8 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     # Residual for the regression of amenities follow a log-normal law
     if (optionRegression == 0):
         # Here regression as a matrix division (much faster)
+        # TODO: note that predictors are dummies, and not log-values as in
+        # paper
         A = predictorsAmenitiesMatrix[~np.isnan(residualAmenities), :]
         y = (residualAmenities[~np.isnan(residualAmenities)]).real
         parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y)
@@ -71,27 +74,39 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     #           * (net_income[:, selectedRents])
     #           / (Uo[:, None] / residualAmenities[None, :])) ** (1/beta)
 
+    # Here, we want the likelihood that simulated rent is equal to max bid rent
+    # to reproduce observed income sorting
+
     # Method from Basile
+    #  We get a function that predicts rent based on any given income and u/A,
+    #  interpolated from parameter initial values
     griddedRents = InterpolateRents(beta, basicQ, net_income)
     bidRents = np.empty((3, sum(selectedRents)))
+    #  For each income group and each selected SP,
+    #  we obtain the bid rent as a function of initial income and u/ln(A)
+    #  TODO: shouldn't we give u/A as an argument instead?
     for i in range(0, 3):
         for j in range(0, sum(selectedRents)):
             bidRents[i, j] = griddedRents(
                 net_income[:, selectedRents][i, j],
-                (Uo[:, None] / residualAmenities[None, :])[i, j])
+                (Uo[:, None] / np.exp(residualAmenities[None, :]))[i, j]
+                )
 
-    # Estimation of the scale parameter by maximization of the log-likelihood
+    # Estimation of the parameters by maximization of the log-likelihood
+    # (in overarching function)
     selectedBidRents = (np.nansum(bidRents, 0) > 0)
     incomeGroupSelectedRents = groupLivingSpMatrix[:, selectedRents]
+    # Corresponds to formula in appendix C4
     likelihoodIncomeSorting = (
         lambda scaleParam:
-            - (np.nansum(np.nansum(
+            - np.nansum(np.nansum(
                 bidRents[:, selectedBidRents] / scaleParam
                 * incomeGroupSelectedRents[:, selectedBidRents], 0))
-                - np.nansum(np.log(np.nansum(
-                    np.exp(bidRents[:, selectedBidRents] / scaleParam),
-                    0))))
+            - np.nansum(np.log(np.nansum(
+                np.exp(bidRents[:, selectedBidRents] / scaleParam),
+                0)))
             )
+    # TODO: does the choice of scale parameter matter?
     scoreIncomeSorting = - likelihoodIncomeSorting(10000)
 
     # %% Errors on the dwelling sizes
@@ -108,6 +123,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
         simulatedRents)
 
     # Define errors
+    # Here we call on real data as it is part of the error term definition
     errorDwellingSize = (
         np.log(dwellingSize)
         - np.log(dataDwellingSize[selectedDwellingSize])
@@ -121,6 +137,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
     scoreTotal = scoreAmenities + scoreDwellingSize + scoreIncomeSorting
 
+    # TODO: why?
     scoreHousing = 0
     parametersHousing = 0
 
@@ -131,6 +148,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
 def utilityFromRents(Ro, income, basic_q, beta):
     """d."""
+    # Equal to u/A
     utility = (((1 - beta) ** (1 - beta))
                * (beta ** beta)
                * (income - (basic_q * Ro))
@@ -163,6 +181,7 @@ def InterpolateRents(beta, basicQ, net_income):
 
     # Min and Max values for the decomposition
 
+    #  Yields u/A for all values of decomposition
     utilityMatrix = utilityFromRents(
         np.matlib.repmat(decompositionRent, len(decompositionIncome), 1),
         np.transpose(np.matlib.repmat(
@@ -170,6 +189,12 @@ def InterpolateRents(beta, basicQ, net_income):
         basicQ,
         beta
         )
+    #  We interpolate rent as a function of income and u/A (calculated upon
+    #  initial values of parameters...)
+    #  TODO: why choose this specific functional form?
+    #  Is it because we already use the equations we have for LL on amenities
+    #  and dwelling size? Note that we observe rent but not actual max bid rent
+    #  for all income groups
     solusRentTemp = (
         lambda x, y:
             interp2d(
