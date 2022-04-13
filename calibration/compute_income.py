@@ -10,7 +10,7 @@ import scipy.io
 import copy
 import math
 
-import equilibrium.functions_dynamic as eqdyn
+# import equilibrium.functions_dynamic as eqdyn
 
 
 # TODO: call directly into inpdt.import_transport_data instead of copying
@@ -24,8 +24,9 @@ def import_transport_costs(grid, param, yearTraffic,
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
     # Import travel times and distances
+    # TODO: add option to choose SP or GRID
     transport_times = scipy.io.loadmat(path_precalc_inp
-                                       + 'Transport_times_GRID.mat')
+                                       + 'Transport_times_SP.mat')
 
     # TODO: Check tables from Basile to link with data
 
@@ -79,7 +80,7 @@ def import_transport_costs(grid, param, yearTraffic,
     numberDaysPerYear = 235
     numberHourWorkedPerDay = 8
     #  We assume 8 working hours per day and 20 working days per month
-    annualToHourly = 1 / (8*20*12)
+    # annualToHourly = 1 / (8*20*12)
 
     # Time taken by each mode in both direction (in min)
     # Includes walking time to station and other features from EMME/2 model
@@ -129,7 +130,7 @@ def import_transport_costs(grid, param, yearTraffic,
 
     # Monetary price per year (for each employment center)
     monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
-    trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
+    # trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
     for index2 in range(0, 5):
         monetaryCost[:, :, index2] = (pricePerKM[index2]
                                       * multiplierPrice[:, :, index2])
@@ -143,7 +144,7 @@ def import_transport_costs(grid, param, yearTraffic,
     monetaryCost[:, :, 3] = monetaryCost[:, :, 3] + priceTaxiFixedMonth * 12
     #  Bus
     monetaryCost[:, :, 4] = monetaryCost[:, :, 4] + priceBusFixedMonth * 12
-    trans_monetaryCost = copy.deepcopy(monetaryCost)
+    # trans_monetaryCost = copy.deepcopy(monetaryCost)
 
     # STEP 3: COMPUTE PROBA TO WORK IN C, EXPECTED INCOME, AND EXPECTED NB OF
     # RESIDENTS OF INCOME GROUP I WORKING IN C
@@ -155,14 +156,14 @@ def import_transport_costs(grid, param, yearTraffic,
     # have a extra high cost of doing so
     costTime[np.isnan(costTime)] = 10 ** 2
 
-    # Income
-    incomeGroup, households_per_income_class = eqdyn.compute_average_income(
-        spline_population_income_distribution, spline_income_distribution,
-        param, yearTraffic)
+    # # Income
+    # incomeGroup, households_per_income_class = eqdyn.compute_average_income(
+    #     spline_population_income_distribution, spline_income_distribution,
+    #     param, yearTraffic)
 
-    # Switch to hourly
-    monetaryCost = trans_monetaryCost * annualToHourly
-    monetaryCost[np.isnan(monetaryCost)] = 10**3 * annualToHourly
+    # # Switch to hourly
+    # monetaryCost = trans_monetaryCost * annualToHourly
+    # monetaryCost[np.isnan(monetaryCost)] = 10**3 * annualToHourly
 
     return timeOutput, distanceOutput, monetaryCost, costTime
 
@@ -172,10 +173,14 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                    list_lambda):
     """Solve for income per employment center for some values of lambda."""
     # Setting time and space
-
+    annualToHourly = 1 / (8*20*12)
     #  Corresponds to the brackets for which we have aggregate statistics on
     #  the nb of commuters to fit our calibration
     bracketsDistance = np.array([0, 5, 10, 15, 20, 25, 30, 35, 40, 200])
+    # TODO: should we divide time by two?
+    monetary_cost = monetaryCost * annualToHourly
+    monetary_cost[np.isnan(monetary_cost)] = 10 ** 3 * annualToHourly
+    # transportTimes = timeOutput / 2
 
     #  We initialize income and distance output vectors
     incomeCentersSave = np.zeros((len(job_centers[:, 0]), 4, len(list_lambda)))
@@ -203,7 +208,6 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
             householdSize = param["household_size"][j]
             # So does average income (which needs to be adapted to hourly
             # from income data)
-            annualToHourly = 1 / (8*20*12)
             averageIncomeGroup = average_income[j] * annualToHourly
 
             print('incomes for group ', j)
@@ -224,6 +228,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
 
             # We reweight population in each income group per SP to make it
             # comparable with population in job centers
+            # TODO: check conversion from SP to grid
             popResidence = (
                 income_distribution[:, j]
                 * sum(job_centers[whichCenters, j])
@@ -375,7 +380,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
     # does Python have the same limitations as Matlab? Still neutral
     minIncome = (np.nanmax(
         param_lambda * (incomeCentersFull[:, None] - transportCost), 0)
-        - 700)
+        - 500)
 
     # OD flows: corresponds to pi_c|ix (here, not the full matrix)
     # NB: here, we consider maximum Gumbel
@@ -392,6 +397,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
     # the score is to zero, the better (see equation 3 for formula)
 
     # TODO: is it equivalent to selection criterion from paper?
+    # Note that ODflows is of dimension 119x24014
     score = (popCenters
              - householdSize * np.nansum(popResidence[None, :] * ODflows, 1))
 
@@ -402,6 +408,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         which = ((distanceOutput[whichCenters, :] > bracketsDistance[k])
                  & (distanceOutput[whichCenters, :] <= bracketsDistance[k + 1])
                  & (~np.isnan(distanceOutput[whichCenters, :])))
+        # TODO: do we need modalSharesTemp as factor?
         nbCommuters[k] = np.nansum(which * ODflows * popResidence[None, :])
 
     return score, nbCommuters

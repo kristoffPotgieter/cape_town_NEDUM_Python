@@ -82,7 +82,8 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-# TODO: does this correspond to census data?
+# TODO: does this correspond to census data? Is unemployment rate captured?
+# See appendix A1
 
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011, households_per_income_and_housing
@@ -180,7 +181,7 @@ elif options["agents_anticipate_floods"] == 0:
 #           grid, param, t_temp, households_per_income_class, average_income,
 #           spline_inflation, spline_fuel,
 #           spline_population_income_distribution, spline_income_distribution,
-#           path_precalc_inp, path_precalc_transp)
+#           path_precalc_inp, path_precalc_transp, 'GRID')
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
@@ -190,7 +191,7 @@ income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
      grid, param, 0, households_per_income_class, average_income,
      spline_inflation, spline_fuel,
      spline_population_income_distribution, spline_income_distribution,
-     path_precalc_inp, path_precalc_transp)
+     path_precalc_inp, path_precalc_transp, 'GRID')
 
 
 # %% Compute initial state

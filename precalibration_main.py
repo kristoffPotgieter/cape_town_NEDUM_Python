@@ -25,6 +25,7 @@ import inputs.data as inpdt
 import equilibrium.functions_dynamic as eqdyn
 
 import calibration.compute_income as calcmp
+import calibration.calcmp_test as calcmpt
 import calibration.import_employment_data as calemp
 import calibration.estimate_parameters_by_scanning as calscan
 import calibration.estimate_parameters_by_optimization as calopt
@@ -245,22 +246,30 @@ np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
 # list_lambda = 10 ** np.arange(0.6, 0.65, 0.01)
 list_lambda = 10 ** np.arange(0.6, 0.605, 0.005)
 
+# TODO: include in calcmp
 job_centers = calemp.import_employment_data(
     households_per_income_class, param, path_data)
 
-###
-
+# TODO: should we reason at grid or SP level?
 (timeOutput, distanceOutput, monetaryCost, costTime
  ) = calcmp.import_transport_costs(grid, param, 0, households_per_income_class,
                                    spline_inflation, spline_fuel,
                                    spline_population_income_distribution,
                                    spline_income_distribution,
                                    path_precalc_inp, path_precalc_transp)
+# (timeOutput, distanceOutput, monetaryCost, costTime
+#  ) = calcmpt.import_transport_costs(
+#      income_2011, param, grid, path_precalc_inp, path_scenarios)
+
 
 # Note that this is long to run
-incomeCenters, distanceDistribution = calcmp.EstimateIncome(
-    param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
-    job_centers, average_income, income_distribution_grid.T, list_lambda)
+# incomeCenters, distanceDistribution = calcmp.EstimateIncome(
+#     param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
+#     job_centers, average_income, income_distribution, list_lambda)
+incomeCenters, distanceDistribution = calcmpt.EstimateIncome(
+    param, timeOutput, distanceOutput, monetaryCost, costTime, job_centers,
+    average_income, income_distribution, list_lambda)
+
 
 # TODO: Gives aggregate statistics for % of commuters per distance bracket:
 # where from?
@@ -296,6 +305,8 @@ incomeCentersKeep = incomeCenters[:, :, whichLambda]
 # it could not be calibrated
 
 np.save(path_precalc_inp + 'incomeCentersKeep.npy', incomeCentersKeep)
+np.save(path_precalc_inp + 'lambdaKeep.npy', lambdaKeep)
+
 
 # Plot difference with initial input from Matlab
 incomeCentersKeep_mat = scipy.io.loadmat(
@@ -309,10 +320,15 @@ sns.distplot(
 # lambdaKeep = 10 ** 0.605
 
 # TODO: how can variation be so large? Pb with equilibrium condition (v)?
+# It holds by construction for SP, but what about simulated pixels?
+
 incomeCentersKeep[incomeCentersKeep < 0] = math.nan
 cal_avg_income = np.nanmean(incomeCentersKeep, 0)
+
 incomeCentersKeep_mat[incomeCentersKeep_mat < 0] = math.nan
 cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
+
+# Actually our simulation works better!
 
 
 # %% Calibration of utility function parameters
@@ -348,9 +364,15 @@ listUti4 = utilityTarget[3] * listVariation
 dataRent = (
     data_sp["price"] ** (coeff_a)
     * (param["depreciation_rate"]
-       + eqdyn.interpolate_interest_rate(spline_interest_rate, 0))
+       + param["interest_rate"])
     / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
     )
+# dataRent = (
+#     data_sp["price"] ** (coeff_a)
+#     * (param["depreciation_rate"]
+#        + eqdyn.interpolate_interest_rate(spline_interest_rate, 0))
+#     / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
+#     )
 
 # We get the built density in associated buildable land (per km²)
 data_density = (
@@ -362,7 +384,10 @@ data_density = (
 # commuting costs
 # TODO: check pb of units
 # TODO: why do we reason in terms of dominant group?
-dataIncomeGroup = np.nanmax(income_distribution, 1)
+cond = np.matlib.repmat(np.nanmax(income_distribution, 1), 4, 1)
+dataIncomeGroup_select = income_distribution == cond.T
+# TODO: find tie-breaking rule
+dataIncomeGroup = np.where(dataIncomeGroup_select == 1)
 
 # Import amenities at the SP level
 amenities_sp = calam.import_amenities_SP(path_data, path_precalc_inp)
@@ -375,8 +400,13 @@ variables_regression = [
 
 # TODO: Aren't we supposed to estimate the dominant net income vector
 # associated with SPs rather than pixels?
-incomeNetOfCommuting = np.load(
-    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+IncomeNetofCommuting, *_ = inpdt.import_transport_data(
+     grid, param, 0, households_per_income_class, average_income,
+     spline_inflation, spline_fuel,
+     spline_population_income_distribution, spline_income_distribution,
+     path_precalc_inp, path_precalc_transp, 'SP')
+# incomeNetOfCommuting = np.load(
+#     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 
 (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
  parametersHousing, _) = calscan.EstimateParametersByScanning(

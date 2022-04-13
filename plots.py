@@ -227,6 +227,7 @@ except OSError as error:
 # TODO: How can macro data stick more to simulation than income data on which
 # it was optimized? Because of coeff_land? Should we use weights?
 # TODO: Why not use SP data for validation?
+# TODO: need to reweight?
 outexp.export_housing_types(
     initial_state_households_housing_types, initial_state_household_centers,
     housing_type_data, households_per_income_class, 'Simulation', 'Data',
@@ -260,6 +261,7 @@ outexp.validation_density_income_groups(
     grid, initial_state_household_centers, income_distribution_grid, 0,
     path_outputs + plot_repo
     )
+# TODO: switch to SP for more precision?
 outexp.validation_density_income_groups(
     grid, initial_state_household_centers, income_distribution_grid, 1,
     path_outputs + plot_repo
@@ -292,7 +294,6 @@ outexp.export_map(initial_state_households_housing_types[0, :], grid,
 
 outexp.export_map(housing_types.formal_grid, grid,
                   path_outputs + plot_repo + 'formal_data', 1200)
-
 
 #%%
 

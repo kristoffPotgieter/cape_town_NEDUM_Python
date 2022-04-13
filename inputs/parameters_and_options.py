@@ -49,27 +49,29 @@ def import_param(path_precalc_inp, path_outputs):
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
     #  Capital elasticity
-    param["coeff_b"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
-    # param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
+    # param["coeff_b"] = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
+    param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
     # Land elasticity
     param["coeff_a"] = 1 - param["coeff_b"]
     #  Scale parameter
-    param["coeff_A"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedHousing_kappa.mat'
-        )["coeffKappa"].squeeze()
-    # param["coeff_A"] = np.load(
-    #     path_precalc_inp + 'calibratedHousing_kappa.npy')
+    # param["coeff_A"] = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedHousing_kappa.mat'
+    #     )["coeffKappa"].squeeze()
+    param["coeff_A"] = np.load(
+        path_precalc_inp + 'calibratedHousing_kappa.npy')
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
-    param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
-                                       )["lambdaKeep"].squeeze()
+    # param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
+    #                                    )["lambdaKeep"].squeeze()
+    param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
     # Discount factors
     #  From Viguié et al. (2014)
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
+    #  TODO: check consistency with interest_rate from macro_data
     param["interest_rate"] = 0.025
 
     # Housing parameters
@@ -133,7 +135,8 @@ def import_param(path_precalc_inp, path_outputs):
     #  Avg nb of employed workers per household of each income class
     #  (see appendix B1: 2*ksi)
     param["household_size"] = [1.14, 1.94, 1.92, 1.94]
-    # param["household_size"] = [size / 2 for size in param["household_size"]]
+    #  Makes sense as we have data on household (not individual) income
+    param["household_size"] = [size / 2 for size in param["household_size"]]
 
     # Transportation cost parameters
     param["waiting_time_metro"] = 10  # in minutes
@@ -199,7 +202,9 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # we therefore consider that developers always provide one surface unit of
     # housing per household per unit of land. In practice, this is not used.
     # NB: HFA = habitable floor area
-    param["housing_in"] = grid_formal_density_HFA / coeff_land[0, :] * 1.1
+    cond = coeff_land[0, :] != 0
+    param["housing_in"][cond] = (
+        grid_formal_density_HFA[cond] / coeff_land[0, :][cond] * 1.1)
     param["housing_in"][~np.isfinite(param["housing_in"])] = 0
     # Deal with formally non-built or non-inhabited areas
     # param["housing_in"][

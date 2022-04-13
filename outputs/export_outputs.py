@@ -474,6 +474,7 @@ def validation_density_housing_types(
         plt.close()
 
 
+# TODO: need to add RDP separately as in compute_equilibrium
 def validation_density_income_groups(
         grid, initial_state_household_centers, income_distribution_grid,
         absolute_number, path_outputs):

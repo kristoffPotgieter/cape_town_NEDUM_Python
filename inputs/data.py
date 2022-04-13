@@ -1023,13 +1023,13 @@ def import_transport_data(grid, param, yearTraffic,
                           spline_fuel,
                           spline_population_income_distribution,
                           spline_income_distribution,
-                          path_precalc_inp, path_precalc_transp):
+                          path_precalc_inp, path_precalc_transp, dim):
     """Compute job center distribution, commuting and net income."""
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
     # Import travel times and distances
     transport_times = scipy.io.loadmat(path_precalc_inp
-                                       + 'Transport_times_GRID.mat')
+                                       + 'Transport_times_' + dim)
 
     # TODO: Check tables from Basile to link with data
 
@@ -1183,8 +1183,9 @@ def import_transport_data(grid, param, yearTraffic,
         param, yearTraffic)
     # Income centers: corresponds to expected income associated with each
     # income center and income group
-    income_centers_init = scipy.io.loadmat(
-        path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    # income_centers_init = scipy.io.loadmat(
+    #     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
     # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
     # This allows to correct incomes for RDP people not taken into account in
     # initial income data (just in scenarios)
@@ -1299,13 +1300,14 @@ def import_transport_data(grid, param, yearTraffic,
     incomeNetOfCommuting = incomeNetOfCommuting / annualToHourly
     averageIncome = averageIncome / annualToHourly
 
-    np.save(path_precalc_transp + "averageIncome_" + str(yearTraffic),
+    np.save(path_precalc_transp + dim + "_averageIncome_" + str(yearTraffic),
             averageIncome)
-    np.save(path_precalc_transp + "incomeNetOfCommuting_" + str(yearTraffic),
-            incomeNetOfCommuting)
-    np.save(path_precalc_transp + "modalShares_" + str(yearTraffic),
+    np.save(path_precalc_transp + dim + "_incomeNetOfCommuting_"
+            + str(yearTraffic), incomeNetOfCommuting)
+    np.save(path_precalc_transp + dim + "_modalShares_" + str(yearTraffic),
             modalShares)
-    np.save(path_precalc_transp + "ODflows_" + str(yearTraffic), ODflows)
+    np.save(path_precalc_transp + dim + "_ODflows_" + str(yearTraffic),
+            ODflows)
 
     return incomeNetOfCommuting, modalShares, ODflows, averageIncome
 
