@@ -135,10 +135,10 @@ def import_param(path_precalc_inp, path_outputs):
     #  Nb of jobs above which we keep employment center in the analysis
     param["threshold_jobs"] = 20000
     #  Avg nb of employed workers per household of each income class
-    #  (see appendix B1: 2*ksi)
+    #  (see appendix B1: 2*ksi): we need to take into account monetary cost
+    #  for both members of the household
     param["household_size"] = [1.14, 1.94, 1.92, 1.94]
-    #  Makes sense as we have data on household (not individual) income
-    param["household_size"] = [size / 2 for size in param["household_size"]]
+    #  param["household_size"] = [size / 2 for size in param["household_size"]]
 
     # Transportation cost parameters
     param["waiting_time_metro"] = 10  # in minutes

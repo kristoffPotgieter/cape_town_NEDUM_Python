@@ -175,8 +175,8 @@ income_net_of_commuting_costs = np.load(
 # %% Calibration of the informal housing parameters
 # General calibration (see Pfeiffer et al., appendix C5)
 
-list_amenity_backyard = np.arange(0.70, 0.90, 0.01)
-list_amenity_settlement = np.arange(0.67, 0.87, 0.01)
+list_amenity_backyard = np.arange(0.70, 0.91, 0.01)
+list_amenity_settlement = np.arange(0.60, 0.81, 0.01)
 housing_type_total = pd.DataFrame(np.array(np.meshgrid(
     list_amenity_backyard, list_amenity_settlement)).T.reshape(-1, 2))
 housing_type_total.columns = ["param_backyard", "param_settlement"]

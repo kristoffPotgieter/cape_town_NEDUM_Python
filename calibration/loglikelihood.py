@@ -85,6 +85,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     #  For each income group and each selected SP,
     #  we obtain the bid rent as a function of initial income and u/ln(A)
     #  TODO: shouldn't we give u/A as an argument instead?
+    #  TODO: should we care about the fit with observed rents?
     for i in range(0, 3):
         for j in range(0, sum(selectedRents)):
             bidRents[i, j] = griddedRents(

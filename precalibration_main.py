@@ -19,7 +19,6 @@ from sklearn.linear_model import LinearRegression
 import os
 import math
 import seaborn as sns
-import copy
 
 import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
@@ -32,6 +31,8 @@ import calibration.import_employment_data as calemp
 import calibration.estimate_parameters_by_scanning as calscan
 import calibration.estimate_parameters_by_optimization as calopt
 import calibration.import_amenities as calam
+
+import outputs.export_outputs as outexp
 
 
 # DEFINE FILE PATHS
@@ -91,7 +92,7 @@ param["income_year_reference"] = mean_income
 # in income calibration: long to run, uncomment only if needed
 # income_distribution_grid = inpdt.convert_income_distribution(
 #     income_distribution, grid, path_data, data_sp)
-income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
+# income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
 
 #  Import nb of households per pixel, by housing type
 #  Note that there is no RDP, but both formal and informal backyard
@@ -321,7 +322,7 @@ sns.distplot(
 
 # lambdaKeep = 10 ** 0.605
 
-# TODO: how can variation be so large? Pb with equilibrium condition (v)?
+# NB: what about equilibrium condition (v)?
 # It holds by construction for SP, but what about simulated pixels?
 
 incomeCentersKeep[incomeCentersKeep < 0] = math.nan
@@ -339,6 +340,8 @@ cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
 # We select in which areas we actually measure the likelihood
 # NB: We remove the areas where there is informal housing, because dwelling
 # size data is not reliable
+# TODO: do we have to keep poor dominant income group out? Is it the right way
+# to define dominance?
 selectedSP = (
     ((housing_types_sp.backyard_SP_2011 + housing_types_sp.informal_SP_2011)
      / housing_types_sp.total_dwellings_SP_2011 < 0.1)
@@ -346,17 +349,20 @@ selectedSP = (
     )
 
 # Coefficients of the model for simulations (arbitrary)
-listBeta = np.arange(0.1, 0.55, 0.2)
-listBasicQ = np.arange(5, 16, 5)
+listBeta = np.arange(0.1, 0.55, 0.05)
+listBasicQ = np.arange(1, 11, 1)
 
 # Coefficient for spatial autocorrelation
 # TODO: how would this work if implemented?
 listRho = 0
 
 # Utilities for simulations (arbitrary)
-utilityTarget = np.array([300, 1000, 3000, 10000])
+# TODO: why not start with same set as in compute_equilibrium?
+# utilityTarget = np.array([300, 1000, 3000, 10000])
+utilityTarget = np.array([1501, 4819, 16947, 79809])
+
 # TODO: meaning?
-listVariation = np.arange(0.5, 2, 0.3)
+listVariation = np.arange(0.5, 2.1, 0.1)
 initUti2 = utilityTarget[1]
 listUti3 = utilityTarget[2] * listVariation
 listUti4 = utilityTarget[3] * listVariation
@@ -383,18 +389,10 @@ data_density = (
     / (data_sp["unconstrained_area"] * param["max_land_use"] / 1000000)
     )
 
-# We define the dominant income in each SP and the associated income net of
-# commuting costs
-# TODO: check pb of units
-# TODO: why do we reason in terms of dominant group?
-# cond = np.matlib.repmat(np.nanmax(income_distribution, 1), 4, 1)
-# dataIncomeGroup_select = income_distribution == cond.T
-# # TODO: find tie-breaking rule
-# dataIncomeGroup = np.where(dataIncomeGroup_select == 1)
 
 # Import amenities at the SP level
 
-amenities_sp = calam.import_amenities_SP(path_data, path_precalc_inp)
+amenities_sp = calam.import_amenities(path_data, path_precalc_inp, 'SP')
 # We select amenity variables to be used in regression from table C5
 # NB: choice has to do with relevance and exogenity of variables
 variables_regression = [
@@ -402,13 +400,6 @@ variables_regression = [
     'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
     'distance_train', 'distance_urban_herit']
 
-# TODO: Aren't we supposed to estimate the dominant net income vector
-# associated with SPs rather than pixels?
-# IncomeNetofCommuting, *_ = inpdt.import_transport_data(
-#      grid, param, 0, households_per_income_class, average_income,
-#      spline_inflation, spline_fuel,
-#      spline_population_income_distribution, spline_income_distribution,
-#      path_precalc_inp, path_precalc_transp, 'SP')
 incomeNetOfCommuting = np.load(
     path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
 
@@ -426,12 +417,14 @@ incomeNetOfCommuting = np.load(
 # Note that we are not equal to the paper: what values to keep?
 initBeta = parametersScan[0]
 # TODO: meaning?
-initBasicQ = max(parametersScan[1], 5.1)
+# initBasicQ = max(parametersScan[1], 5.1)
+initBasicQ = parametersScan[1]
 
 # Utilities
 initUti3 = parametersScan[2]
 initUti4 = parametersScan[3]
 
+# TODO: run again but with true values of parametersScan
 (parameters, scoreTot, parametersAmenities, modelAmenity, parametersHousing,
  selectedSPRent) = calopt.EstimateParametersByOptimization(
      incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
@@ -440,45 +433,29 @@ initUti4 = parametersScan[3]
      amenities_sp, variables_regression, listRho, initBeta, initBasicQ,
      initUti2, initUti3, initUti4)
 
-# TODO: we do not get same parameters as in paper...
-
-# %%
-
-# Generating the map of amenities
-
-# TODO: Note that this a problem with dummies: back to import_amenities
-# See ImportAmenitiesGrid
-
-amenity_data = pd.read_csv(path_data + 'grid_amenities.csv', sep=',')
-
-airport_cone = copy.deepcopy(amenity_data.airport_cone)
-airport_cone[airport_cone == 55] = 1
-airport_cone[airport_cone == 60] = 1
-airport_cone[airport_cone == 65] = 1
-airport_cone[airport_cone == 70] = 1
-airport_cone[airport_cone == 75] = 1
-
-# Distance to RDP housing
-if distanceRDP ~= 2
-    matrixDistance = ((repmat(grid.xCoord,length(grid.xCoord),1) - repmat(grid.xCoord',1,length(grid.xCoord))).^2 ... 
-                        + (repmat(grid.yCoord,length(grid.xCoord),1) - repmat(grid.yCoord',1,length(grid.xCoord))).^2)...
-                        < distanceRDP ^ 2;
-    gridDistanceRDP = (double(land.numberPropertiesRDP > 5) * (matrixDistance)')' > 1;
-    % save(strcat('.', slash, '0. Precalculated inputs', slash, 'gridDistanceRDP'), 'gridDistanceRDP')
-else 
-    load(strcat('.', slash, '0. Precalculated inputs', slash, 'gridDistanceRDP'))
-end
-
-# We store relevant data in an output table
-# ...
-
-modelAmenity.save(path_precalc_inp + 'modelAmenity')
+# TODO: we do not get same parameters as in paper / mat files, how to validate?
 
 # Exporting and saving
-# TODO: link with data import
+
+#  Generating the map of amenities
+#  TODO: Note that this a problem with dummies
+
+amenities_grid = calam.import_amenities(path_data, path_precalc_inp, 'grid')
+predictors_grid = amenities_grid.loc[:, variables_regression]
+predictors_grid = np.vstack(
+    [np.ones(predictors_grid.shape[0]),
+     predictors_grid.T]
+    ).T
+
+cal_amenities = np.exp(np.nansum(predictors_grid * parametersAmenities, 1))
+calw_amenities = cal_amenities / np.nanmean(cal_amenities)
+outexp.export_map(calw_amenities, grid, path_outputs + 'amenity_map', 1.3, 0.8)
+
+modelAmenity.save(path_precalc_inp + 'modelAmenity')
 # utilitiesCorrected = parameters[3:] / np.exp(parametersAmenities[1])
 calibratedUtility_beta = parameters[0]
 calibratedUtility_q0 = parameters[1]
 
 np.save(path_precalc_inp + 'calibratedUtility_beta', calibratedUtility_beta)
 np.save(path_precalc_inp + 'calibratedUtility_q0', calibratedUtility_q0)
+np.save(path_precalc_inp + 'calibratedAmenities', cal_amenities)

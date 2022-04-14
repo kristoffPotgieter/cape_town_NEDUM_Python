@@ -11,10 +11,10 @@ import copy
 import scipy.io
 
 
-def import_amenities_SP(path_data, path_precalc_inp):
+def import_amenities(path_data, path_precalc_inp, dim):
     """Import relevant amenity data at SP level."""
     # Load amenity files
-    amenity_data = pd.read_csv(path_data + 'SP_amenities.csv', sep=',')
+    amenity_data = pd.read_csv(path_data + dim + '_amenities.csv', sep=',')
 
     # We replace values for airport cone amenities with a dummy for being
     # located in the airport cone
@@ -26,16 +26,16 @@ def import_amenities_SP(path_data, path_precalc_inp):
     airport_cone[airport_cone == 75] = 1
 
     # Load distance to RDP house dummies
-    SP_distance_RDP = scipy.io.loadmat(
-        path_precalc_inp + 'SPdistanceRDP.mat')["SP_distance_RDP"].squeeze()
+    distance_RDP = scipy.io.loadmat(
+        path_precalc_inp + dim + 'DistanceRDP.mat'
+        )[dim + "_distance_RDP"].squeeze()
 
     # We store relevant data in an output table
     # NB: we only consider dummies for amenity data crossing some thresholds.
     # This is done by trial and error to simplify calibration process
     table_amenities = pd.DataFrame(
         data=np.transpose(np.array(
-            [amenity_data.SP_CODE,
-             amenity_data.distance_distr_parks < 2,
+            [amenity_data.distance_distr_parks < 2,
              amenity_data.distance_ocean < 2,
              ((amenity_data.distance_ocean > 2)
               & (amenity_data.distance_ocean < 4)),
@@ -51,11 +51,11 @@ def import_amenities_SP(path_data, path_precalc_inp):
              amenity_data.distance_protected_envir < 2,
              ((amenity_data.distance_protected_envir > 2)
               & (amenity_data.distance_protected_envir < 4)),
-             SP_distance_RDP,
+             distance_RDP,
              amenity_data.distance_power_station < 2,
              amenity_data.distance_biosphere_reserve < 2])
             ),
-        columns=['SP_CODE', 'distance_distr_parks', 'distance_ocean',
+        columns=['distance_distr_parks', 'distance_ocean',
                  'distance_ocean_2_4', 'distance_world_herit',
                  'distance_world_herit_2_4', 'distance_urban_herit',
                  'distance_UCT', 'airport_cone2', 'slope_1_5', 'slope_5',

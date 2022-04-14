@@ -31,7 +31,7 @@ def error_map(error, grid, export_name):
     plt.close()
 
 
-def export_map(value, grid, export_name, lim):
+def export_map(value, grid, export_name, ubnd, lbnd=0):
     """d."""
     Map = plt.scatter(grid.x,
                       grid.y,
@@ -41,7 +41,7 @@ def export_map(value, grid, export_name, lim):
                       marker='.')
     plt.colorbar(Map)
     plt.axis('off')
-    plt.clim(0, lim)
+    plt.clim(lbnd, ubnd)
     plt.savefig(export_name)
     plt.close()
 
@@ -53,6 +53,11 @@ def export_housing_types(
         households_center_2, legend1, legend2, path_outputs):
     """d."""
     # Graph validation housing type
+
+    # We use same reweighting as in equilibrium
+    ratio = np.nansum(housing_type_1) / np.nansum(households_center_1)
+    households_center_1 = households_center_1 * ratio
+
     data = pd.DataFrame(
         {legend1: np.nansum(housing_type_1, 1), legend2: housing_type_2},
         index=["Formal private", "Informal in \n backyards",
@@ -66,6 +71,11 @@ def export_housing_types(
     plt.close()
 
     # Graph validation income class
+
+    # We use same reweighting as in equilibrium
+    ratio = np.nansum(housing_type_2) / np.nansum(households_center_2)
+    households_center_2 = households_center_2 * ratio
+
     data = pd.DataFrame(
         {legend1: np.nansum(households_center_1, 1),
          legend2: households_center_2},
@@ -83,30 +93,41 @@ def export_households(
         initial_state_households, households_per_income_and_housing,
         legend1, legend2, path_outputs):
     """Bar plot for validation of households per income and housing groups."""
-    sum_state_households = np.nansum(initial_state_households, 2)
-    transf_state_households = np.zeros(households_per_income_and_housing.shape)
-    transf_state_households[0, :] = (
-        sum_state_households[0, :] + sum_state_households[3, :])
-    transf_state_households[1, :] = sum_state_households[1, :]
-    transf_state_households[2, :] = sum_state_households[2, :]
+    ratio = (np.nansum(initial_state_households)
+             / np.nansum(households_per_income_and_housing))
+    households_per_income_and_housing = (
+        households_per_income_and_housing * ratio)
+
+    households_per_income_and_housing[0, :] = (
+        households_per_income_and_housing[0, :]
+        - np.nansum(initial_state_households[3, :, :], 1)
+        )
+    # households_per_income_and_housing = np.vstack(
+    #     [households_per_income_and_housing,
+    #      np.nansum(initial_state_households[3, :, :], 1)]
+    #     )
 
     data0 = pd.DataFrame(
-        {legend1: transf_state_households[0, :],
+        {legend1: np.nansum(initial_state_households[0, :, :], 1),
          legend2: households_per_income_and_housing[0, :]},
         index=["Poor", "Mid-poor", "Mid-rich", "Rich"])
     data1 = pd.DataFrame(
-        {legend1: transf_state_households[1, :],
+        {legend1: np.nansum(initial_state_households[1, :, :], 1),
          legend2: households_per_income_and_housing[1, :]},
         index=["Poor", "Mid-poor", "Mid-rich", "Rich"])
     data2 = pd.DataFrame(
-        {legend1: transf_state_households[2, :],
+        {legend1: np.nansum(initial_state_households[2, :, :], 1),
          legend2: households_per_income_and_housing[2, :]},
         index=["Poor", "Mid-poor", "Mid-rich", "Rich"])
+    # data3 = pd.DataFrame(
+    #     {legend1: np.nansum(initial_state_households[3, :, :], 1),
+    #      legend2: households_per_income_and_housing[3, :]},
+    #     index=["Poor", "Mid-poor", "Mid-rich", "Rich"])
 
     figure, axis = plt.subplots(3, 1, figsize=(6, 4))
     figure.tight_layout()
     data0.plot(kind="bar", ax=axis[0])
-    axis[0].set_title("Formal + RDP")
+    axis[0].set_title("Formal")
     axis[0].get_legend().remove()
     axis[0].set_xticks([])
     data1.plot(kind="bar", ax=axis[1])
@@ -277,16 +298,25 @@ def export_density_rents_sizes(
 
 def validation_density(
         grid, initial_state_households_housing_types, housing_types,
-        path_outputs):
+        path_outputs, coeff_land, land_constraint=0):
     """d."""
+    sum_housing_types = (housing_types.informal_grid
+                         + housing_types.formal_grid
+                         + housing_types.backyard_formal_grid
+                         + housing_types.backyard_informal_grid)
+    ratio = (np.nansum(initial_state_households_housing_types)
+             / np.nansum(sum_housing_types))
+    housing_types = housing_types * ratio
+
     # Population density
     xData = grid.dist
-    yData = (
-        housing_types.informal_grid + housing_types.formal_grid
-        + housing_types.backyard_formal_grid
-        + housing_types.backyard_informal_grid) / 0.25
+    yData = sum_housing_types / 0.25
     ySimul = np.nansum(
         initial_state_households_housing_types, 0) / 0.25
+
+    if land_constraint == 1:
+        ySimul = np.nansum(
+            initial_state_households_housing_types * coeff_land, 0) / 0.25
 
     df = pd.DataFrame(data=np.transpose(
         np.array([xData, yData, ySimul])), columns=["x", "yData", "ySimul"])
@@ -311,11 +341,12 @@ def validation_density(
         alpha=0.5, label="Data. interquart. range")
     plt.legend()
     plt.xlabel("Distance to the city center (km)")
-    plt.ylabel("Households density (per km2)")
+    plt.ylabel("Average households density (per km²)")
     plt.tick_params(bottom=True, labelbottom=True)
     plt.tick_params(labelbottom=True)
     # plt.title("Population density")
-    plt.savefig(path_outputs + 'validation_density.png')
+    plt.savefig(path_outputs + 'validation_density' + str(land_constraint)
+                + '.png')
     plt.close()
 
 

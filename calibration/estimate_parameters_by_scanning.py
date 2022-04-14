@@ -98,7 +98,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     # TODO: why not use a list as for other income groups?
     # Probably because it does need scanning
-    Uo2 = 1000
+    # Uo2 = 1000
 
     # TODO: how strong are underlying Gumbel assumptions?
     for index in range(0, combinationInputs.shape[0]):
@@ -106,7 +106,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
         (scoreTotal[index], scoreAmenities[index], scoreDwellingSize[index],
          scoreIncomeSorting[index], scoreHousing[index], parametersAmenities,
          modelAmenities, parametersHousing) = callog.LogLikelihoodModel(
-             combinationInputs[index, :], Uo2, net_income, groupLivingSpMatrix,
+             combinationInputs[index, :], initUti2, net_income, groupLivingSpMatrix,
              dataDwellingSize, selectedDwellingSize, dataRent, selectedRents,
              selectedDensity, predictorsAmenitiesMatrix, tableRegression,
              variablesRegression, CalculateDwellingSize, ComputeLogLikelihood,
@@ -130,7 +130,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     optionRegression = 1
     (*_, parametersAmenities, modelAmenities, parametersHousing
      ) = callog.LogLikelihoodModel(
-         parameters, Uo2, net_income, groupLivingSpMatrix,
+         parameters, initUti2, net_income, groupLivingSpMatrix,
          dataDwellingSize, selectedDwellingSize, dataRent,
          selectedRents, selectedDensity,
          predictorsAmenitiesMatrix, tableRegression, variablesRegression,

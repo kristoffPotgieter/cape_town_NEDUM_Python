@@ -243,8 +243,13 @@ outexp.export_households(
 # TODO: Absurd number far from the center?
 outexp.validation_density(
     grid, initial_state_households_housing_types, housing_types,
-    path_outputs + plot_repo
+    path_outputs + plot_repo, coeff_land, land_constraint=0
     )
+outexp.validation_density(
+    grid, initial_state_households_housing_types, housing_types,
+    path_outputs + plot_repo, coeff_land, land_constraint=1
+    )
+
 # TODO: pb seems to come from formal sector essentially
 outexp.validation_density_housing_types(
     grid, initial_state_households_housing_types, housing_types, 0,

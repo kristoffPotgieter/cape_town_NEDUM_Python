@@ -35,10 +35,12 @@ def import_amenities(path_precalc_inp):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
     precalculated_amenities = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedAmenities.mat')
+        path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
+    # precalculated_amenities = np.load(
+    #     path_precalc_inp + 'calibratedAmenities.npy')
     # Normalize index by mean of values
-    amenities = (precalculated_amenities["amenities"]
-                 / np.nanmean(precalculated_amenities["amenities"])).squeeze()
+    amenities = (precalculated_amenities
+                 / np.nanmean(precalculated_amenities)).squeeze()
 
     return amenities
 
@@ -1085,7 +1087,7 @@ def import_transport_data(grid, param, yearTraffic,
     #  We assume 8 working hours per day and 20 working days per month
     annualToHourly = 1 / (8*20*12)
 
-    # Time taken by each mode in both direction (in min)
+    # TODO: Time taken by each mode in one direction (in min)?
     # Includes walking time to station and other features from EMME/2 model
     timeOutput = np.empty(
         (transport_times["durationTrain"].shape[0],
@@ -1099,21 +1101,22 @@ def import_transport_data(grid, param, yearTraffic,
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
-    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])
-    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])
-    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])
-    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])
+    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"]) * 2
+    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"]) * 2
+    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"]) * 2
+    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"]) * 2
 
     # Length (in km) using each mode (in direct line)
     multiplierPrice = np.empty((timeOutput.shape))
     multiplierPrice[:] = np.nan
     multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
-    multiplierPrice[:, :, 1] = transport_times["distanceCar"]
-    multiplierPrice[:, :, 2] = transport_times["distanceCar"]
-    multiplierPrice[:, :, 3] = transport_times["distanceCar"]
-    multiplierPrice[:, :, 4] = transport_times["distanceCar"]
+    multiplierPrice[:, :, 1] = transport_times["distanceCar"] * 2
+    multiplierPrice[:, :, 2] = transport_times["distanceCar"] * 2
+    multiplierPrice[:, :, 3] = transport_times["distanceCar"] * 2
+    multiplierPrice[:, :, 4] = transport_times["distanceCar"] * 2
 
     # Multiplying by 235 (nb of working days per year)
+    # TODO: is inital price for day or for month?
     pricePerKM = np.empty(5)
     pricePerKM[:] = np.nan
     pricePerKM[0] = np.zeros(1)
@@ -1133,7 +1136,7 @@ def import_transport_data(grid, param, yearTraffic,
 
     # Monetary price per year (for each employment center)
     monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
-    trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
+    # trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))
     for index2 in range(0, 5):
         monetaryCost[:, :, index2] = (pricePerKM[index2]
                                       * multiplierPrice[:, :, index2])
@@ -1147,13 +1150,14 @@ def import_transport_data(grid, param, yearTraffic,
     monetaryCost[:, :, 3] = monetaryCost[:, :, 3] + priceTaxiFixedMonth * 12
     #  Bus
     monetaryCost[:, :, 4] = monetaryCost[:, :, 4] + priceBusFixedMonth * 12
+
     trans_monetaryCost = copy.deepcopy(monetaryCost)
 
     # STEP 3: COMPUTE PROBA TO WORK IN C, EXPECTED INCOME, AND EXPECTED NB OF
     # RESIDENTS OF INCOME GROUP I WORKING IN C
 
-    # In transport hours per working hour
-    costTime = ((timeOutput * param["time_cost"])
+    # In transport hours per working hours in a day
+    costTime = (timeOutput * param["time_cost"]
                 / (60 * numberHourWorkedPerDay))
     # We assume that people not taking some transport mode
     # have a extra high cost of doing so
@@ -1192,8 +1196,11 @@ def import_transport_data(grid, param, yearTraffic,
     incomeCenters = income_centers_init * incomeGroup / average_income
 
     # Switch to hourly
+    # TODO: why?
     monetaryCost = trans_monetaryCost * annualToHourly
-    monetaryCost[np.isnan(monetaryCost)] = 10**3 * annualToHourly
+    # We assume that people not taking some transport mode have a extra high
+    # cost of doing so
+    monetaryCost[np.isnan(monetaryCost)] = 10**5 * annualToHourly
     incomeCenters = incomeCenters * annualToHourly
 
     # xInterp = grid.x

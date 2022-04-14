@@ -46,7 +46,7 @@ def EstimateParametersByOptimization(
     # TODO: should be added?
     predictorsAmenitiesMatrix = np.vstack(
         [np.ones(predictorsAmenitiesMatrix.shape[0]),
-          predictorsAmenitiesMatrix.T]
+         predictorsAmenitiesMatrix.T]
         ).T
     # modelAmenity = 0
 
@@ -71,10 +71,12 @@ def EstimateParametersByOptimization(
 
     # Initial value of parameters
     # TODO: where does it come from? Why not use init values?
+    # initialVector = np.array(
+    #     [0.25332341, 3.97137219, 18683.85807256, 86857.19233169])
     initialVector = np.array(
-        [0.25332341, 3.97137219, 18683.85807256, 86857.19233169])
+        [initBeta, initBasicQ, initUti3, initUti4])
 
-    Uo2 = 1000
+    # Uo2 = 1000
 
     # Function that will be minimized
     optionRegression = 0
@@ -82,7 +84,7 @@ def EstimateParametersByOptimization(
     minusLogLikelihoodModel = (
         lambda X0:
             - callog.LogLikelihoodModel(
-                X0, Uo2, net_income, groupLivingSpMatrix, dataDwellingSize,
+                X0, initUti2, net_income, groupLivingSpMatrix, dataDwellingSize,
                 selectedDwellingSize, dataRent, selectedRents, selectedDensity,
                 predictorsAmenitiesMatrix, tableRegression,
                 variablesRegression, CalculateDwellingSize,
