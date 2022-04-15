@@ -31,7 +31,6 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     net_income = incomeNetOfCommuting[1:4, :]
     # We generate a matrix of dummies for dominant income group in each SP
     # (can be always folse when dominant group is removed poorest)
-    # TODO: test alternative definitions of dominant groups?
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
         groupLivingSpMatrix[i, dataIncomeGroup != i] = np.zeros(1, 'bool')
@@ -87,7 +86,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
         np.meshgrid(listBeta, listBasicQ, listUti3, listUti4)).T.reshape(-1, 4)
 
     # Scanning of the list
-    # TODO: meaning?
+
     scoreAmenities = - 10000 * np.ones(combinationInputs.shape[0])
     scoreDwellingSize = - 10000 * np.ones(combinationInputs.shape[0])
     scoreIncomeSorting = - 10000 * np.ones(combinationInputs.shape[0])
@@ -96,9 +95,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     print('\nDone: ')
 
-    # TODO: why not use a list as for other income groups?
-    # Probably because it does need scanning
-    # Uo2 = 1000
+    # TODO: why does the second income group not need scanning?
 
     # TODO: how strong are underlying Gumbel assumptions?
     for index in range(0, combinationInputs.shape[0]):
@@ -106,11 +103,11 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
         (scoreTotal[index], scoreAmenities[index], scoreDwellingSize[index],
          scoreIncomeSorting[index], scoreHousing[index], parametersAmenities,
          modelAmenities, parametersHousing) = callog.LogLikelihoodModel(
-             combinationInputs[index, :], initUti2, net_income, groupLivingSpMatrix,
-             dataDwellingSize, selectedDwellingSize, dataRent, selectedRents,
-             selectedDensity, predictorsAmenitiesMatrix, tableRegression,
-             variablesRegression, CalculateDwellingSize, ComputeLogLikelihood,
-             optionRegression)
+             combinationInputs[index, :], initUti2, net_income,
+             groupLivingSpMatrix, dataDwellingSize, selectedDwellingSize,
+             dataRent, selectedRents, selectedDensity,
+             predictorsAmenitiesMatrix, tableRegression, variablesRegression,
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
 
     print('\nScanning complete')
     print('\n')

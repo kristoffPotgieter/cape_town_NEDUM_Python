@@ -171,9 +171,9 @@ def import_param(path_precalc_inp, path_outputs):
     param["subsidized_structure_value_ref"] = copy.deepcopy(
         param["subsidized_structure_value"])
 
-    # Disamenity parameters for informal settlements and backyard shacks,
-    # coming from location-based calibration, as opposed to general calibration
-    # used in Pfeiffer et al. (appendix C5)
+    # Disamenity parameters for informal settlements and backyard shacks
+
+    #  For general calibration used in Pfeiffer et al. (appendix C5)
     disamenity_param = scipy.io.loadmat(
         path_precalc_inp + 'calibratedParamAmenities.mat'
         )["calibratedParamAmenities"].squeeze()
@@ -181,10 +181,20 @@ def import_param(path_precalc_inp, path_outputs):
         disamenity_param[1], 24014, 1).squeeze()
     param["backyard_pockets"] = np.matlib.repmat(
         disamenity_param[0], 24014, 1).squeeze()
+    # param_amenity_settlement = np.load(
+    #     path_precalc_inp + 'param_amenity_settlement.npy')
+    # param["pockets"] = np.repmat(param_amenity_settlement, 24014, 1)
+    # param_amenity_backyard = np.load(
+    #     path_precalc_inp + 'param_amenity_backyard.npy')
+    # param["bakcyard_pockets"] = np.repmat(param_amenity_backyard, 24014, 1)
+
+    #  For location-based calibration
     # param["pockets"] = np.load(
     #     path_precalc_inp + 'param_pockets.npy')
     # param["backyard_pockets"] = np.load(
     #     path_precalc_inp + 'param_backyards.npy')
+
+
 
     return param
 

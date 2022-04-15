@@ -42,8 +42,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     # Residual for the regression of amenities follow a log-normal law
     if (optionRegression == 0):
         # Here regression as a matrix division (much faster)
-        # TODO: note that predictors are dummies, and not log-values as in
-        # paper
+        # Note that predictors are dummies, and not log-values as in paper
         A = predictorsAmenitiesMatrix[~np.isnan(residualAmenities), :]
         y = (residualAmenities[~np.isnan(residualAmenities)]).real
         parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y)
@@ -84,7 +83,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     bidRents = np.empty((3, sum(selectedRents)))
     #  For each income group and each selected SP,
     #  we obtain the bid rent as a function of initial income and u/ln(A)
-    #  TODO: shouldn't we give u/A as an argument instead?
+    #  TODO: cross-check the need to de-log residualAmenities
     #  TODO: should we care about the fit with observed rents?
     for i in range(0, 3):
         for j in range(0, sum(selectedRents)):
@@ -163,6 +162,7 @@ def InterpolateRents(beta, basicQ, net_income):
     """Precalculate for rents, as a function."""
     # The output of the function is a griddedInterpolant object, that gives the
     # log of rents as a function of the log utility and the log income.
+    # Really?
 
     # Decomposition for the interpolation (the more points, the slower)
     decompositionRent = np.concatenate(

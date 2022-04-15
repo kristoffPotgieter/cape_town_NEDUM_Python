@@ -55,10 +55,12 @@ path_floods = path_folder + "FATHOM/"
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
+# OPTIONS FOR THIS SIMULATION
+
+options["agents_anticipate_floods"] = 0
+
 
 # %% Load data
-
-# TODO: erase useless imports
 
 # BASIC GEOGRAPHIC DATA
 
@@ -87,12 +89,6 @@ param["income_year_reference"] = mean_income
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
-
-# We convert income distribution data (at SP level) to grid dimensions for use
-# in income calibration: long to run, uncomment only if needed
-# income_distribution_grid = inpdt.convert_income_distribution(
-#     income_distribution, grid, path_data, data_sp)
-# income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
 
 #  Import nb of households per pixel, by housing type
 #  Note that there is no RDP, but both formal and informal backyard
@@ -128,7 +124,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     interest_rate
     )
 
-# FLOOD DATA (takes some time)
+# FLOOD DATA (takes some time if agents anticipate floods)
 param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
@@ -160,42 +156,83 @@ elif options["agents_anticipate_floods"] == 0:
  spline_income, spline_minimum_housing_supply, spline_fuel
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
+# Uncomment if needed to reload
+# incomeNetOfCommuting, *_ = inpdt.import_transport_data(
+#      grid, param, 0, households_per_income_class, average_income,
+#      spline_inflation, spline_fuel,
+#      spline_population_income_distribution, spline_income_distribution,
+#      path_precalc_inp, path_precalc_transp, 'SP')
+incomeNetOfCommuting = np.load(
+    path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
 
-# %% Estimation of coefficients of construction function
+
+# %% Estimation of coefficients of construction function (Cobb-Douglas)
 
 # We associate income group to each census block according to average income
-data_income_group = np.zeros(len(data_sp["income"]))
-for j in range(0, 3):
-    data_income_group[data_sp["income"] >
-                      threshold_income_distribution[j]] = j+1
+# TODO: is it the right way to define dominant income group? Shouldn't we take
+# the most numerous group instead?
+# data_income_group = np.zeros(len(data_sp["income"]))
+# for j in range(0, 3):
+#     data_income_group[data_sp["income"] >
+#                       threshold_income_distribution[j]] = j+1
+data_income_group = np.zeros(len(income_distribution))
+for i in range(0, len(income_distribution)):
+    data_income_group[i] = np.argmax(income_distribution[i])
 
 # We get the number of formal housing units per SP
+# TODO: should we substract RDP?
+
+grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
+# grid_intersect = grid_intersect.set_index('ID_grille')
+# grid_intersect = grid_intersect.sort_index()
+grid_intersect = grid_intersect.groupby('ID_grille').max('Area')
+data_rdp["ID_grille"] = data_rdp.index
+data_rdp["ID_grille"] = data_rdp["ID_grille"] + 1
+
+rdp_grid = pd.merge(data_rdp, grid_intersect, on="ID_grille", how="outer")
+rdp_sp = rdp_grid.groupby('SP_CODE')['count'].sum()
+rdp_sp = rdp_sp.reset_index()
+rdp_sp = rdp_sp.rename(columns={'SP_CODE': 'sp_code'})
+rdp_sp_fill = pd.merge(rdp_sp, data_sp['sp_code'], on="sp_code", how="outer")
+rdp_sp_fill['count'] = rdp_sp_fill['count'].fillna(0)
+rdp_sp_fill = rdp_sp_fill.sort_values(by='sp_code')
+
 data_number_formal = (
     housing_types_sp.total_dwellings_SP_2011
     - housing_types_sp.backyard_SP_2011
-    - housing_types_sp.informal_SP_2011)
+    - housing_types_sp.informal_SP_2011
+    - rdp_sp_fill['count'])
 
 # We select the data points we are going to use.
 # As Cobb-Douglas log-linear relation is only true for the formal sector, we
 # exclude SPs in the bottom quintile of property prices and for which more
-# than 5% of dwellings are reported to live in informal housing. We also
-# exclude rural SPs (i.e., those that are large, with a small share than can
-# be urbanized)
-# TODO: Does this correspond?
+# than 5% of dwellings are reported to live in "informal" housing. We also
+# exclude "rural" SPs (i.e., those that are large, with a small share than can
+# be urbanized).
+
+# NB: we also add other criteria compared to the working paper, namely we
+# exclude poorest income group (which is in effect crowded out from the formal
+# sector), as well as Mitchell's Plain (as its housing market is very specific)
+# and far-away land (for which we have few observations)
+# TODO: should we really exclude dominant income group?
+
 selected_density = (
-    (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
-    & (data_income_group > 0)
-    & (data_sp["mitchells_plain"] == 0)
-    & (data_sp["distance"] < 40)
-    & (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
+    data_sp["price"] > np.nanquantile(data_sp["price"], 0.2)
+    & data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011
     & (data_sp["unconstrained_area"]
        < np.nanquantile(data_sp["unconstrained_area"], 0.8))
+    & data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"]
+    & data_income_group > 0
+    & data_sp["mitchells_plain"] == 0
+    & data_sp["distance"] < 40
     )
 
 # We run regression from apppendix C2
 
 y = np.log(data_number_formal[selected_density])
 
+# Note that we use data_sp["unconstrained_area"] (which is accurate data at SP
+# level) rather than coeff_land (which is an estimate at grid level)
 X = np.transpose(
     np.array([np.log(data_sp["price"][selected_density]),
               np.log(param["max_land_use"]
@@ -212,7 +249,7 @@ model_construction = LinearRegression().fit(X, y)
 coeff_b = model_construction.coef_[0]
 coeff_a = 1 - coeff_b
 # Comes from zero profit condition combined with footnote 16 from optimization
-# TODO: not the same as in paper
+# TODO: correct typo in paper
 coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
               * np.exp(model_construction.intercept_))
 
@@ -225,47 +262,40 @@ np.save(path_precalc_inp + 'calibratedHousing_b.npy', coeff_b)
 np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
 
 
-# TODO: What about CES parameters?
-
-# # Cobb-Douglas:
-# simulHousing_CD = (
-#     coeffKappa ** (1/coeff_a) * (coeff_b/interestRate) ** (coeff_b/coeff_a)
-#     * (dataRent) ** (coeff_b/coeff_a)
-#     )
-
-# f1 = fit(data.sp2011Distance(selectedDensity),
-#          data.spFormalDensityHFA(selectedDensity), 'poly5')
-# f2 = fit(data.sp2011Distance(~isnan(simulHousing_CD)),
-#          simulHousing_CD(~isnan(simulHousing_CD)), 'poly5')
-
-
 # %% Estimation of incomes and commuting parameters
 
 # We input a range of values that we would like to test for lambda (gravity
 # parameter)
-# TODO: how arbitray is it?
 
+# The value range is set by trial and error: the wider the range you want to
+# test, the longer
 # listLambda = [4.027, 0]
 # list_lambda = 10 ** np.arange(0.6, 0.65, 0.01)
-list_lambda = 10 ** np.arange(0.6, 0.605, 0.005)
+list_lambda = 10 ** np.arange(0.6, 0.61, 0.005)
 
-# TODO: include in calcmp
+# Note that number of employees per income group imported from job center data
+# is rescaled to match aggregate income distribution in census data
 job_centers = calemp.import_employment_data(
     households_per_income_class, param, path_data)
 
-# TODO: should we reason at grid or SP level?
+# Note that we reason at the SP level here. Also note that we are considering
+# round trips and households made of two representative individuals
+
 (timeOutput, distanceOutput, monetaryCost, costTime
  ) = calcmp.import_transport_costs(grid, param, 0, households_per_income_class,
                                    spline_inflation, spline_fuel,
                                    spline_population_income_distribution,
                                    spline_income_distribution,
-                                   path_precalc_inp, path_precalc_transp)
+                                   path_precalc_inp, path_precalc_transp, 'SP')
 # (timeOutput, distanceOutput, monetaryCost, costTime
 #  ) = calcmpt.import_transport_costs(
 #      income_2011, param, grid, path_precalc_inp, path_scenarios)
 
 
 # Note that this is long to run
+# Here again, we are considering rescaled income data
+
+# TODO: understand the difference between the two scripts
 # incomeCenters, distanceDistribution = calcmp.EstimateIncome(
 #     param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
 #     job_centers, average_income, income_distribution, list_lambda)
@@ -274,8 +304,8 @@ incomeCenters, distanceDistribution = calcmpt.EstimateIncome(
     average_income, income_distribution, list_lambda)
 
 
-# TODO: Gives aggregate statistics for % of commuters per distance bracket:
-# where from?
+# Gives aggregate statistics for % of commuters per distance bracket
+# TODO: where from?
 # data_modal_shares = np.array(
 #     [7.8, 14.8, 39.5+0.7, 16, 8]) / (7.8+14.8+39.5+0.7+16+8) * 100
 # data_time_distribution = np.array(
@@ -335,21 +365,19 @@ cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
 
 
 # %% Calibration of utility function parameters
-# TODO: have a meeting to clarify the procedure
 
 # We select in which areas we actually measure the likelihood
 # NB: We remove the areas where there is informal housing, because dwelling
 # size data is not reliable
-# TODO: do we have to keep poor dominant income group out? Is it the right way
-# to define dominance?
+# TODO: why not use same criteria as for selected_density?
+
 selectedSP = (
-    ((housing_types_sp.backyard_SP_2011 + housing_types_sp.informal_SP_2011)
-     / housing_types_sp.total_dwellings_SP_2011 < 0.1)
-    & (data_income_group > 0)
+    data_number_formal > 0.90 * housing_types_sp.total_dwellings_SP_2011
+    & data_income_group > 0
     )
 
 # Coefficients of the model for simulations (arbitrary)
-listBeta = np.arange(0.1, 0.55, 0.05)
+listBeta = np.arange(0.2, 0.55, 0.05)
 listBasicQ = np.arange(1, 11, 1)
 
 # Coefficient for spatial autocorrelation
@@ -358,17 +386,17 @@ listRho = 0
 
 # Utilities for simulations (arbitrary)
 # TODO: why not start with same set as in compute_equilibrium?
-# utilityTarget = np.array([300, 1000, 3000, 10000])
-utilityTarget = np.array([1501, 4819, 16947, 79809])
+utilityTarget = np.array([300, 1000, 3000, 10000])
+# utilityTarget = np.array([1501, 4819, 16947, 79809])
 
 # TODO: meaning?
-listVariation = np.arange(0.5, 2.1, 0.1)
+listVariation = np.arange(0.7, 1.4, 0.1)
 initUti2 = utilityTarget[1]
 listUti3 = utilityTarget[2] * listVariation
 listUti4 = utilityTarget[3] * listVariation
 
 # Cf. inversion of footnote 16
-# TODO: why not use param["interest_rate"]?
+# TODO: should we use param["interest_rate"]?
 # TODO: correct typo in paper
 dataRent = (
     data_sp["price"] ** (coeff_a)
@@ -400,9 +428,6 @@ variables_regression = [
     'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
     'distance_train', 'distance_urban_herit']
 
-incomeNetOfCommuting = np.load(
-    path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
-
 (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
  parametersHousing, _) = calscan.EstimateParametersByScanning(
      incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
@@ -424,7 +449,7 @@ initBasicQ = parametersScan[1]
 initUti3 = parametersScan[2]
 initUti4 = parametersScan[3]
 
-# TODO: run again but with true values of parametersScan
+# TODO: should we run it with true values of parametersScan
 (parameters, scoreTot, parametersAmenities, modelAmenity, parametersHousing,
  selectedSPRent) = calopt.EstimateParametersByOptimization(
      incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
@@ -437,7 +462,7 @@ initUti4 = parametersScan[3]
 
 # Exporting and saving
 
-#  Generating the map of amenities
+#  Generating the map of amenities?
 #  TODO: Note that this a problem with dummies
 
 amenities_grid = calam.import_amenities(path_data, path_precalc_inp, 'grid')

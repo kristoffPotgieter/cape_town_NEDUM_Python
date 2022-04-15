@@ -19,7 +19,7 @@ import os
 import inputs.data as inpdt
 import inputs.parameters_and_options as inpprm
 
-import equilibrium.comute_equilibrium as eqcmp
+import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.functions_dynamic as eqdyn
 
 
@@ -48,6 +48,10 @@ start = time.process_time()
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
+# OPTIONS FOR THIS SIMULATION
+
+options["agents_anticipate_floods"] = 0
+
 # %% Load data
 
 
@@ -67,14 +71,12 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-# TODO: does this correspond to census data?
-
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011) = inpdt.import_income_classes_data(param, path_data)
+ income_2011, households_per_income_and_housing
+ ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
-#  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
@@ -99,10 +101,9 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
                            housing_type_data, path_data, path_folder)
      )
 
-#  TODO: Why do we need this correction?
-param["pockets"][
-    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-    ] = 0.79
+# param["pockets"][
+#     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
+#     ] = 0.79
 
 
 #  We correct areas for each housing type at baseline year for the amount of
@@ -114,7 +115,6 @@ coeff_land = inpdt.import_coeff_land(
 #  We update land use parameters at baseline (relies on data)
 housing_limit = inpdt.import_housing_limit(grid, param)
 
-#  TODO: plug outputs in a new variable (not param) and adapt linked functions
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -123,7 +123,6 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     )
 
 # FLOOD DATA (takes some time)
-#  TODO: create a new variable instead of storing in param
 param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
@@ -169,14 +168,14 @@ elif options["agents_anticipate_floods"] == 0:
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
 income_net_of_commuting_costs = np.load(
-    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
+    path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 
 
 # %% Calibration of the informal housing parameters
 # General calibration (see Pfeiffer et al., appendix C5)
 
 list_amenity_backyard = np.arange(0.70, 0.91, 0.01)
-list_amenity_settlement = np.arange(0.60, 0.81, 0.01)
+list_amenity_settlement = np.arange(0.60, 0.91, 0.01)
 housing_type_total = pd.DataFrame(np.array(np.meshgrid(
     list_amenity_backyard, list_amenity_settlement)).T.reshape(-1, 2))
 housing_type_total.columns = ["param_backyard", "param_settlement"]
@@ -232,6 +231,8 @@ for i in range(0, len(list_amenity_backyard)):
              minimum_housing_supply,
              param["coeff_A"])
 
+        # We fill output matrix with the total number of households per housing
+        # type for given values of backyard and informal amenity parameters
         housing_type_total.loc[
             (housing_type_total.param_backyard == param["amenity_backyard"])
             & (housing_type_total.param_settlement
@@ -250,22 +251,36 @@ for i in range(0, len(list_amenity_backyard)):
                   / iteration_number
                   * (number_total_iterations-iteration_number)))))
 
+# We choose the set of parameters that minimize the sum of absolute differences
+# between simulated and observed total number of households in each housing
+# type (without RDP, which is exogenously set equal to data)
+
+# TODO: Correct paper for use of formal sector in score definition
+# Note that we consider both formal and informal backyarding as backyarding
+
 distance_share = np.abs(
     housing_type_total.iloc[:, 2:5] - housing_type_data[None, 0:3])
 distance_share_score = (
     distance_share.iloc[:, 1] + distance_share.iloc[:, 2]
     + distance_share.iloc[:, 0])
+# distance_share = np.abs(
+#     housing_type_total.iloc[:, 3:5] - housing_type_data[None, 1:3])
+# distance_share_score = (
+#     distance_share.iloc[:, 0] + distance_share.iloc[:, 1])
+
 which = np.argmin(distance_share_score)
 min_score = np.nanmin(distance_share_score)
 calibrated_amenities = housing_type_total.iloc[which, 0:2]
 
-# 0.88 and 0.85
+# Correspond to 0.74 and 0.70 in paper
 
 param["amenity_backyard"] = calibrated_amenities[0]
 param["amenity_settlement"] = calibrated_amenities[1]
 
-param["amenity_backyard"] = 0.89
-param["amenity_settlement"] = 0.86
+np.save(path_precalc_inp + 'param_amenity_backyard.npy',
+        param["amenity_backyard"])
+np.save(path_precalc_inp + 'param_amenity_settlement.npy',
+        param["amenity_settlement"])
 
 
 # %% Calibration of the informal housing parameters
@@ -274,6 +289,8 @@ param["amenity_settlement"] = 0.86
 index = 0
 index_max = 400
 metrics = np.zeros(index_max)
+
+# We start from where we left (to gain time) and compute the equilibrium again
 param["pockets"] = np.zeros(24014) + param["amenity_settlement"]
 save_param_informal_settlements = np.zeros((index_max, 24014))
 metrics_is = np.zeros(index_max)
@@ -322,34 +339,51 @@ print("\n** ITERATIONS **")
 debut_iterations_time = time.process_time()
 number_total_iterations = index_max
 
+# Then we optimize over the number of households per housing type PER PIXEL,
+# and not just on the aggregate number (to acccount for differing disamenities
+# per location, e.g. eviction probability, infrastructure networks, etc.)
+
+# To do so, we use granular housing_types (from SAL data) instead of aggregate
+# housing_types
+
 for index in range(0, index_max):
+
+    # Note that rescaling the benchmark data is not necessary here, as we are
+    # focusing on error terms and not values
 
     # IS
     diff_is = np.zeros(24014)
     for i in range(0, 24014):
         diff_is[i] = (housing_types.informal_grid[i]
                       - initial_state_households_housing_types[2, :][i])
+        # We apply an empirical reweighting that helps convergence
         adj = (diff_is[i] / (50000))
-        save_param_informal_settlements[index, :] = param["pockets"]
+        # We increase the amenity score when we underestimate the nb of HHs
         param["pockets"][i] = param["pockets"][i] + adj
+    # We store iteration outcome and prevent extreme sorting from happening
+    # due to the amenity score
     metrics_is[index] = sum(np.abs(diff_is))
     param["pockets"][param["pockets"] < 0.05] = 0.05
     param["pockets"][param["pockets"] > 0.99] = 0.99
+    save_param_informal_settlements[index, :] = param["pockets"]
 
-    # IB
+    # IB (both formal and informal)
     diff_ib = np.zeros(24014)
     for i in range(0, 24014):
         diff_ib[i] = (housing_types.backyard_informal_grid[i]
                       + housing_types.backyard_formal_grid[i]
                       - initial_state_households_housing_types[1, :][i])
         adj = (diff_ib[i] / 50000)
-        save_param_backyards[index, :] = param["backyard_pockets"]
         param["backyard_pockets"][i] = param["backyard_pockets"][i] + adj
     metrics_ib[index] = sum(np.abs(diff_ib))
     param["backyard_pockets"][param["backyard_pockets"] < 0.05] = 0.05
     param["backyard_pockets"][param["backyard_pockets"] > 0.99] = 0.99
+    save_param_backyards[index, :] = param["backyard_pockets"]
 
     metrics[index] = metrics_is[index] + metrics_ib[index]
+
+    # We run the equilibrium again with updated values of informal/backyard
+    # housing disamenity indices, then go to the next iteration
 
     (initial_state_utility, initial_state_error, initial_state_simulated_jobs,
      initial_state_households_housing_types, initial_state_household_centers,
@@ -378,14 +412,14 @@ for index in range(0, index_max):
               * (number_total_iterations-iteration_number))))
           )
 
+# We pick the set of parameters that minimize the sum of absolute differences
+# between data and simulation
 index_min = np.argmin(metrics)
-metrics[index_min]
+# metrics[index_min]
 param["pockets"] = save_param_informal_settlements[index_min]
-param["pockets"][param["pockets"] < 0.05] = 0.05
-param["pockets"][param["pockets"] > 0.99] = 0.99
 param["backyard_pockets"] = save_param_backyards[index_min]
-param["backyard_pockets"][param["backyard_pockets"] < 0.05] = 0.05
-param["backyard_pockets"][param["backyard_pockets"] > 0.99] = 0.99
+
+# TODO: check that there is no missing value we need to fill in
 
 try:
     os.mkdir(path_precalc_inp)
