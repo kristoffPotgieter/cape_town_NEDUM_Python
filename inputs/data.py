@@ -10,7 +10,7 @@ import scipy.io
 import pandas as pd
 from scipy.interpolate import interp1d
 
-import cal.compute_income as calcmp
+import calibration.compute_income as calcmp
 import equilibrium.functions_dynamic as eqdyn
 
 
@@ -34,10 +34,10 @@ def import_grid(path_data):
 def import_amenities(path_precalc_inp):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
-    precalculated_amenities = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
-    # precalculated_amenities = np.load(
-    #     path_precalc_inp + 'calibratedAmenities.npy')
+    # precalculated_amenities = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
+    precalculated_amenities = np.load(
+        path_precalc_inp + 'calibratedAmenities.npy')
     # Normalize index by mean of values
     amenities = (precalculated_amenities
                  / np.nanmean(precalculated_amenities)).squeeze()
@@ -430,7 +430,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         / np.nanmax(housing_types.backyard_formal_grid
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
-    actual_backyards = 0
+    # actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -1062,7 +1062,6 @@ def import_transport_data(grid, param, yearTraffic,
     # income_centers_init = scipy.io.loadmat(
     #     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
     income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
-    # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
     # This allows to correct incomes for RDP people not taken into account in
     # initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income
@@ -1229,6 +1228,8 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     return housing_types_grid_sal
 
 
+# TODO: put deprecated functions in side script
+
 def convert_income_distribution(income_distribution, grid, path_data, data_sp):
     """Import SP data for income distribution in grid form."""
     grid_intersect = pd.read_csv(
@@ -1306,6 +1307,7 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
 
 
 # TODO: check if deprecated with Basile
+
 def SP_to_grid_2011_1(data_SP, grid, path_data):
     """Adapt SP data to grid dimension."""
     grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')

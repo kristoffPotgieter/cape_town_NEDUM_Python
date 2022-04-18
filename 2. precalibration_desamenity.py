@@ -51,6 +51,7 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 # OPTIONS FOR THIS SIMULATION
 
 options["agents_anticipate_floods"] = 0
+options["informal_land_constrained"] = 1
 
 # %% Load data
 
@@ -167,6 +168,11 @@ elif options["agents_anticipate_floods"] == 0:
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
+incomeNetOfCommuting, *_ = inpdt.import_transport_data(
+      grid, param, 0, households_per_income_class, average_income,
+      spline_inflation, spline_fuel,
+      spline_population_income_distribution, spline_income_distribution,
+      path_precalc_inp, path_precalc_transp, 'GRID')
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 
@@ -174,8 +180,10 @@ income_net_of_commuting_costs = np.load(
 # %% Calibration of the informal housing parameters
 # General calibration (see Pfeiffer et al., appendix C5)
 
-list_amenity_backyard = np.arange(0.70, 0.91, 0.01)
-list_amenity_settlement = np.arange(0.60, 0.91, 0.01)
+# TODO: does not converge with newly calibrated kappa.
+# Then, it works but is slightly slower with newly calibrated amenities
+list_amenity_backyard = np.arange(0.72, 0.77, 0.01)
+list_amenity_settlement = np.arange(0.68, 0.73, 0.01)
 housing_type_total = pd.DataFrame(np.array(np.meshgrid(
     list_amenity_backyard, list_amenity_settlement)).T.reshape(-1, 2))
 housing_type_total.columns = ["param_backyard", "param_settlement"]
@@ -277,6 +285,7 @@ calibrated_amenities = housing_type_total.iloc[which, 0:2]
 param["amenity_backyard"] = calibrated_amenities[0]
 param["amenity_settlement"] = calibrated_amenities[1]
 
+# Works the same as in paper
 np.save(path_precalc_inp + 'param_amenity_backyard.npy',
         param["amenity_backyard"])
 np.save(path_precalc_inp + 'param_amenity_settlement.npy',
@@ -286,8 +295,10 @@ np.save(path_precalc_inp + 'param_amenity_settlement.npy',
 # %% Calibration of the informal housing parameters
 # Location-based calibration
 
+# Note that this is VERY long! Shorten index_max and run in the background
+
 index = 0
-index_max = 400
+index_max = 100
 metrics = np.zeros(index_max)
 
 # We start from where we left (to gain time) and compute the equilibrium again

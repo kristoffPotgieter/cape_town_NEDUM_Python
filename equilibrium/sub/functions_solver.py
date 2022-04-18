@@ -50,7 +50,8 @@ def compute_dwelling_size_formal(utility, amenities, param,
         [250, 300, 500, 1000, 2000, 200000, 1000000, 10 ** 12]))
 
     # TODO: Check whether extrapolation yields erroneous results
-    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x)
+    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x,
+                 fill_value="extrapolate")
 
     # We define dwelling size as q corresponding to true values of
     # implicit_qfunc(q), for each selected pixel and each income group

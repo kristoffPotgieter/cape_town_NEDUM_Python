@@ -26,7 +26,8 @@ import inputs.data as inpdt
 import equilibrium.functions_dynamic as eqdyn
 
 import calibration.compute_income as calcmp
-import calibration.calcmp_test as calcmpt
+# TODO: erase when tests not needed anymore
+# import calibration.calcmp_test as calcmpt
 import calibration.import_employment_data as calemp
 import calibration.estimate_parameters_by_scanning as calscan
 import calibration.estimate_parameters_by_optimization as calopt
@@ -58,6 +59,7 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 # OPTIONS FOR THIS SIMULATION
 
 options["agents_anticipate_floods"] = 0
+options["informal_land_constrained"] = 1
 
 
 # %% Load data
@@ -157,11 +159,11 @@ elif options["agents_anticipate_floods"] == 0:
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
 # Uncomment if needed to reload
-# incomeNetOfCommuting, *_ = inpdt.import_transport_data(
-#      grid, param, 0, households_per_income_class, average_income,
-#      spline_inflation, spline_fuel,
-#      spline_population_income_distribution, spline_income_distribution,
-#      path_precalc_inp, path_precalc_transp, 'SP')
+incomeNetOfCommuting, *_ = inpdt.import_transport_data(
+      grid, param, 0, households_per_income_class, average_income,
+      spline_inflation, spline_fuel,
+      spline_population_income_distribution, spline_income_distribution,
+      path_precalc_inp, path_precalc_transp, 'SP')
 incomeNetOfCommuting = np.load(
     path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
 
@@ -203,6 +205,12 @@ data_number_formal = (
     - housing_types_sp.informal_SP_2011
     - rdp_sp_fill['count'])
 
+# data_number_formal = (
+#     housing_types_sp.total_dwellings_SP_2011
+#     - housing_types_sp.backyard_SP_2011
+#     - housing_types_sp.informal_SP_2011
+#     )
+
 # We select the data points we are going to use.
 # As Cobb-Douglas log-linear relation is only true for the formal sector, we
 # exclude SPs in the bottom quintile of property prices and for which more
@@ -216,15 +224,23 @@ data_number_formal = (
 # and far-away land (for which we have few observations)
 # TODO: should we really exclude dominant income group?
 
+# selected_density = (
+#     (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
+#     & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
+#     & (data_sp["unconstrained_area"]
+#        < np.nanquantile(data_sp["unconstrained_area"], 0.8))
+#     & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
+#     & (data_income_group > 0)
+#     & (data_sp["mitchells_plain"] == 0)
+#     & (data_sp["distance"] < 40)
+#     )
+
 selected_density = (
-    data_sp["price"] > np.nanquantile(data_sp["price"], 0.2)
-    & data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011
+    (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
+    & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
     & (data_sp["unconstrained_area"]
        < np.nanquantile(data_sp["unconstrained_area"], 0.8))
-    & data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"]
-    & data_income_group > 0
-    & data_sp["mitchells_plain"] == 0
-    & data_sp["distance"] < 40
+    & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
     )
 
 # We run regression from apppendix C2
@@ -252,17 +268,23 @@ coeff_a = 1 - coeff_b
 # TODO: correct typo in paper
 coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
               * np.exp(model_construction.intercept_))
+# test = ((1 / (coeff_b) ** coeff_b)
+#               * np.exp(model_construction.intercept_))
 
 try:
     os.mkdir(path_precalc_inp)
 except OSError as error:
     print(error)
 
+# 0.28 vs. 0.25
 np.save(path_precalc_inp + 'calibratedHousing_b.npy', coeff_b)
+# 0.01 vs. 0.04: difference is not so much due to change in formula
 np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
 
 
 # %% Estimation of incomes and commuting parameters
+
+# TODO: refine choice of inputs!
 
 # We input a range of values that we would like to test for lambda (gravity
 # parameter)
@@ -295,13 +317,13 @@ job_centers = calemp.import_employment_data(
 # Note that this is long to run
 # Here again, we are considering rescaled income data
 
-# TODO: understand the difference between the two scripts
-# incomeCenters, distanceDistribution = calcmp.EstimateIncome(
-#     param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
-#     job_centers, average_income, income_distribution, list_lambda)
-incomeCenters, distanceDistribution = calcmpt.EstimateIncome(
-    param, timeOutput, distanceOutput, monetaryCost, costTime, job_centers,
-    average_income, income_distribution, list_lambda)
+# TODO: how to explain poor convergence with doubling of transport times?
+incomeCenters, distanceDistribution = calcmp.EstimateIncome(
+    param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
+    job_centers, average_income, income_distribution, list_lambda)
+# incomeCenters, distanceDistribution = calcmpt.EstimateIncome(
+#     param, timeOutput, distanceOutput, monetaryCost, costTime, job_centers,
+#     average_income, income_distribution, list_lambda)
 
 
 # Gives aggregate statistics for % of commuters per distance bracket
@@ -338,6 +360,7 @@ incomeCentersKeep = incomeCenters[:, :, whichLambda]
 # it could not be calibrated
 
 np.save(path_precalc_inp + 'incomeCentersKeep.npy', incomeCentersKeep)
+# 4.027 as in paper
 np.save(path_precalc_inp + 'lambdaKeep.npy', lambdaKeep)
 
 
@@ -372,13 +395,13 @@ cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
 # TODO: why not use same criteria as for selected_density?
 
 selectedSP = (
-    data_number_formal > 0.90 * housing_types_sp.total_dwellings_SP_2011
-    & data_income_group > 0
+    (data_number_formal > 0.90 * housing_types_sp.total_dwellings_SP_2011)
+    & (data_income_group > 0)
     )
 
 # Coefficients of the model for simulations (arbitrary)
-listBeta = np.arange(0.2, 0.55, 0.05)
-listBasicQ = np.arange(1, 11, 1)
+listBeta = np.arange(0.2, 0.35, 0.05)
+listBasicQ = np.arange(2, 7, 1)
 
 # Coefficient for spatial autocorrelation
 # TODO: how would this work if implemented?
@@ -386,11 +409,11 @@ listRho = 0
 
 # Utilities for simulations (arbitrary)
 # TODO: why not start with same set as in compute_equilibrium?
-utilityTarget = np.array([300, 1000, 3000, 10000])
-# utilityTarget = np.array([1501, 4819, 16947, 79809])
+# utilityTarget = np.array([300, 1000, 3000, 10000])
+utilityTarget = np.array([1501, 4819, 16947, 79809])
 
 # TODO: meaning?
-listVariation = np.arange(0.7, 1.4, 0.1)
+listVariation = np.arange(0.8, 1.3, 0.2)
 initUti2 = utilityTarget[1]
 listUti3 = utilityTarget[2] * listVariation
 listUti4 = utilityTarget[3] * listVariation
@@ -427,6 +450,8 @@ variables_regression = [
     'distance_ocean', 'distance_ocean_2_4', 'slope_1_5', 'slope_5',
     'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
     'distance_train', 'distance_urban_herit']
+
+# Note that this is long to run as it depends on the combination of all inputs
 
 (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
  parametersHousing, _) = calscan.EstimateParametersByScanning(
@@ -481,6 +506,9 @@ modelAmenity.save(path_precalc_inp + 'modelAmenity')
 calibratedUtility_beta = parameters[0]
 calibratedUtility_q0 = parameters[1]
 
+# 0.1 vs. 0.25
 np.save(path_precalc_inp + 'calibratedUtility_beta', calibratedUtility_beta)
+# 3.0 vs. 4.1
 np.save(path_precalc_inp + 'calibratedUtility_q0', calibratedUtility_q0)
+# Hard to tell according to map
 np.save(path_precalc_inp + 'calibratedAmenities', cal_amenities)

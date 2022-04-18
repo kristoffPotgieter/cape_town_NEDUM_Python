@@ -92,21 +92,21 @@ def import_transport_costs(grid, param, yearTraffic,
     # by the walking speed (in km/h), which we multiply by 60 to get minutes
     # NB: see Viguié et al. (2014), table B.1 for sinusoity estimate
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
-                           / param["walking_speed"] * 60 * 1.2 * 2)
+                           / param["walking_speed"] * 60 * 1.2)  #  * 2
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
-    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"]) * 2
-    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"]) * 2
-    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"]) * 2
-    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"]) * 2
+    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])  #* 2
+    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])  #* 2
+    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])  #* 2
+    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])  #* 2
 
     # Length (in km) using each mode (in direct line)
     multiplierPrice = np.empty((timeOutput.shape))
     multiplierPrice[:] = np.nan
     multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
-    multiplierPrice[:, :, 1] = transport_times["distanceCar"] * 2
-    multiplierPrice[:, :, 2] = transport_times["distanceCar"] * 2
-    multiplierPrice[:, :, 3] = transport_times["distanceCar"] * 2
-    multiplierPrice[:, :, 4] = transport_times["distanceCar"] * 2
+    multiplierPrice[:, :, 1] = transport_times["distanceCar"]  #* 2
+    multiplierPrice[:, :, 2] = transport_times["distanceCar"]  #* 2
+    multiplierPrice[:, :, 3] = transport_times["distanceCar"]  #* 2
+    multiplierPrice[:, :, 4] = transport_times["distanceCar"]  #* 2
 
     # Multiplying by 235 (nb of working days per year)
     # TODO: is inital price for day or for month?
@@ -145,7 +145,8 @@ def import_transport_costs(grid, param, yearTraffic,
     monetaryCost[:, :, 4] = monetaryCost[:, :, 4] + priceBusFixedMonth * 12
 
     # We assume that people not taking some transport mode
-    # have a extra high cost of doing so
+    # have a extra high cost of doing so"
+    # TODO: is it too big?
     monetaryCost[np.isnan(monetaryCost)] = 10 ** 5
 
     # trans_monetaryCost = copy.deepcopy(monetaryCost)
@@ -354,7 +355,8 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
     # TODO: this supposedly prevents exponentials from diverging towards
     # infinity, but how would it be possible with negative terms?
     # In any case, this is neutral on the result
-    valueMax = (np.min(param_lambda * transportCostModes, axis=2) - 500)
+    valueMax = np.nanmin(param_lambda * transportCostModes, 2) - 500
+    # valueMax = np.zeros(valueMax.shape)
 
     # Transport costs (min_m(t_mj))
     # NB: here, we consider the Gumbel quantile function
@@ -368,7 +370,9 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
     # does Python have the same limitations as Matlab? Still neutral
     minIncome = (np.nanmax(
         param_lambda * (incomeCentersFull[:, None] - transportCost), 0)
-        - 700)
+        - 500
+        )
+    # minIncome = np.zeros(minIncome.shape)
 
     # OD flows: corresponds to pi_c|ix (here, not the full matrix)
     # NB: here, we consider maximum Gumbel
@@ -385,7 +389,7 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
 
 def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
              popResidence, monetaryCost, costTime, param_lambda, householdSize,
-             whichCenters, bracketsDistance, distanceOutput, param):
+             whichCenters, bracketsDistance, distanceOutput):
     """Compute error in employment allocation."""
     # We redress the average income in each group per job center to match
     # income data, as this must be matched with popResidence
@@ -397,7 +401,7 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
 
     transportCostModes, transportCost, ODflows, *_ = compute_ODflows(
         householdSize, monetaryCost, costTime, incomeCentersFull,
-        whichCenters, param_lambda, param)
+        whichCenters, param_lambda)
 
     # We compare the true population distribution with its theoretical
     # equivalent computed from simulated net income distribution: the closer

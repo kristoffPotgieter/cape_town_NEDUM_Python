@@ -35,16 +35,16 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Utility function parameters, as calibrated in Pfeiffer et al. (table C7)
     #  Surplus housing elasticity
-    param["beta"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedUtility_beta.mat'
-        )["calibratedUtility_beta"].squeeze()
-    # param["beta"] = np.load(path_precalc_inp + 'calibratedUtility_beta.mat')
+    # param["beta"] = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedUtility_beta.mat'
+    #     )["calibratedUtility_beta"].squeeze()
+    param["beta"] = np.load(path_precalc_inp + 'calibratedUtility_beta.npy')
     #  Basic need in housing
     #  TODO: not the same a in paper
-    param["q0"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedUtility_q0.mat'
-        )["calibratedUtility_q0"].squeeze()
-    # param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.mat')
+    # param["q0"] = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedUtility_q0.mat'
+    #     )["calibratedUtility_q0"].squeeze()
+    param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.npy')
     #  Composite good elasticity
     param["alpha"] = 1 - param["beta"]
 
@@ -66,7 +66,7 @@ def import_param(path_precalc_inp, path_outputs):
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
     # param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
-    #                                    )["lambdaKeep"].squeeze()
+    #                                     )["lambdaKeep"].squeeze()
     param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
     # Discount factors
@@ -174,27 +174,26 @@ def import_param(path_precalc_inp, path_outputs):
     # Disamenity parameters for informal settlements and backyard shacks
 
     #  For general calibration used in Pfeiffer et al. (appendix C5)
-    disamenity_param = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedParamAmenities.mat'
-        )["calibratedParamAmenities"].squeeze()
-    param["pockets"] = np.matlib.repmat(
-        disamenity_param[1], 24014, 1).squeeze()
-    param["backyard_pockets"] = np.matlib.repmat(
-        disamenity_param[0], 24014, 1).squeeze()
-    # param_amenity_settlement = np.load(
-    #     path_precalc_inp + 'param_amenity_settlement.npy')
-    # param["pockets"] = np.repmat(param_amenity_settlement, 24014, 1)
-    # param_amenity_backyard = np.load(
-    #     path_precalc_inp + 'param_amenity_backyard.npy')
-    # param["bakcyard_pockets"] = np.repmat(param_amenity_backyard, 24014, 1)
+    # disamenity_param = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedParamAmenities.mat'
+    #     )["calibratedParamAmenities"].squeeze()
+    # param["pockets"] = np.matlib.repmat(
+    #     disamenity_param[1], 24014, 1).squeeze()
+    # param["backyard_pockets"] = np.matlib.repmat(
+    #     disamenity_param[0], 24014, 1).squeeze()
+    param_amenity_settlement = np.load(
+        path_precalc_inp + 'param_amenity_settlement.npy')
+    param["pockets"] = np.matlib.repmat(param_amenity_settlement, 24014, 1)
+    param_amenity_backyard = np.load(
+        path_precalc_inp + 'param_amenity_backyard.npy')
+    param["bakcyard_pockets"] = np.matlib.repmat(
+        param_amenity_backyard, 24014, 1)
 
     #  For location-based calibration
     # param["pockets"] = np.load(
     #     path_precalc_inp + 'param_pockets.npy')
     # param["backyard_pockets"] = np.load(
     #     path_precalc_inp + 'param_backyards.npy')
-
-
 
     return param
 

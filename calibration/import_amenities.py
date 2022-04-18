@@ -28,7 +28,8 @@ def import_amenities(path_data, path_precalc_inp, dim):
     # Load distance to RDP house dummies
     distance_RDP = scipy.io.loadmat(
         path_precalc_inp + dim + 'DistanceRDP.mat'
-        )[dim + "_distance_RDP"].squeeze()
+        )
+    distance_RDP = distance_RDP[list(distance_RDP)[-1]].squeeze()
 
     # We store relevant data in an output table
     # NB: we only consider dummies for amenity data crossing some thresholds.

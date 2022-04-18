@@ -117,8 +117,6 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
      )
 
 
-
-
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
 coeff_land = inpdt.import_coeff_land(
@@ -136,7 +134,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     interest_rate
     )
 
-# FLOOD DATA (takes some time)
+# FLOOD DATA (takes some time when agents anticipate floods)
 #  TODO: create a new variable instead of storing in param
 param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
@@ -182,13 +180,13 @@ elif options["agents_anticipate_floods"] == 0:
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-# income_net_of_commuting_costs = np.load(
-#     path_precalc_transp + 'incomeNetOfCommuting_0.npy')
 income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
-     grid, param, 0, households_per_income_class, average_income,
-     spline_inflation, spline_fuel,
-     spline_population_income_distribution, spline_income_distribution,
-     path_precalc_inp, path_precalc_transp, 'GRID')
+      grid, param, 0, households_per_income_class, average_income,
+      spline_inflation, spline_fuel,
+      spline_population_income_distribution, spline_income_distribution,
+      path_precalc_inp, path_precalc_transp, 'GRID')
+income_net_of_commuting_costs = np.load(
+    path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 
 
 # %% Compute initial state
@@ -196,6 +194,8 @@ income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
 # TODO: Note that we use a Cobb-Douglas production function all along!
 # TODO: Also note that we simulate households as two representative agents
 # (not as in the paper)
+
+# TODO: create option to run on old or new calibrated parameters
 
 (initial_state_utility,
  initial_state_error,
