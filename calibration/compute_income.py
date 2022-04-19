@@ -92,7 +92,7 @@ def import_transport_costs(grid, param, yearTraffic,
     # by the walking speed (in km/h), which we multiply by 60 to get minutes
     # NB: see Viguié et al. (2014), table B.1 for sinusoity estimate
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
-                           / param["walking_speed"] * 60 * 1.2)  #  * 2
+                           / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
     timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])  #* 2
     timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])  #* 2

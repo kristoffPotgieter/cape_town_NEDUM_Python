@@ -219,6 +219,8 @@ inflation = spline_inflation(28) / spline_inflation(0)
 
 # GENERAL VALIDATION
 
+# TODO: discuss need to use reweighting
+
 try:
     os.mkdir(path_outputs + plot_repo)
 except OSError as error:
@@ -244,10 +246,6 @@ outexp.export_households(
 outexp.validation_density(
     grid, initial_state_households_housing_types, housing_types,
     path_outputs + plot_repo, coeff_land, land_constraint=0
-    )
-outexp.validation_density(
-    grid, initial_state_households_housing_types, housing_types,
-    path_outputs + plot_repo, coeff_land, land_constraint=1
     )
 
 # TODO: pb seems to come from formal sector essentially

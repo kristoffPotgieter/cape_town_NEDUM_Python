@@ -424,7 +424,7 @@ listUti4 = utilityTarget[3] * listVariation
 dataRent = (
     data_sp["price"] ** (coeff_a)
     * (param["depreciation_rate"]
-       + param["interest_rate"])
+       + interest_rate)
     / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
     )
 # dataRent = (

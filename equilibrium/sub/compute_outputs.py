@@ -74,6 +74,7 @@ def compute_outputs(housing_type,
     elif housing_type == 'backyard':
 
         # See research note, p.12
+        # TODO: should we use interest_rate or param["interest_rate"]?
         R_mat = (
             (1 / param["shack_size"])
             * (income_net_of_commuting_costs
@@ -85,7 +86,7 @@ def compute_outputs(housing_type,
                                              ** param["beta"])))
                      ** (1 / param["alpha"])))
                - (param["informal_structure_value"]
-                  * (param["interest_rate"] + param["depreciation_rate"]))
+                  * (interest_rate + param["depreciation_rate"]))
                - (np.array(fraction_capital_destroyed.structure_backyards)[
                    None, :] * param["informal_structure_value"]))
             )
@@ -105,7 +106,7 @@ def compute_outputs(housing_type,
                                              ** param["beta"])))
                      ** (1 / param["alpha"])))
                - (param["informal_structure_value"]
-                  * (param["interest_rate"] + param["depreciation_rate"]))
+                  * (interest_rate + param["depreciation_rate"]))
                - (np.array(
                    fraction_capital_destroyed.structure_informal_settlements
                    )[None, :] * param["informal_structure_value"]))

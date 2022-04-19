@@ -35,39 +35,39 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Utility function parameters, as calibrated in Pfeiffer et al. (table C7)
     #  Surplus housing elasticity
-    # param["beta"] = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedUtility_beta.mat'
-    #     )["calibratedUtility_beta"].squeeze()
-    param["beta"] = np.load(path_precalc_inp + 'calibratedUtility_beta.npy')
+    param["beta"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedUtility_beta.mat'
+        )["calibratedUtility_beta"].squeeze()
+    # param["beta"] = np.load(path_precalc_inp + 'calibratedUtility_beta.npy')
     #  Basic need in housing
     #  TODO: not the same a in paper
-    # param["q0"] = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedUtility_q0.mat'
-    #     )["calibratedUtility_q0"].squeeze()
-    param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.npy')
+    param["q0"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedUtility_q0.mat'
+        )["calibratedUtility_q0"].squeeze()
+    # param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.npy')
     #  Composite good elasticity
     param["alpha"] = 1 - param["beta"]
 
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
     #  Capital elasticity
-    # param["coeff_b"] = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
-    param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
+    param["coeff_b"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
+    # param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
     # Land elasticity
     param["coeff_a"] = 1 - param["coeff_b"]
     #  Scale parameter
-    # param["coeff_A"] = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedHousing_kappa.mat'
-    #     )["coeffKappa"].squeeze()
-    param["coeff_A"] = np.load(
-        path_precalc_inp + 'calibratedHousing_kappa.npy')
+    param["coeff_A"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedHousing_kappa.mat'
+        )["coeffKappa"].squeeze()
+    # param["coeff_A"] = np.load(
+    #     path_precalc_inp + 'calibratedHousing_kappa.npy')
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
-    # param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
-    #                                     )["lambdaKeep"].squeeze()
-    param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
+    param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
+                                       )["lambdaKeep"].squeeze()
+    # param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
     # Discount factors
     #  From Viguié et al. (2014)
@@ -174,20 +174,21 @@ def import_param(path_precalc_inp, path_outputs):
     # Disamenity parameters for informal settlements and backyard shacks
 
     #  For general calibration used in Pfeiffer et al. (appendix C5)
-    # disamenity_param = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedParamAmenities.mat'
-    #     )["calibratedParamAmenities"].squeeze()
+    disamenity_param = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedParamAmenities.mat'
+        )["calibratedParamAmenities"].squeeze()
+    param["pockets"] = np.matlib.repmat(
+        disamenity_param[1], 24014, 1).squeeze()
+    param["backyard_pockets"] = np.matlib.repmat(
+        disamenity_param[0], 24014, 1).squeeze()
+    # param_amenity_settlement = np.load(
+    #     path_precalc_inp + 'param_amenity_settlement.npy')
     # param["pockets"] = np.matlib.repmat(
-    #     disamenity_param[1], 24014, 1).squeeze()
+    #     param_amenity_settlement, 24014, 1).squeeze()
+    # param_amenity_backyard = np.load(
+    #     path_precalc_inp + 'param_amenity_backyard.npy')
     # param["backyard_pockets"] = np.matlib.repmat(
-    #     disamenity_param[0], 24014, 1).squeeze()
-    param_amenity_settlement = np.load(
-        path_precalc_inp + 'param_amenity_settlement.npy')
-    param["pockets"] = np.matlib.repmat(param_amenity_settlement, 24014, 1)
-    param_amenity_backyard = np.load(
-        path_precalc_inp + 'param_amenity_backyard.npy')
-    param["bakcyard_pockets"] = np.matlib.repmat(
-        param_amenity_backyard, 24014, 1)
+    #     param_amenity_backyard, 24014, 1).squeeze()
 
     #  For location-based calibration
     # param["pockets"] = np.load(
@@ -230,7 +231,6 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # We do the same as before with a starting supply of 1 in Mitchells Plain:
     # the idea is to have a min housing supply in this zone whose density might
     # be underestimated by the model
-    # TODO: check error in pre-treatment when importing density from the area
 
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
     param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
@@ -261,12 +261,18 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
     # Comes from zero profit condition: allows to convert land prices into
     # housing prices (cf. also inversion from footnote 16)
-    # TODO: use interest_rate or param["interest_rate"]?
+    # TODO: use interest_rate or param["interest_rate"]? Check inversion
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
-        * (param["depreciation_rate"] + param["interest_rate"])
+        * (param["depreciation_rate"] + interest_rate)
         / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
-           * param["coeff_a"] ** param["coeff_a"])
+            * param["coeff_a"] ** param["coeff_a"])
         )
+    # agricultural_rent = (
+    #     param["agricultural_rent_2011"] ** (param["coeff_a"])
+    #     * (param["depreciation_rate"] + interest_rate)
+    #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+    #     )
+    # agricultural_rent = param["agricultural_rent_2011"]
 
     return param, minimum_housing_supply, agricultural_rent

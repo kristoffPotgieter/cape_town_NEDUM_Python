@@ -84,7 +84,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 spline_population_income_distribution,
                 spline_income_distribution, param, year_temp)
             income_net_of_commuting_costs = np.load(
-                precalculated_transport + "incomeNetOfCommuting_"
+                precalculated_transport + "GRID_incomeNetOfCommuting_"
                 + str(int(year_temp)) + ".npy")
             (param["subsidized_structure_value"]
              ) = (param["subsidized_structure_value_ref"]
@@ -111,10 +111,20 @@ def run_simulation(t, options, param, grid, initial_state_utility,
             coeff_land = inpdt.import_coeff_land(
                 spline_land_constraints, spline_land_backyard,
                 spline_land_informal, spline_land_RDP, param, year_temp)
+
+            # agricultural_rent = (
+            #     spline_agricultural_rent(year_temp)
+            #     ** (param["coeff_a"]) * (interest_rate)
+            #     / (construction_param * param["coeff_b"] ** param["coeff_b"])
+            #     )
+
+            # TODO: here it seems more natural to use interest_rate instead of
+            # param (also check formula from footnote 16)
             agricultural_rent = (
-                spline_agricultural_rent(year_temp)
-                ** (param["coeff_a"]) * (interest_rate)
-                / (construction_param * param["coeff_b"] ** param["coeff_b"])
+                spline_agricultural_rent(year_temp) ** (param["coeff_a"])
+                * (param["depreciation_rate"] + interest_rate)
+                / (construction_param * param["coeff_b"] ** param["coeff_b"]
+                   * param["coeff_a"] ** param["coeff_a"])
                 )
 
             # We compute a new static equilibrium for next period

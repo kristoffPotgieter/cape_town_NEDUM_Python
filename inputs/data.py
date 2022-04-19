@@ -34,10 +34,10 @@ def import_grid(path_data):
 def import_amenities(path_precalc_inp):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
-    # precalculated_amenities = scipy.io.loadmat(
-    #     path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
-    precalculated_amenities = np.load(
-        path_precalc_inp + 'calibratedAmenities.npy')
+    precalculated_amenities = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
+    # precalculated_amenities = np.load(
+    #     path_precalc_inp + 'calibratedAmenities.npy')
     # Normalize index by mean of values
     amenities = (precalculated_amenities
                  / np.nanmean(precalculated_amenities)).squeeze()
@@ -199,6 +199,10 @@ def import_macro_data(param, path_scenarios):
     #  We correct the obtained values
     interest_rate_n_years[interest_rate_n_years < 0] = np.nan
     interest_rate = np.nanmean(interest_rate_n_years)/100
+
+    # TODO: does it make sense to use spline when we have accurate data?
+    # Shouldn't we keep it for scenarios?
+    interest_rate = spline_interest_rate(0) / 100
 
     # Population
     # Raw figures come from Claus (to be updated)
@@ -424,13 +428,13 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  an alternative definition of coeff_land_backyard that includes formal
     #  backyarding and may be used for flood damage estimations
     #  TODO: check pb with floods
-    actual_backyards = (
-        (housing_types.backyard_formal_grid
-         + housing_types.backyard_informal_grid)
-        / np.nanmax(housing_types.backyard_formal_grid
-                    + housing_types.backyard_informal_grid)
-        ) * np.max(coeff_land_backyard)
-    # actual_backyards = 0
+    # actual_backyards = (
+    #     (housing_types.backyard_formal_grid
+    #      + housing_types.backyard_informal_grid)
+    #     / np.nanmax(housing_types.backyard_formal_grid
+    #                 + housing_types.backyard_informal_grid)
+    #     ) * np.max(coeff_land_backyard)
+    actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -1059,9 +1063,9 @@ def import_transport_data(grid, param, yearTraffic,
         param, yearTraffic)
     # Income centers: corresponds to expected income associated with each
     # income center and income group
-    # income_centers_init = scipy.io.loadmat(
-    #     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-    income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
+    income_centers_init = scipy.io.loadmat(
+        path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
     # This allows to correct incomes for RDP people not taken into account in
     # initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income

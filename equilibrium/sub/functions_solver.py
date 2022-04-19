@@ -98,7 +98,7 @@ def compute_housing_supply_formal(
             1000000
             * (construction_param ** (1/param["coeff_a"]))
             * ((param["coeff_b"]
-                / (param["interest_rate"] + param["depreciation_rate"]
+                / (interest_rate + param["depreciation_rate"]
                    + capital_destroyed))
                ** (param["coeff_b"]/param["coeff_a"]))
             * ((R) ** (param["coeff_b"]/param["coeff_a"]))

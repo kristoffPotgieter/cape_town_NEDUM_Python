@@ -55,8 +55,8 @@ def export_housing_types(
     # Graph validation housing type
 
     # We use same reweighting as in equilibrium
-    ratio = np.nansum(housing_type_1) / np.nansum(households_center_1)
-    households_center_1 = households_center_1 * ratio
+    # ratio = np.nansum(housing_type_1) / np.nansum(households_center_1)
+    # households_center_1 = households_center_1 * ratio
 
     data = pd.DataFrame(
         {legend1: np.nansum(housing_type_1, 1), legend2: housing_type_2},
@@ -73,8 +73,8 @@ def export_housing_types(
     # Graph validation income class
 
     # We use same reweighting as in equilibrium
-    ratio = np.nansum(housing_type_2) / np.nansum(households_center_2)
-    households_center_2 = households_center_2 * ratio
+    # ratio = np.nansum(housing_type_2) / np.nansum(households_center_2)
+    # households_center_2 = households_center_2 * ratio
 
     data = pd.DataFrame(
         {legend1: np.nansum(households_center_1, 1),
@@ -93,10 +93,10 @@ def export_households(
         initial_state_households, households_per_income_and_housing,
         legend1, legend2, path_outputs):
     """Bar plot for validation of households per income and housing groups."""
-    ratio = (np.nansum(initial_state_households)
-             / np.nansum(households_per_income_and_housing))
-    households_per_income_and_housing = (
-        households_per_income_and_housing * ratio)
+    # ratio = (np.nansum(initial_state_households)
+    #          / np.nansum(households_per_income_and_housing))
+    # households_per_income_and_housing = (
+    #     households_per_income_and_housing * ratio)
 
     households_per_income_and_housing[0, :] = (
         households_per_income_and_housing[0, :]
@@ -304,9 +304,9 @@ def validation_density(
                          + housing_types.formal_grid
                          + housing_types.backyard_formal_grid
                          + housing_types.backyard_informal_grid)
-    ratio = (np.nansum(initial_state_households_housing_types)
-             / np.nansum(sum_housing_types))
-    housing_types = housing_types * ratio
+    # ratio = (np.nansum(initial_state_households_housing_types)
+    #          / np.nansum(sum_housing_types))
+    # housing_types = housing_types * ratio
 
     # Population density
     xData = grid.dist
@@ -505,7 +505,7 @@ def validation_density_housing_types(
         plt.close()
 
 
-# TODO: need to add RDP separately as in compute_equilibrium
+# TODO: need to add RDP separately as in compute_equilibrium?
 def validation_density_income_groups(
         grid, initial_state_household_centers, income_distribution_grid,
         absolute_number, path_outputs):
@@ -701,7 +701,7 @@ def validation_housing_price(
 
     priceSimul = (
         ((initial_state_rent[0:3, :] * param["coeff_A"])
-         / (param["interest_rate"] + param["depreciation_rate"]))
+         / (interest_rate + param["depreciation_rate"]))
         ** (1 / param["coeff_a"])
         * param["coeff_a"]
         * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
@@ -724,6 +724,7 @@ def validation_housing_price(
         )
 
     xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
+    # TODO: a priori, no need to redefine
     yData = sp_price
     # xSimulation = xData
     ySimulation = priceSimulPricePoints_formal
