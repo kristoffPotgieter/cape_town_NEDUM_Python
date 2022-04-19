@@ -763,6 +763,62 @@ def validation_housing_price(
     plt.close()
 
 
+def validation_cal_income(path_data, path_outputs, center,
+                          income_centers_w, income_centers_precalc_w):
+    """d."""
+    TAZ = pd.read_csv(path_data + 'TAZ_amp_2013_proj_centro2.csv')
+
+    jobsCenters12Class = np.array(
+        [np.zeros(len(TAZ.Ink1)), TAZ.Ink1/3, TAZ.Ink1/3, TAZ.Ink1/3,
+         TAZ.Ink2/2, TAZ.Ink2/2, TAZ.Ink3/3, TAZ.Ink3/3, TAZ.Ink3/3,
+         TAZ.Ink4/3, TAZ.Ink4/3, TAZ.Ink4/3]
+        )
+
+    codeCentersInitial = TAZ.TZ2013
+    xCoord = TAZ.X / 1000
+    yCoord = TAZ.Y / 1000
+
+    selectedCenters = sum(jobsCenters12Class, 0) > 2500
+    selectedCenters[xCoord > -10] = np.zeros(1, 'bool')
+    selectedCenters[yCoord > -3719] = np.zeros(1, 'bool')
+    selectedCenters[(xCoord > -20) & (yCoord > -3765)] = np.zeros(1, 'bool')
+    selectedCenters[codeCentersInitial == 1010] = np.zeros(1, 'bool')
+    selectedCenters[codeCentersInitial == 1012] = np.zeros(1, 'bool')
+    selectedCenters[codeCentersInitial == 1394] = np.zeros(1, 'bool')
+    selectedCenters[codeCentersInitial == 1499] = np.zeros(1, 'bool')
+    selectedCenters[codeCentersInitial == 4703] = np.zeros(1, 'bool')
+
+    xCenter = xCoord[selectedCenters]
+    yCenter = yCoord[selectedCenters]
+
+    xData = np.sqrt((xCenter - center[0]) ** 2 + (yCenter - center[1]) ** 2)
+    yData = income_centers_precalc_w
+    ySimul = income_centers_w
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array([xData, yData, ySimul])),
+        columns=["xData", "yData", "ySimul"])
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).mean()
+
+    which = ~np.isnan(new_df.yData) & ~np.isnan(new_df.ySimul)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(new_df.xData[which], new_df.yData[which],
+            color="black", label="Precalc.")
+    ax.plot(new_df.xData[which], new_df.ySimul[which],
+            color="green", label="Recalc.")
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    plt.xlabel("Distance to the city center (km)")
+    plt.ylabel("Normalized income per job center (rich)")
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.tick_params(bottom=True, labelbottom=True)
+    plt.savefig(path_outputs + '/validation_rich_income.png')
+    plt.close()
+
+
 def plot_housing_demand(grid, initial_state_dwelling_size, path_outputs):
     """d."""
     xData = grid.dist
@@ -781,7 +837,7 @@ def plot_housing_demand(grid, initial_state_dwelling_size, path_outputs):
     ax.plot(np.arange(max(df["round"] + 1)),
             new_df.formal_simul, color="green")
 
-    ax.set_ylim(0)
+    ax.set_ylim(0, 1000)
     ax.set_xlim([0, 40])
     plt.legend()
     plt.tick_params(labelbottom=True)

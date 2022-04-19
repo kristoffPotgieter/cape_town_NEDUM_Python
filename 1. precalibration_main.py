@@ -512,3 +512,30 @@ np.save(path_precalc_inp + 'calibratedUtility_beta', calibratedUtility_beta)
 np.save(path_precalc_inp + 'calibratedUtility_q0', calibratedUtility_q0)
 # Hard to tell according to map
 np.save(path_precalc_inp + 'calibratedAmenities', cal_amenities)
+
+# Other tests
+
+outexp.export_map(amenities, grid, path_outputs + 'precalc_amenity_map',
+                  1.3, 0.8)
+outexp.export_map(amenities, grid, path_outputs + 'precalc_amenity_map',
+                  1.3, 0.8)
+
+income_centers_precalc = scipy.io.loadmat(
+    path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+income_centers_precalc[income_centers_precalc == -np.inf] = np.nan
+income_centers_precalc_w = (
+    income_centers_precalc / np.nanmean(income_centers_precalc))
+income_centers = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
+income_centers[income_centers == -np.inf] = np.nan
+income_centers_w = income_centers / np.nanmean(income_centers)
+
+# outexp.export_map(income_centers_precalc_w[:, 0], grid,
+#                   path_outputs + 'precalc_income_rich_map',
+#                   0, 5.5)
+# outexp.export_map(income_centers_w[:, 0], grid,
+#                   path_outputs + 'income_rich_map',
+#                   0, 5.5)
+
+outexp.validation_cal_income(
+    path_data, path_outputs, center, income_centers[:, 0],
+    income_centers_precalc[:, 0])
