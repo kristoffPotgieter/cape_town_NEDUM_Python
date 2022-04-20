@@ -36,8 +36,8 @@ def import_amenities(path_precalc_inp):
     # Follow calibration from Pfeiffer et al. (appendix C4)
     precalculated_amenities = scipy.io.loadmat(
         path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
-    # precalculated_amenities = np.load(
-    #     path_precalc_inp + 'calibratedAmenities.npy')
+    precalculated_amenities = np.load(
+        path_precalc_inp + 'calibratedAmenities.npy')
     # Normalize index by mean of values
     amenities = (precalculated_amenities
                  / np.nanmean(precalculated_amenities)).squeeze()
@@ -61,7 +61,7 @@ def import_hypothesis_housing_type():
 def import_income_classes_data(param, path_data):
     """Import population and average income per income class in the model."""
     # Import population distribution according to housing type (no RDP) and
-    # income class
+    # income class (note that formal backyard is lacking)
     income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
 
     # Compute overall average income
@@ -202,10 +202,11 @@ def import_macro_data(param, path_scenarios):
 
     # TODO: does it make sense to use spline when we have accurate data?
     # Shouldn't we keep it for scenarios?
-    interest_rate = spline_interest_rate(0) / 100
+    # interest_rate = spline_interest_rate(0) / 100
 
     # Population
-    # Raw figures come from Claus (to be updated)
+    # Raw figures come from Claus/ comes from housing_types
+    # TODO: link with data
     total_RDP = 194258
     total_formal = 626770
     total_informal = 143765
@@ -430,7 +431,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  TODO: check pb with floods
     # actual_backyards = (
     #     (housing_types.backyard_formal_grid
-    #      + housing_types.backyard_informal_grid)
+    #       + housing_types.backyard_informal_grid)
     #     / np.nanmax(housing_types.backyard_formal_grid
     #                 + housing_types.backyard_informal_grid)
     #     ) * np.max(coeff_land_backyard)

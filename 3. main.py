@@ -180,11 +180,11 @@ elif options["agents_anticipate_floods"] == 0:
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
-      grid, param, 0, households_per_income_class, average_income,
-      spline_inflation, spline_fuel,
-      spline_population_income_distribution, spline_income_distribution,
-      path_precalc_inp, path_precalc_transp, 'GRID')
+# income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
+#       grid, param, 0, households_per_income_class, average_income,
+#       spline_inflation, spline_fuel,
+#       spline_population_income_distribution, spline_income_distribution,
+#       path_precalc_inp, path_precalc_transp, 'GRID')
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 
@@ -195,7 +195,21 @@ income_net_of_commuting_costs = np.load(
 # TODO: Also note that we simulate households as two representative agents
 # (not as in the paper)
 
-# TODO: create option to run on old or new calibrated parameters
+# TODO: create option to run on old or new calibrated parameters.
+# We use backyard and informal pockets by default, with no reweighting
+
+# Note that using actual_backyards option makes alogrithm much longer
+# and does not change much for validation. Doubling transport costs does not
+# change much either. Also note that interest rate has a strong impact on
+# dwelling size (probably should not be set too low).
+
+# New calibration for amenities allows to shift price spike to the left and
+# flatten density curve. Adding new calibration for incomes also contributes
+# to flattening but significantly shifts the distribution of income groups
+# across backyards. However, new utility parameter estimates need to be
+# refined. Same goes for construcion function parameters, but lambda is fine.
+
+# TODO: also need to check validation across income groups
 
 (initial_state_utility,
  initial_state_error,

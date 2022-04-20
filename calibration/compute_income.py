@@ -94,19 +94,19 @@ def import_transport_costs(grid, param, yearTraffic,
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
-    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"]) * 2
-    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"]) * 2
-    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"]) * 2
-    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"]) * 2
+    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])  # * 2
+    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])  # * 2
+    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])  # * 2
+    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])  # * 2
 
     # Length (in km) using each mode (in direct line)
     multiplierPrice = np.empty((timeOutput.shape))
     multiplierPrice[:] = np.nan
     multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
-    multiplierPrice[:, :, 1] = transport_times["distanceCar"] * 2
-    multiplierPrice[:, :, 2] = transport_times["distanceCar"] * 2
-    multiplierPrice[:, :, 3] = transport_times["distanceCar"] * 2
-    multiplierPrice[:, :, 4] = transport_times["distanceCar"] * 2
+    multiplierPrice[:, :, 1] = transport_times["distanceCar"]  # * 2
+    multiplierPrice[:, :, 2] = transport_times["distanceCar"]  # * 2
+    multiplierPrice[:, :, 3] = transport_times["distanceCar"]  # * 2
+    multiplierPrice[:, :, 4] = transport_times["distanceCar"]  # * 2
 
     # Multiplying by 235 (nb of working days per year)
     # TODO: is inital price for day or for month?

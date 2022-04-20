@@ -67,7 +67,7 @@ def import_param(path_precalc_inp, path_outputs):
     # al.), as calibrated in appendix C3
     param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
                                        )["lambdaKeep"].squeeze()
-    # param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
+    param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
     # Discount factors
     #  From Viguié et al. (2014)
@@ -174,13 +174,13 @@ def import_param(path_precalc_inp, path_outputs):
     # Disamenity parameters for informal settlements and backyard shacks
 
     #  For general calibration used in Pfeiffer et al. (appendix C5)
-    disamenity_param = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedParamAmenities.mat'
-        )["calibratedParamAmenities"].squeeze()
-    param["pockets"] = np.matlib.repmat(
-        disamenity_param[1], 24014, 1).squeeze()
-    param["backyard_pockets"] = np.matlib.repmat(
-        disamenity_param[0], 24014, 1).squeeze()
+    # disamenity_param = scipy.io.loadmat(
+    #     path_precalc_inp + 'calibratedParamAmenities.mat'
+    #     )["calibratedParamAmenities"].squeeze()
+    # param["pockets"] = np.matlib.repmat(
+    #     disamenity_param[1], 24014, 1).squeeze()
+    # param["backyard_pockets"] = np.matlib.repmat(
+    #     disamenity_param[0], 24014, 1).squeeze()
     # param_amenity_settlement = np.load(
     #     path_precalc_inp + 'param_amenity_settlement.npy')
     # param["pockets"] = np.matlib.repmat(
@@ -191,10 +191,10 @@ def import_param(path_precalc_inp, path_outputs):
     #     param_amenity_backyard, 24014, 1).squeeze()
 
     #  For location-based calibration
-    # param["pockets"] = np.load(
-    #     path_precalc_inp + 'param_pockets.npy')
-    # param["backyard_pockets"] = np.load(
-    #     path_precalc_inp + 'param_backyards.npy')
+    param["pockets"] = np.load(
+        path_precalc_inp + 'param_pockets.npy')
+    param["backyard_pockets"] = np.load(
+        path_precalc_inp + 'param_backyards.npy')
 
     return param
 

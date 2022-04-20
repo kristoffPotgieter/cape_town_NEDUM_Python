@@ -76,9 +76,9 @@ param["income_year_reference"] = mean_income
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
 income_net_of_commuting_costs = np.load(
-    path_precalc_transp + 'incomeNetOfCommuting_0.npy')
-income_net_of_commuting_costs_29 = np.load(
-    path_precalc_transp + 'incomeNetofCommuting_29.npy')
+    path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
+# income_net_of_commuting_costs_29 = np.load(
+#     path_precalc_transp + 'GRID_incomeNetofCommuting_29.npy')
 
 # average_income_2011 = np.load(
 #     path_precalc_transp + 'average_income_year_0.npy')
@@ -235,6 +235,10 @@ outexp.export_housing_types(
     housing_type_data, households_per_income_class, 'Simulation', 'Data',
     path_outputs + plot_repo
     )
+
+# Note that we use no reweighting in validation, hence the gap due to formal
+# backyards in income data
+
 outexp.export_households(
     initial_state_households, households_per_income_and_housing, 'Simulation',
     'Data', path_outputs + plot_repo)
@@ -289,8 +293,8 @@ outexp.validation_housing_price(
     )
 
 # TODO: how can dwelling size be so big?
-outexp.plot_housing_demand(grid, initial_state_dwelling_size,
-                           path_outputs + plot_repo)
+outexp.plot_housing_demand(grid, center, initial_state_dwelling_size,
+                           path_precalc_inp, path_outputs + plot_repo)
 
 outexp.export_map(initial_state_households_housing_types[0, :], grid,
                   path_outputs + plot_repo + 'formal_sim', 1200)

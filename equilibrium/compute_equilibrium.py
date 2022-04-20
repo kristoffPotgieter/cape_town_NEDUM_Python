@@ -23,8 +23,8 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Adjust the population to remove the population in RDP
     #  We augment the number of households per income class to include RDP
     #  TODO: should we rescale without contradicting calibration though?
-    # ratio = population / sum(households_per_income_class)
-    # households_per_income_class = households_per_income_class * ratio
+    ratio = population / sum(households_per_income_class)
+    households_per_income_class = households_per_income_class * ratio
     #  Considering that all RDP belong to the poorest, we remove them from here
     households_per_income_class[0] = np.max(
         households_per_income_class[0] - total_RDP, 0)

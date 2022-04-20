@@ -94,7 +94,7 @@ def export_households(
         legend1, legend2, path_outputs):
     """Bar plot for validation of households per income and housing groups."""
     # ratio = (np.nansum(initial_state_households)
-    #          / np.nansum(households_per_income_and_housing))
+    #           / np.nansum(households_per_income_and_housing))
     # households_per_income_and_housing = (
     #     households_per_income_and_housing * ratio)
 
@@ -124,7 +124,7 @@ def export_households(
     #      legend2: households_per_income_and_housing[3, :]},
     #     index=["Poor", "Mid-poor", "Mid-rich", "Rich"])
 
-    figure, axis = plt.subplots(3, 1, figsize=(6, 4))
+    figure, axis = plt.subplots(3, 1, figsize=(10, 7))
     figure.tight_layout()
     data0.plot(kind="bar", ax=axis[0])
     axis[0].set_title("Formal")
@@ -763,6 +763,53 @@ def validation_housing_price(
     plt.close()
 
 
+def plot_housing_demand(grid, center, initial_state_dwelling_size,
+                        path_precalc_inp, path_outputs):
+    """d."""
+    data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
+    # Number of informal settlements in backyard per grid cell
+    sp_x = data['spX'][0][0].squeeze()
+    sp_y = data['spY'][0][0].squeeze()
+    sp_size = data['spDwellingSize'][0][0].squeeze()
+
+    sizeSimulPoints = griddata(
+        np.transpose(np.array([grid.x, grid.y])),
+        initial_state_dwelling_size[0, :],
+        np.transpose(np.array([sp_x, sp_y]))
+        )
+
+    xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
+    yData = sp_size
+    # xSimulation = xData
+    ySimulation = sizeSimulPoints
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array(
+            [xData, yData, ySimulation]
+            )),
+        columns=["xData", "yData", "ySimulation"]
+        )
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).mean()
+
+    which = ~np.isnan(new_df.yData) & ~np.isnan(new_df.ySimulation)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(new_df.xData[which], new_df.yData[which],
+            color="black", label="Data")
+    ax.plot(new_df.xData[which], new_df.ySimulation[which],
+            color="green", label="Simul")
+
+    ax.set_ylim(0, 500)
+    ax.set_xlim([0, 40])
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.xlabel("Distance to the city center (km)")
+    plt.ylabel("Avg dwelling size in formal sector (in m²)")
+    plt.savefig(path_outputs + 'validation_housing_demand.png')
+    plt.close()
+
+
 def validation_cal_income(path_data, path_outputs, center,
                           income_centers_w, income_centers_precalc_w):
     """d."""
@@ -816,34 +863,6 @@ def validation_cal_income(path_data, path_outputs, center,
     plt.tick_params(labelbottom=True)
     plt.tick_params(bottom=True, labelbottom=True)
     plt.savefig(path_outputs + '/validation_rich_income.png')
-    plt.close()
-
-
-def plot_housing_demand(grid, initial_state_dwelling_size, path_outputs):
-    """d."""
-    xData = grid.dist
-    formal_simul = initial_state_dwelling_size[0, :]
-
-    df = pd.DataFrame(
-        data=np.transpose(np.array(
-            [xData, formal_simul]
-            )),
-        columns=["xData", "formal_simul"]
-        )
-    df["round"] = round(df.xData)
-    new_df = df.groupby(['round']).mean()
-
-    fig, ax = plt.subplots(figsize=(10, 7))
-    ax.plot(np.arange(max(df["round"] + 1)),
-            new_df.formal_simul, color="green")
-
-    ax.set_ylim(0, 1000)
-    ax.set_xlim([0, 40])
-    plt.legend()
-    plt.tick_params(labelbottom=True)
-    plt.xlabel("Distance to the city center (km)")
-    plt.ylabel("Avg dwelling size in formal sector (in m²)")
-    plt.savefig(path_outputs + 'validation_housing_demand.png')
     plt.close()
 
 
