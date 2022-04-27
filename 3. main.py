@@ -50,13 +50,13 @@ options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
 #  Set timeline for simulations
-t = np.arange(0, 30)
+t = np.arange(0, 22)
 
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-options["agents_anticipate_floods"] = 0
-options["informal_land_constrained"] = 1
+options["agents_anticipate_floods"] = 1
+options["informal_land_constrained"] = 0
 
 name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
         + 'informal' + str(options["informal_land_constrained"]) + '_'
@@ -313,6 +313,9 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
 
 # %% Scenarios
 
+# NB: From simulation 22 onwards (with constraint), algorithm does not converge
+# Note that this does not depend on calibration used!
+
 # RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
 (simulation_households_center,
  simulation_households_housing_type,
@@ -386,3 +389,5 @@ np.save(path_outputs + name + '/simulation_deriv_housing.npy',
         simulation_deriv_housing)
 np.save(path_outputs + name + '/simulation_T.npy',
         simulation_T)
+
+# NB: how do we model income and amenity changes with floods?

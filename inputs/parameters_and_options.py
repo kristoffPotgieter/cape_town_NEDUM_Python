@@ -67,7 +67,7 @@ def import_param(path_precalc_inp, path_outputs):
     # al.), as calibrated in appendix C3
     param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
                                        )["lambdaKeep"].squeeze()
-    param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
+    # param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
     # Discount factors
     #  From Viguié et al. (2014)

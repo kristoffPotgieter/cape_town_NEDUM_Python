@@ -36,8 +36,8 @@ def import_amenities(path_precalc_inp):
     # Follow calibration from Pfeiffer et al. (appendix C4)
     precalculated_amenities = scipy.io.loadmat(
         path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
-    precalculated_amenities = np.load(
-        path_precalc_inp + 'calibratedAmenities.npy')
+    # precalculated_amenities = np.load(
+    #     path_precalc_inp + 'calibratedAmenities.npy')
     # Normalize index by mean of values
     amenities = (precalculated_amenities
                  / np.nanmean(precalculated_amenities)).squeeze()
@@ -429,12 +429,12 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  an alternative definition of coeff_land_backyard that includes formal
     #  backyarding and may be used for flood damage estimations
     #  TODO: check pb with floods
-    # actual_backyards = (
-    #     (housing_types.backyard_formal_grid
-    #       + housing_types.backyard_informal_grid)
-    #     / np.nanmax(housing_types.backyard_formal_grid
-    #                 + housing_types.backyard_informal_grid)
-    #     ) * np.max(coeff_land_backyard)
+    actual_backyards = (
+        (housing_types.backyard_formal_grid
+          + housing_types.backyard_informal_grid)
+        / np.nanmax(housing_types.backyard_formal_grid
+                    + housing_types.backyard_informal_grid)
+        ) * np.max(coeff_land_backyard)
     actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
