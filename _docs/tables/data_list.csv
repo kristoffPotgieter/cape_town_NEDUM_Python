@@ -1,0 +1,32 @@
+Data type,Data sets,Data uses,Remarks and questions,Proposed additional / more recent data and their purpose 
+"Spatial distribution of population by income group and by housing type (as input into the model, for validation and calibration)",- National censuses (2001 & 2011),"The number of households in each income group (including a probability of unemployment for each income group) is exogenous. This is in line with the ""closed city model"" approach, whereby population in each income group varies over time according to different exogenous scenarios. This is also used to calibrate disamenity parameters related to living in informal and backyard structures, such that model predictions fit the data.",,
+Population density maps (for calibration and validation),- National censuses (2001 & 2011),"Population density is used (along with other inputs) to estimate the construction cost function parameters, and then to validate the output of the model.",,
+Land use maps (for land availability by housing type and amenities),"- CoCT's cadastre (Single Residential 2 - Incremental Housing) for RDP housing
+- 2011 Census (Enumerator Area) for informal settlements
+- Housing Pipeline, Integrated Human Settlement Framework (2013) for RDP construction scenario
+- Expert input on informal settlement risk scenarios
+- CoCT's open data portal for distances to the ocean, an urban heritage site, a district park, or presence in the ""airport noise cone""
+- SA's Environment Deparment (SAPAD Q4) for distances to a protected natural area
+- OpenStreetMap open data for distances to a train station
+- USGS Digital Elevation Model for average slope","In each location, land availability (i.e., the amount of land that can be mobilized for different types of housing) and the presence of physical local amenities are exogenous. (Note that the model does not account for endogenous population amenities such as the composition of neighborhoods.) Physical local amenities are used to estimate an amenity index, which affects the utility of households, and subsequently their housing choices.",,
+Main employment centres (for calibration),- CoCT's EMME/2 model (2013) for number of jobs per income group,The number of employment centres is exogenous. The number of jobs in each subcenter is endogenous and depends on workers' choice of an employment centre in equilibrium. The number of jobs per employment centre in the data is used to estimate the wage for each income group in each employment centre. Households make utility maximizing decisions given these calibrated wages which not only affect the gross income in a given centre but also commuting costs and mode choice (since the opportunity cost of time is valued at the hourly wage). This ultimately determines households' choice of an employment centre. ,,
+(Average) household size,- National censuses (2001 & 2011),The model considers households made of one representative worker. Total population is obtained by multiplying the number of workers by average household size.,,
+(Average) household income (for calibration and simulation),"- National censuses (2001 & 2011) for actual data
+- CoCT's Medium Term Infrastructure Investment framework (2017) for scenarios",This supports the assumption regarding the sizes of the four income groups. It also provides  income ratios across the different income groups for calibration of the wage for each income group in each employment centre.,,
+Origin-destination matrices for transport times for each transport mode (for calibration),"- CoCT's EMME/2 model (2013)
+- General Household Transport Survey (2013), on-board surveys and cordon counts for model calibration",Transport times by transport mode determine the expected commuting cost that households minimize to choose their transport mode.,,
+Origin-destination matrices for distances for each transport mode (for calibration),- CoCT's EMME/2 model (2013),"Traveled distances are used to estimate the gravity parameter used in the transport cost function, and to recover the monetary cost from commuting.",,
+Rents / real estate prices (for calibration and validation),- CoCT's housing sales registry (2011),"Prices are used to define the agricultural land rent (i.e., land prices at the border of the city), and estimate construction cost function and utility function parameters. They are also used to validate the outputs of the model.",,
+Long-term interest rate for mortgage or equivalent (for simulations and equilibrium),"- World Bank, World Development Indicator database (2016) 
+- Other sources?",The interest rate is used in the profit function that developers maximize when choosing the quantity of housing to supply in each location.,,
+Aggregate statistics on transport modal shares (for calibration),- General Household Transport Survey (2013),This is also used for the estimation of the gravity parameter in the transport cost function.,,
+Evolution of rents / real estate prices over time (for validation),"- CoCT's housing sales registry (2001, 2006, 2011)",This is used to check the retrospective fit of model outputs.,,
+"Average construction costs per m², as a function of building type (for calibration)",,"This is useful to estimate construction cost function parameters.
+NB: The current version of the model relies on a different approximation procedure.",,
+Dwelling sizes (for calibration),- CoCT,"This allows to pick the minimum quantity of housing in formal private housing (which is assumed in the utility function of households).
+It is also used to estimate construction cost and utility function parameters.",,
+Cost of private transport (for calibration),"- SA's Energy Department, Energy South Africa report (2016) for fuel prices
+- Merven et al. (2012) for vehicle energy efficiency",This is used to calibrate the expected monetary cost for each transport mode.,,
+Public transport price (for calibration),- Roux (2013),This is used to calibrate the expected monetary cost for each transport mode.,,
+Administrative boundaries and neighbourhood names,"- CoCT
+- National censuses (2001 & 2011)",This is used to aggregate and merge data at different spatial levels.,,

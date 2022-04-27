@@ -237,7 +237,7 @@ outexp.export_housing_types(
     )
 
 # Note that we use no reweighting in validation, hence the gap due to formal
-# backyards in income data
+# backyards in income data (?)
 
 outexp.export_households(
     initial_state_households, households_per_income_and_housing, 'Simulation',
@@ -264,6 +264,7 @@ outexp.validation_density_housing_types(
 # TODO: More precisely, pb seems to come from midpoor households at 20km!
 # Also midrich at 0 and 20, and rich at 10...
 # But then, is validation data trustworthy? Use griddata?
+# Also note reweighting pb
 outexp.validation_density_income_groups(
     grid, initial_state_household_centers, income_distribution_grid, 0,
     path_outputs + plot_repo

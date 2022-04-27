@@ -102,8 +102,8 @@ param["income_year_reference"] = mean_income
 #  Note that there is no RDP, but both formal and informal backyard
 
 # Long tu run: uncomment if need to update 'housing_types_grid_sal.xlsx'
-# housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
-#                                       housing_type_data)
+housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
+                                      housing_type_data)
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 
 

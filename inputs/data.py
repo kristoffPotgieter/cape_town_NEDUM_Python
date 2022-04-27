@@ -1183,7 +1183,7 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
     sal_data["backyard_informal"] = sal_data[
         "Informal dwelling (shack; in backyard)"]
-    sal_data["formal"] = np.nansum(sal_data.iloc[:, 3:15], 1)
+    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
 
     grid_intersect = pd.read_csv(
         path_data + 'grid_SAL_intersect.csv', sep=';')
