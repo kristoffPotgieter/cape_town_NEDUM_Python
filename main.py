@@ -119,7 +119,7 @@ elif options["agents_anticipate_floods"] == 0:
 
 if options["pluvial"] == 0:
     param["pockets"] = np.load(precalculated_inputs+'param_pockets.npy')
-    param["backyard_pockets"] = np.load(precalculated_inputs+'fluvial_and_pluvial/param_backyards.npy')
+    param["backyard_pockets"] = np.load(precalculated_inputs+'param_backyards.npy')
 
 param["pockets"] = np.load(precalculated_inputs+'param_pockets.npy')
 param["backyard_pockets"] = np.load(precalculated_inputs+'param_backyards.npy')
@@ -165,7 +165,38 @@ print("\n*** Solver initial state ***\n")
      minimum_housing_supply, 
      param["coeff_A"])
 
+try:
+    os.mkdir(path_outputs + name)
+except OSError as error:
+    print(error)
 
+
+np.save(path_outputs + name + '/initial_state_utility.npy',
+        initial_state_utility)
+np.save(path_outputs + name + '/initial_state_error.npy',
+        initial_state_error)
+np.save(path_outputs + name + '/initial_state_simulated_jobs.npy',
+        initial_state_simulated_jobs)
+np.save(path_outputs + name + '/initial_state_households_housing_types.npy',
+        initial_state_households_housing_types)
+np.save(path_outputs + name + '/initial_state_household_centers.npy',
+        initial_state_household_centers)
+np.save(path_outputs + name + '/initial_state_households.npy',
+        initial_state_households)
+np.save(path_outputs + name + '/initial_state_dwelling_size.npy',
+        initial_state_dwelling_size)
+np.save(path_outputs + name + '/initial_state_housing_supply.npy',
+        initial_state_housing_supply)
+np.save(path_outputs + name + '/initial_state_rent.npy',
+        initial_state_rent)
+np.save(path_outputs + name + '/initial_state_rent_matrix.npy',
+        initial_state_rent_matrix)
+np.save(path_outputs + name + '/initial_state_capital_land.npy',
+        initial_state_capital_land)
+np.save(path_outputs + name + '/initial_state_average_income.npy',
+        initial_state_average_income)
+np.save(path_outputs + name + '/initial_state_limit_city.npy',
+        initial_state_limit_city)
 
 
 # %% Validation
@@ -221,6 +252,8 @@ t = np.arange(0, 30) # simulation over 30 years
 param["informal_structure_value_ref"] = copy.deepcopy(param["informal_structure_value"])
 param["subsidized_structure_value_ref"] = copy.deepcopy(param["subsidized_structure_value"])
 
+fraction_capital_destroyed = fraction_capital_destroyed[0]
+
 # important: does the simulation
 (simulation_households_center, 
  simulation_households_housing_type, 
@@ -258,21 +291,48 @@ param["subsidized_structure_value_ref"] = copy.deepcopy(param["subsidized_struct
                                 precalculated_transport)
 
 #Save outputs
-name = 'carbon_tax_car_bus_taxi_20211103_basile'
-os.mkdir(path_outputs + name)
-np.save(path_outputs + name + '/simulation_households_center.npy', simulation_households_center)
-np.save(path_outputs + name + '/simulation_dwelling_size.npy', simulation_dwelling_size)
-np.save(path_outputs + name + '/simulation_rent.npy', simulation_rent)
-np.save(path_outputs + name + '/simulation_households_housing_type.npy', simulation_households_housing_type)
-np.save(path_outputs + name + '/simulation_households.npy', simulation_households)
-np.save(path_outputs + name + '/simulation_utility.npy', simulation_utility)
+# name = 'carbon_tax_car_bus_taxi_20211103_basile'
 
-path_simulation = path_outputs+'20201216_0_0'
-simulation_households_center = np.load(path_outputs + name + '/simulation_households_center.npy')
-simulation_dwelling_size = np.load(path_outputs + name + '/simulation_dwelling_size.npy')
-simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
-simulation_households_housing_type = np.load(path_outputs + name + '/simulation_households_housing_type.npy')
-simulation_households = np.load(path_outputs + name + '/simulation_households.npy')
+try:
+    os.mkdir(path_outputs + name)
+except OSError as error:
+    print(error)
+
+np.save(path_outputs + name + '/simulation_households_center.npy',
+        simulation_households_center)
+np.save(path_outputs + name + '/simulation_households_housing_type.npy',
+        simulation_households_housing_type)
+np.save(path_outputs + name + '/simulation_dwelling_size.npy',
+        simulation_dwelling_size)
+np.save(path_outputs + name + '/simulation_rent.npy',
+        simulation_rent)
+np.save(path_outputs + name + '/simulation_households.npy',
+        simulation_households)
+np.save(path_outputs + name + '/simulation_error.npy',
+        simulation_error)
+np.save(path_outputs + name + '/simulation_housing_supply.npy',
+        simulation_housing_supply)
+np.save(path_outputs + name + '/simulation_utility.npy',
+        simulation_utility)
+np.save(path_outputs + name + '/simulation_deriv_housing.npy',
+        simulation_deriv_housing)
+np.save(path_outputs + name + '/simulation_T.npy',
+        simulation_T)
+
+# os.mkdir(path_outputs + name)
+# np.save(path_outputs + name + '/simulation_households_center.npy', simulation_households_center)
+# np.save(path_outputs + name + '/simulation_dwelling_size.npy', simulation_dwelling_size)
+# np.save(path_outputs + name + '/simulation_rent.npy', simulation_rent)
+# np.save(path_outputs + name + '/simulation_households_housing_type.npy', simulation_households_housing_type)
+# np.save(path_outputs + name + '/simulation_households.npy', simulation_households)
+# np.save(path_outputs + name + '/simulation_utility.npy', simulation_utility)
+
+# path_simulation = path_outputs+'20201216_0_0'
+# simulation_households_center = np.load(path_outputs + name + '/simulation_households_center.npy')
+# simulation_dwelling_size = np.load(path_outputs + name + '/simulation_dwelling_size.npy')
+# simulation_rent = np.load(path_outputs + name + '/simulation_rent.npy')
+# simulation_households_housing_type = np.load(path_outputs + name + '/simulation_households_housing_type.npy')
+# simulation_households = np.load(path_outputs + name + '/simulation_households.npy')
 
 # %% Plot outputs scenarions
 
