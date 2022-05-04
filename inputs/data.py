@@ -435,7 +435,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         / np.nanmax(housing_types.backyard_formal_grid
                     + housing_types.backyard_informal_grid)
         ) * np.max(coeff_land_backyard)
-    actual_backyards = 0
+    # actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -620,6 +620,10 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
     """Return pixel share for housing scenarios, weighted by max building %."""
+    # TODO: test if correcting spline_land_RDP makes big difference
+    # for formal in outer areas
+    # TODO: see if different assumptions for RDP GV drive the difference
+    # in simulations for formal
     coeff_land_private = (spline_land_constraints(t)
                           - spline_land_backyard(t)
                           - spline_land_informal(t)
@@ -770,6 +774,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     # medium run, and that RDP and backyard are not over short run
     # This is based on CCT Minimum Standards for Stormwater Design 2014 (p.37)
     # and Govender 2011 (fig.8 and p.30): see Aux data and discussion w/ CLaus
+    # TODO: ask if other data than FATHOM for pluvial
     if ((type_flood == 'P') & (housing_type == 'formal')):
         d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
         d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
@@ -789,6 +794,8 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     # define damage intervals to be used in final computation
 
     # We take zero value at t = 0
+    # TODO: can return periods really be assimilated with probabilities?
+    # TODO: is continuous the right framework?
     damages0 = (d[type_flood + '_5yr'].prop_flood_prone
                 * damage_function(d[type_flood + '_5yr'].flood_depth))
     damages1 = ((d[type_flood + '_5yr'].prop_flood_prone

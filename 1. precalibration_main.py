@@ -173,13 +173,13 @@ incomeNetOfCommuting = np.load(
 # We associate income group to each census block according to average income
 # TODO: is it the right way to define dominant income group? Shouldn't we take
 # the most numerous group instead?
-# data_income_group = np.zeros(len(data_sp["income"]))
-# for j in range(0, 3):
-#     data_income_group[data_sp["income"] >
-#                       threshold_income_distribution[j]] = j+1
-data_income_group = np.zeros(len(income_distribution))
-for i in range(0, len(income_distribution)):
-    data_income_group[i] = np.argmax(income_distribution[i])
+data_income_group = np.zeros(len(data_sp["income"]))
+for j in range(0, 3):
+    data_income_group[data_sp["income"] >
+                      threshold_income_distribution[j]] = j+1
+# data_income_group = np.zeros(len(income_distribution))
+# for i in range(0, len(income_distribution)):
+#     data_income_group[i] = np.argmax(income_distribution[i])
 
 # We get the number of formal housing units per SP
 # TODO: should we substract RDP?
@@ -199,17 +199,17 @@ rdp_sp_fill = pd.merge(rdp_sp, data_sp['sp_code'], on="sp_code", how="outer")
 rdp_sp_fill['count'] = rdp_sp_fill['count'].fillna(0)
 rdp_sp_fill = rdp_sp_fill.sort_values(by='sp_code')
 
-data_number_formal = (
-    housing_types_sp.total_dwellings_SP_2011
-    - housing_types_sp.backyard_SP_2011
-    - housing_types_sp.informal_SP_2011
-    - rdp_sp_fill['count'])
-
 # data_number_formal = (
 #     housing_types_sp.total_dwellings_SP_2011
 #     - housing_types_sp.backyard_SP_2011
 #     - housing_types_sp.informal_SP_2011
-#     )
+#     - rdp_sp_fill['count'])
+
+data_number_formal = (
+    housing_types_sp.total_dwellings_SP_2011
+    - housing_types_sp.backyard_SP_2011
+    - housing_types_sp.informal_SP_2011
+    )
 
 # We select the data points we are going to use.
 # As Cobb-Douglas log-linear relation is only true for the formal sector, we
@@ -224,24 +224,27 @@ data_number_formal = (
 # and far-away land (for which we have few observations)
 # TODO: should we really exclude dominant income group?
 
+# TODO: makes sense to calibrate without specific neighborhoods to avoid
+# overfitting?
+
+selected_density = (
+    (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
+    & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
+    & (data_sp["unconstrained_area"]
+        < np.nanquantile(data_sp["unconstrained_area"], 0.8))
+    & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
+    & (data_income_group > 0)
+    & (data_sp["mitchells_plain"] == 0)
+    & (data_sp["distance"] < 40)
+    )
+
 # selected_density = (
 #     (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
 #     & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
 #     & (data_sp["unconstrained_area"]
 #        < np.nanquantile(data_sp["unconstrained_area"], 0.8))
 #     & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
-#     & (data_income_group > 0)
-#     & (data_sp["mitchells_plain"] == 0)
-#     & (data_sp["distance"] < 40)
 #     )
-
-selected_density = (
-    (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
-    & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
-    & (data_sp["unconstrained_area"]
-       < np.nanquantile(data_sp["unconstrained_area"], 0.8))
-    & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
-    )
 
 # We run regression from apppendix C2
 

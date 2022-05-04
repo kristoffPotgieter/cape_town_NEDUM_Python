@@ -12,7 +12,7 @@ Disclaimer
 Overview
 --------
 
-**NEDUM-2D** (Non-Equilibrium Dynamic Urban Model) is a tool for simulating land-use patterns across a city in two dimensions. The initial rationale for its development was to make urban simulations more realistic by modelling deviations from theoretical static equilibria as caused by inertia in the adaptive behaviour of households and developers over time. The current version developed for the *City of Cape Town* (CoCT) incorporates several transportation modes, employment centres, income groups, and housing types, for even more realistic prospective scenarios. It allows to model the spatial impact of policies with a special interest for cities in developing countries, such as informal housing regulation and localized flood protection investments.
+**NEDUM-2D** (Non-Equilibrium Dynamic Urban Model) is a tool for simulating land-use patterns across a city in two dimensions. The initial rationale for its development was to make urban simulations more realistic by modelling deviations from theoretical static equilibria as caused by inertia in the adaptive behaviour of households and developers over time. The current version developed for the *City of Cape Town* (CoCT) incorporates several transportation modes, employment centres, income groups, and housing types, to provide even more realistic prospective scenarios, while remaining tractable in terms of causal mechanisms at play. It allows to model the spatial impact of policies with a special interest for cities in developing countries, such as informal housing regulation and localized flood protection investments.
 
 ---------
 Resources

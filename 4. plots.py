@@ -45,12 +45,12 @@ path_floods = path_folder + "FATHOM/"
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
-options["agents_anticipate_floods"] = 0
-options["informal_land_constrained"] = 1
+options["agents_anticipate_floods"] = 1
+options["informal_land_constrained"] = 0
 
 name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
         + 'informal' + str(options["informal_land_constrained"]) + '_'
-        + 'fbackyard0')
+        + 'actual_backyards1' + '_' + 'pockets1')
 plot_repo = name + '/plots/'
 
 
@@ -117,10 +117,6 @@ housing_types[np.isnan(housing_types)] = 0
      inpdt.import_land_use(grid, options, param, data_rdp, housing_types,
                            housing_type_data, path_data, path_folder)
      )
-
-# param["pockets"][
-#     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-#     ] = 0.79
 
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type

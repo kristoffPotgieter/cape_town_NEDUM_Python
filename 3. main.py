@@ -60,7 +60,7 @@ options["informal_land_constrained"] = 0
 
 name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
         + 'informal' + str(options["informal_land_constrained"]) + '_'
-        + 'fbackyard0')
+        + 'actual_backyards1' + '_' + 'pockets1')
 
 
 # %% Load data
@@ -102,8 +102,8 @@ param["income_year_reference"] = mean_income
 #  Note that there is no RDP, but both formal and informal backyard
 
 # Long tu run: uncomment if need to update 'housing_types_grid_sal.xlsx'
-housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
-                                      housing_type_data)
+# housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
+#                                       housing_type_data)
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 
 
@@ -116,6 +116,10 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
                            housing_type_data, path_data, path_folder)
      )
 
+# Correction needed with Charlotte's calibration
+param["pockets"][
+    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
+    ] = 0.79
 
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type

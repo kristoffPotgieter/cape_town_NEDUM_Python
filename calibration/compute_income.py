@@ -27,6 +27,7 @@ def import_transport_costs(grid, param, yearTraffic,
                                        + 'Transport_times_' + dim)
 
     # TODO: Check tables from Basile to link with data
+    # TODO: are round trips already included for variable costs?
 
     # Price per km: see appendix B2 and Roux(2013), table 4.15
     priceTrainPerKMMonth = (
@@ -62,8 +63,8 @@ def import_transport_costs(grid, param, yearTraffic,
     priceBusPerKMMonth = priceBusPerKMMonth * inflation / infla_2012
     priceBusFixedMonth = priceBusFixedMonth * inflation / infla_2012
     priceFuelPerKMMonth = spline_fuel(yearTraffic)
-    if yearTraffic > 8:
-        priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
+    # if yearTraffic > 8:
+        # priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
         # priceBusPerKMMonth = priceBusPerKMMonth * 1.2
         # priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
 
