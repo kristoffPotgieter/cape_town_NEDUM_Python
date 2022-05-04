@@ -205,6 +205,15 @@ if options["pluvial"] == 1:
     stats_per_housing_type_pluvial = compute_stats_per_housing_type(pluvial_floods, path_data, initial_state_households_housing_types[0, :], initial_state_households_housing_types[3, :], initial_state_households_housing_types[2, :], initial_state_households_housing_types[1, :], options, param, 0.01)
     validation_flood(name, stats_per_housing_type_data_pluvial, stats_per_housing_type_pluvial, 'Data', 'Simul', 'pluvial')
 
+# %% Other validation tests
+
+export_map(initial_state_households_housing_types[0, :], grid,
+                  path_outputs + name + '/formal_sim', 1200)
+
+export_map(housing_types.formal_grid, grid,
+                  path_outputs + name + '/formal_data', 1200)
+
+
 # %% Scenarios
 
 #Compute scenarios
