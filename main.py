@@ -71,7 +71,7 @@ income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
 mean_income = np.sum(income_2011.Households_nb * income_2011.INC_med) / sum(income_2011.Households_nb)
 households_per_income_class, average_income = import_income_classes_data(param, income_2011)
 income_mult = average_income / mean_income
-income_net_of_commuting_costs = np.load(precalculated_transport + 'incomeNetOfCommuting_0.npy')
+income_net_of_commuting_costs = np.load(precalculated_transport + 'GRID_incomeNetOfCommuting_0.npy')
 param["income_year_reference"] = mean_income
 data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011, grid_formal_density_HFA, threshold_income_distribution, income_distribution, cape_town_limits = import_households_data(options, precalculated_inputs)
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
@@ -115,12 +115,14 @@ elif options["agents_anticipate_floods"] == 0:
 
 # %% Compute initial state
 
-if options["pluvial"] == 0:
-    param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-    param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+# TODO: Does not go below 0.01 error
 
-param["pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_pockets.npy')
-param["backyard_pockets"] = np.load(path_outputs+'fluvial_and_pluvial/param_backyards.npy')
+if options["pluvial"] == 0:
+    param["pockets"] = np.load(precalculated_inputs+'param_pockets.npy')
+    param["backyard_pockets"] = np.load(precalculated_inputs+'fluvial_and_pluvial/param_backyards.npy')
+
+param["pockets"] = np.load(precalculated_inputs+'param_pockets.npy')
+param["backyard_pockets"] = np.load(precalculated_inputs+'param_backyards.npy')
 
 
 param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)] = 0.79
@@ -169,11 +171,21 @@ print("\n*** Solver initial state ***\n")
 # %% Validation
 
 if options["agents_anticipate_floods"] == 0:
-    fraction_capital_destroyed = import_floods_data()
+    fraction_capital_destroyed = import_floods_data(options, param, path_folder)
+
+housing_type_data = np.array([total_formal, total_backyard, total_informal, total_RDP])
+
+data = scipy.io.loadmat(precalculated_inputs + 'data.mat')['data']
+housing_types_grid = pd.DataFrame()
+housing_types_grid["backyard_grid_2011"] = data['gridInformalBackyard'][0][0].squeeze() #Number of informal settlements in backyard per grid cell, 24014
+housing_types_grid["formal_grid_2011"] = data['gridFormal'][0][0].squeeze()
+housing_types_grid["informal_grid_2011"] = data['gridInformalSettlement'][0][0].squeeze() #Number of informal settlements in backyard per grid cell, 24014
+
+# simul1_error, simul1_utility, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, simul1_households_center, SP_code = import_basile_simulation()
 
 #General validation
 export_housing_types(initial_state_households_housing_types, initial_state_household_centers, housing_type_data, households_per_income_class, name, 'Simulation', 'Data')
-export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, data_sp["dwelling_size"], SP_code)
+# export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, data_sp["dwelling_size"], SP_code)
 validation_density(grid, initial_state_households_housing_types, name, housing_types)
 validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, name, 0)
 validation_housing_price(grid, initial_state_rent, interest_rate, param, center, name, precalculated_inputs)

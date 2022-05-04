@@ -28,7 +28,7 @@ def error_map(error, grid, export_name):
     plt.savefig(export_name)
     plt.close()
     
-def export_map(value, grid):
+def export_map(value, grid, export_name, lim):
     map = plt.scatter(grid.x, 
             grid.y, 
             s=None,
@@ -37,9 +37,9 @@ def export_map(value, grid):
             marker='.')
     plt.colorbar(map)
     plt.axis('off')
-    #plt.clim(0, lim)
-    #plt.savefig(export_name)
-    #plt.close()
+    plt.clim(0, lim)
+    plt.savefig(export_name)
+    plt.close()
     
 # %% Validation
 
@@ -52,7 +52,7 @@ def export_housing_types(housing_type_1, households_center_1, housing_type_2, ho
     plt.ylabel("Households")
     plt.tick_params(labelbottom=True)
     plt.xticks(rotation='horizontal')
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_housing_type.png')
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_housing_type.png')
     plt.close()
     
     #Graph validation income class
@@ -62,7 +62,7 @@ def export_housing_types(housing_type_1, households_center_1, housing_type_2, ho
     plt.ylabel("Households")
     plt.tick_params(labelbottom=True)
     plt.xticks(rotation='horizontal')
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_income_class.png')
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_income_class.png')
     plt.close()
         
 def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial_state_households_housing_types, initial_state_dwelling_size, initial_state_rent, simul1_households_housing_type, simul1_rent, simul1_dwelling_size, dwelling_size_sp, SP_code):
@@ -72,39 +72,39 @@ def export_density_rents_sizes(grid, name, data_rdp, housing_types_grid, initial
     count_formal = housing_types_grid.formal_grid_2011 - data_rdp["count"]
     count_formal[count_formal < 0] = 0
 
-    os.mkdir('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/housing_types')
+    os.mkdir('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types')
 
     inf_dwellings_2013 = pd.read_excel('C:/Users/Coupain/Desktop/cape_town/2. Data/Flood plains - from Claus/inf_dwellings_2013.xlsx').iloc[:, 1]
     inf_dwellings_2013[np.isnan(inf_dwellings_2013)] = 0
     
     #Formal
     error = (initial_state_households_housing_types[0, :] / count_formal - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_diff_with_data.png')  
-    export_map(count_formal, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_data.png', 1200)
-    export_map(initial_state_households_housing_types[0, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_simul.png', 1200)
-    export_map(simul1_households_housing_type[0, 0, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/formal_Basile1.png', 1200)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_diff_with_data.png')  
+    export_map(count_formal, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_data.png', 1200)
+    export_map(initial_state_households_housing_types[0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_simul.png', 1200)
+    export_map(simul1_households_housing_type[0, 0, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/formal_Basile1.png', 1200)
     
     #Subsidized
     error = (initial_state_households_housing_types[3, :] / data_rdp["count"] - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_diff_with_data.png')  
-    export_map(data_rdp["count"], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_data.png', 1200)
-    export_map(initial_state_households_housing_types[3, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_simul.png', 1200)
-    export_map(simul1_households_housing_type[0, 3, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/subsidized_Basile1.png', 1200)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_diff_with_data.png')  
+    export_map(data_rdp["count"], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_data.png', 1200)
+    export_map(initial_state_households_housing_types[3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_simul.png', 1200)
+    export_map(simul1_households_housing_type[0, 3, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/subsidized_Basile1.png', 1200)
     
     #Informal
     error = (initial_state_households_housing_types[2, :] / housing_types_grid.informal_grid_2011 - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_diff_with_data.png')  
-    export_map(housing_types_grid.informal_grid_2011, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_data.png', 800)
-    export_map(initial_state_households_housing_types[2, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_simul.png', 800)
-    export_map(simul1_households_housing_type[0, 2, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_Basile1.png', 800)
-    export_map(inf_dwellings_2013, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/informal_data_Claus_2013.png', 800)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_diff_with_data.png')  
+    export_map(housing_types_grid.informal_grid_2011, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data.png', 800)
+    export_map(initial_state_households_housing_types[2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_simul.png', 800)
+    export_map(simul1_households_housing_type[0, 2, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_Basile1.png', 800)
+    export_map(inf_dwellings_2013, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/informal_data_Claus_2013.png', 800)
     
     #Backyard
     error = (initial_state_households_housing_types[1, :] / housing_types_grid.backyard_grid_2011 - 1) * 100
-    error_map(error, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/backyard_diff_with_data.png')  
-    export_map(housing_types_grid.backyard_grid_2011, grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/backyard_data.png', 800)
-    export_map(initial_state_households_housing_types[1, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/housing_types/backyard_simul.png', 800)
-    export_map(simul1_households_housing_type[0, 1, :], grid, 'C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '\housing_types/backyard_Basile1.png', 800)
+    error_map(error, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_diff_with_data.png')  
+    export_map(housing_types_grid.backyard_grid_2011, grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_data.png', 800)
+    export_map(initial_state_households_housing_types[1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/housing_types/backyard_simul.png', 800)
+    export_map(simul1_households_housing_type[0, 1, :], grid, 'C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '\housing_types/backyard_Basile1.png', 800)
     
     #2. Dwelling size
     
@@ -176,9 +176,10 @@ def validation_density(grid, initial_state_households_housing_types, name, housi
     q1_df = df.groupby(['round']).quantile(0.25)
     q3_df = df.groupby(['round']).quantile(0.75)
 
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.yData, color = "black", label = "Data")
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.ySimul, color = "green", label = "Simulation")
-    axes = plt.axes()
+    fig, axes = plt.subplots()
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.yData, color = "black", label = "Data")
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.ySimul, color = "green", label = "Simulation")
+    # axes = plt.axes()
     axes.set_ylim([0, 2000])
     axes.set_xlim([0, 50])
     axes.fill_between(np.arange(max(df["round"] + 1)), q1_df.ySimul, q3_df.ySimul, color = "lightgreen")
@@ -188,7 +189,7 @@ def validation_density(grid, initial_state_households_housing_types, name, housi
     plt.tick_params(bottom = True,labelbottom=True)  
     plt.tick_params(labelbottom=True)
     #plt.title("Population density")
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density.png')  
     plt.close()
     
 def validation_density_housing_types(grid,initial_state_households_housing_types, housing_types, name, absolute_number):
@@ -208,10 +209,11 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     df["round"] = round(df.xData)
     new_df = df.groupby(['round']).mean()
     
-    plt.figure(figsize=(10, 7))
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.formal_data, color = "black", label = "Data")
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.formal_simul, color = "green", label = "Simulation")
-    axes = plt.axes()
+    # plt.figure(figsize=(10, 7))
+    fig, axes = plt.subplots(figsize=(10, 7))
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.formal_data, color = "black", label = "Data")
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.formal_simul, color = "green", label = "Simulation")
+    # axes = plt.axes()
     axes.set_ylim([0, 1600])
     axes.set_xlim([0, 40])
     #plt.title("Formal")
@@ -219,15 +221,16 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     plt.tick_params(labelbottom=True)
     plt.xlabel("Distance to the city center (km)")
     plt.ylabel("Households density (per km2)")
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density_formal.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_formal.png')  
     plt.close()
 
-    plt.figure(figsize=(10, 7))
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.informal_data, color = "black", label = "Data")
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.informal_simul, color = "green", label = "Simulation")
+    # plt.figure(figsize=(10, 7))
+    fig, axes = plt.subplots(figsize=(10, 7))
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.informal_data, color = "black", label = "Data")
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.informal_simul, color = "green", label = "Simulation")
     #plt.plot(np.arange(max(df["round"] + 1)), new_df.informal_land * 300 / 0.009, color = "red", label = "Land prone to informal settlements (data)")   
     #plt.plot(np.arange(max(df["round"] + 1)), new_df.pop_damages_20yr * 200, color = "red", label = "Pop flood prone 20yr")   
-    axes = plt.axes()
+    # axes = plt.axes()
     axes.set_ylim([0, 350])
     axes.set_xlim([0, 40])
     #plt.title("Informal")
@@ -236,7 +239,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     plt.legend()
     plt.tick_params(labelbottom=True)
     #plt.xticks([10.5, 13, 16, 18, 24, 25, 27, 30, 37, 39, 46.5], ["Joe Slovo", "Hout Bay", "Du Noon", "Philippi", "Khayelitsa" , "Wallacedene", "Khayelitsa", "Witsand", "Enkanini", "Pholile"], rotation ='vertical')
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density_informal.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_informal.png')  
     plt.close()
     
     #fig, ax1 = plt.subplots(figsize=(10, 7))
@@ -259,25 +262,27 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
     #ax1.tick_params(labelbottom=True)
     #plt.show()
     print("1")
-    plt.figure(figsize=(10, 7))
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.backyard_data, color = "black", label = "Data")
-    plt.plot(np.arange(max(df["round"] + 1)), new_df.backyard_simul, color = "green", label = "Simulation")
-    axes = plt.axes()
+    # plt.figure(figsize=(10, 7))
+    fig, axes = plt.subplots(figsize=(10, 7))
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.backyard_data, color = "black", label = "Data")
+    axes.plot(np.arange(max(df["round"] + 1)), new_df.backyard_simul, color = "green", label = "Simulation")
+    # axes = plt.axes()
     axes.set_ylim([0, 450])
     axes.set_xlim([0, 40])
     #plt.title("Backyard")
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.xlabel("Distance to the city center (km)")
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_density_backyard.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_backyard.png')  
     plt.close()
     
     if absolute_number == 1:
         new_df2 = df.groupby(['round']).sum()
         
-        plt.plot(np.arange(max(df["round"] + 1)), new_df2.formal_data, color = "black", label = "Data")
-        plt.plot(np.arange(max(df["round"] + 1)), new_df2.formal_simul, color = "green", label = "Simulation")
-        axes = plt.axes()
+        fig, axes = plt.subplots()
+        axes.plot(np.arange(max(df["round"] + 1)), new_df2.formal_data, color = "black", label = "Data")
+        axes.plot(np.arange(max(df["round"] + 1)), new_df2.formal_simul, color = "green", label = "Simulation")
+        # axes = plt.axes()
         #axes.set_ylim([0, 1600])
         axes.set_xlim([0, 40])
         #plt.title("Formal")
@@ -285,12 +290,13 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
         plt.tick_params(labelbottom=True)
         plt.xlabel("Distance to the city center (km)")
         plt.ylabel("Absolute number of dwellings")
-        plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_density_formal_absolute.png')  
+        plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_formal_absolute.png')  
         plt.close()
 
-        plt.plot(np.arange(max(df["round"] + 1)), new_df2.informal_data, color = "black", label = "Data")
-        plt.plot(np.arange(max(df["round"] + 1)), new_df2.informal_simul, color = "green", label = "Simulation")
-        axes = plt.axes()
+        fig, axes = plt.subplots()
+        axes.plot(np.arange(max(df["round"] + 1)), new_df2.informal_data, color = "black", label = "Data")
+        axes.plot(np.arange(max(df["round"] + 1)), new_df2.informal_simul, color = "green", label = "Simulation")
+        # axes = plt.axes()
         #axes.set_ylim([0, 400])
         axes.set_xlim([0, 40])
         #plt.title("Informal")
@@ -298,12 +304,13 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
         plt.ylabel("Absolute number of dwellings")
         plt.legend()
         plt.tick_params(labelbottom=True)
-        plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_density_informal_absolute.png')  
+        plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_informal_absolute.png')  
         plt.close()
 
-        plt.plot(np.arange(max(df["round"] + 1)), new_df2.backyard_data, color = "black", label = "Data")
-        plt.plot(np.arange(max(df["round"] + 1)), new_df2.backyard_simul, color = "green", label = "Simulation")
-        axes = plt.axes()
+        fig, axes = plt.subplots()
+        axes.plot(np.arange(max(df["round"] + 1)), new_df2.backyard_data, color = "black", label = "Data")
+        axes.plot(np.arange(max(df["round"] + 1)), new_df2.backyard_simul, color = "green", label = "Simulation")
+        # axes = plt.axes()
         #axes.set_ylim([0, 450])
         axes.set_xlim([0, 40])
         #plt.title("Backyard")
@@ -311,7 +318,7 @@ def validation_density_housing_types(grid,initial_state_households_housing_types
         plt.tick_params(labelbottom=True)
         plt.xlabel("Distance to the city center (km)")
         plt.ylabel("Absolute number of dwellings")
-        plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_density_backyard_absolute.png')  
+        plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_density_backyard_absolute.png')  
         plt.close()
         
 
@@ -336,15 +343,16 @@ def validation_housing_price(grid, initial_state_rent, interest_rate, param, cen
 
     which = ~np.isnan(new_df.yData) & ~np.isnan(new_df.ySimulation)
 
-    plt.plot(new_df.xData[which], new_df.yData[which], color = "black", label = "Data")
-    plt.plot(new_df.xData[which], new_df.ySimulation[which], color = "green", label = "Simul")
-    axes = plt.axes()
+    fig, axes = plt.subplots()
+    axes.plot(new_df.xData[which], new_df.yData[which], color = "black", label = "Data")
+    axes.plot(new_df.xData[which], new_df.ySimulation[which], color = "green", label = "Simul")
+    # axes = plt.axes()
     plt.xlabel("Distance to the city center (km)")
     plt.ylabel("Price (R/m2 of land)")
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.tick_params(bottom = True,labelbottom=True)
-    plt.savefig('C:/Users/charl/OneDrive/Bureau/cape_town/4. Sorties/' + name + '/validation_housing_price.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_housing_price.png')  
     plt.close()
     
 def plot_diagnosis_map_informl(grid, coeff_land, initial_state_households_housing_types, name):
@@ -353,7 +361,7 @@ def plot_diagnosis_map_informl(grid, coeff_land, initial_state_households_housin
     plt.scatter(grid.x[initial_state_households_housing_types[2, :] > 0], grid.y[initial_state_households_housing_types[2, :] > 0], s=None, c=initial_state_households_housing_types[2, :][initial_state_households_housing_types[2, :] > 0], cmap = 'Reds', marker='.')   
     plt.colorbar()
     plt.axis('off')
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/diagnosis_informal.png')
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/diagnosis_informal.png')
     plt.close()
     
     

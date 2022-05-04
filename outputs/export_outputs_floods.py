@@ -69,7 +69,7 @@ def compare_damages(damages1, damages2, label1, label2, name):
     plt.text(0.125, 26000000, "Structures")
     plt.text(1.125, 26000000, "Contents")
     plt.show()
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/flood_damages_formal.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/flood_damages_formal.png')  
     plt.close()
 
     data = [[annualize_damages(damages1.subsidized_structure_damages), annualize_damages(damages1.subsidized_content_damages)],
@@ -81,7 +81,7 @@ def compare_damages(damages1, damages2, label1, label2, name):
     plt.text(0.125, 1600000, "Structures")
     plt.text(1.125, 1600000, "Contents")
     plt.show()
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/flood_damages_subsidized.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/flood_damages_subsidized.png')  
     plt.close()
 
     data = [[annualize_damages(damages1.informal_structure_damages), annualize_damages(damages1.informal_content_damages)],
@@ -93,7 +93,7 @@ def compare_damages(damages1, damages2, label1, label2, name):
     plt.text(0.125, 180000, "Structures")
     plt.text(1.125, 180000, "Contents")
     plt.show()
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/flood_damages_informal.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/flood_damages_informal.png')  
     plt.close()
     
     data = [[annualize_damages(damages1.backyard_structure_damages), annualize_damages(damages1.backyard_content_damages)],
@@ -105,7 +105,7 @@ def compare_damages(damages1, damages2, label1, label2, name):
     plt.text(0.125, 750000, "Structures")
     plt.text(1.125, 750000, "Contents")
     plt.show()
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/flood_damages_backyard.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/flood_damages_backyard.png')  
     plt.close()
 
 def validation_flood(name, stats1, stats2, legend1, legend2, type_flood):
@@ -141,7 +141,7 @@ def validation_flood(name, stats1, stats2, legend1, legend2, type_flood):
     plt.ylabel("Average flood depth (m)")
     plt.tick_params(labelbottom=True)
     plt.show()
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_flood_depth_' + type_flood + '.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_flood_depth_' + type_flood + '.png')  
     plt.close()
 
 
@@ -174,7 +174,7 @@ def validation_flood(name, stats1, stats2, legend1, legend2, type_flood):
     plt.tick_params(labelbottom=True)
     plt.ylabel("Dwellings in flood-prone areas (%)")
     plt.show()
-    plt.savefig('C:/Users/Coupain/Desktop/cape_town/4. Sorties/' + name + '/validation_flood_proportion_' + type_flood +'.png')  
+    plt.savefig('C:/Users/monni/Documents/GitHub/cape_town_NEDUM/4. Sorties/' + name + '/validation_flood_proportion_' + type_flood +'.png')  
     plt.close()
     
 """
