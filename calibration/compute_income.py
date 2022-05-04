@@ -63,8 +63,9 @@ def import_transport_costs(grid, param, yearTraffic,
     priceBusPerKMMonth = priceBusPerKMMonth * inflation / infla_2012
     priceBusFixedMonth = priceBusFixedMonth * inflation / infla_2012
     priceFuelPerKMMonth = spline_fuel(yearTraffic)
-    # if yearTraffic > 8:
-        # priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
+    # TODO: choose between right and original specification
+    if yearTraffic > 8:
+        priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
         # priceBusPerKMMonth = priceBusPerKMMonth * 1.2
         # priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
 
@@ -148,7 +149,8 @@ def import_transport_costs(grid, param, yearTraffic,
     # We assume that people not taking some transport mode
     # have a extra high cost of doing so"
     # TODO: is it too big?
-    monetaryCost[np.isnan(monetaryCost)] = 10 ** 5
+    monetaryCost[np.isnan(monetaryCost)] = 10 ** 3
+    # monetaryCost[np.isnan(monetaryCost)] = 10 ** 5
 
     # trans_monetaryCost = copy.deepcopy(monetaryCost)
 
@@ -371,7 +373,7 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
     # does Python have the same limitations as Matlab? Still neutral
     minIncome = (np.nanmax(
         param_lambda * (incomeCentersFull[:, None] - transportCost), 0)
-        - 500
+        - 700
         )
     # minIncome = np.zeros(minIncome.shape)
 

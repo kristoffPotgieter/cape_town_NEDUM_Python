@@ -50,8 +50,9 @@ def compute_dwelling_size_formal(utility, amenities, param,
         [250, 300, 500, 1000, 2000, 200000, 1000000, 10 ** 12]))
 
     # TODO: Check whether extrapolation yields erroneous results
-    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x,
-                 fill_value="extrapolate")
+    # f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x,
+    #              fill_value="extrapolate")
+    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x)
 
     # We define dwelling size as q corresponding to true values of
     # implicit_qfunc(q), for each selected pixel and each income group
@@ -137,7 +138,7 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
 
     # See research note, p.11
     # TODO: Check that divide by zero come from groups 3 and 4
-    np.seterr(divide='ignore', invalid='ignore')
+    # np.seterr(divide='ignore', invalid='ignore')
     housing_supply = (
         (param["alpha"] *
          (param["RDP_size"] + param["backyard_size"] - param["q0"])

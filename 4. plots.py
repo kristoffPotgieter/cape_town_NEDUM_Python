@@ -45,12 +45,13 @@ path_floods = path_folder + "FATHOM/"
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
-options["agents_anticipate_floods"] = 1
-options["informal_land_constrained"] = 0
+# TODO: meant to stick with original specification
+options["agents_anticipate_floods"] = 0
 
-name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
-        + 'informal' + str(options["informal_land_constrained"]) + '_'
-        + 'actual_backyards1' + '_' + 'pockets1')
+name = ('nofloods_orig')
+# name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
+#         + 'informal' + str(options["informal_land_constrained"]) + '_'
+#         + 'actual_backyards1' + '_' + 'pockets1')
 plot_repo = name + '/plots/'
 
 
@@ -140,7 +141,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     )
 
 # FLOOD DATA
-param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
+# param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,

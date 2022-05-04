@@ -50,17 +50,18 @@ options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
 #  Set timeline for simulations
-t = np.arange(0, 22)
+t = np.arange(0, 30)
 
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-options["agents_anticipate_floods"] = 1
-options["informal_land_constrained"] = 0
+# TODO: meant to stick with original specification
+options["agents_anticipate_floods"] = 0
 
-name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
-        + 'informal' + str(options["informal_land_constrained"]) + '_'
-        + 'actual_backyards1' + '_' + 'pockets1')
+name = ('nofloods_orig')
+# name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
+#         + 'informal' + str(options["informal_land_constrained"]) + '_'
+#         + 'actual_backyards1' + '_' + 'pockets1')
 
 
 # %% Load data
@@ -140,7 +141,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 
 # FLOOD DATA (takes some time when agents anticipate floods)
 #  TODO: create a new variable instead of storing in param
-param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
+#  param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,
@@ -214,6 +215,9 @@ income_net_of_commuting_costs = np.load(
 # refined. Same goes for construcion function parameters, but lambda is fine.
 
 # TODO: also need to check validation across income groups
+
+# TODO: are RuntimeWarnings important?
+# Note that we manage to converge!
 
 (initial_state_utility,
  initial_state_error,
@@ -319,6 +323,17 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
 
 # NB: From simulation 22 onwards (with constraint), algorithm does not converge
 # Note that this does not depend on calibration used!
+
+# TODO: choose between right and original specification
+from scipy.interpolate import interp1d
+RDP_2011 = 2.2666e+05
+RDP_2001 = 1.1718e+05
+spline_RDP = interp1d(
+    [2001 - param["baseline_year"], 2011 - param["baseline_year"],
+     2018 - param["baseline_year"], 2041 - param["baseline_year"]],
+    [RDP_2001, RDP_2011, RDP_2011 + 7*5000,
+     RDP_2011 + 7*5000 + 23 * param["future_rate_public_housing"]], 'linear'
+    )
 
 # RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
 (simulation_households_center,

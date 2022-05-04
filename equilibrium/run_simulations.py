@@ -120,11 +120,17 @@ def run_simulation(t, options, param, grid, initial_state_utility,
 
             # TODO: here it seems more natural to use interest_rate instead of
             # param (also check formula from footnote 16)
+            # TODO: choose between right and original formula
+            # agricultural_rent = (
+            #     spline_agricultural_rent(year_temp) ** (param["coeff_a"])
+            #     * (param["depreciation_rate"] + interest_rate)
+            #     / (construction_param * param["coeff_b"] ** param["coeff_b"]
+            #        * param["coeff_a"] ** param["coeff_a"])
+            #     )
             agricultural_rent = (
                 spline_agricultural_rent(year_temp) ** (param["coeff_a"])
-                * (param["depreciation_rate"] + interest_rate)
-                / (construction_param * param["coeff_b"] ** param["coeff_b"]
-                   * param["coeff_a"] ** param["coeff_a"])
+                * (interest_rate)
+                / (construction_param * param["coeff_b"] ** param["coeff_b"])
                 )
 
             # We compute a new static equilibrium for next period

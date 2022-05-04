@@ -206,7 +206,7 @@ def import_macro_data(param, path_scenarios):
 
     # Population
     # Raw figures come from Claus/ comes from housing_types
-    # TODO: link with data
+    # TODO: link with data and correct for granny flats
     total_RDP = 194258
     total_formal = 626770
     total_informal = 143765
@@ -230,8 +230,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # RDP population data
     #  We take total population in RDP at baseline year
+    #  TODO: check differene with GV in data.mat
     RDP_2011 = housing_type_data[3]
-    #  Comes from Claus (to be updated)
+    #  Comes from GV in data.mat
     RDP_2001 = 1.1718e+05
 
     # Land cover for informal settlements (see R code for details)
@@ -343,6 +344,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We weight by closeness to the center to get retrospective number of RDP
     #  in 2001 (by assuming that central areas where built before)
+    #  TODO: cross-check with new data?
     number_properties_2000 = (
         data_rdp["count"]
         * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
@@ -372,10 +374,12 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # already corrected and we want to make the spline coherent with other
     # non-corrected housing types
 
+    # TODO: choose between right or original specification
+
     #  % of the pixel area dedicated to RDP (after accounting for backyard)
     area_RDP = (data_rdp["area"] * param["RDP_size"]
                 / (param["backyard_size"] + param["RDP_size"])
-                / area_pixel) / param["max_land_use"]
+                / area_pixel)  # / param["max_land_use"]
 
     #  For the RDP constructed area, we take the min between declared value and
     #  extrapolation from our initial size parameters
@@ -385,7 +389,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         construction_rdp.area_ST,
         (param["backyard_size"] + param["RDP_size"])
         * construction_rdp.total_yield_DU_ST
-        ) / param["max_land_use"]
+        )  # / param["max_land_use"]
     #  Then for the LT, while capping the constructed area at the pixel size
     #  (just in case)
     area_RDP_long_term = np.minimum(
@@ -396,7 +400,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                + construction_rdp.total_yield_DU_LT)
             ),
         area_pixel
-        ) / param["max_land_use"]
+        )  # / param["max_land_use"]
 
     # Regression spline
 
@@ -631,7 +635,7 @@ def import_coeff_land(spline_land_constraints, spline_land_backyard,
     coeff_land_private[coeff_land_private < 0] = 0
     coeff_land_backyard = (spline_land_backyard(t)
                            * param["max_land_use_backyard"])
-    coeff_land_RDP = spline_land_RDP(t) * param["max_land_use"]
+    coeff_land_RDP = spline_land_RDP(t)  # * param["max_land_use"]
     coeff_land_settlement = (spline_land_informal(t)
                              * param["max_land_use_settlement"])
     coeff_land = np.array([coeff_land_private, coeff_land_backyard,
@@ -796,8 +800,14 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     # We take zero value at t = 0
     # TODO: can return periods really be assimilated with probabilities?
     # TODO: is continuous the right framework?
-    damages0 = (d[type_flood + '_5yr'].prop_flood_prone
-                * damage_function(d[type_flood + '_5yr'].flood_depth))
+    # damages0 = (d[type_flood + '_5yr'].prop_flood_prone
+    #             * damage_function(d[type_flood + '_5yr'].flood_depth))
+    damages0 = (
+        d[type_flood + '_5yr'].prop_flood_prone
+        * damage_function(d[type_flood + '_5yr'].flood_depth)
+        + d[type_flood + '_5yr'].prop_flood_prone
+        * damage_function(d[type_flood + '_10yr'].flood_depth)
+        )
     damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
                  * damage_function(d[type_flood + '_5yr'].flood_depth))
                 + (d[type_flood + '_10yr'].prop_flood_prone
@@ -974,6 +984,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
         sheet_name="Analysis", header=None, names=None, usecols="G:H",
         skiprows=9, nrows=2)
 
+    # TODO: is it the right way to go?
     (fraction_capital_destroyed["structure_backyards"]
      ) = ((backyards_by_material.iloc[0, 0]
            * fraction_capital_destroyed["structure_formal_backyards"])
@@ -1190,7 +1201,9 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
     sal_data["backyard_informal"] = sal_data[
         "Informal dwelling (shack; in backyard)"]
-    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
+    # TODO: does not include granny flats
+    # sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
+    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8, 12]], 1)
 
     grid_intersect = pd.read_csv(
         path_data + 'grid_SAL_intersect.csv', sep=';')
@@ -1221,6 +1234,7 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
                                  / np.nansum(backyard_informal_grid)))
     # We adapt the fraction given for formal housing to our initial data:
     # housing_type_data[0] + housing_type_data[3] = total_formal + total_RDP
+    # TODO: is it the right way to go?
     formal_grid = formal_grid * (
         (housing_type_data[0] + housing_type_data[3])
         / np.nansum(formal_grid))

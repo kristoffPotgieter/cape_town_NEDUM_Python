@@ -96,7 +96,8 @@ def import_param(path_precalc_inp, path_outputs):
     #  can possibly be destroyed by floods (food, furniture, etc.)
     #  Correspond to average share of durable and semi-durable goods in total
     #  HH budget (excluding rent) : see Aux data/HH Income per DU - CL
-    param["fraction_z_dwellings"] = 0.53
+    # param["fraction_z_dwellings"] = 0.53
+    param["fraction_z_dwellings"] = 0.49
     #  Value of a social housing dwelling unit (in rands)
     #  For floods destruction
     #  TODO: How to determine it?
@@ -150,7 +151,7 @@ def import_param(path_precalc_inp, path_outputs):
     # level, or when the nb of iterations reaches some threshold (to limit
     # processing time)
     param["max_iter"] = 5000
-    param["precision"] = 0.02
+    param["precision"] = 0.01
 
     # Dynamic parameters (from Viguié et al., 2014)
     #  Lag in housing building
@@ -215,6 +216,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # housing per household per unit of land. In practice, this is not used.
     # NB: HFA = habitable floor area
     cond = coeff_land[0, :] != 0
+    # TODO: why 1.1?
     param["housing_in"][cond] = (
         grid_formal_density_HFA[cond] / coeff_land[0, :][cond] * 1.1)
     param["housing_in"][~np.isfinite(param["housing_in"])] = 0
@@ -233,12 +235,15 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # be underestimated by the model
 
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
+    # TODO: choose between right or original specification
+    # param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
+    #     (grid_formal_density_HFA[mitchells_plain_grid_2011]
+    #      / coeff_land[0, :][mitchells_plain_grid_2011]))
     param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
-        (grid_formal_density_HFA[mitchells_plain_grid_2011]
-         / coeff_land[0, :][mitchells_plain_grid_2011]))
-    # cond = mitchells_plain_grid_2011 * coeff_land[0, :]
-    # (param["minimum_housing_supply"][cond != 0]
-    #  ) = (mitchells_plain_grid_2011[cond != 0] / coeff_land[0, :][cond != 0])
+        mitchells_plain_grid_2011[mitchells_plain_grid_2011]
+        / coeff_land[0, mitchells_plain_grid_2011]
+        )
+
     param["minimum_housing_supply"][
         (coeff_land[0, :] < 0.1) | (np.isnan(param["minimum_housing_supply"]))
         ] = 0
@@ -262,17 +267,17 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # Comes from zero profit condition: allows to convert land prices into
     # housing prices (cf. also inversion from footnote 16)
     # TODO: use interest_rate or param["interest_rate"]? Check inversion
-    agricultural_rent = (
-        param["agricultural_rent_2011"] ** (param["coeff_a"])
-        * (param["depreciation_rate"] + interest_rate)
-        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
-            * param["coeff_a"] ** param["coeff_a"])
-        )
+    # TODO: choose between right or original specification
     # agricultural_rent = (
     #     param["agricultural_rent_2011"] ** (param["coeff_a"])
     #     * (param["depreciation_rate"] + interest_rate)
-    #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+    #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
+    #         * param["coeff_a"] ** param["coeff_a"])
     #     )
-    # agricultural_rent = param["agricultural_rent_2011"]
+    agricultural_rent = (
+        param["agricultural_rent_2011"] ** (param["coeff_a"])
+        * (param["depreciation_rate"] + interest_rate)
+        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+        )
 
     return param, minimum_housing_supply, agricultural_rent
