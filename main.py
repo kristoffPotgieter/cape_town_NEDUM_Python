@@ -130,6 +130,40 @@ param["pockets"][(spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
 #param["pockets"] = 0.70 * np.ones(24014)
 #param["backyard_pockets"] = 0.74 * np.ones(24014)
 
+# fraction_capital_destroyed.to_csv(
+#     path_outputs + 'main_specif/inputs/fraction_capital_destroyed.csv')
+# np.save(path_outputs + 'main_specif/inputs/amenities.npy', amenities)
+# np.save(path_outputs + 'main_specif/inputs/param.npy', param)
+# # read_dictionary = np.load(path_outputs + 'main_specif/inputs/param.npy',
+# #                           allow_pickle='TRUE').item()
+# np.save(path_outputs + 'main_specif/inputs/housing_limit.npy', housing_limit)
+# np.save(path_outputs + 'main_specif/inputs/population.npy', population)
+# np.save(path_outputs + 'main_specif/inputs/households_per_income_class.npy',
+#         households_per_income_class)
+# np.save(path_outputs + 'main_specif/inputs/total_RDP.npy', total_RDP)
+# np.save(path_outputs + 'main_specif/inputs/coeff_land.npy', coeff_land)
+# np.save(path_outputs + 'main_specif/inputs/income_net_of_commuting_costs.npy',
+#         income_net_of_commuting_costs)
+# grid.to_csv(
+#     path_outputs + 'main_specif/inputs/grid.csv')
+# np.save(path_outputs + 'main_specif/inputs/options.npy', options)
+# # read_dictionary = np.load(path_outputs + 'main_specif/inputs/options.npy',
+# #                           allow_pickle='TRUE').item()
+# np.save(path_outputs + 'main_specif/inputs/agricultural_rent.npy',
+#         agricultural_rent)
+# np.save(path_outputs + 'main_specif/inputs/interest_rate.npy', interest_rate)
+# np.save(path_outputs + 'main_specif/inputs/number_properties_RDP.npy',
+#         number_properties_RDP)
+# np.save(path_outputs + 'main_specif/inputs/average_income.npy', average_income)
+# np.save(path_outputs + 'main_specif/inputs/mean_income.npy', mean_income)
+# np.save(path_outputs + 'main_specif/inputs/income_class_by_housing_type.npy',
+#         income_class_by_housing_type)
+# # read_dictionary = np.load(
+# #     path_outputs + 'main_specif/inputs/income_class_by_housing_type.npy',
+# #     allow_pickle='TRUE').item()
+# np.save(path_outputs + 'main_specif/inputs/minimum_housing_supply.npy',
+#         minimum_housing_supply)
+
 
 print("\n*** Solver initial state ***\n")
 (initial_state_utility, 
