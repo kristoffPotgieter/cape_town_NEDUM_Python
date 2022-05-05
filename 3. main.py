@@ -219,6 +219,38 @@ income_net_of_commuting_costs = np.load(
 # TODO: are RuntimeWarnings important?
 # Note that we manage to converge!
 
+# main_fraction_capital_destroyed = pd.read_csv(
+#     path_outputs + 'main_specif/inputs/fraction_capital_destroyed.csv')
+# main_amenities = np.load(path_outputs + 'main_specif/inputs/amenities.npy')
+# main_param = np.load(path_outputs + 'main_specif/inputs/param.npy',
+#                      allow_pickle='TRUE').item()
+# main_housing_limit = np.load(
+#     path_outputs + 'main_specif/inputs/housing_limit.npy')
+# main_population = np.load(
+#     path_outputs + 'main_specif/inputs/population.npy')
+# main_households_per_income_class = np.load(
+#     path_outputs + 'main_specif/inputs/households_per_income_class.npy')
+# main_total_RDP = np.load(path_outputs + 'main_specif/inputs/total_RDP.npy')
+# main_coeff_land = np.load(path_outputs + 'main_specif/inputs/coeff_land.npy')
+# main_income_net_of_commuting_costs = np.load(
+#     path_outputs + 'main_specif/inputs/income_net_of_commuting_costs.npy')
+# main_grid = pd.read_csv(path_outputs + 'main_specif/inputs/grid.csv')
+# main_options = np.load(path_outputs + 'main_specif/inputs/options.npy',
+#                        allow_pickle='TRUE').item()
+# main_agricultural_land = np.load(
+#     path_outputs + 'main_specif/inputs/agricultural_rent.npy')
+# main_interest_rate = np.load(
+#     path_outputs + 'main_specif/inputs/interest_rate.npy')
+# main_number_properties_RDP = np.load(
+#     path_outputs + 'main_specif/inputs/number_properties_RDP.npy')
+# main_average_income = np.load(
+#     path_outputs + 'main_specif/inputs/average_income.npy')
+# main_mean_income = np.load(path_outputs + 'main_specif/inputs/mean_income.npy')
+# main_income_class_by_housing_type = np.load(
+#     path_outputs + 'main_specif/inputs/income_class_by_housing_type.npy')
+# main_minimum_housing_supply = np.load(
+#     path_outputs + 'main_specif/inputs/minimum_housing_supply.npy')
+
 (initial_state_utility,
  initial_state_error,
  initial_state_simulated_jobs,

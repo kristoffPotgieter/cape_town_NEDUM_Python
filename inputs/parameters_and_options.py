@@ -91,6 +91,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  Cost of inputs for building an informal dwelling unit (in rands)
     #  Not zero as in the paper to account for potential destructions from
     #  floods
+    #  TODO: plug flow costs as a fraction of land used to recover values
     param["informal_structure_value"] = 4000
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
@@ -138,7 +139,9 @@ def import_param(path_precalc_inp, path_outputs):
     #  Avg nb of employed workers per household of each income class
     #  (see appendix B1: 2*ksi): we need to take into account monetary cost
     #  for both members of the household
-    param["household_size"] = [1.14, 1.94, 1.92, 1.94]
+    #  TODO: choose right or original specification
+    # param["household_size"] = [1.14, 1.94, 1.92, 1.94]
+    param["household_size"] = [1.14, 1.94, 1.94, 1.94]
     #  param["household_size"] = [size / 2 for size in param["household_size"]]
 
     # Transportation cost parameters
