@@ -75,42 +75,52 @@ def compute_outputs(housing_type,
 
         # See research note, p.12
         # TODO: should we use interest_rate or param["interest_rate"]?
-        R_mat = (
-            (1 / param["shack_size"])
-            * (income_net_of_commuting_costs
-               - ((1 + np.array(fraction_capital_destroyed.contents_backyard)[
-                   None, :] * param["fraction_z_dwellings"])
-                  * ((utility[:, None] / (amenities[None, :]
-                                          * param_backyards_pockets[None, :]
-                                          * ((dwelling_size - param["q0"])
-                                             ** param["beta"])))
-                     ** (1 / param["alpha"])))
-               - (param["informal_structure_value"]
-                  * (interest_rate + param["depreciation_rate"]))
-               - (np.array(fraction_capital_destroyed.structure_backyards)[
-                   None, :] * param["informal_structure_value"]))
-            )
+        # TODO: check specification equivalence
+
+        # R_mat = (
+        #     (1 / param["shack_size"])
+        #     * (income_net_of_commuting_costs
+        #        - ((1 + np.array(fraction_capital_destroyed.contents_backyard)[
+        #            None, :] * param["fraction_z_dwellings"])
+        #           * ((utility[:, None] / (amenities[None, :]
+        #                                   * param_backyards_pockets[None, :]
+        #                                   * ((dwelling_size - param["q0"])
+        #                                      ** param["beta"])))
+        #              ** (1 / param["alpha"])))
+        #        - (param["informal_structure_value"]
+        #           * (interest_rate + param["depreciation_rate"]))
+        #        - (np.array(fraction_capital_destroyed.structure_backyards)[
+        #            None, :] * param["informal_structure_value"]))
+        #     )
+
+        R_mat = 1 / param["shack_size"] * (income_net_of_commuting_costs - ((1 + fraction_capital_destroyed.contents_backyard[None, :] * param["fraction_z_dwellings"]) * ((utility[:, None] / (amenities[None, :] * param_backyards_pockets[None, :] * ((dwelling_size - param["q0"]) ** param["beta"]))) ** (1/ param["alpha"]))) - (param["informal_structure_value"] * (interest_rate + param["depreciation_rate"])) - (fraction_capital_destroyed.structure_backyards[None, :] * param["informal_structure_value"]))
+
         R_mat[income_class_by_housing_type.backyard == 0, :] = 0
 
     elif housing_type == 'informal':
 
         # See research note, p.12: same definition as for backyards
-        R_mat = (
-            (1 / param["shack_size"])
-            * (income_net_of_commuting_costs
-               - ((1 + np.array(fraction_capital_destroyed.contents_informal)[
-                   None, :] * param["fraction_z_dwellings"])
-                  * ((utility[:, None] / (amenities[None, :]
-                                          * param_pockets[None, :]
-                                          * ((dwelling_size - param["q0"])
-                                             ** param["beta"])))
-                     ** (1 / param["alpha"])))
-               - (param["informal_structure_value"]
-                  * (interest_rate + param["depreciation_rate"]))
-               - (np.array(
-                   fraction_capital_destroyed.structure_informal_settlements
-                   )[None, :] * param["informal_structure_value"]))
-            )
+
+        # TODO: check specification equivalence
+        # R_mat = (
+        #     (1 / param["shack_size"])
+        #     * (income_net_of_commuting_costs
+        #        - ((1 + np.array(fraction_capital_destroyed.contents_informal)[
+        #            None, :] * param["fraction_z_dwellings"])
+        #           * ((utility[:, None] / (amenities[None, :]
+        #                                   * param_pockets[None, :]
+        #                                   * ((dwelling_size - param["q0"])
+        #                                      ** param["beta"])))
+        #              ** (1 / param["alpha"])))
+        #        - (param["informal_structure_value"]
+        #           * (interest_rate + param["depreciation_rate"]))
+        #        - (np.array(
+        #            fraction_capital_destroyed.structure_informal_settlements
+        #            )[None, :] * param["informal_structure_value"]))
+        #     )
+
+        R_mat = (1 / param["shack_size"]) * (income_net_of_commuting_costs - ((1 + fraction_capital_destroyed.contents_informal[None, :] * param["fraction_z_dwellings"]) * ((utility[:, None] / (amenities[None, :] * param_pockets[None, :] * ((dwelling_size - param["q0"]) ** param["beta"]))) ** (1/ param["alpha"]))) - (param["informal_structure_value"] * (interest_rate + param["depreciation_rate"])) - (fraction_capital_destroyed.structure_informal_settlements[None, :] * param["informal_structure_value"]))        
+
         R_mat[income_class_by_housing_type.settlement == 0, :] = 0
 
     # We clean the results just in case
@@ -173,7 +183,9 @@ def compute_outputs(housing_type,
 
     # We associate people in each selected pixel to the highest bidding income
     # group
-    people_center = np.array(people_init_land)[None, :] * proba
+    # TODO: check specification equivalence
+    people_center = people_init_land[None, :] * proba
+    #people_center = np.array(people_init_land)[None, :] * proba
     people_center[np.isnan(people_center)] = 0
     # Then we sum across pixels and get the number of people in each income
     # group for given housing type

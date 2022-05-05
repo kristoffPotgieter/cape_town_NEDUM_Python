@@ -24,13 +24,17 @@ def compute_dwelling_size_formal(utility, amenities, param,
 
     # According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B
     # (draft, p.11), see theoretical expression in implicit_qfunc()
-    left_side = (
-        (np.array(utility)[:, None] / np.array(amenities)[None, :])
-        * ((1 + (param["fraction_z_dwellings"]
-                 * np.array(fraction_capital_destroyed.contents_formal)[
-                     None, :])) ** (param["alpha"]))
-        / ((param["alpha"] * income_temp) ** param["alpha"])
-        )
+
+    # TODO: check specification equivalence
+    # left_side = (
+    #     (np.array(utility)[:, None] / np.array(amenities)[None, :])
+    #     * ((1 + (param["fraction_z_dwellings"]
+    #              * np.array(fraction_capital_destroyed.contents_formal)[
+    #                  None, :])) ** (param["alpha"]))
+    #     / ((param["alpha"] * income_temp) ** param["alpha"])
+    #     )
+    left_side = (utility[:, None] / amenities[None, :]) * ((1 + (param["fraction_z_dwellings"] * fraction_capital_destroyed.contents_formal[None, :])) ** (param["alpha"])) / ((param["alpha"] * income_temp) ** param["alpha"])
+
 
     # approx = left_side ** (1/param["beta"])
 
@@ -52,7 +56,11 @@ def compute_dwelling_size_formal(utility, amenities, param,
     # TODO: Check whether extrapolation yields erroneous results
     # f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x,
     #              fill_value="extrapolate")
-    f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x)
+
+    # TODo: check specification equivalence
+    fun = lambda q: (q - param["q0"])/((q - (param["alpha"] * param["q0"])) ** param["alpha"])
+    f = interp1d(fun(x), x)
+    # f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x)
 
     # We define dwelling size as q corresponding to true values of
     # implicit_qfunc(q), for each selected pixel and each income group
