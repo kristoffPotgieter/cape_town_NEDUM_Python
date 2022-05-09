@@ -221,7 +221,7 @@ def import_param(path_precalc_inp, path_outputs):
 def import_construction_parameters(param, grid, housing_types_sp,
                                    dwelling_size_sp, mitchells_plain_grid_2011,
                                    grid_formal_density_HFA, coeff_land,
-                                   interest_rate):
+                                   interest_rate, options):
     """Update parameters with values for construction."""
     # We define housing supply per unit of land for simulations where
     # developers do not adjust
@@ -296,24 +296,27 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # TODO: choose between right or original specification
 
     agricultural_rent = compute_agricultural_rent(
-        param["agricultural_rent_2011"], param["coeff_A"], interest_rate, param
+        param["agricultural_rent_2011"], param["coeff_A"], interest_rate,
+        param, options
         )
 
     return param, minimum_housing_supply, agricultural_rent
 
 
-def compute_agricultural_rent(rent, scale_fact, interest_rate, param):
+def compute_agricultural_rent(rent, scale_fact, interest_rate, param, options):
     """d."""
-    agricultural_rent = (
-        rent ** (param["coeff_a"])
-        * (param["depreciation_rate"] + interest_rate)
-        / (scale_fact * param["coeff_b"] ** param["coeff_b"]
-            * param["coeff_a"] ** param["coeff_a"])
-        )
-    # agricultural_rent = (
-    #     param["agricultural_rent_2011"] ** (param["coeff_a"])
-    #     * (param["depreciation_rate"] + interest_rate)
-    #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
-    #     )
+    if options["correct_agri_rent"] == 1:
+        agricultural_rent = (
+            rent ** (param["coeff_a"])
+            * (param["depreciation_rate"] + interest_rate)
+            / (scale_fact * param["coeff_b"] ** param["coeff_b"]
+                * param["coeff_a"] ** param["coeff_a"])
+            )
+    elif options["correct_agri_rent"] == 0:
+        agricultural_rent = (
+            rent ** (param["coeff_a"])
+            * (param["depreciation_rate"] + interest_rate)
+            / (scale_fact * param["coeff_b"] ** param["coeff_b"])
+            )
 
     return agricultural_rent

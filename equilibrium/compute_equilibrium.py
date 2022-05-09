@@ -24,23 +24,25 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # by considering that they all belong to poorest income group
 
     # General reweighting using SAL/census data
-    ratio = population / sum(households_per_income_class)
-    # Specific reweighting using calibrated employment rates
-    # TODO: note that this leads to overestimation of the total population
-    # Could this be used as a validation test for unemployment calibration?
-    # ratio = [2 / size for size in param["household_size"]]
-    households_per_income_class = households_per_income_class * ratio
+    if options["unempl_reweight"] == 0:
+        ratio = population / sum(households_per_income_class)
+        households_per_income_class = households_per_income_class * ratio
 
     # Alternative strategy: we attribute the unemployed population in
     # proportion with calibrated unemployment rates, without applying them
     # directly
-    # households_tot = households_per_income_class * ratio
-    # households_unempl = households_tot - households_per_income_class
-    # weights = households_unempl / sum(households_unempl)
-    # unempl_pop = population - sum(households_per_income_class)
-    # unempl_attrib = [unempl_pop * w for w in weights]
-
-    # households_per_income_class = households_per_income_class + unempl_attrib
+    elif options["unempl_reweight"] == 1:
+        ratio = [2 / size for size in param["household_size"]]
+        households_tot = households_per_income_class * ratio
+        households_unempl = households_tot - households_per_income_class
+        weights = households_unempl / sum(households_unempl)
+        unempl_pop = population - sum(households_per_income_class)
+        unempl_attrib = [unempl_pop * w for w in weights]
+        households_per_income_class = (
+            households_per_income_class + unempl_attrib)
+        # implicit_empl_rate = ((households_per_income_class - unempl_attrib)
+        #                       / households_per_income_class)
+        # 0.74/0.99/0.98/0.99
 
     #  Considering that all RDP belong to the poorest, we remove them from here
     households_per_income_class[0] = np.max(

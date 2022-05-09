@@ -118,7 +118,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
             # TODO: choose between right and original formula
             agricultural_rent = inpprm.compute_agricultural_rent(
                 spline_agricultural_rent(year_temp), construction_param,
-                interest_rate, param)
+                interest_rate, param, options)
 
             # We compute a new static equilibrium for next period
             (tmpi_utility, tmpi_error, tmpi_simulated_jobs,

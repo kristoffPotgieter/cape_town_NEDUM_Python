@@ -53,7 +53,12 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 options["agents_anticipate_floods"] = 0
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
-options["actual_backyards"] = 1
+options["actual_backyards"] = 0
+options["unempl_reweight"] = 1
+# implicit_empl_rate = 0.74/0.99/0.98/0.99
+options["correct_agri_rent"] = 1
+
+# TODO: should correction in implicit_qfunc be set as an option?
 
 #  Set timeline for simulations
 t = np.arange(0, 30)
@@ -140,7 +145,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
     mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
-    interest_rate
+    interest_rate, options
     )
 
 # FLOOD DATA (takes some time when agents anticipate floods)
@@ -204,6 +209,7 @@ income_net_of_commuting_costs = np.load(
 # TODO: create option to run on old or new calibrated parameters
 
 # population = sum(income_2011.Households_nb)
+# param["max_iter"] = 10000
 
 (initial_state_utility,
  initial_state_error,

@@ -49,7 +49,9 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 options["agents_anticipate_floods"] = 0
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
-options["actual_backyards"] = 1
+options["actual_backyards"] = 0
+options["unempl_reweight"] = 1
+options["correct_agri_rent"] = 1
 
 name = ('nofloods_precal')
 # name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
@@ -140,7 +142,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
     mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
-    interest_rate
+    interest_rate, options
     )
 
 # FLOOD DATA
