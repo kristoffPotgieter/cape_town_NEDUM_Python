@@ -446,13 +446,14 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  backyarding occurring within formal private houses
 
     #  TODO: check pb with floods when removed
-    # actual_backyards = (
-    #     (housing_types.backyard_formal_grid
-    #       + housing_types.backyard_informal_grid)
-    #     / np.nanmax(housing_types.backyard_formal_grid
-    #                 + housing_types.backyard_informal_grid)
-    #     ) * np.max(coeff_land_backyard)
-    actual_backyards = 0
+    actual_backyards = (
+        (housing_types.backyard_formal_grid
+         + housing_types.backyard_informal_grid)
+        / np.nanmax(housing_types.backyard_formal_grid
+                    + housing_types.backyard_informal_grid)
+        ) * np.max(coeff_land_backyard)
+    if options["actual_backyards"] == 0:
+        actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects

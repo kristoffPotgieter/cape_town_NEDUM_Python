@@ -161,8 +161,6 @@ def import_scenarios(income_2011, param, grid, path_scenarios):
             spline_income, spline_minimum_housing_supply,
             spline_fuel)
 
-###
-
 
 def compute_average_income(spline_population_income_distribution,
                            spline_income_distribution, param, t):

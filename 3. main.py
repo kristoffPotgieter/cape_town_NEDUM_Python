@@ -44,10 +44,16 @@ start = time.process_time()
 # %% Import parameters and options
 
 
-# IMPORT DEFAULT PARAMETERS AND OPTIONS
+# IMPORT PARAMETERS AND OPTIONS
 
 options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
+
+#  Set custom options for this simulation
+options["agents_anticipate_floods"] = 0
+options["convert_sal_data"] = 0
+options["compute_net_income"] = 0
+options["actual_backyards"] = 1
 
 #  Set timeline for simulations
 t = np.arange(0, 30)
@@ -55,10 +61,7 @@ t = np.arange(0, 30)
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-# TODO: meant to stick with original specification
-options["agents_anticipate_floods"] = 0
-
-name = ('nofloods_orig')
+name = ('nofloods_precal')
 # name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
 #         + 'informal' + str(options["informal_land_constrained"]) + '_'
 #         + 'actual_backyards1' + '_' + 'pockets1')
@@ -83,9 +86,7 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-# TODO: does this correspond to census data? Is unemployment rate captured?
 # See appendix A1
-
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
@@ -100,11 +101,13 @@ param["income_year_reference"] = mean_income
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
 #  Import nb of households per pixel, by housing type
-#  Note that there is no RDP, but both formal and informal backyard
+#  Note that RDP is included in foraml, and there are both formal and informal
+#  backyards
 
-# Long tu run: uncomment if need to update 'housing_types_grid_sal.xlsx'
-# housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
-#                                       housing_type_data)
+if options["convert_sal_data"] == 1:
+    housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
+                                          housing_type_data)
+
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 
 
@@ -118,6 +121,7 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
      )
 
 # Correction needed with Charlotte's calibration
+# TODO: check if still needed after recalibration
 param["pockets"][
     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
     ] = 0.79
@@ -141,6 +145,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 
 # FLOOD DATA (takes some time when agents anticipate floods)
 #  TODO: create a new variable instead of storing in param
+#  TODO: check if WBUS2 data is indeed deprecated
 #  param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
@@ -172,24 +177,19 @@ elif options["agents_anticipate_floods"] == 0:
  spline_income, spline_minimum_housing_supply, spline_fuel
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
-# Long to run: uncomment if need to update scenarios for transport data
-
-# for t_temp in np.arange(0, 30):
-#     print(t_temp)
-#     (incomeNetOfCommuting, modalShares, ODflows, averageIncome
-#       ) = inpdt.import_transport_data(
-#           grid, param, t_temp, households_per_income_class, average_income,
-#           spline_inflation, spline_fuel,
-#           spline_population_income_distribution, spline_income_distribution,
-#           path_precalc_inp, path_precalc_transp, 'GRID')
-
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
-# income_net_of_commuting_costs, *_ = inpdt.import_transport_data(
-#       grid, param, 0, households_per_income_class, average_income,
-#       spline_inflation, spline_fuel,
-#       spline_population_income_distribution, spline_income_distribution,
-#       path_precalc_inp, path_precalc_transp, 'GRID')
+
+if options["compute_net_income"] == 1:
+    for t_temp in t:
+        print(t_temp)
+        (incomeNetOfCommuting, modalShares, ODflows, averageIncome
+         ) = inpdt.import_transport_data(
+             grid, param, t_temp, households_per_income_class, average_income,
+             spline_inflation, spline_fuel,
+             spline_population_income_distribution, spline_income_distribution,
+             path_precalc_inp, path_precalc_transp, 'GRID')
+
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 
@@ -197,59 +197,12 @@ income_net_of_commuting_costs = np.load(
 # %% Compute initial state
 
 # TODO: Note that we use a Cobb-Douglas production function all along!
-# TODO: Also note that we simulate households as two representative agents
+# Also note that we simulate households as two representative agents
 # (not as in the paper)
 
-# TODO: create option to run on old or new calibrated parameters.
-# We use backyard and informal pockets by default, with no reweighting
+# TODO: create option to run on old or new calibrated parameters
 
-# Note that using actual_backyards option makes alogrithm much longer
-# and does not change much for validation. Doubling transport costs does not
-# change much either. Also note that interest rate has a strong impact on
-# dwelling size (probably should not be set too low).
-
-# New calibration for amenities allows to shift price spike to the left and
-# flatten density curve. Adding new calibration for incomes also contributes
-# to flattening but significantly shifts the distribution of income groups
-# across backyards. However, new utility parameter estimates need to be
-# refined. Same goes for construcion function parameters, but lambda is fine.
-
-# TODO: also need to check validation across income groups
-
-# TODO: are RuntimeWarnings important?
-# Note that we manage to converge!
-
-# main_fraction_capital_destroyed = pd.read_csv(
-#     path_outputs + 'main_specif/inputs/fraction_capital_destroyed.csv')
-# main_amenities = np.load(path_outputs + 'main_specif/inputs/amenities.npy')
-# main_param = np.load(path_outputs + 'main_specif/inputs/param.npy',
-#                      allow_pickle='TRUE').item()
-# main_housing_limit = np.load(
-#     path_outputs + 'main_specif/inputs/housing_limit.npy')
-# main_population = np.load(
-#     path_outputs + 'main_specif/inputs/population.npy')
-# main_households_per_income_class = np.load(
-#     path_outputs + 'main_specif/inputs/households_per_income_class.npy')
-# main_total_RDP = np.load(path_outputs + 'main_specif/inputs/total_RDP.npy')
-# main_coeff_land = np.load(path_outputs + 'main_specif/inputs/coeff_land.npy')
-# main_income_net_of_commuting_costs = np.load(
-#     path_outputs + 'main_specif/inputs/income_net_of_commuting_costs.npy')
-# main_grid = pd.read_csv(path_outputs + 'main_specif/inputs/grid.csv')
-# main_options = np.load(path_outputs + 'main_specif/inputs/options.npy',
-#                        allow_pickle='TRUE').item()
-# main_agricultural_land = np.load(
-#     path_outputs + 'main_specif/inputs/agricultural_rent.npy')
-# main_interest_rate = np.load(
-#     path_outputs + 'main_specif/inputs/interest_rate.npy')
-# main_number_properties_RDP = np.load(
-#     path_outputs + 'main_specif/inputs/number_properties_RDP.npy')
-# main_average_income = np.load(
-#     path_outputs + 'main_specif/inputs/average_income.npy')
-# main_mean_income = np.load(path_outputs + 'main_specif/inputs/mean_income.npy')
-# main_income_class_by_housing_type = np.load(
-#     path_outputs + 'main_specif/inputs/income_class_by_housing_type.npy')
-# main_minimum_housing_supply = np.load(
-#     path_outputs + 'main_specif/inputs/minimum_housing_supply.npy')
+# population = sum(income_2011.Households_nb)
 
 (initial_state_utility,
  initial_state_error,

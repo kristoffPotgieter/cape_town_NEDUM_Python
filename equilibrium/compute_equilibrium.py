@@ -20,12 +20,28 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                         income_class_by_housing_type, minimum_housing_supply,
                         construction_param):
     """Determine static equilibrium allocation from iterative algorithm."""
-    # Adjust the population to remove the population in RDP
-    #  We augment the number of households per income class to include RDP
-    #  TODO: shouldn't we only rescale income groups eligible to formal
-    #  backyarding?
+    # Adjust the population to include unemployed people, then take out RDP
+    # by considering that they all belong to poorest income group
+
+    # General reweighting using SAL/census data
     ratio = population / sum(households_per_income_class)
+    # Specific reweighting using calibrated employment rates
+    # TODO: note that this leads to overestimation of the total population
+    # Could this be used as a validation test for unemployment calibration?
+    # ratio = [2 / size for size in param["household_size"]]
     households_per_income_class = households_per_income_class * ratio
+
+    # Alternative strategy: we attribute the unemployed population in
+    # proportion with calibrated unemployment rates, without applying them
+    # directly
+    # households_tot = households_per_income_class * ratio
+    # households_unempl = households_tot - households_per_income_class
+    # weights = households_unempl / sum(households_unempl)
+    # unempl_pop = population - sum(households_per_income_class)
+    # unempl_attrib = [unempl_pop * w for w in weights]
+
+    # households_per_income_class = households_per_income_class + unempl_attrib
+
     #  Considering that all RDP belong to the poorest, we remove them from here
     households_per_income_class[0] = np.max(
         households_per_income_class[0] - total_RDP, 0)
@@ -310,7 +326,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # RDP houses
     #  We correct output coming from data_RDP with more reliable estimations
-    #  from Claus
+    #  from SAL data
     households_RDP = (number_properties_RDP * total_RDP
                       / sum(number_properties_RDP))
     #  Share of housing (no backyard) in RDP surface (with land in km²)
@@ -350,16 +366,15 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     housing_supply_export[:, selected_pixels] = housing_supply
     dwelling_size_export[:, selected_pixels] = copy.deepcopy(dwelling_size)
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
-    # TODO: See equilibrium condition (iv)
     # TODO: choose between right and original specification
-    # housing_supply_RDP = (
-    #     construction_RDP * dwelling_size_RDP * households_RDP
-    #     / (coeff_land_full[3, :] * 0.25)  # * 1000000
-    #     )
-    # housing_supply_RDP[np.isnan(housing_supply_RDP)] = 0
     housing_supply_RDP = (
-        construction_RDP * 1000000
+        construction_RDP * dwelling_size_RDP * households_RDP
+        / (coeff_land_full[3, :] * 0.25)  # * 1000000
         )
+    housing_supply_RDP[np.isnan(housing_supply_RDP)] = 0
+    # housing_supply_RDP = (
+    #     construction_RDP * 1000000
+    #     )
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
     # Note that RDP housing supply per unit of land has nothing to do with

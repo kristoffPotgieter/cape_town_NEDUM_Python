@@ -112,26 +112,20 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 spline_land_constraints, spline_land_backyard,
                 spline_land_informal, spline_land_RDP, param, year_temp)
 
-            # agricultural_rent = (
-            #     spline_agricultural_rent(year_temp)
-            #     ** (param["coeff_a"]) * (interest_rate)
-            #     / (construction_param * param["coeff_b"] ** param["coeff_b"])
-            #     )
-
             # TODO: here it seems more natural to use interest_rate instead of
-            # param (also check formula from footnote 16)
+            # param["interest rate"]?
             # TODO: choose between right and original formula
-            # agricultural_rent = (
-            #     spline_agricultural_rent(year_temp) ** (param["coeff_a"])
-            #     * (param["depreciation_rate"] + interest_rate)
-            #     / (construction_param * param["coeff_b"] ** param["coeff_b"]
-            #        * param["coeff_a"] ** param["coeff_a"])
-            #     )
             agricultural_rent = (
                 spline_agricultural_rent(year_temp) ** (param["coeff_a"])
-                * (interest_rate)
-                / (construction_param * param["coeff_b"] ** param["coeff_b"])
+                * (param["depreciation_rate"] + interest_rate)
+                / (construction_param * param["coeff_b"] ** param["coeff_b"]
+                    * param["coeff_a"] ** param["coeff_a"])
                 )
+            # agricultural_rent = (
+            #     spline_agricultural_rent(year_temp) ** (param["coeff_a"])
+            #     * (interest_rate)
+            #     / (construction_param * param["coeff_b"] ** param["coeff_b"])
+            #     )
 
             # We compute a new static equilibrium for next period
             (tmpi_utility, tmpi_error, tmpi_simulated_jobs,

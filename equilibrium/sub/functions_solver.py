@@ -16,32 +16,18 @@ def compute_dwelling_size_formal(utility, amenities, param,
                                  income_net_of_commuting_costs,
                                  fraction_capital_destroyed):
     """Return optimal dwelling size per income group for formal housing."""
-    # What is the point? Set as parameter?
-    # fraction_capital_destroyed = 0
-
     income_temp = copy.deepcopy(income_net_of_commuting_costs)
     income_temp[income_temp < 0] = np.nan
 
     # According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B
     # (draft, p.11), see theoretical expression in implicit_qfunc()
-
-    # TODO: check specification equivalence
-
     left_side = (
         (np.array(utility)[:, None] / np.array(amenities)[None, :])
         * ((1 + (param["fraction_z_dwellings"]
-                  * np.array(fraction_capital_destroyed.contents_formal)[
-                      None, :])) ** (param["alpha"]))
+                 * np.array(fraction_capital_destroyed.contents_formal)[
+                     None, :])) ** (param["alpha"]))
         / ((param["alpha"] * income_temp) ** param["alpha"])
         )
-
-    # left_side = (
-    #     (utility[:, None] / amenities[None, :])
-    #     * ((1 + (param["fraction_z_dwellings"]
-    #               * fraction_capital_destroyed.contents_formal[None, :])
-    #         ) ** (param["alpha"]))
-    #     / ((param["alpha"] * income_temp) ** param["alpha"])
-    #     )
 
     # approx = left_side ** (1/param["beta"])
 
@@ -64,13 +50,6 @@ def compute_dwelling_size_formal(utility, amenities, param,
     # f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x,
     #              fill_value="extrapolate")
 
-    # TODO: check specification equivalence
-    # fun = (
-    #     lambda q:
-    #         (q - param["q0"])
-    #         / ((q - (param["alpha"] * param["q0"])) ** param["alpha"])
-    #         )
-    # f = interp1d(fun(x), x)
     f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x)
 
     # We define dwelling size as q corresponding to true values of
@@ -87,9 +66,9 @@ def implicit_qfunc(q, q_0, alpha):
     """Implicitely define optimal dwelling size."""
     # Note that with above x definition, q-alpha*q_0 can be negative
 
-    # This is where problem was coming from: numpy returns null when trying to
-    # get the fractional power of a negative number (which is fine, because
-    # we are not interested in such values)
+    # Note that numpy returns null when trying to get the fractional power of a
+    # negative number (which is fine, because we are not interested in such
+    # values), hence we ignore the error
     np.seterr(divide='ignore', invalid='ignore')
     result = (
         (q - q_0)
@@ -97,9 +76,6 @@ def implicit_qfunc(q, q_0, alpha):
         )
 
     return result
-
-    # return ((q - q_0)
-    #         / (np.sign(q - (alpha * q_0))*np.abs(q - (alpha * q_0)) ** alpha))
 
 
 def compute_housing_supply_formal(

@@ -48,7 +48,7 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 # TODO: meant to stick with original specification
 options["agents_anticipate_floods"] = 0
 
-name = ('nofloods_orig')
+name = ('nofloods_precal')
 # name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
 #         + 'informal' + str(options["informal_land_constrained"]) + '_'
 #         + 'actual_backyards1' + '_' + 'pockets1')
