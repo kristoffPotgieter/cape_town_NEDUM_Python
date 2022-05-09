@@ -40,7 +40,7 @@ def import_param(path_precalc_inp, path_outputs):
         )["calibratedUtility_beta"].squeeze()
     # param["beta"] = np.load(path_precalc_inp + 'calibratedUtility_beta.npy')
     #  Basic need in housing
-    #  TODO: not the same a in paper
+    #  TODO: not the same a in paper (3.97 vs. 4.1)
     param["q0"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_q0.mat'
         )["calibratedUtility_q0"].squeeze()
@@ -51,12 +51,14 @@ def import_param(path_precalc_inp, path_outputs):
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
     #  Capital elasticity
+    #  TODO: is it too small compared to existing literature?
     param["coeff_b"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
     # param["coeff_b"] = np.load(path_precalc_inp + 'calibratedHousing_b.npy')
     # Land elasticity
     param["coeff_a"] = 1 - param["coeff_b"]
     #  Scale parameter
+    #  TODO: small compared to Viguié et al., 2014, table B2?
     param["coeff_A"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedHousing_kappa.mat'
         )["coeffKappa"].squeeze()
@@ -65,20 +67,22 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
     # al.), as calibrated in appendix C3
+    # TODO: correct typo in paper
     param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
                                        )["lambdaKeep"].squeeze()
     # param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
     # Discount factors
+    # TODO: correct typo in paper
     #  From Viguié et al. (2014)
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
-    #  TODO: check consistency with interest_rate from macro_data
+    #  TODO: check consistency with interest_rate from import_macro_data()
     param["interest_rate"] = 0.025
 
     # Housing parameters
-    #  Size of an informal dwelling unit (m^2), (not 20 as in the paper,
-    #  cf. Claus)
+    #  Size of an informal dwelling unit (m^2)
+    #  TODO: check inconsistency with paper (14 vs. 20)
     param["shack_size"] = 14
     #  Size of a social housing dwelling unit (m^2), see table C6
     param["RDP_size"] = 40
@@ -90,28 +94,37 @@ def import_param(path_precalc_inp, path_outputs):
     param["future_rate_public_housing"] = 1000
     #  Cost of inputs for building an informal dwelling unit (in rands)
     #  Not zero as in the paper to account for potential destructions from
-    #  floods
-    #  TODO: plug flow costs as a fraction of land used to recover values
+    #  floods: how is it determined
+    #  TODO: plug flow costs as a fraction of land used to recover values?
     param["informal_structure_value"] = 4000
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
     #  Correspond to average share of durable and semi-durable goods in total
-    #  HH budget (excluding rent) : see Aux data/HH Income per DU - CL
+    #  HH budget (excluding rent)
+    #  TODO: check estimation from Quantec data
+    #  Original excel specification with non-durable goods and current income
     # param["fraction_z_dwellings"] = 0.53
-    param["fraction_z_dwellings"] = 0.49
-    #  Value of a social housing dwelling unit (in rands)
-    #  For floods destruction
+    #  Original code specification
+    # param["fraction_z_dwellings"] = 0.49
+    #  Alternative specification without non-durable goods and with disposable
+    #  income
+    param["fraction_z_dwellings"] = 0.18
+    #  Value of a social housing dwelling unit (in rands): again needed for
+    #  flood damage estimation
     #  TODO: How to determine it?
     param["subsidized_structure_value"] = 150000
 
     # Max % of land that can be built for housing (to take roads into account),
     # by housing type: comes from analogy with Viguié et al., 2014 (table B1)
+    # More precisely, maximum fraction of ground surface devoted to housing
+    # where building is possible is 62% in Paris
+    # TODO: discuss alternative specifications
     param["max_land_use"] = 0.7
     param["max_land_use_backyard"] = 0.45
     param["max_land_use_settlement"] = 0.4
 
-    # Constraints on housing supply (in meters)
-    #  A priori not binding
+    # Constraints on housing supply (in meters), a priori not binding
+    # TODO: where does it come from?
     param["historic_radius"] = 100
     param["limit_height_center"] = 10
     param["limit_height_out"] = 10
@@ -119,6 +132,8 @@ def import_param(path_precalc_inp, path_outputs):
     # Agricultural land rents (in rands)
     #  Corresponds to the ninth decile in the sales data sets, when
     #  selecting only agricultural properties in rural areas
+    #  NB: corresponds to the price of land, not of real estate
+    #  TODO: recover original data
     param["agricultural_rent_2011"] = 807.2
     #  Estimated the same way
     param["agricultural_rent_2001"] = 70.7
@@ -134,18 +149,17 @@ def import_param(path_precalc_inp, path_outputs):
     #  (4). Note that we exclude people earning no income from the analysis
     param["income_distribution"] = np.array(
         [0, 1, 1, 1, 1, 2, 3, 3, 4, 4, 4, 4])
-    #  Nb of jobs above which we keep employment center in the analysis
-    param["threshold_jobs"] = 20000
     #  Avg nb of employed workers per household of each income class
     #  (see appendix B1: 2*ksi): we need to take into account monetary cost
-    #  for both members of the household
+    #  for both members of the household (cf. import_transport_data)
     #  TODO: choose right or original specification
-    # param["household_size"] = [1.14, 1.94, 1.92, 1.94]
-    param["household_size"] = [1.14, 1.94, 1.94, 1.94]
-    #  param["household_size"] = [size / 2 for size in param["household_size"]]
+    param["household_size"] = [1.14, 1.94, 1.92, 1.94]
+    # param["household_size"] = [1.14, 1.94, 1.94, 1.94]
+    # TODO: check alternative unemployment specifications
 
     # Transportation cost parameters
-    param["waiting_time_metro"] = 10  # in minutes
+    # TODO: where does waiting time kick in?
+    # param["waiting_time_metro"] = 10  # in minutes
     param["walking_speed"] = 4  # in km/h
     param["time_cost"] = 1  # equivalence in monetary terms
 
@@ -156,8 +170,9 @@ def import_param(path_precalc_inp, path_outputs):
     param["max_iter"] = 5000
     param["precision"] = 0.01
 
-    # Dynamic parameters (from Viguié et al., 2014)
+    # Dynamic parameters (from Viguié et al., 2014, table B1)
     #  Lag in housing building
+    #  TODO: possibility to vary through time?
     param["time_invest_housing"] = 3
     #  Time (in years) for the full depreciation of a housing unit
     param["time_depreciation_buildings"] = 100
@@ -224,28 +239,36 @@ def import_construction_parameters(param, grid, housing_types_sp,
         grid_formal_density_HFA[cond] / coeff_land[0, :][cond] * 1.1)
     param["housing_in"][~np.isfinite(param["housing_in"])] = 0
     # Deal with formally non-built or non-inhabited areas
-    # param["housing_in"][
-    #     (coeff_land[0, :] == 0) | np.isnan(param["housing_in"])
-    #     ] = 0
+    param["housing_in"][
+        (coeff_land[0, :] == 0) | np.isnan(param["housing_in"])
+        ] = 0
     # Put a cap and a floor on values
     param["housing_in"][param["housing_in"] > 2 * (10**6)] = 2 * (10**6)
     param["housing_in"][param["housing_in"] < 0] = 0
 
     # In Mitchells Plain, housing supply is given exogenously (planning),
     # and only households of group 2 live there (coloured neighborhood).
-    # We do the same as before with a starting supply of 1 in Mitchells Plain:
-    # the idea is to have a min housing supply in this zone whose density might
-    # be underestimated by the model
+    # We do the same as before: the idea is to have a min housing supply in
+    # this zone whose formal density might be underestimated by the model
 
     param["minimum_housing_supply"] = np.zeros(len(grid.dist))
-    # TODO: choose between right or original specification
+    # TODO: choose between alternative specifications
+    # Original specification from Matlab
     # param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
     #     (grid_formal_density_HFA[mitchells_plain_grid_2011]
     #      / coeff_land[0, :][mitchells_plain_grid_2011]))
-    param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
-        mitchells_plain_grid_2011[mitchells_plain_grid_2011]
-        / coeff_land[0, mitchells_plain_grid_2011]
-        )
+    # Wrong specification from Python
+    # param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
+    #     mitchells_plain_grid_2011[mitchells_plain_grid_2011]
+    #     / coeff_land[0, mitchells_plain_grid_2011]
+    #     )
+    # Alternative specification accounting for minimum dwelling size
+    # param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
+    #     (grid_formal_density_HFA[mitchells_plain_grid_2011] * param["q0"]
+    #      / coeff_land[0, :][mitchells_plain_grid_2011]))
+
+    # TODO: Discuss better correction than such ad hoc procedure (although
+    # for Philippi and Khayelitsha)
 
     param["minimum_housing_supply"][
         (coeff_land[0, :] < 0.1) | (np.isnan(param["minimum_housing_supply"]))
@@ -269,18 +292,18 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
     # Comes from zero profit condition: allows to convert land prices into
     # housing prices (cf. also inversion from footnote 16)
-    # TODO: use interest_rate or param["interest_rate"]? Check inversion
+    # TODO: use interest_rate or param["interest_rate"]?
     # TODO: choose between right or original specification
-    # agricultural_rent = (
-    #     param["agricultural_rent_2011"] ** (param["coeff_a"])
-    #     * (param["depreciation_rate"] + interest_rate)
-    #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
-    #         * param["coeff_a"] ** param["coeff_a"])
-    #     )
     agricultural_rent = (
         param["agricultural_rent_2011"] ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)
-        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
+            * param["coeff_a"] ** param["coeff_a"])
         )
+    # agricultural_rent = (
+    #     param["agricultural_rent_2011"] ** (param["coeff_a"])
+    #     * (param["depreciation_rate"] + interest_rate)
+    #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
+    #     )
 
     return param, minimum_housing_supply, agricultural_rent

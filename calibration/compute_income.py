@@ -27,7 +27,8 @@ def import_transport_costs(grid, param, yearTraffic,
                                        + 'Transport_times_' + dim)
 
     # TODO: Check tables from Basile to link with data
-    # TODO: are round trips already included for variable costs?
+    # TODO: are round trips already included for variable monetary costs?
+    # What about time costs?
 
     # Price per km: see appendix B2 and Roux(2013), table 4.15
     priceTrainPerKMMonth = (
@@ -63,11 +64,11 @@ def import_transport_costs(grid, param, yearTraffic,
     priceBusPerKMMonth = priceBusPerKMMonth * inflation / infla_2012
     priceBusFixedMonth = priceBusFixedMonth * inflation / infla_2012
     priceFuelPerKMMonth = spline_fuel(yearTraffic)
-    # TODO: choose between right and original specification
-    if yearTraffic > 8:
-        priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
-        # priceBusPerKMMonth = priceBusPerKMMonth * 1.2
-        # priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
+
+    # if yearTraffic > 8:
+    #     priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
+    #     priceBusPerKMMonth = priceBusPerKMMonth * 1.2
+    #     priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
 
     # Fixed costs
     #  See appendix B2
@@ -149,8 +150,8 @@ def import_transport_costs(grid, param, yearTraffic,
     # We assume that people not taking some transport mode
     # have a extra high cost of doing so"
     # TODO: is it too big?
-    monetaryCost[np.isnan(monetaryCost)] = 10 ** 3
-    # monetaryCost[np.isnan(monetaryCost)] = 10 ** 5
+    # monetaryCost[np.isnan(monetaryCost)] = 10 ** 3
+    monetaryCost[np.isnan(monetaryCost)] = 10 ** 5
 
     # trans_monetaryCost = copy.deepcopy(monetaryCost)
 
@@ -355,11 +356,9 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
             * incomeCentersFull[:, None, None]))
     )
 
-    # TODO: this supposedly prevents exponentials from diverging towards
-    # infinity, but how would it be possible with negative terms?
-    # In any case, this is neutral on the result
+    # This prevents exponentials/logarithms from diverging towards infinity
+    # This is neutral on the result and is set by trial and error
     valueMax = np.nanmin(param_lambda * transportCostModes, 2) - 500
-    # valueMax = np.zeros(valueMax.shape)
 
     # Transport costs (min_m(t_mj))
     # NB: here, we consider the Gumbel quantile function
@@ -369,13 +368,11 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
                                    + valueMax[:, :, None]), 2)) - valueMax)
     )
 
-    # TODO: this is more intuitive regarding diverging exponentials, but
-    # does Python have the same limitations as Matlab? Still neutral
+    # Also for exponential/logarithm convergence
     minIncome = (np.nanmax(
         param_lambda * (incomeCentersFull[:, None] - transportCost), 0)
         - 700
         )
-    # minIncome = np.zeros(minIncome.shape)
 
     # OD flows: corresponds to pi_c|ix (here, not the full matrix)
     # NB: here, we consider maximum Gumbel

@@ -60,11 +60,12 @@ def import_hypothesis_housing_type():
 
 def import_income_classes_data(param, path_data):
     """Import population and average income per income class in the model."""
-    # Import population distribution according to housing type (no RDP) and
-    # income class (note that formal backyard is lacking)
+    # Import population distribution according to housing type and income class
+    # Note that RDP is included in formal
+    # TODO: is formal backyard lacking or just included in formal housing?
     income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
 
-    # Compute overall average income
+    # Compute overall median income
     mean_income = np.sum(income_2011.Households_nb * income_2011.INC_med
                          ) / sum(income_2011.Households_nb)
 
@@ -80,7 +81,7 @@ def import_income_classes_data(param, path_data):
         param["nb_of_income_classes"])
     households_per_income_in_informal = np.zeros(param["nb_of_income_classes"])
 
-    # Compute population and average income for each class in the model
+    # Compute population and median income for each class in the model
     for j in range(0, param["nb_of_income_classes"]):
         households_per_income_class[j] = np.sum(
             nb_of_hh_bracket[(param["income_distribution"] == j + 1)])
@@ -89,6 +90,7 @@ def import_income_classes_data(param, path_data):
             * nb_of_hh_bracket[param["income_distribution"] == j + 1]
             ) / households_per_income_class[j]
 
+        # We do the same across housing types for validation
         households_per_income_in_formal[j] = np.sum(
             income_2011.formal[(param["income_distribution"] == j + 1)])
         households_per_income_in_backyard[j] = np.sum(
@@ -128,8 +130,12 @@ def import_households_data(path_precalc_inp):
     #  Surface of RDP units
     data_rdp["area"] = data['gridAreaRDPfromGV'][0][0].squeeze()
 
+    # TODO: describe General Validation process in more details
+
     # Get other data for pixels
     #  Dummy indicating wheter pixel belongs to Mitchell's Plain district
+    #  TODO: shouldn't we also identify other neighbourhoods in need of
+    #  correction
     mitchells_plain_grid_2011 = data['MitchellsPlain'][0][0].squeeze()
     #  Population density in formal housing
     grid_formal_density_HFA = data['gridFormalDensityHFA'][0][0].squeeze()
@@ -208,7 +214,8 @@ def import_macro_data(param, path_scenarios):
     # Raw figures come from Claus/ comes from housing_types
     # TODO: link with data and correct for granny flats
     total_RDP = 194258
-    total_formal = 626770
+    # total_formal = 626770
+    total_formal = 616560
     total_informal = 143765
     total_backyard = 91132
     housing_type_data = np.array([total_formal, total_backyard, total_informal,
@@ -230,7 +237,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # RDP population data
     #  We take total population in RDP at baseline year
-    #  TODO: check differene with GV in data.mat
+    #  TODO: check difference with GV in data.mat
     RDP_2011 = housing_type_data[3]
     #  Comes from GV in data.mat
     RDP_2001 = 1.1718e+05
@@ -262,11 +269,11 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         + 'Land occupation/informal_settlements_risk_pVERYHIGH.csv',
         sep=',')
 
-    # Nb of informal dwellings per pixel (realized scenario)
+    # Nb of informal dwellings per pixel
     informal_settlements_2020 = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
-    # Here we correct by max_land_use to make it comparable with
-    # land_use_data_old (this will be removed afterwards as it does not
+    # Here we correct by 1 / max_land_use to make it comparable with other
+    # informal risks (this will be removed afterwards as it does not
     # correspond to reality)
     informal_risks_2020 = (
         informal_settlements_2020.inf_dwellings_2020
@@ -275,7 +282,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     informal_risks_2020[informal_risks_2020 < area_pixel/100] = 0
     informal_risks_2020[np.isnan(informal_risks_2020)] = 0
 
-    # TODO: Ask Claus where this comes from
+    # Pixel selection for scenario correction
+    # TODO: determine where it comes from
     polygon_medium_timing = pd.read_excel(
         path_folder + 'Land occupation/polygon_medium_timing.xlsx',
         header=None)
@@ -343,7 +351,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # Getting the outcome
 
     #  We weight by closeness to the center to get retrospective number of RDP
-    #  in 2001 (by assuming that central areas where built before)
+    #  in 2000 (by assuming that central areas where built before)
     #  TODO: cross-check with new data?
     number_properties_2000 = (
         data_rdp["count"]
@@ -379,7 +387,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  % of the pixel area dedicated to RDP (after accounting for backyard)
     area_RDP = (data_rdp["area"] * param["RDP_size"]
                 / (param["backyard_size"] + param["RDP_size"])
-                / area_pixel)  # / param["max_land_use"]
+                / area_pixel) / param["max_land_use"]
 
     #  For the RDP constructed area, we take the min between declared value and
     #  extrapolation from our initial size parameters
@@ -389,7 +397,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         construction_rdp.area_ST,
         (param["backyard_size"] + param["RDP_size"])
         * construction_rdp.total_yield_DU_ST
-        )  # / param["max_land_use"]
+        ) / param["max_land_use"]
     #  Then for the LT, while capping the constructed area at the pixel size
     #  (just in case)
     area_RDP_long_term = np.minimum(
@@ -400,7 +408,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                + construction_rdp.total_yield_DU_LT)
             ),
         area_pixel
-        )  # / param["max_land_use"]
+        ) / param["max_land_use"]
 
     # Regression spline
 
@@ -432,14 +440,19 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  informal) by a ratio of how densely populated the pixel is: this yields
     #  an alternative definition of coeff_land_backyard that includes formal
     #  backyarding and may be used for flood damage estimations
-    #  TODO: check pb with floods
-    actual_backyards = (
-        (housing_types.backyard_formal_grid
-          + housing_types.backyard_informal_grid)
-        / np.nanmax(housing_types.backyard_formal_grid
-                    + housing_types.backyard_informal_grid)
-        ) * np.max(coeff_land_backyard)
-    # actual_backyards = 0
+
+    #  NB: note that the pb with previous specification is not that we do not
+    #  take formal backyards into account, but rather that we abstract from
+    #  backyarding occurring within formal private houses
+
+    #  TODO: check pb with floods when removed
+    # actual_backyards = (
+    #     (housing_types.backyard_formal_grid
+    #       + housing_types.backyard_informal_grid)
+    #     / np.nanmax(housing_types.backyard_formal_grid
+    #                 + housing_types.backyard_informal_grid)
+    #     ) * np.max(coeff_land_backyard)
+    actual_backyards = 0
 
     #  To project backyard share of pixel area on the ST, we add the potential
     #  backyard construction from RDP projects
@@ -551,6 +564,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     informal_2020 = np.fmax(informal_risks_2020 / area_pixel, informal_2011)
 
     #  We also get area for high risk scenario
+    #  TODO: discuss choice of scenarios
     high_proba = informal_risks_VERYHIGH.area + informal_risks_HIGH.area
 
     #  We consider some scenario for 2023 and correct for RDP construction
@@ -624,10 +638,6 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
     """Return pixel share for housing scenarios, weighted by max building %."""
-    # TODO: test if correcting spline_land_RDP makes big difference
-    # for formal in outer areas
-    # TODO: see if different assumptions for RDP GV drive the difference
-    # in simulations for formal
     coeff_land_private = (spline_land_constraints(t)
                           - spline_land_backyard(t)
                           - spline_land_informal(t)
@@ -797,17 +807,16 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
     # flood-prone area (yields pixel share of destructed area), so as to
     # define damage intervals to be used in final computation
 
-    # We take zero value at t = 0
-    # TODO: can return periods really be assimilated with probabilities?
+    # TODO: should we take zero value at t = 0?
     # TODO: is continuous the right framework?
-    # damages0 = (d[type_flood + '_5yr'].prop_flood_prone
-    #             * damage_function(d[type_flood + '_5yr'].flood_depth))
-    damages0 = (
-        d[type_flood + '_5yr'].prop_flood_prone
-        * damage_function(d[type_flood + '_5yr'].flood_depth)
-        + d[type_flood + '_5yr'].prop_flood_prone
-        * damage_function(d[type_flood + '_10yr'].flood_depth)
-        )
+    damages0 = (d[type_flood + '_5yr'].prop_flood_prone
+                * damage_function(d[type_flood + '_5yr'].flood_depth))
+    # damages0 = (
+    #     d[type_flood + '_5yr'].prop_flood_prone
+    #     * damage_function(d[type_flood + '_5yr'].flood_depth)
+    #     + d[type_flood + '_5yr'].prop_flood_prone
+    #     * damage_function(d[type_flood + '_10yr'].flood_depth)
+    #     )
     damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
                  * damage_function(d[type_flood + '_5yr'].flood_depth))
                 + (d[type_flood + '_10yr'].prop_flood_prone
@@ -879,10 +888,6 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
      structural_damages_type4a, structural_damages_type4b,
      d_fluvial, d_pluvial) = import_init_floods_data(
          options, param, path_folder)
-
-# We take only fluvial as a baseline, and pluvial as an option.
-# According to Claus, FATHOM data is less reliable for pluvial (which depends
-# on many factors), hence we take it as an option.
 
     if options["pluvial"] == 0:
         (fraction_capital_destroyed["contents_formal"]
@@ -1085,16 +1090,13 @@ def import_transport_data(grid, param, yearTraffic,
     income_centers_init = scipy.io.loadmat(
         path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
     # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
-    # This allows to correct incomes for RDP people not taken into account in
-    # initial income data (just in scenarios)
+    # This allows to correct incomes for unemployed population not taken into
+    # account in initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income
 
     # Switch to hourly
     annualToHourly = 1 / (8*20*12)
-    # TODO: why?
     monetaryCost = monetaryCost * annualToHourly
-    # We assume that people not taking some transport mode have a extra high
-    # cost of doing so
     incomeCenters = incomeCenters * annualToHourly
 
     # xInterp = grid.x
@@ -1139,6 +1141,8 @@ def import_transport_data(grid, param, yearTraffic,
             householdSize, monetaryCost, costTime, incomeCentersGroup,
             whichCenters, param_lambda)
 
+        # NB: we compute OD flows again to get the full matrix
+
         # Modal shares
         # This comes from the multinomial model resulting from extreme value
         # theory with a Gumbel distribution (generalized EV type-I)
@@ -1171,6 +1175,7 @@ def import_transport_data(grid, param, yearTraffic,
 
         # Average income (not net of commuting costs) earned per worker
         # NB: here, we just take the weighted average as there is no error
+        # Note that this should take unemployment into account
         averageIncome[j, :] = np.nansum(
             ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
 
@@ -1201,9 +1206,9 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
     sal_data["backyard_informal"] = sal_data[
         "Informal dwelling (shack; in backyard)"]
-    # TODO: does not include granny flats
-    # sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
-    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8, 12]], 1)
+    # TODO: include or not granny flats
+    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
+    # sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8, 12]], 1)
 
     grid_intersect = pd.read_csv(
         path_data + 'grid_SAL_intersect.csv', sep=';')
@@ -1224,6 +1229,7 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
 
     # We correct the number of dwellings per pixel by reweighting with the
     # ratio of total original number over total estimated number
+    # TODO: is it useful?
     informal_grid = (informal_grid * (np.nansum(sal_data["informal"])
                                       / np.nansum(informal_grid)))
     backyard_formal_grid = (backyard_formal_grid
@@ -1232,12 +1238,15 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     backyard_informal_grid = (backyard_informal_grid
                               * (np.nansum(sal_data["backyard_informal"])
                                  / np.nansum(backyard_informal_grid)))
+    formal_grid = (formal_grid * (np.nansum(sal_data["formal"])
+                                  / np.nansum(formal_grid)))
     # We adapt the fraction given for formal housing to our initial data:
     # housing_type_data[0] + housing_type_data[3] = total_formal + total_RDP
-    # TODO: is it the right way to go?
-    formal_grid = formal_grid * (
-        (housing_type_data[0] + housing_type_data[3])
-        / np.nansum(formal_grid))
+    # TODO: is it the right way to go given that housing type data indeed comes
+    # from SAL data?
+    # formal_grid = formal_grid * (
+    #     (housing_type_data[0] + housing_type_data[3])
+    #     / np.nansum(formal_grid))
 
     housing_types_grid_sal = pd.DataFrame()
     housing_types_grid_sal["informal_grid"] = informal_grid
@@ -1252,48 +1261,6 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
         path_folder + 'housing_types_grid_sal.xlsx')
 
     return housing_types_grid_sal
-
-
-# TODO: put deprecated functions in side script
-
-def convert_income_distribution(income_distribution, grid, path_data, data_sp):
-    """Import SP data for income distribution in grid form."""
-    grid_intersect = pd.read_csv(
-        path_data + 'grid_SP_intersect.csv', sep=';')
-
-    income0_grid = gen_small_areas_to_grid(
-        grid, grid_intersect, income_distribution[:, 0],
-        data_sp["sp_code"], 'SP')
-    income1_grid = gen_small_areas_to_grid(
-        grid, grid_intersect, income_distribution[:, 1],
-        data_sp["sp_code"], 'SP')
-    income2_grid = gen_small_areas_to_grid(
-        grid, grid_intersect, income_distribution[:, 2],
-        data_sp["sp_code"], 'SP')
-    income3_grid = gen_small_areas_to_grid(
-        grid, grid_intersect, income_distribution[:, 3],
-        data_sp["sp_code"], 'SP')
-
-    # We correct the values per pixel by reweighting with the
-    # ratio of total original number over total estimated number
-    income0_grid = (income0_grid * (np.nansum(income_distribution[:, 0])
-                                    / np.nansum(income0_grid)))
-    income1_grid = (income1_grid * (np.nansum(income_distribution[:, 1])
-                                    / np.nansum(income1_grid)))
-    income2_grid = (income2_grid * (np.nansum(income_distribution[:, 2])
-                                    / np.nansum(income2_grid)))
-    income3_grid = (income3_grid * (np.nansum(income_distribution[:, 3])
-                                    / np.nansum(income3_grid)))
-
-    income_grid = np.stack(
-        [income0_grid, income1_grid, income2_grid, income3_grid])
-
-    # Replace missing values by zero
-    income_grid[np.isnan(income_grid)] = 0
-
-    np.save(path_data + "income_distrib_grid.npy", income_grid)
-
-    return income_grid
 
 
 def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
@@ -1330,56 +1297,3 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
                 grid_data[index] = grid_data[index] + add
 
     return grid_data
-
-
-# TODO: check if deprecated with Basile
-
-def SP_to_grid_2011_1(data_SP, grid, path_data):
-    """Adapt SP data to grid dimension."""
-    grid_intersect = pd.read_csv(path_data + 'grid_SP_intersect.csv', sep=';')
-    data_grid = np.zeros(len(grid.dist))
-    for index in range(0, len(grid.dist)):
-        # A priori, each SP code is associated to several pixels
-        intersect = np.unique(
-            grid_intersect.SP_CODE[grid_intersect.ID_grille == grid.id[index]]
-            )
-        area_exclu = 0
-        for i in range(0, len(intersect)):
-            if len(data_SP['sp_code' == intersect[i]]) == 0:
-                # We exclude the area of (all) pixel(s) corresponding to
-                # unmatched SP
-                area_exclu = (
-                    area_exclu
-                    + sum(grid_intersect.Area[(
-                        grid_intersect.ID_grille == grid.id[index])
-                        & (grid_intersect.SP_CODE == intersect[i])])
-                    )
-            else:
-                # We add the SP data times the area of matched pixel(s)
-                data_grid[index] = (
-                    data_grid[index]
-                    + sum(grid_intersect.Area[(
-                        grid_intersect.ID_grille == grid.id[index])
-                        & (grid_intersect.SP_CODE == intersect[i])])
-                    * data_SP['sp_code' == intersect[i]]
-                    )
-        # We do not update data if excluded area is bigger than 90% of the
-        # matched SP area (not used in practice)
-        if area_exclu > (0.9 * sum(
-                grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
-                )):
-            data_grid[index] = np.nan
-        # Else, if there is some positive matching, we update data with
-        # nonsense?
-        elif sum(
-               grid_intersect.Area[grid_intersect.ID_grille == grid.id[index]]
-               ) - area_exclu > 0:
-            data_grid[index] = (
-                data_grid[index]
-                / (sum(grid_intersect.Area[
-                    grid_intersect.ID_grille == grid.id[index]]
-                    ) - area_exclu))
-        else:
-            data_grid[index] = np.nan
-
-    return data_grid
