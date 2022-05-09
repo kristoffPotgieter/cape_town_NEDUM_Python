@@ -294,10 +294,20 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # housing prices (cf. also inversion from footnote 16)
     # TODO: use interest_rate or param["interest_rate"]?
     # TODO: choose between right or original specification
+
+    agricultural_rent = compute_agricultural_rent(
+        param["agricultural_rent_2011"], param["coeff_A"], interest_rate, param
+        )
+
+    return param, minimum_housing_supply, agricultural_rent
+
+
+def compute_agricultural_rent(rent, scale_fact, interest_rate, param):
+    """d."""
     agricultural_rent = (
-        param["agricultural_rent_2011"] ** (param["coeff_a"])
+        rent ** (param["coeff_a"])
         * (param["depreciation_rate"] + interest_rate)
-        / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"]
+        / (scale_fact * param["coeff_b"] ** param["coeff_b"]
             * param["coeff_a"] ** param["coeff_a"])
         )
     # agricultural_rent = (
@@ -306,4 +316,4 @@ def import_construction_parameters(param, grid, housing_types_sp,
     #     / (param["coeff_A"] * param["coeff_b"] ** param["coeff_b"])
     #     )
 
-    return param, minimum_housing_supply, agricultural_rent
+    return agricultural_rent

@@ -196,7 +196,8 @@ income_net_of_commuting_costs = np.load(
 
 # %% Compute initial state
 
-# TODO: Note that we use a Cobb-Douglas production function all along!
+# TODO: Note that we use a Cobb-Douglas production function (with rho+delta)
+# all along!
 # Also note that we simulate households as two representative agents
 # (not as in the paper)
 

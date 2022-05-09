@@ -199,12 +199,7 @@ def import_macro_data(param, path_scenarios):
         'linear'
         )
     #  Get interest rate as the mean (in %) over x last years
-    nb_years_interest_rate = 3
-    interest_rate_n_years = spline_interest_rate(
-        np.arange(0 - nb_years_interest_rate, 0))
-    #  We correct the obtained values
-    interest_rate_n_years[interest_rate_n_years < 0] = np.nan
-    interest_rate = np.nanmean(interest_rate_n_years)/100
+    interest_rate = eqdyn.interpolate_interest_rate(spline_interest_rate, 0)
 
     # TODO: does it make sense to use spline when we have accurate data?
     # Shouldn't we keep it for scenarios?
@@ -214,8 +209,8 @@ def import_macro_data(param, path_scenarios):
     # Raw figures come from Claus/ comes from housing_types
     # TODO: link with data and correct for granny flats
     total_RDP = 194258
-    # total_formal = 626770
-    total_formal = 616560
+    total_formal = 626770
+    # total_formal = 616560
     total_informal = 143765
     total_backyard = 91132
     housing_type_data = np.array([total_formal, total_backyard, total_informal,

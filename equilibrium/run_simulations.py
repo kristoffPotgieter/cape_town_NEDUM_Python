@@ -10,6 +10,7 @@ import numpy as np
 
 import equilibrium.functions_dynamic as eqdyn
 import equilibrium.compute_equilibrium as eqcmp
+import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
 
 
@@ -115,17 +116,9 @@ def run_simulation(t, options, param, grid, initial_state_utility,
             # TODO: here it seems more natural to use interest_rate instead of
             # param["interest rate"]?
             # TODO: choose between right and original formula
-            agricultural_rent = (
-                spline_agricultural_rent(year_temp) ** (param["coeff_a"])
-                * (param["depreciation_rate"] + interest_rate)
-                / (construction_param * param["coeff_b"] ** param["coeff_b"]
-                    * param["coeff_a"] ** param["coeff_a"])
-                )
-            # agricultural_rent = (
-            #     spline_agricultural_rent(year_temp) ** (param["coeff_a"])
-            #     * (interest_rate)
-            #     / (construction_param * param["coeff_b"] ** param["coeff_b"])
-            #     )
+            agricultural_rent = inpprm.compute_agricultural_rent(
+                spline_agricultural_rent(year_temp), construction_param,
+                interest_rate, param)
 
             # We compute a new static equilibrium for next period
             (tmpi_utility, tmpi_error, tmpi_simulated_jobs,
