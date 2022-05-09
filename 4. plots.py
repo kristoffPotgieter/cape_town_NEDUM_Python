@@ -47,6 +47,7 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 
 # TODO: meant to stick with original specification
 options["agents_anticipate_floods"] = 0
+options["informal_land_constrained"] = 0
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
 options["actual_backyards"] = 0
@@ -301,9 +302,18 @@ outexp.plot_housing_demand(grid, center, initial_state_dwelling_size,
 
 outexp.export_map(initial_state_households_housing_types[0, :], grid,
                   path_outputs + plot_repo + 'formal_sim', 1200)
+outexp.export_map(np.nansum(initial_state_households_housing_types,0), grid,
+                  path_outputs + plot_repo + 'sim', 4000)
 
-outexp.export_map(housing_types.formal_grid, grid,
-                  path_outputs + plot_repo + 'formal_data', 1200)
+outexp.export_map(
+    housing_types.formal_grid - initial_state_households_housing_types[3, :],
+    grid, path_outputs + plot_repo + 'formal_data', 1200)
+outexp.export_map(
+    housing_types.formal_grid + housing_types.informal_grid
+    + housing_types.backyard_formal_grid
+    + housing_types.backyard_informal_grid,
+    grid, path_outputs + plot_repo + 'data', 4000)
+
 
 #%%
 

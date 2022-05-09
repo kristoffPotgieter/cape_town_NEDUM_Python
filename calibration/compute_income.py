@@ -221,11 +221,14 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
             # above/below some utility threshold, we have tipping effects),
             # hence we code our own solver to remain in the interior
 
-            whichCenters = job_centers[:, j] > 600
+            # whichCenters = job_centers[:, j] > 600
+            whichCenters = (
+                job_centers[:, j] > param["job_center_threshold"] / 4)
             popCenters = job_centers[whichCenters, j]
 
             # We reweight population in each income group per SP to make it
             # comparable with population in SELECTED job centers
+            # TODO: check that unemployed population is indeed included
             popResidence = (
                 income_distribution[:, j]
                 * sum(job_centers[whichCenters, j])

@@ -29,8 +29,8 @@ def import_employment_data(households_per_income_class, param, path_data):
     yCoord = TAZ.Y / 1000
 
     # We arbitrarily set the threshold at 2,500 jobs
-    # TODO: set as param
-    selectedCenters = sum(jobsCenters12Class, 0) > 2500
+    selectedCenters = (
+        sum(jobsCenters12Class, 0) > param["job_center_threshold"])
 
     # Corrections where we don't have reliable transport data
     selectedCenters[xCoord > -10] = np.zeros(1, 'bool')

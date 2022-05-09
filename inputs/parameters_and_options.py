@@ -72,6 +72,9 @@ def import_param(path_precalc_inp, path_outputs):
                                        )["lambdaKeep"].squeeze()
     # param["lambda"] = np.load(path_precalc_inp + 'lambdaKeep.npy')
 
+    # Threshold above which we retain TAZ as a job center (for calibration)
+    param["job_center_threshold"] = 2500
+
     # Discount factors
     # TODO: correct typo in paper
     #  From Viguié et al. (2014)

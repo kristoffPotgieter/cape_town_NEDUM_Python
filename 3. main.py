@@ -51,6 +51,7 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 
 #  Set custom options for this simulation
 options["agents_anticipate_floods"] = 0
+options["informal_land_constrained"] = 0
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
 options["actual_backyards"] = 0

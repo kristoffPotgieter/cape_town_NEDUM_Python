@@ -7,7 +7,6 @@ Created on Mon Nov  9 10:31:00 2020.
 
 # %% Preamble
 
-# TODO: check warnings in code
 
 # IMPORT PACKAGES
 
@@ -26,8 +25,6 @@ import inputs.data as inpdt
 import equilibrium.functions_dynamic as eqdyn
 
 import calibration.compute_income as calcmp
-# TODO: erase when tests not needed anymore
-# import calibration.calcmp_test as calcmpt
 import calibration.import_employment_data as calemp
 import calibration.estimate_parameters_by_scanning as calscan
 import calibration.estimate_parameters_by_optimization as calopt
@@ -59,7 +56,14 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 # OPTIONS FOR THIS SIMULATION
 
 options["agents_anticipate_floods"] = 0
-options["informal_land_constrained"] = 1
+options["informal_land_constrained"] = 0
+options["convert_sal_data"] = 0
+options["compute_net_income"] = 0
+options["actual_backyards"] = 0
+options["unempl_reweight"] = 1
+options["correct_agri_rent"] = 1
+
+t = (0)
 
 
 # %% Load data
@@ -80,12 +84,14 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
+# See appendix A1
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
+#  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
@@ -93,11 +99,13 @@ param["income_year_reference"] = mean_income
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
 #  Import nb of households per pixel, by housing type
-#  Note that there is no RDP, but both formal and informal backyard
+#  Note that RDP is included in foraml, and there are both formal and informal
+#  backyards
 
-# Long tu run: uncomment if need to update 'housing_types_grid_sal.xlsx'
-# housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
-#                                       housing_type_data)
+if options["convert_sal_data"] == 1:
+    housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
+                                          housing_type_data)
+
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 
 
@@ -119,15 +127,18 @@ coeff_land = inpdt.import_coeff_land(
 #  We update land use parameters at baseline (relies on data)
 housing_limit = inpdt.import_housing_limit(grid, param)
 
+#  TODO: plug outputs in a new variable (not param) and adapt linked functions
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
     mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
-    interest_rate
+    interest_rate, options
     )
 
-# FLOOD DATA (takes some time if agents anticipate floods)
-param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
+# FLOOD DATA (takes some time when agents anticipate floods)
+#  TODO: create a new variable instead of storing in param
+#  TODO: check if WBUS2 data is indeed deprecated
+#  param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,
@@ -158,13 +169,20 @@ elif options["agents_anticipate_floods"] == 0:
  spline_income, spline_minimum_housing_supply, spline_fuel
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
-# Uncomment if needed to reload
-incomeNetOfCommuting, *_ = inpdt.import_transport_data(
-      grid, param, 0, households_per_income_class, average_income,
-      spline_inflation, spline_fuel,
-      spline_population_income_distribution, spline_income_distribution,
-      path_precalc_inp, path_precalc_transp, 'SP')
-incomeNetOfCommuting = np.load(
+#  Import income net of commuting costs, as calibrated in Pfeiffer et al.
+#  (see part 3.1 or appendix C3)
+
+if options["compute_net_income"] == 1:
+    for t_temp in t:
+        print(t_temp)
+        (incomeNetOfCommuting, modalShares, ODflows, averageIncome
+         ) = inpdt.import_transport_data(
+             grid, param, t_temp, households_per_income_class, average_income,
+             spline_inflation, spline_fuel,
+             spline_population_income_distribution, spline_income_distribution,
+             path_precalc_inp, path_precalc_transp, 'SP')
+
+income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
 
 
@@ -173,13 +191,13 @@ incomeNetOfCommuting = np.load(
 # We associate income group to each census block according to average income
 # TODO: is it the right way to define dominant income group? Shouldn't we take
 # the most numerous group instead?
-data_income_group = np.zeros(len(data_sp["income"]))
-for j in range(0, 3):
-    data_income_group[data_sp["income"] >
-                      threshold_income_distribution[j]] = j+1
-# data_income_group = np.zeros(len(income_distribution))
-# for i in range(0, len(income_distribution)):
-#     data_income_group[i] = np.argmax(income_distribution[i])
+# data_income_group = np.zeros(len(data_sp["income"]))
+# for j in range(0, 3):
+#     data_income_group[data_sp["income"] >
+#                       threshold_income_distribution[j]] = j+1
+data_income_group = np.zeros(len(income_distribution))
+for i in range(0, len(income_distribution)):
+    data_income_group[i] = np.argmax(income_distribution[i])
 
 # We get the number of formal housing units per SP
 # TODO: should we substract RDP?
@@ -199,17 +217,17 @@ rdp_sp_fill = pd.merge(rdp_sp, data_sp['sp_code'], on="sp_code", how="outer")
 rdp_sp_fill['count'] = rdp_sp_fill['count'].fillna(0)
 rdp_sp_fill = rdp_sp_fill.sort_values(by='sp_code')
 
-# data_number_formal = (
-#     housing_types_sp.total_dwellings_SP_2011
-#     - housing_types_sp.backyard_SP_2011
-#     - housing_types_sp.informal_SP_2011
-#     - rdp_sp_fill['count'])
-
 data_number_formal = (
     housing_types_sp.total_dwellings_SP_2011
     - housing_types_sp.backyard_SP_2011
     - housing_types_sp.informal_SP_2011
-    )
+    - rdp_sp_fill['count'])
+
+# data_number_formal = (
+#     housing_types_sp.total_dwellings_SP_2011
+#     - housing_types_sp.backyard_SP_2011
+#     - housing_types_sp.informal_SP_2011
+#     )
 
 # We select the data points we are going to use.
 # As Cobb-Douglas log-linear relation is only true for the formal sector, we
@@ -227,24 +245,24 @@ data_number_formal = (
 # TODO: makes sense to calibrate without specific neighborhoods to avoid
 # overfitting?
 
+# selected_density = (
+#     (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
+#     & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
+#     & (data_sp["unconstrained_area"]
+#         < np.nanquantile(data_sp["unconstrained_area"], 0.8))
+#     & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
+#     & (data_income_group > 0)
+#     & (data_sp["mitchells_plain"] == 0)
+#     & (data_sp["distance"] < 40)
+#     )
+
 selected_density = (
     (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
     & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
     & (data_sp["unconstrained_area"]
         < np.nanquantile(data_sp["unconstrained_area"], 0.8))
     & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
-    & (data_income_group > 0)
-    & (data_sp["mitchells_plain"] == 0)
-    & (data_sp["distance"] < 40)
     )
-
-# selected_density = (
-#     (data_sp["price"] > np.nanquantile(data_sp["price"], 0.2))
-#     & (data_number_formal > 0.95 * housing_types_sp.total_dwellings_SP_2011)
-#     & (data_sp["unconstrained_area"]
-#        < np.nanquantile(data_sp["unconstrained_area"], 0.8))
-#     & (data_sp["unconstrained_area"] > 0.6 * 1000000 * data_sp["area"])
-#     )
 
 # We run regression from apppendix C2
 
@@ -271,7 +289,7 @@ coeff_a = 1 - coeff_b
 # TODO: correct typo in paper
 coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
               * np.exp(model_construction.intercept_))
-# test = ((1 / (coeff_b) ** coeff_b)
+# coeffKappa = ((1 / (coeff_b) ** coeff_b)
 #               * np.exp(model_construction.intercept_))
 
 try:
@@ -279,9 +297,7 @@ try:
 except OSError as error:
     print(error)
 
-# 0.28 vs. 0.25
 np.save(path_precalc_inp + 'calibratedHousing_b.npy', coeff_b)
-# 0.01 vs. 0.04: difference is not so much due to change in formula
 np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
 
 
@@ -380,6 +396,8 @@ sns.distplot(
 
 # NB: what about equilibrium condition (v)?
 # It holds by construction for SP, but what about simulated pixels?
+
+# TODO: note that we are actually comparing incomes with wages?
 
 incomeCentersKeep[incomeCentersKeep < 0] = math.nan
 cal_avg_income = np.nanmean(incomeCentersKeep, 0)
