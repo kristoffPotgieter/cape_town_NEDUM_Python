@@ -30,7 +30,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # TODO: is it in line with the paper?
     net_income = incomeNetOfCommuting[1:4, :]
     # We generate a matrix of dummies for dominant income group in each SP
-    # (can be always folse when dominant group is removed poorest)
+    # (can be always false when dominant group is removed poorest)
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
         groupLivingSpMatrix[i, dataIncomeGroup != i] = np.zeros(1, 'bool')

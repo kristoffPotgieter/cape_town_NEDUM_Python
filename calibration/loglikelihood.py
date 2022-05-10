@@ -89,8 +89,12 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
         for j in range(0, sum(selectedRents)):
             bidRents[i, j] = griddedRents(
                 net_income[:, selectedRents][i, j],
-                (Uo[:, None] / np.exp(residualAmenities[None, :]))[i, j]
+                (Uo[:, None] / residualAmenities[None, :])[i, j]
                 )
+            # bidRents[i, j] = griddedRents(
+            #     net_income[:, selectedRents][i, j],
+            #     (Uo[:, None] / np.exp(residualAmenities[None, :]))[i, j]
+            #     )
 
     # Estimation of the parameters by maximization of the log-likelihood
     # (in overarching function)

@@ -182,7 +182,7 @@ if options["compute_net_income"] == 1:
              spline_population_income_distribution, spline_income_distribution,
              path_precalc_inp, path_precalc_transp, 'SP')
 
-income_net_of_commuting_costs = np.load(
+incomeNetOfCommuting = np.load(
     path_precalc_transp + 'SP_incomeNetOfCommuting_0.npy')
 
 
@@ -386,11 +386,11 @@ np.save(path_precalc_inp + 'lambdaKeep.npy', lambdaKeep)
 # Plot difference with initial input from Matlab
 incomeCentersKeep_mat = scipy.io.loadmat(
     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-sns.distplot(
-    np.abs((
-        (incomeCentersKeep - incomeCentersKeep_mat) / incomeCentersKeep_mat
-        ) * 100)
-    )
+# sns.distplot(
+#     np.abs((
+#         (incomeCentersKeep - incomeCentersKeep_mat) / incomeCentersKeep_mat
+#         ) * 100)
+#     )
 
 # lambdaKeep = 10 ** 0.605
 
@@ -422,7 +422,7 @@ selectedSP = (
 
 # Coefficients of the model for simulations (arbitrary)
 listBeta = np.arange(0.2, 0.35, 0.05)
-listBasicQ = np.arange(2, 7, 1)
+listBasicQ = np.arange(4, 4.2, 0.1)
 
 # Coefficient for spatial autocorrelation
 # TODO: how would this work if implemented?
@@ -430,8 +430,8 @@ listRho = 0
 
 # Utilities for simulations (arbitrary)
 # TODO: why not start with same set as in compute_equilibrium?
-# utilityTarget = np.array([300, 1000, 3000, 10000])
-utilityTarget = np.array([1501, 4819, 16947, 79809])
+utilityTarget = np.array([300, 1000, 3000, 10000])
+# utilityTarget = np.array([1501, 4819, 16947, 79809])
 
 # TODO: meaning?
 listVariation = np.arange(0.8, 1.3, 0.2)
@@ -538,17 +538,15 @@ np.save(path_precalc_inp + 'calibratedAmenities', cal_amenities)
 
 outexp.export_map(amenities, grid, path_outputs + 'precalc_amenity_map',
                   1.3, 0.8)
-outexp.export_map(amenities, grid, path_outputs + 'precalc_amenity_map',
-                  1.3, 0.8)
 
-income_centers_precalc = scipy.io.loadmat(
-    path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-income_centers_precalc[income_centers_precalc == -np.inf] = np.nan
-income_centers_precalc_w = (
-    income_centers_precalc / np.nanmean(income_centers_precalc))
-income_centers = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
-income_centers[income_centers == -np.inf] = np.nan
-income_centers_w = income_centers / np.nanmean(income_centers)
+# income_centers_precalc = scipy.io.loadmat(
+#     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+# income_centers_precalc[income_centers_precalc == -np.inf] = np.nan
+# income_centers_precalc_w = (
+#     income_centers_precalc / np.nanmean(income_centers_precalc))
+# income_centers = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
+# income_centers[income_centers == -np.inf] = np.nan
+# income_centers_w = income_centers / np.nanmean(income_centers)
 
 # outexp.export_map(income_centers_precalc_w[:, 0], grid,
 #                   path_outputs + 'precalc_income_rich_map',
@@ -557,6 +555,6 @@ income_centers_w = income_centers / np.nanmean(income_centers)
 #                   path_outputs + 'income_rich_map',
 #                   0, 5.5)
 
-outexp.validation_cal_income(
-    path_data, path_outputs, center, income_centers[:, 0],
-    income_centers_precalc[:, 0])
+# outexp.validation_cal_income(
+#     path_data, path_outputs, center, income_centers[:, 0],
+#     income_centers_precalc[:, 0])
