@@ -235,6 +235,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  TODO: check difference with GV in data.mat
     RDP_2011 = housing_type_data[3]
     #  Comes from GV in data.mat
+    #  TODO: deprecated wrt np.nansum(number_properties_2000)?
     RDP_2001 = 1.1718e+05
 
     # Land cover for informal settlements (see R code for details)
@@ -299,7 +300,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
             "area"] = 0
 
 
-# 1. RDP population
+# 1. Total RDP population
 
     # We compute linear regression spline for 4 years centered around baseline
     # Construction rate comes from working paper's median scenario, then a
