@@ -673,16 +673,33 @@ def import_init_floods_data(options, param, path_folder):
                       'FD_1000yr']
     pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr',
                       'P_100yr', 'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
+
+    name = 'C_' + options["dem"] + '_' + str(options["slr"])
+
+    # Coastal flood maps are extracted from DELTARES global flood maps that
+    # use GTSMip6 water levels as inputs (Muis et al., 2020) for three distinct
+    # DEMs. We only consider the two of them that have a fine resolution of
+    # 90m / 3'' on a par with FATHOM DATA
+
+    coastal_floods = [name + '_0000', name + '_0002', name + '_0005',
+                      name + '_0010', name + '_0025', name + '_0100',
+                      name + '_0250']
+
     path_data = path_folder + "FATHOM/"
 
     d_pluvial = {}
     d_fluvial = {}
+    d_coastal = {}
     for flood in fluvial_floods:
         d_fluvial[flood] = np.squeeze(
             pd.read_excel(path_data + flood + ".xlsx")
             )
     for flood in pluvial_floods:
         d_pluvial[flood] = np.squeeze(
+            pd.read_excel(path_data + flood + ".xlsx")
+            )
+    for flood in coastal_floods:
+        d_coastal[flood] = np.squeeze(
             pd.read_excel(path_data + flood + ".xlsx")
             )
 
@@ -761,117 +778,163 @@ def import_init_floods_data(options, param, path_folder):
             structural_damages_type1, structural_damages_type2,
             structural_damages_type3a, structural_damages_type3b,
             structural_damages_type4a, structural_damages_type4b,
-            d_fluvial, d_pluvial)
+            d_fluvial, d_pluvial, d_coastal)
 
 
 def compute_fraction_capital_destroyed(d, type_flood, damage_function,
-                                       housing_type):
+                                       housing_type, options):
     """Define function used to get fraction of capital destroyed by floods."""
-    # This defines a probability rule (summing to 1) for each time interval
-    # defined in FATHOM (the more distant, the less likely)
-    interval0 = 1 - (1/5)
-    interval1 = (1/5) - (1/10)
-    interval2 = (1/10) - (1/20)
-    interval3 = (1/20) - (1/50)
-    interval4 = (1/50) - (1/75)
-    interval5 = (1/75) - (1/100)
-    interval6 = (1/100) - (1/200)
-    interval7 = (1/200) - (1/250)
-    interval8 = (1/250) - (1/500)
-    interval9 = (1/500) - (1/1000)
-    interval10 = (1/1000)
+    if type_flood == 'P' or type_flood == 'FD':
+        # This defines a probability rule (summing to 1) for each time interval
+        # defined in FATHOM (the more distant, the less likely)
+        interval0 = 1 - (1/5)
+        interval1 = (1/5) - (1/10)
+        interval2 = (1/10) - (1/20)
+        interval3 = (1/20) - (1/50)
+        interval4 = (1/50) - (1/75)
+        interval5 = (1/75) - (1/100)
+        interval6 = (1/100) - (1/200)
+        interval7 = (1/200) - (1/250)
+        interval8 = (1/250) - (1/500)
+        interval9 = (1/500) - (1/1000)
+        interval10 = (1/1000)
 
-    # We consider that formal housing is not vulnerable to pluvial floods over
-    # medium run, and that RDP and backyard are not over short run
-    # This is based on CCT Minimum Standards for Stormwater Design 2014 (p.37)
-    # and Govender 2011 (fig.8 and p.30): see Aux data and discussion w/ CLaus
-    # TODO: ask if other data than FATHOM for pluvial
-    if ((type_flood == 'P') & (housing_type == 'formal')):
-        d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
-        d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
-        d[type_flood + '_20yr'].prop_flood_prone = np.zeros(24014)
-        d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
-        d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
-        d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
-    elif ((type_flood == 'P')
-          & ((housing_type == 'subsidized') | (housing_type == 'backyard'))):
-        d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
-        d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
-        d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
-        d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+        # We consider that formal housing is not vulnerable to pluvial floods over
+        # medium run, and that RDP and backyard are not over short run
+        # This is based on CCT Minimum Standards for Stormwater Design 2014 (p.37)
+        # and Govender 2011 (fig.8 and p.30): see Aux data and discussion w/ CLaus
+        # TODO: ask if other data than FATHOM for pluvial
+        if ((type_flood == 'P') & (housing_type == 'formal')):
+            d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
+            d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
+            d[type_flood + '_20yr'].prop_flood_prone = np.zeros(24014)
+            d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
+            d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+            d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
+        elif ((type_flood == 'P')
+              & ((housing_type == 'subsidized') | (housing_type == 'backyard'))):
+            d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
+            d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
+            d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
+            d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
 
-    # Damage scenarios are incremented using damage functions multiplied by
-    # flood-prone area (yields pixel share of destructed area), so as to
-    # define damage intervals to be used in final computation
+        # Damage scenarios are incremented using damage functions multiplied by
+        # flood-prone area (yields pixel share of destructed area), so as to
+        # define damage intervals to be used in final computation
 
-    # TODO: should we take zero value at t = 0?
-    # TODO: is continuous the right framework?
-    damages0 = (d[type_flood + '_5yr'].prop_flood_prone
-                * damage_function(d[type_flood + '_5yr'].flood_depth))
-    # damages0 = (
-    #     d[type_flood + '_5yr'].prop_flood_prone
-    #     * damage_function(d[type_flood + '_5yr'].flood_depth)
-    #     + d[type_flood + '_5yr'].prop_flood_prone
-    #     * damage_function(d[type_flood + '_10yr'].flood_depth)
-    #     )
-    damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_5yr'].flood_depth))
-                + (d[type_flood + '_10yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_10yr'].flood_depth)))
-    damages2 = ((d[type_flood + '_10yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_10yr'].flood_depth))
-                + (d[type_flood + '_20yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_20yr'].flood_depth)))
-    damages3 = ((d[type_flood + '_20yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_20yr'].flood_depth))
-                + (d[type_flood + '_50yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_50yr'].flood_depth)))
-    damages4 = ((d[type_flood + '_50yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_50yr'].flood_depth))
-                + (d[type_flood + '_75yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_75yr'].flood_depth)))
-    damages5 = ((d[type_flood + '_75yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_75yr'].flood_depth))
-                + (d[type_flood + '_100yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_100yr'].flood_depth)))
-    damages6 = ((d[type_flood + '_100yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_100yr'].flood_depth))
-                + (d[type_flood + '_200yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_200yr'].flood_depth)))
-    damages7 = ((d[type_flood + '_200yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_200yr'].flood_depth))
-                + (d[type_flood + '_250yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_250yr'].flood_depth)))
-    damages8 = ((d[type_flood + '_250yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_250yr'].flood_depth))
-                + (d[type_flood + '_500yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_500yr'].flood_depth)))
-    damages9 = ((d[type_flood + '_500yr'].prop_flood_prone
-                 * damage_function(d[type_flood + '_500yr'].flood_depth))
-                + (d[type_flood + '_1000yr'].prop_flood_prone
-                   * damage_function(d[type_flood + '_1000yr'].flood_depth)))
-    # We assume that value stays the same when t = +inf
-    damages10 = ((d[type_flood + '_1000yr'].prop_flood_prone
-                  * damage_function(d[type_flood + '_1000yr'].flood_depth))
-                 + (d[type_flood + '_1000yr'].prop_flood_prone
-                    * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+        # TODO: should we take zero value at t = 0?
+        # TODO: is continuous the right framework?
+        damages0 = (d[type_flood + '_5yr'].prop_flood_prone
+                    * damage_function(d[type_flood + '_5yr'].flood_depth))
+        # damages0 = (
+        #     d[type_flood + '_5yr'].prop_flood_prone
+        #     * damage_function(d[type_flood + '_5yr'].flood_depth)
+        #     + d[type_flood + '_5yr'].prop_flood_prone
+        #     * damage_function(d[type_flood + '_10yr'].flood_depth)
+        #     )
+        damages1 = ((d[type_flood + '_5yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_5yr'].flood_depth))
+                    + (d[type_flood + '_10yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_10yr'].flood_depth)))
+        damages2 = ((d[type_flood + '_10yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_10yr'].flood_depth))
+                    + (d[type_flood + '_20yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_20yr'].flood_depth)))
+        damages3 = ((d[type_flood + '_20yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_20yr'].flood_depth))
+                    + (d[type_flood + '_50yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_50yr'].flood_depth)))
+        damages4 = ((d[type_flood + '_50yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_50yr'].flood_depth))
+                    + (d[type_flood + '_75yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_75yr'].flood_depth)))
+        damages5 = ((d[type_flood + '_75yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_75yr'].flood_depth))
+                    + (d[type_flood + '_100yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_100yr'].flood_depth)))
+        damages6 = ((d[type_flood + '_100yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_100yr'].flood_depth))
+                    + (d[type_flood + '_200yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_200yr'].flood_depth)))
+        damages7 = ((d[type_flood + '_200yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_200yr'].flood_depth))
+                    + (d[type_flood + '_250yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_250yr'].flood_depth)))
+        damages8 = ((d[type_flood + '_250yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_250yr'].flood_depth))
+                    + (d[type_flood + '_500yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_500yr'].flood_depth)))
+        damages9 = ((d[type_flood + '_500yr'].prop_flood_prone
+                     * damage_function(d[type_flood + '_500yr'].flood_depth))
+                    + (d[type_flood + '_1000yr'].prop_flood_prone
+                       * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+        # We assume that value stays the same when t = +inf
+        damages10 = ((d[type_flood + '_1000yr'].prop_flood_prone
+                      * damage_function(d[type_flood + '_1000yr'].flood_depth))
+                     + (d[type_flood + '_1000yr'].prop_flood_prone
+                        * damage_function(d[type_flood + '_1000yr'].flood_depth)))
 
-    # The formula for expected fraction of capital destroyed is given by the
-    # integral of damage according to time (or rather, inverse probability).
-    # Assuming that damage increase linearly with time (or inverse
-    # probability), we can approximate this area as a sum of rectangles
-    # defined for each of our intervals: this yields the following formula
+        # The formula for expected fraction of capital destroyed is given by the
+        # integral of damage according to time (or rather, inverse probability).
+        # Assuming that damage increase linearly with time (or inverse
+        # probability), we can approximate this area as a sum of rectangles
+        # defined for each of our intervals: this yields the following formula
 
-    # NB: for more graphical intuition, see
-    # https://storymaps.arcgis.com/stories/7878c89c592e4a78b45f03b4b696ccac
+        # NB: for more graphical intuition, see
+        # https://storymaps.arcgis.com/stories/7878c89c592e4a78b45f03b4b696ccac
 
-    return (0.5
-            * ((interval0 * damages0) + (interval1 * damages1)
-               + (interval2 * damages2) + (interval3 * damages3)
-               + (interval4 * damages4) + (interval5 * damages5)
-               + (interval6 * damages6) + (interval7 * damages7)
-               + (interval8 * damages8) + (interval9 * damages9)
-               + (interval10 * damages10)))
+        return (0.5
+                * ((interval0 * damages0) + (interval1 * damages1)
+                   + (interval2 * damages2) + (interval3 * damages3)
+                   + (interval4 * damages4) + (interval5 * damages5)
+                   + (interval6 * damages6) + (interval7 * damages7)
+                   + (interval8 * damages8) + (interval9 * damages9)
+                   + (interval10 * damages10)))
+
+    elif type_flood == 'C':
+        interval0 = 1 - (1/2)
+        interval1 = (1/2) - (1/5)
+        interval2 = (1/5) - (1/10)
+        interval3 = (1/10) - (1/25)
+        interval4 = (1/25) - (1/100)
+        interval5 = (1/100) - (1/250)
+        interval6 = (1/250)
+
+        name = type_flood + '_' + options["dem"] + '_' + str(options["slr"])
+        damages0 = ((d[name + '_0000'].prop_flood_prone
+                     * damage_function(d[name + '_0000'].flood_depth))
+                    + (d[name + '_0002'].prop_flood_prone
+                       * damage_function(d[name + '_0002'].flood_depth)))
+        damages1 = ((d[name + '_0002'].prop_flood_prone
+                     * damage_function(d[name + '_0002'].flood_depth))
+                    + (d[name + '_0005'].prop_flood_prone
+                       * damage_function(d[name + '_0005'].flood_depth)))
+        damages2 = ((d[name + '_0005'].prop_flood_prone
+                     * damage_function(d[name + '_0005'].flood_depth))
+                    + (d[name + '_0010'].prop_flood_prone
+                       * damage_function(d[name + '_0010'].flood_depth)))
+        damages3 = ((d[name + '_0010'].prop_flood_prone
+                     * damage_function(d[name + '_0010'].flood_depth))
+                    + (d[name + '_0025'].prop_flood_prone
+                       * damage_function(d[name + '_0025'].flood_depth)))
+        damages4 = ((d[name + '_0025'].prop_flood_prone
+                     * damage_function(d[name + '_0025'].flood_depth))
+                    + (d[name + '_0100'].prop_flood_prone
+                       * damage_function(d[name + '_0100'].flood_depth)))
+        damages5 = ((d[name + '_0100'].prop_flood_prone
+                     * damage_function(d[name + '_0100'].flood_depth))
+                    + (d[name + '_0250'].prop_flood_prone
+                       * damage_function(d[name + '_0250'].flood_depth)))
+        damages6 = ((d[name + '_0250'].prop_flood_prone
+                     * damage_function(d[name + '_0250'].flood_depth))
+                    + (d[name + '_0250'].prop_flood_prone
+                       * damage_function(d[name + '_0250'].flood_depth)))
+
+        return (0.5
+                * ((interval0 * damages0) + (interval1 * damages1)
+                   + (interval2 * damages2) + (interval3 * damages3)
+                   + (interval4 * damages4) + (interval5 * damages5)
+                   + (interval6 * damages6)))
 
 
 def import_full_floods_data(options, param, path_folder, housing_type_data):
@@ -883,99 +946,236 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
      structural_damages_type1, structural_damages_type2,
      structural_damages_type3a, structural_damages_type3b,
      structural_damages_type4a, structural_damages_type4b,
-     d_fluvial, d_pluvial) = import_init_floods_data(
+     d_fluvial, d_pluvial, d_coastal) = import_init_floods_data(
          options, param, path_folder)
 
-    if options["pluvial"] == 0:
+    if options["pluvial"] == 0 and options["coastal"] == 0:
         (fraction_capital_destroyed["contents_formal"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'formal')
+             d_fluvial, 'FD', content_damages, 'formal', options)
         (fraction_capital_destroyed["contents_informal"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'informal')
+             d_fluvial, 'FD', content_damages, 'informal', options)
         (fraction_capital_destroyed["contents_backyard"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'backyard')
+             d_fluvial, 'FD', content_damages, 'backyard', options)
         (fraction_capital_destroyed["contents_subsidized"]
          ) = compute_fraction_capital_destroyed
-        (d_fluvial, 'FD', content_damages, 'subsidized')
+        (d_fluvial, 'FD', content_damages, 'subsidized', options)
         (fraction_capital_destroyed["structure_formal_1"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4a, 'formal')
+             d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
         (fraction_capital_destroyed["structure_formal_2"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4b, 'formal')
+             d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4a, 'subsidized')
+             d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4b, 'subsidized')
+             d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type2, 'informal')
+             d_fluvial, 'FD', structural_damages_type2, 'informal', options)
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type2, 'backyard')
+             d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type3a, 'backyard')
-    elif options["pluvial"] == 1:
+             d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
+
+    elif options["pluvial"] == 1 and options["coastal"] == 0:
         (fraction_capital_destroyed["contents_formal"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'formal')
+             d_fluvial, 'FD', content_damages, 'formal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', content_damages, 'formal'))
+                 d_pluvial, 'P', content_damages, 'formal', options))
         (fraction_capital_destroyed["contents_informal"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'informal')
+             d_fluvial, 'FD', content_damages, 'informal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', content_damages, 'informal'))
+                 d_pluvial, 'P', content_damages, 'informal', options))
         (fraction_capital_destroyed["contents_backyard"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'backyard')
+             d_fluvial, 'FD', content_damages, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', content_damages, 'backyard'))
+                 d_pluvial, 'P', content_damages, 'backyard', options))
         (fraction_capital_destroyed["contents_subsidized"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', content_damages, 'subsidized')
+             d_fluvial, 'FD', content_damages, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', content_damages, 'subsidized'))
+                 d_pluvial, 'P', content_damages, 'subsidized', options))
         (fraction_capital_destroyed["structure_formal_1"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4a, 'formal')
+             d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4a, 'formal'))
+                 d_pluvial, 'P', structural_damages_type4a, 'formal', options))
         (fraction_capital_destroyed["structure_formal_2"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4b, 'formal')
+             d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4b, 'formal'))
+                 d_pluvial, 'P', structural_damages_type4b, 'formal', options))
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4a, 'subsidized')
+             d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4a, 'subsidized'))
+                 d_pluvial, 'P', structural_damages_type4a, 'subsidized', options))
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type4b, 'subsidized')
+             d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4b, 'subsidized'))
+                 d_pluvial, 'P', structural_damages_type4b, 'subsidized', options))
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type2, 'informal')
+             d_fluvial, 'FD', structural_damages_type2, 'informal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type2, 'informal'))
+                 d_pluvial, 'P', structural_damages_type2, 'informal', options))
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type2, 'backyard')
+             d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type2, 'backyard'))
+                 d_pluvial, 'P', structural_damages_type2, 'backyard', options))
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = (compute_fraction_capital_destroyed(
-             d_fluvial, 'FD', structural_damages_type3a, 'backyard')
+             d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type3a, 'backyard'))
+                 d_pluvial, 'P', structural_damages_type3a, 'backyard', options))
+
+    elif options["pluvial"] == 0 and options["coastal"] == 1:
+        (fraction_capital_destroyed["contents_formal"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'formal', options))
+        (fraction_capital_destroyed["contents_informal"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'informal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'informal', options))
+        (fraction_capital_destroyed["contents_backyard"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'backyard', options))
+        (fraction_capital_destroyed["contents_subsidized"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'subsidized', options))
+        (fraction_capital_destroyed["structure_formal_1"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4a, 'formal', options))
+        (fraction_capital_destroyed["structure_formal_2"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'P', structural_damages_type4b, 'formal', options))
+        (fraction_capital_destroyed["structure_subsidized_1"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4a, 'subsidized', options))
+        (fraction_capital_destroyed["structure_subsidized_2"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4b, 'subsidized', options))
+        (fraction_capital_destroyed["structure_informal_settlements"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'informal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type2, 'informal', options))
+        (fraction_capital_destroyed["structure_informal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type2, 'backyard', options))
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type3a, 'backyard', options))
+
+    elif options["pluvial"] == 1 and options["coastal"] == 1:
+        (fraction_capital_destroyed["contents_formal"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'formal', options))
+        (fraction_capital_destroyed["contents_informal"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'informal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'informal', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'informal', options))
+        (fraction_capital_destroyed["contents_backyard"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'backyard', options))
+        (fraction_capital_destroyed["contents_subsidized"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', content_damages, 'subsidized', options))
+        (fraction_capital_destroyed["structure_formal_1"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4a, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4a, 'formal', options))
+        (fraction_capital_destroyed["structure_formal_2"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4b, 'formal', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4b, 'formal', options))
+        (fraction_capital_destroyed["structure_subsidized_1"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4a, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4a, 'subsidized', options))
+        (fraction_capital_destroyed["structure_subsidized_2"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4b, 'subsidized', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type4b, 'subsidized', options))
+        (fraction_capital_destroyed["structure_informal_settlements"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'informal', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type2, 'informal', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type2, 'informal', options))
+        (fraction_capital_destroyed["structure_informal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type2, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type2, 'backyard', options))
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type3a, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type3a, 'backyard', options))
 
     # We take a weighted average for structures in bricks and shacks among
     # all backyard structures

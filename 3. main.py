@@ -50,7 +50,7 @@ options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
 #  Set custom options for this simulation
-options["agents_anticipate_floods"] = 0
+options["agents_anticipate_floods"] = 1
 options["informal_land_constrained"] = 0
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
@@ -58,6 +58,12 @@ options["actual_backyards"] = 0
 options["unempl_reweight"] = 1
 # implicit_empl_rate = 0.74/0.99/0.98/0.99
 options["correct_agri_rent"] = 1
+
+options["pluvial"] = 1
+options["coastal"] = 1
+# This is in line with the DEM used in FATHOM data for fluvial and pluvial
+options["dem"] = "MERITDEM"
+options["slr"] = 1
 
 # TODO: should correction in implicit_qfunc be set as an option?
 
@@ -67,7 +73,7 @@ t = np.arange(0, 30)
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-name = ('nofloods_precal')
+name = ('allfloods_precal_modif')
 # name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
 #         + 'informal' + str(options["informal_land_constrained"]) + '_'
 #         + 'actual_backyards1' + '_' + 'pockets1')
@@ -318,15 +324,15 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
 # Note that this does not depend on calibration used!
 
 # TODO: choose between right and original specification
-from scipy.interpolate import interp1d
-RDP_2011 = 2.2666e+05
-RDP_2001 = 1.1718e+05
-spline_RDP = interp1d(
-    [2001 - param["baseline_year"], 2011 - param["baseline_year"],
-     2018 - param["baseline_year"], 2041 - param["baseline_year"]],
-    [RDP_2001, RDP_2011, RDP_2011 + 7*5000,
-     RDP_2011 + 7*5000 + 23 * param["future_rate_public_housing"]], 'linear'
-    )
+# from scipy.interpolate import interp1d
+# RDP_2011 = 2.2666e+05
+# RDP_2001 = 1.1718e+05
+# spline_RDP = interp1d(
+#     [2001 - param["baseline_year"], 2011 - param["baseline_year"],
+#      2018 - param["baseline_year"], 2041 - param["baseline_year"]],
+#     [RDP_2001, RDP_2011, RDP_2011 + 7*5000,
+#      RDP_2011 + 7*5000 + 23 * param["future_rate_public_housing"]], 'linear'
+#     )
 
 # RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
 (simulation_households_center,
