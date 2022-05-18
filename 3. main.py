@@ -60,6 +60,7 @@ options["unempl_reweight"] = 1
 options["correct_agri_rent"] = 1
 
 options["pluvial"] = 1
+options["correct_pluvial"] = 1
 options["coastal"] = 1
 # This is in line with the DEM used in FATHOM data for fluvial and pluvial
 options["dem"] = "MERITDEM"

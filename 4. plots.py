@@ -46,15 +46,22 @@ options = inpprm.import_options()
 param = inpprm.import_param(path_precalc_inp, path_outputs)
 
 # TODO: meant to stick with original specification
-options["agents_anticipate_floods"] = 0
+options["agents_anticipate_floods"] = 1
 options["informal_land_constrained"] = 0
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
 options["actual_backyards"] = 0
 options["unempl_reweight"] = 1
+# implicit_empl_rate = 0.74/0.99/0.98/0.99
 options["correct_agri_rent"] = 1
 
-name = ('nofloods_precal')
+options["pluvial"] = 1
+options["coastal"] = 1
+# This is in line with the DEM used in FATHOM data for fluvial and pluvial
+options["dem"] = "MERITDEM"
+options["slr"] = 1
+
+name = ('allfloods_precal_modif')
 # name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
 #         + 'informal' + str(options["informal_land_constrained"]) + '_'
 #         + 'actual_backyards1' + '_' + 'pockets1')

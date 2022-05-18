@@ -804,19 +804,20 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         # This is based on CCT Minimum Standards for Stormwater Design 2014 (p.37)
         # and Govender 2011 (fig.8 and p.30): see Aux data and discussion w/ CLaus
         # TODO: ask if other data than FATHOM for pluvial
-        if ((type_flood == 'P') & (housing_type == 'formal')):
-            d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_20yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
-            d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
-            d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
-        elif ((type_flood == 'P')
-              & ((housing_type == 'subsidized') | (housing_type == 'backyard'))):
-            d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
-            d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
-            d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+        if options["correct_pluvial"] == 1:
+            if ((type_flood == 'P') & (housing_type == 'formal')):
+                d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
+                d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
+                d[type_flood + '_20yr'].prop_flood_prone = np.zeros(24014)
+                d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
+                d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
+                d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
+            elif ((type_flood == 'P')
+                  & ((housing_type == 'subsidized') | (housing_type == 'backyard'))):
+                d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
+                d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
+                d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
+                d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
 
         # Damage scenarios are incremented using damage functions multiplied by
         # flood-prone area (yields pixel share of destructed area), so as to
