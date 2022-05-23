@@ -23,6 +23,8 @@ import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.run_simulations as eqsim
 import equilibrium.functions_dynamic as eqdyn
 
+import calibration.calib_main_func as calmain
+
 
 # DEFINE FILE PATHS
 
@@ -52,13 +54,8 @@ param = inpprm.import_param(path_precalc_inp, path_outputs)
 #  Set custom options for this simulation
 options["agents_anticipate_floods"] = 1
 options["informal_land_constrained"] = 0
-options["convert_sal_data"] = 0
-options["compute_net_income"] = 0
-options["actual_backyards"] = 0
-options["unempl_reweight"] = 1
-# implicit_empl_rate = 0.74/0.99/0.98/0.99
-options["correct_agri_rent"] = 1
 
+#  More custom options regarding flood model
 options["pluvial"] = 1
 options["correct_pluvial"] = 1
 options["coastal"] = 1
@@ -66,7 +63,25 @@ options["coastal"] = 1
 options["dem"] = "MERITDEM"
 options["slr"] = 1
 
-# TODO: should correction in implicit_qfunc be set as an option?
+#  Re-processing options
+options["convert_sal_data"] = 0
+options["compute_net_income"] = 0
+
+#  Code correction options
+options["actual_backyards"] = 0
+options["unempl_reweight"] = 1
+# TODO: recalibrate incomes net of commuting costs using implicit empl rate?
+# implicit_empl_rate = 0.74/0.99/0.98/0.99
+options["correct_agri_rent"] = 1
+
+#  Options for calibration code correction
+options["run_calib"] = 1
+options["correct_dominant_incgrp"] = 0
+options["substract_RDP_from_formal"] = 1
+options["correct_mitchells_plain"] = 0
+options["correct_selected_density"] = 1
+options["correct_kappa"] = 1
+#  TODO: set ranges for parameter scanning?
 
 #  Set timeline for simulations
 t = np.arange(0, 30)
@@ -75,9 +90,6 @@ t = np.arange(0, 30)
 # (change according to custom parameters to be included)
 
 name = ('allfloods_precal_modif')
-# name = ('floods' + str(options["agents_anticipate_floods"]) + '_'
-#         + 'informal' + str(options["informal_land_constrained"]) + '_'
-#         + 'actual_backyards1' + '_' + 'pockets1')
 
 
 # %% Load data
@@ -113,8 +125,8 @@ param["income_year_reference"] = mean_income
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
-#  Import nb of households per pixel, by housing type
-#  Note that RDP is included in foraml, and there are both formal and informal
+#  Import nb of households per pixel, by housing type.
+#  Note that RDP is included in formal, and there are both formal and informal
 #  backyards
 
 if options["convert_sal_data"] == 1:
@@ -145,7 +157,7 @@ coeff_land = inpdt.import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal,
     spline_land_RDP, param, 0)
 
-#  We update land use parameters at baseline (relies on data)
+#  We update land use parameters at baseline (relies on loaded data)
 housing_limit = inpdt.import_housing_limit(grid, param)
 
 #  TODO: plug outputs in a new variable (not param) and adapt linked functions
@@ -205,6 +217,28 @@ if options["compute_net_income"] == 1:
 
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
+
+
+# %% Re-run calibration (takes time, only if needed)
+
+if options["run_calib"] == 1:
+
+    # We estimate the coefficients of construction function
+    # Note that scale factor is significantly smaller than in paper
+    coeff_b, coeff_a, coeffKappa = calmain.estim_construct_func_param(
+        options, param, data_sp, threshold_income_distribution,
+        income_distribution, data_rdp, housing_types_sp,
+        path_data, path_precalc_inp)
+
+    # We scan values for the gravity parameter to estimate incomes as a
+    # function of it.
+    # The value range is set by trial and error: the wider the range you want
+    # to test, the longer.
+    list_lambda = 10 ** np.arange(0.5, 0.7, 0.05)
+    # list_lambda = 10 ** np.arange(0.6, 0.65, 0.01)
+    # list_lambda = 10 ** np.arange(0.6, 0.61, 0.005)
+
+    # TODO: update param vector
 
 
 # %% Compute initial state

@@ -17,7 +17,7 @@ import scipy.io
 from sklearn.linear_model import LinearRegression
 import os
 import math
-import seaborn as sns
+# import seaborn as sns
 
 import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
