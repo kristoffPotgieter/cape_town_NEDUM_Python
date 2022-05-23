@@ -682,8 +682,8 @@ def import_init_floods_data(options, param, path_folder):
     # 90m / 3'' on a par with FATHOM DATA
 
     coastal_floods = [name + '_0000', name + '_0002', name + '_0005',
-                      name + '_0010', name + '_0025', name + '_0100',
-                      name + '_0250']
+                      name + '_0010', name + '_0025', name + '_0050',
+                      name + '_0100', name + '_0250']
 
     path_data = path_folder + "FATHOM/"
 
@@ -897,9 +897,10 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         interval1 = (1/2) - (1/5)
         interval2 = (1/5) - (1/10)
         interval3 = (1/10) - (1/25)
-        interval4 = (1/25) - (1/100)
-        interval5 = (1/100) - (1/250)
-        interval6 = (1/250)
+        interval4 = (1/25) - (1/50)
+        interval5 = (1/50) - (1/100)
+        interval6 = (1/100) - (1/250)
+        interval7 = (1/250)
 
         name = type_flood + '_' + options["dem"] + '_' + str(options["slr"])
         damages0 = ((d[name + '_0000'].prop_flood_prone
@@ -920,13 +921,17 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                        * damage_function(d[name + '_0025'].flood_depth)))
         damages4 = ((d[name + '_0025'].prop_flood_prone
                      * damage_function(d[name + '_0025'].flood_depth))
+                    + (d[name + '_0050'].prop_flood_prone
+                       * damage_function(d[name + '_0050'].flood_depth)))
+        damages5 = ((d[name + '_0050'].prop_flood_prone
+                     * damage_function(d[name + '_0050'].flood_depth))
                     + (d[name + '_0100'].prop_flood_prone
                        * damage_function(d[name + '_0100'].flood_depth)))
-        damages5 = ((d[name + '_0100'].prop_flood_prone
+        damages6 = ((d[name + '_0100'].prop_flood_prone
                      * damage_function(d[name + '_0100'].flood_depth))
                     + (d[name + '_0250'].prop_flood_prone
                        * damage_function(d[name + '_0250'].flood_depth)))
-        damages6 = ((d[name + '_0250'].prop_flood_prone
+        damages7 = ((d[name + '_0250'].prop_flood_prone
                      * damage_function(d[name + '_0250'].flood_depth))
                     + (d[name + '_0250'].prop_flood_prone
                        * damage_function(d[name + '_0250'].flood_depth)))
@@ -935,7 +940,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                 * ((interval0 * damages0) + (interval1 * damages1)
                    + (interval2 * damages2) + (interval3 * damages3)
                    + (interval4 * damages4) + (interval5 * damages5)
-                   + (interval6 * damages6)))
+                   + (interval6 * damages6) + (interval7 * damages7)))
 
 
 def import_full_floods_data(options, param, path_folder, housing_type_data):

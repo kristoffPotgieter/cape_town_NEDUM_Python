@@ -43,6 +43,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         # implicit_empl_rate = ((households_per_income_class - unempl_attrib)
         #                       / households_per_income_class)
         # 0.74/0.99/0.98/0.99
+        # TODO: Re-use in calibration?
 
     #  Considering that all RDP belong to the poorest, we remove them from here
     households_per_income_class[0] = np.max(

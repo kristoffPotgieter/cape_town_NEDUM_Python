@@ -56,6 +56,7 @@ options["unempl_reweight"] = 1
 options["correct_agri_rent"] = 1
 
 options["pluvial"] = 1
+options["correct_pluvial"] = 1
 options["coastal"] = 1
 # This is in line with the DEM used in FATHOM data for fluvial and pluvial
 options["dem"] = "MERITDEM"
@@ -321,6 +322,51 @@ outexp.export_map(
     + housing_types.backyard_informal_grid,
     grid, path_outputs + plot_repo + 'data', 4000)
 
+#%% More maps for Claus
+
+informal_risks_medium = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_MEDIUM.csv',
+    sep=',')
+informal_risks_short = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_SHORT.csv',
+    sep=',')
+
+outexp.export_map(
+    informal_risks_medium["area"] / 250000,
+    grid, path_outputs + plot_repo + 'informal_risks_medium', 1)
+outexp.export_map(
+    informal_risks_short["area"] / 250000,
+    grid, path_outputs + plot_repo + 'informal_risks_short', 1)
+
+polygon_medium_timing = pd.read_excel(
+    path_folder + 'Land occupation/polygon_medium_timing.xlsx',
+    header=None)
+for item in list(polygon_medium_timing.squeeze()):
+    informal_risks_medium.loc[
+        informal_risks_medium["grid.data.ID"] == item,
+        "area"
+        ] = informal_risks_short.loc[
+            informal_risks_short["grid.data.ID"] == item,
+            "area"
+            ]
+    informal_risks_short.loc[
+        informal_risks_short["grid.data.ID"] == item,
+        "area"] = 0
+
+outexp.export_map(
+    informal_risks_medium["area"] / 250000,
+    grid, path_outputs + plot_repo + 'informal_risks_medium_correct', 1)
+outexp.export_map(
+    informal_risks_short["area"] / 250000,
+    grid, path_outputs + plot_repo + 'informal_risks_short_correct', 1)
+
+grid["dummy"] = 0
+for pixel in polygon_medium_timing.iloc[:, 0]:
+    grid.dummy[grid.id == pixel] = 1
+
+outexp.export_map(
+    grid["dummy"],
+    grid, path_outputs + plot_repo + 'polygon_medium_timing', 1)
 
 #%%
 
