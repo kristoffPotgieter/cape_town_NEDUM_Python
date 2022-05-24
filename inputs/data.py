@@ -10,7 +10,7 @@ import scipy.io
 import pandas as pd
 from scipy.interpolate import interp1d
 
-import calibration.compute_income as calcmp
+import calibration.sub.compute_income as calcmp
 import equilibrium.functions_dynamic as eqdyn
 
 
@@ -85,6 +85,7 @@ def import_income_classes_data(param, path_data):
     for j in range(0, param["nb_of_income_classes"]):
         households_per_income_class[j] = np.sum(
             nb_of_hh_bracket[(param["income_distribution"] == j + 1)])
+        # Note that this is in fact an average over median incomes
         average_income[j] = np.sum(
             avg_income_bracket[(param["income_distribution"] == j + 1)]
             * nb_of_hh_bracket[param["income_distribution"] == j + 1]
@@ -1256,14 +1257,14 @@ def import_transport_data(grid, param, yearTraffic,
                           spline_fuel,
                           spline_population_income_distribution,
                           spline_income_distribution,
-                          path_precalc_inp, path_precalc_transp, dim):
+                          path_precalc_inp, path_precalc_transp, dim, options):
     """Compute job center distribution, commuting and net income."""
     (timeOutput, distanceOutput, monetaryCost, costTime
      ) = calcmp.import_transport_costs(
          grid, param, yearTraffic, households_per_income_class,
          spline_inflation, spline_fuel, spline_population_income_distribution,
          spline_income_distribution, path_precalc_inp, path_precalc_transp,
-         dim)
+         dim, options)
 
     param_lambda = param["lambda"].squeeze()
 
@@ -1290,9 +1291,9 @@ def import_transport_data(grid, param, yearTraffic,
         param, yearTraffic)
     # Income centers: corresponds to expected income associated with each
     # income center and income group
-    income_centers_init = scipy.io.loadmat(
-        path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-    # income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
+    # income_centers_init = scipy.io.loadmat(
+    #     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
     # This allows to correct incomes for unemployed population not taken into
     # account in initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income

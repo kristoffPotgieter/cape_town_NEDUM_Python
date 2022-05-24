@@ -18,7 +18,7 @@ def import_transport_costs(grid, param, yearTraffic,
                            spline_inflation, spline_fuel,
                            spline_population_income_distribution,
                            spline_income_distribution, path_precalc_inp,
-                           path_precalc_transp, dim):
+                           path_precalc_transp, dim, options):
     """Compute job center distribution, commuting and net income."""
     # STEP 1: IMPORT TRAVEL TIMES AND COSTS
 
@@ -57,26 +57,25 @@ def import_transport_costs(grid, param, yearTraffic,
         6.24 * 40 * spline_inflation(2011 - param["baseline_year"])
         / spline_inflation(2013 - param["baseline_year"])
         )
-    # TODO: why 2012?
-    inflation = spline_inflation(yearTraffic)
-    infla_2012 = spline_inflation(2012 - param["baseline_year"])
-    priceTrainPerKMMonth = priceTrainPerKMMonth * inflation / infla_2012
-    priceTrainFixedMonth = priceTrainFixedMonth * inflation / infla_2012
-    priceTaxiPerKMMonth = priceTaxiPerKMMonth * inflation / infla_2012
-    priceTaxiFixedMonth = priceTaxiFixedMonth * inflation / infla_2012
-    priceBusPerKMMonth = priceBusPerKMMonth * inflation / infla_2012
-    priceBusFixedMonth = priceBusFixedMonth * inflation / infla_2012
-    priceFuelPerKMMonth = spline_fuel(yearTraffic)
 
-    # if yearTraffic > 8:
-    #     priceFuelPerKMMonth = priceFuelPerKMMonth * 1.2
-    #     priceBusPerKMMonth = priceBusPerKMMonth * 1.2
-    #     priceTaxiPerKMMonth = priceTaxiPerKMMonth * 1.2
+    # Again, we correct for inflation wrt reference year
+    inflation = spline_inflation(yearTraffic)
+    if options["correct_infla_base"] == 0:
+        infla_base = spline_inflation(2012 - param["baseline_year"])
+    elif options["correct_infla_base"] == 1:
+        infla_base = spline_inflation(2011 - param["baseline_year"])
+    priceTrainPerKMMonth = priceTrainPerKMMonth * inflation / infla_base
+    priceTrainFixedMonth = priceTrainFixedMonth * inflation / infla_base
+    priceTaxiPerKMMonth = priceTaxiPerKMMonth * inflation / infla_base
+    priceTaxiFixedMonth = priceTaxiFixedMonth * inflation / infla_base
+    priceBusPerKMMonth = priceBusPerKMMonth * inflation / infla_base
+    priceBusFixedMonth = priceBusFixedMonth * inflation / infla_base
+    priceFuelPerKMMonth = spline_fuel(yearTraffic)
 
     # Fixed costs
     #  See appendix B2
     priceFixedVehiculeMonth = 400
-    priceFixedVehiculeMonth = priceFixedVehiculeMonth * inflation / infla_2012
+    priceFixedVehiculeMonth = priceFixedVehiculeMonth * inflation / infla_base
 
     # STEP 2: TRAVEL TIMES AND COSTS AS MATRIX (no endogenous congestion)
 
@@ -86,7 +85,7 @@ def import_transport_costs(grid, param, yearTraffic,
     #  We assume 8 working hours per day and 20 working days per month
     # annualToHourly = 1 / (8*20*12)
 
-    # Time taken by each mode in one direction (in min)
+    # Time taken by each mode for the round trip (in min)
     # Includes walking time to station and other features from EMME/2 model
     timeOutput = np.empty(
         (transport_times["durationTrain"].shape[0],
@@ -100,22 +99,30 @@ def import_transport_costs(grid, param, yearTraffic,
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
-    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])  # * 2
-    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])  # * 2
-    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])  # * 2
-    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])  # * 2
+    timeOutput[:, :, 1] = copy.deepcopy(transport_times["durationTrain"])
+    timeOutput[:, :, 2] = copy.deepcopy(transport_times["durationCar"])
+    timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])
+    timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])
 
-    # Length (in km) using each mode (in direct line)
-    multiplierPrice = np.empty((timeOutput.shape))
-    multiplierPrice[:] = np.nan
-    multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
-    multiplierPrice[:, :, 1] = transport_times["distanceCar"]  # * 2
-    multiplierPrice[:, :, 2] = transport_times["distanceCar"]  # * 2
-    multiplierPrice[:, :, 3] = transport_times["distanceCar"]  # * 2
-    multiplierPrice[:, :, 4] = transport_times["distanceCar"]  # * 2
+    # Length (in km) using each mode (for round trip)
+    if options["correct_round_trip"] == 1:
+        multiplierPrice = np.empty((timeOutput.shape))
+        multiplierPrice[:] = np.nan
+        multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
+        multiplierPrice[:, :, 1] = transport_times["distanceCar"] * 2
+        multiplierPrice[:, :, 2] = transport_times["distanceCar"] * 2
+        multiplierPrice[:, :, 3] = transport_times["distanceCar"] * 2
+        multiplierPrice[:, :, 4] = transport_times["distanceCar"] * 2
+    elif options["correct_round_trip"] == 0:
+        multiplierPrice = np.empty((timeOutput.shape))
+        multiplierPrice[:] = np.nan
+        multiplierPrice[:, :, 0] = np.zeros((timeOutput[:, :, 0].shape))
+        multiplierPrice[:, :, 1] = transport_times["distanceCar"]
+        multiplierPrice[:, :, 2] = transport_times["distanceCar"]
+        multiplierPrice[:, :, 3] = transport_times["distanceCar"]
+        multiplierPrice[:, :, 4] = transport_times["distanceCar"]
 
     # Multiplying by 235 (nb of working days per year)
-    # TODO: is inital price for day or for month?
     pricePerKM = np.empty(5)
     pricePerKM[:] = np.nan
     pricePerKM[0] = np.zeros(1)
@@ -124,7 +131,7 @@ def import_transport_costs(grid, param, yearTraffic,
     pricePerKM[3] = priceTaxiPerKMMonth*numberDaysPerYear
     pricePerKM[4] = priceBusPerKMMonth*numberDaysPerYear
 
-    # Distances (not useful to calculate price but useful output)
+    # Simple distances (not useful to calculate price but useful output)
     distanceOutput = np.empty((timeOutput.shape))
     distanceOutput[:] = np.nan
     distanceOutput[:, :, 0] = transport_times["distanceCar"]
@@ -152,7 +159,6 @@ def import_transport_costs(grid, param, yearTraffic,
 
     # We assume that people not taking some transport mode
     # have a extra high cost of doing so"
-    # TODO: is it too big?
     # monetaryCost[np.isnan(monetaryCost)] = 10 ** 3
     monetaryCost[np.isnan(monetaryCost)] = 10 ** 5
 
@@ -173,10 +179,9 @@ def import_transport_costs(grid, param, yearTraffic,
 
 def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                    job_centers, average_income, income_distribution,
-                   list_lambda):
+                   list_lambda, options):
     """Solve for income per employment center for some values of lambda."""
     # Setting time and space
-    # TODO: check why we need this change
     annualToHourly = 1 / (8*20*12)
     #  Corresponds to the brackets for which we have aggregate statistics on
     #  the nb of commuters to fit our calibration
@@ -206,6 +211,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
         for j in range(0, param["nb_of_income_classes"]):
 
             # Household size varies with income group / transport costs
+            # TODO: add option to use implicit employment rate?
             householdSize = param["household_size"][j]
             # So does average income (which needs to be adapted to hourly
             # from income data)
@@ -231,7 +237,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
 
             # We reweight population in each income group per SP to make it
             # comparable with population in SELECTED job centers
-            # TODO: check that unemployed population is indeed included
+            # Note that unemployed population is indeed included
             popResidence = (
                 income_distribution[:, j]
                 * sum(job_centers[whichCenters, j])
@@ -267,7 +273,8 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                                       popCenters, popResidence,
                                       monetary_cost, costTime, param_lambda,
                                       householdSize, whichCenters,
-                                      bracketsDistance, distanceOutput)
+                                      bracketsDistance, distanceOutput,
+                                      options)
 
             # Then we iterate by adding to each job center the average value of
             # its income weighted by the importance of the error relative to
@@ -289,7 +296,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                     incomeCenters[:, iter], averageIncomeGroup, popCenters,
                     popResidence, monetary_cost, costTime, param_lambda,
                     householdSize, whichCenters, bracketsDistance,
-                    distanceOutput)
+                    distanceOutput, options)
 
                 errorMax = np.nanmax(
                     np.abs(error[:, iter] / popCenters))
@@ -315,10 +322,11 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
             _, distanceDistributionGroup[:, j] = funSolve(
                 incomeCenters[:, iter-1], averageIncomeGroup, popCenters,
                 popResidence, monetary_cost, costTime, param_lambda,
-                householdSize, whichCenters, bracketsDistance, distanceOutput)
+                householdSize, whichCenters, bracketsDistance, distanceOutput,
+                options)
 
             # We rescale the parameter to stick to overall income data scale:
-            # remember that we only computed it for a subser of the population
+            # remember that we only computed it for a subset of the population
             incomeCentersRescaled = (
                 incomeCenters[:, iter-1] * averageIncomeGroup
                 / ((np.nansum(incomeCenters[:, iter-1] * popCenters)
@@ -345,14 +353,14 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
 
 def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
                     whichCenters, param_lambda):
-    """d."""
+    """Apply commuting formulas from working paper."""
     # Corresponds to t_mj without error term (explained cost)
     #  Note that incomeCentersFull correspond to y_ic, hence householdSize is
     #  already taken into account as a multiplier of w_ic, therefore there
     #  is no need to multiply the second term by householdSize (and both
-    #  monetary and time costs should correspond to round trips).
+    #  monetary and time costs indeed correspond to round trips).
     #  However, the time cost should still be taken into account for the two
-    #  members of the household!
+    #  members of the household, hence the first factor.
 
     #  TODO: need to cross-check that income data indeed takes unemployment
     #  into account (important difference with benchmark script)
@@ -382,6 +390,7 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
 
     # OD flows: corresponds to pi_c|ix (here, not the full matrix)
     # NB: here, we consider maximum Gumbel
+    # TODO: correct typo in paper
     ODflows = (
         np.exp(param_lambda * (incomeCentersFull[:, None] - transportCost)
                - minIncome)
@@ -395,7 +404,7 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
 
 def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
              popResidence, monetaryCost, costTime, param_lambda, householdSize,
-             whichCenters, bracketsDistance, distanceOutput):
+             whichCenters, bracketsDistance, distanceOutput, options):
     """Compute error in employment allocation."""
     # We redress the average income in each group per job center to match
     # income data, as this must be matched with popResidence
@@ -415,10 +424,14 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
 
     # TODO: is it equivalent to selection criterion from paper?
     # Note that ODflows is of dimension 119x24014
-    score = (popCenters
-             - (householdSize / 2
-                * np.nansum(popResidence[None, :] * ODflows, 1))
-             )
+    if options["correct_eq3"] == 1:
+        score = (popCenters
+                 - (householdSize / 2
+                    * np.nansum(popResidence[None, :] * ODflows, 1))
+                 )
+    elif options["correct_eq3"] == 0:
+        score = (popCenters
+                 - np.nansum(popResidence[None, :] * ODflows, 1))
 
     # We also return the total number of commuters (in a given income group)
     # for job centers in predefined distance brackets
@@ -427,10 +440,13 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
         which = ((distanceOutput[whichCenters, :] > bracketsDistance[k])
                  & (distanceOutput[whichCenters, :] <= bracketsDistance[k + 1])
                  & (~np.isnan(distanceOutput[whichCenters, :])))
-        # TODO: conduct further tests wrt benchmark script
-        nbCommuters[k] = (
-            np.nansum(which * ODflows * popResidence[None, :])
-            * (householdSize / 2)
-            )
+        if options["correct_eq3"] == 1:
+            nbCommuters[k] = (
+                np.nansum(which * ODflows * popResidence[None, :])
+                * (householdSize / 2)
+                )
+        elif options["correct_eq3"] == 0:
+            nbCommuters[k] = (
+                np.nansum(which * ODflows * popResidence[None, :]))
 
     return score, nbCommuters

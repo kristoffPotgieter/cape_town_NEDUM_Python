@@ -20,17 +20,14 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     """Estimate parameters by maximizing log likelihood."""
     # Here we scan a set of values for each parameter and determine the value
     # of the log-likelihood (to see how the model behaves).
-    # NB: In EstimateParameters By Optimization, we use the minimization
-    # algorithm from Matlab to converge towards the solution
-
-    # Data as matrices, where should we regress (remove where we have no data)
-    # Where is which class
+    # NB: In estimate_parameters_by_optimization, we use the minimization
+    # algorithm from Scipy to converge towards the solution
 
     # We remove poorest income group as it is crowded out of formal sector
     # TODO: is it in line with the paper?
     net_income = incomeNetOfCommuting[1:4, :]
     # We generate a matrix of dummies for dominant income group in each SP
-    # (can be always false when dominant group is removed poorest)
+    # (can be always false when dominant group is poorest)
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
         groupLivingSpMatrix[i, dataIncomeGroup != i] = np.zeros(1, 'bool')
@@ -54,7 +51,6 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
         [np.ones(predictorsAmenitiesMatrix.shape[0]),
          predictorsAmenitiesMatrix.T]
         ).T
-    # modelAmenity = 0
 
     # %% Useful functions (precalculations for rents and dwelling sizes,
     # likelihood function)
@@ -95,8 +91,6 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     print('\nDone: ')
 
-    # TODO: why does the second income group not need scanning?
-
     # TODO: how strong are underlying Gumbel assumptions?
     for index in range(0, combinationInputs.shape[0]):
         print(index)
@@ -112,7 +106,6 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     print('\nScanning complete')
     print('\n')
 
-    # TODO: adds housing to score_total, but what does this mean?
     # We just pick the parameters associated to the maximum score
     scoreVect = (scoreAmenities + scoreDwellingSize + scoreIncomeSorting
                  + scoreHousing)

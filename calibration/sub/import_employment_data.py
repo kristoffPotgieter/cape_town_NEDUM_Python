@@ -52,6 +52,7 @@ def import_employment_data(households_per_income_class, param, path_data):
             jobsCenters12Class[param["income_distribution"] == j + 1, :], 0)
     jobsCentersNgroup = jobsCentersNgroup[selectedCenters, :]
     # Rescale (wrt census data) to keep the correct global income distribution
+    # More specifically, this allows to go from individual to household level
     jobsCentersNGroupRescaled = (
         jobsCentersNgroup * households_per_income_class[None, :]
         / np.nansum(jobsCentersNgroup, 0)

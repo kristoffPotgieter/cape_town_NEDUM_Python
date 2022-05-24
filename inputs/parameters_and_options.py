@@ -156,6 +156,7 @@ def import_param(path_precalc_inp, path_outputs):
     #  (see appendix B1: 2*ksi): we need to take into account monetary cost
     #  for both members of the household (cf. import_transport_data)
     #  TODO: choose right or original specification
+    #  Looks like employment vs. unemployment rate (no participation rate)
     param["household_size"] = [1.14, 1.94, 1.92, 1.94]
     # param["household_size"] = [1.14, 1.94, 1.94, 1.94]
     # TODO: check alternative unemployment specifications
