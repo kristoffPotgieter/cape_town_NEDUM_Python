@@ -1,24 +1,24 @@
                  Generalized Linear Model Regression Results                  
 ==============================================================================
-Dep. Variable:                      y   No. Observations:                  148
-Model:                            GLM   Df Residuals:                      139
+Dep. Variable:                      y   No. Observations:                  145
+Model:                            GLM   Df Residuals:                      136
 Model Family:                Gaussian   Df Model:                            8
-Link Function:               identity   Scale:                        0.021469
-Method:                          IRLS   Log-Likelihood:                 78.884
-Date:                Tue, 24 May 2022   Deviance:                       2.9842
-Time:                        19:02:35   Pearson chi2:                     2.98
-No. Iterations:                     3   Pseudo R-squ. (CS):            -0.6216
+Link Function:               identity   Scale:                        0.013399
+Method:                          IRLS   Log-Likelihood:                 111.56
+Date:                Wed, 25 May 2022   Deviance:                       1.8223
+Time:                        17:27:30   Pearson chi2:                     1.82
+No. Iterations:                     3   Pseudo R-squ. (CS):            -0.2310
 Covariance Type:            nonrobust                                         
 ==============================================================================================
                                  coef    std err          z      P>|z|      [0.025      0.975]
 ----------------------------------------------------------------------------------------------
-distance_ocean                -0.0509      0.031     -1.658      0.097      -0.111       0.009
-distance_ocean_2_4            -0.0339      0.038     -0.895      0.371      -0.108       0.040
-slope_1_5                     -0.1135      0.026     -4.325      0.000      -0.165      -0.062
-slope_5                       -0.0974      0.050     -1.934      0.053      -0.196       0.001
-airport_cone2                  0.0241      0.059      0.410      0.682      -0.091       0.139
-distance_distr_parks          -0.0275      0.032     -0.869      0.385      -0.089       0.034
-distance_biosphere_reserve    -0.1701      0.033     -5.156      0.000      -0.235      -0.105
-distance_train                -0.1886      0.019     -9.890      0.000      -0.226      -0.151
-distance_urban_herit           0.0032      0.055      0.058      0.953      -0.104       0.110
+distance_ocean                 0.0052      0.025      0.213      0.831      -0.043       0.053
+distance_ocean_2_4            -0.0107      0.030     -0.360      0.719      -0.069       0.048
+slope_1_5                     -0.0401      0.021     -1.956      0.050      -0.080    7.68e-05
+slope_5                       -0.0391      0.041     -0.965      0.335      -0.119       0.040
+airport_cone2                  0.0219      0.050      0.436      0.663      -0.077       0.120
+distance_distr_parks           0.0072      0.026      0.282      0.778      -0.043       0.058
+distance_biosphere_reserve    -0.1177      0.026     -4.515      0.000      -0.169      -0.067
+distance_train                -0.0917      0.016     -5.888      0.000      -0.122      -0.061
+distance_urban_herit          -0.0328      0.044     -0.740      0.460      -0.120       0.054
 ==============================================================================================

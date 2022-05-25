@@ -16,13 +16,9 @@ def EstimateParametersByOptimization(
         incomeNetOfCommuting, dataRent, dataDwellingSize, dataIncomeGroup,
         dataHouseholdDensity, selectedDensity, xData, yData, selectedSP,
         tableAmenities, variablesRegression, initRho, initBeta, initBasicQ,
-        initUti2, initUti3, initUti4):
+        initUti2, initUti3, initUti4, options):
     """Automatically estimate parameters by maximizing log likelihood."""
-    # Here we minimize the log-likelihood using fminsearch
-
-    # Data as matrices, where should we regress (remove where we have no data)
-
-    # Where is which class
+    # We start as in EstimateParametersByScanning
     net_income = incomeNetOfCommuting[1:4, :]
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
@@ -47,13 +43,13 @@ def EstimateParametersByOptimization(
         [np.ones(predictorsAmenitiesMatrix.shape[0]),
          predictorsAmenitiesMatrix.T]
         ).T
-    # modelAmenity = 0
 
     # %% Useful functions (precalculations for rents and dwelling sizes,
     # likelihood function)
 
     # Function for dwelling sizes
     # We estimate calcule_hous directly from data from rents (no extrapolation)
+    np.seterr(divide='ignore', invalid='ignore')
     CalculateDwellingSize = (
         lambda beta, basic_q, incomeTemp, rentTemp:
             beta * incomeTemp / rentTemp + (1 - beta) * basic_q
@@ -69,13 +65,10 @@ def EstimateParametersByOptimization(
     # %% Optimization algorithm
 
     # Initial value of parameters
-    # TODO: where does it come from? Why not use init values?
-    # initialVector = np.array(
-    #     [0.25332341, 3.97137219, 18683.85807256, 86857.19233169])
     initialVector = np.array(
         [initBeta, initBasicQ, initUti3, initUti4])
 
-    # Function that will be minimized
+    # Determines function that will be minimized
     optionRegression = 0
 
     minusLogLikelihoodModel = (
@@ -89,10 +82,13 @@ def EstimateParametersByOptimization(
                 ComputeLogLikelihood, optionRegression)[0]
             )
 
-    # Optimization w/ lower and upper bounds
-    # TODO: where from?
-    bnds = ((0.1, 1), (3, 18), (0, 18 ** 6), (0, 10 ** 7))
+    # Now, we optimize using interior-point minimization algorithms
 
+    # We first define wide bounds for our parameters
+    # TODO: put a floor on q0?
+    bnds = ((0.1, 1), (1, 18), (0, 18 ** 6), (0, 10 ** 7))
+
+    # Then we run the algorithm
     res = scipy.optimize.minimize(
         minusLogLikelihoodModel, initialVector, bounds=bnds,
         options={'maxiter': 10, 'disp': True})
@@ -102,14 +98,24 @@ def EstimateParametersByOptimization(
     # exitFlag = res.success
 
     # Estimate the function to get the parameters for amenities
-    optionRegression = 1
-    (*_, parametersAmenities, modelAmenity, parametersHousing
-     ) = callog.LogLikelihoodModel(
-         parameters, initUti2, net_income, groupLivingSpMatrix,
-         dataDwellingSize, selectedDwellingSize, dataRent,
-         selectedRents, selectedDensity,
-         predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-         CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+    if options["glm"] == 1:
+        optionRegression = 1
+        (*_, parametersAmenities, modelAmenity, parametersHousing
+         ) = callog.LogLikelihoodModel(
+             parameters, initUti2, net_income, groupLivingSpMatrix,
+             dataDwellingSize, selectedDwellingSize, dataRent,
+             selectedRents, selectedDensity,
+             predictorsAmenitiesMatrix, tableRegression, variablesRegression,
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+    elif options["glm"] == 0:
+        optionRegression = 0
+        (*_, parametersAmenities, modelAmenity, parametersHousing
+         ) = callog.LogLikelihoodModel(
+             parameters, initUti2, net_income, groupLivingSpMatrix,
+             dataDwellingSize, selectedDwellingSize, dataRent,
+             selectedRents, selectedDensity,
+             predictorsAmenitiesMatrix, tableRegression, variablesRegression,
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
 
     print('*** Estimation of beta and q0 done ***')
 

@@ -5,7 +5,6 @@ Created on Tue Oct 27 15:33:37 2020.
 @author: Charlotte Liotta
 """
 
-
 # %% Preamble
 
 
@@ -87,7 +86,7 @@ options["correct_round_trip"] = 1
 options["correct_eq3"] = 1
 options["scan_type"] = "fine"
 options["reverse_elasticities"] = 0
-#  TODO: set ranges for parameter scanning?
+options["glm"] = 0
 
 # TODO: set default values in parameter script (with limited choice)
 
@@ -346,7 +345,7 @@ if options["run_calib"] == 1:
     coeff_b, coeff_a, coeffKappa = calmain.estim_construct_func_param(
         options, param, data_sp, threshold_income_distribution,
         income_distribution, data_rdp, housing_types_sp,
-        data_number_formal, data_income_group,
+        data_number_formal, data_income_group, selected_density,
         path_data, path_precalc_inp, path_folder)
 
     # We update parameter vector
@@ -366,8 +365,9 @@ if options["run_calib"] == 1:
         list_lambda = 10 ** np.arange(0.65, 0.76, 0.01)
     if options["scan_type"] == "fine":
         list_lambda = 10 ** np.arange(0.71, 0.735, 0.005)
-    list_lambda = [10**0.72]
-    incomeCentersKeep, lambdaKeep, cal_avg_income, cal_avg_income_mat = (
+    # TODO: temporary modif to be removed (saves time)
+    list_lambda = 10 ** np.arange(0.72, 0.73, 0.01)
+    incomeCentersKeep, lambdaKeep, cal_avg_income = (
         calmain.estim_incomes_and_gravity(
             param, grid, list_lambda, households_per_income_class,
             average_income, income_distribution, spline_inflation, spline_fuel,
@@ -390,7 +390,7 @@ if options["run_calib"] == 1:
     plt.close()
 
     # We update parameter vector
-    param["lambda"] = lambdaKeep
+    param["lambda"] = np.array(lambdaKeep)
 
     # UTILITY FUNCTION PARAMETERS
 
@@ -410,6 +410,9 @@ if options["run_calib"] == 1:
 
     param["beta"] = calibratedUtility_beta
     param["q0"] = calibratedUtility_q0
+    # Note pb with q0...
+
+# DO DISAMENITY ON THE SIDE
 
 
 # %% Compute initial state

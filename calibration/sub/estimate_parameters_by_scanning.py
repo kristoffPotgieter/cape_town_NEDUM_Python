@@ -16,7 +16,8 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
                                  dataHouseholdDensity, selectedDensity,
                                  xData, yData, selectedSP, tableAmenities,
                                  variablesRegression, initRho, listBeta,
-                                 listBasicQ, initUti2, listUti3, listUti4):
+                                 listBasicQ, initUti2, listUti3, listUti4,
+                                 options):
     """Estimate parameters by maximizing log likelihood."""
     # Here we scan a set of values for each parameter and determine the value
     # of the log-likelihood (to see how the model behaves).
@@ -73,7 +74,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     # %% Optimization algorithm
 
-    # Function that will be minimized
+    # Determines function that will be minimized
     optionRegression = 0
 
     # Initial value of parameters (all possible combinations)
@@ -117,14 +118,15 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # amenities: we did not do it before as optionRegression = 0 is better for
     # the rest. Note that paramaters remain the same, but model is a GLM and
     # errors are Pearson residuals
-    optionRegression = 1
-    (*_, parametersAmenities, modelAmenities, parametersHousing
-     ) = callog.LogLikelihoodModel(
-         parameters, initUti2, net_income, groupLivingSpMatrix,
-         dataDwellingSize, selectedDwellingSize, dataRent,
-         selectedRents, selectedDensity,
-         predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-         CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+    if options["glm"] == 1:
+        optionRegression = 1
+        (*_, parametersAmenities, modelAmenities, parametersHousing
+         ) = callog.LogLikelihoodModel(
+             parameters, initUti2, net_income, groupLivingSpMatrix,
+             dataDwellingSize, selectedDwellingSize, dataRent,
+             selectedRents, selectedDensity,
+             predictorsAmenitiesMatrix, tableRegression, variablesRegression,
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
 
     return (parameters, scoreTot, parametersAmenities, modelAmenities,
             parametersHousing, selectedRents)

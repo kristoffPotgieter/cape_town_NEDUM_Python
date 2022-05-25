@@ -8,6 +8,8 @@ Created on Tue Oct 20 11:46:13 2020.
 import numpy as np
 import statsmodels.api as sm
 from scipy.interpolate import interp2d
+from scipy import interpolate
+import scipy
 
 
 def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
@@ -25,14 +27,21 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     # %% Errors on the amenity
 
     # Calculate amenities as a residual: corresponds to ln(A_s), appendix C4
-    # TODO: deprecated use of None
+    # residualAmenities = (
+    #     np.log(Uo[:, None])
+    #     - np.log(
+    #         (1 - beta) ** (1 - beta) * beta ** beta
+    #         * (net_income[:, selectedRents]
+    #            - basicQ * dataRent[None, selectedRents])
+    #         / (dataRent[None, selectedRents] ** beta))
+    #     )
     residualAmenities = (
-        np.log(Uo[:, None])
+        np.log(np.array(Uo)[:, None])
         - np.log(
             (1 - beta) ** (1 - beta) * beta ** beta
             * (net_income[:, selectedRents]
-               - basicQ * dataRent[None, selectedRents])
-            / (dataRent[None, selectedRents] ** beta))
+               - basicQ * np.array(dataRent)[None, selectedRents])
+            / (np.array(dataRent)[None, selectedRents] ** beta))
         )
     # We select amenities for dominant income groups and flatten the array
     residualAmenities = np.nansum(
@@ -46,10 +55,8 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
         # Note that predictors are dummies, and not log-values as in paper
         A = predictorsAmenitiesMatrix[~np.isnan(residualAmenities), :]
         y = (residualAmenities[~np.isnan(residualAmenities)]).real
-        # TODO: pass rcond=None?
-        # No more knots can be added because s is too small/large?
-        parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y)
-        print(parametersAmenities)
+        parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y,
+                                                                  rcond=None)
         errorAmenities = y - np.nansum(A * parametersAmenities, 1)
         modelAmenities = 0
 
@@ -59,15 +66,12 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
         residu = residualAmenities.real
         A = predictorsAmenitiesMatrix[~np.isnan(residualAmenities), :]
         y = (residualAmenities[~np.isnan(residualAmenities)]).real
-        # TODO: same as before
-        parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y)
+        parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y,
+                                                                  rcond=None)
         modelSpecification = sm.GLM(
             residu, tableRegression.loc[:, variables_regression])
         modelAmenities = modelSpecification.fit()
         print(modelAmenities.summary())
-        # TODO: check if this is working
-        with open('summary.txt', 'w') as fh:
-            fh.write(modelAmenities.summary().as_text())
         errorAmenities = modelAmenities.resid_pearson
 
     scoreAmenities = ComputeLogLikelihood(
@@ -77,22 +81,13 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
     # %% Error on allocation of income groups
 
-    # approx = (((1 - beta) ** (1 - beta)) * (beta ** beta)
-    #           * (net_income[:, selectedRents])
-    #           / (Uo[:, None] / residualAmenities[None, :])) ** (1/beta)
-
     # Here, we want the likelihood that simulated rent is equal to max bid rent
     # to reproduce observed income sorting
 
-    # Method from Basile
-    #  We get a function that predicts rent based on any given income and u/A,
-    #  interpolated from parameter initial values
+    #  We get a function that predicts ln(rent) based on any given ln(income)
+    #  and ln(u/A), interpolated from parameter initial values
     griddedRents = InterpolateRents(beta, basicQ, net_income)
     bidRents = np.empty((3, sum(selectedRents)))
-    #  For each income group and each selected SP,
-    #  we obtain the bid rent as a function of initial income and u/ln(A)
-    #  TODO: cross-check the need to de-log residualAmenities
-    #  TODO: should we care about the fit with observed rents?
     for i in range(0, 3):
         for j in range(0, sum(selectedRents)):
             # bidRents[i, j] = griddedRents(
@@ -104,7 +99,8 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
             #     (Uo[:, None] / np.exp(residualAmenities[None, :]))[i, j]
             #     )
             bidRents[i, j] = np.exp(griddedRents(
-                (np.log(Uo[:, None]) - residualAmenities[None, :])[i, j],
+                (np.log(np.array(Uo)[:, None])
+                 - np.array(residualAmenities)[None, :])[i, j],
                 np.log(net_income[:, selectedRents][i, j])
                 ))
 
@@ -122,8 +118,20 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
                 np.exp(bidRents[:, selectedBidRents] / scaleParam),
                 0)))
             )
-    # TODO: does the choice of scale parameter matter?
-    scoreIncomeSorting = - likelihoodIncomeSorting(10000)
+
+    # We then optimize over the scale parameter to be used in score
+    bnds = {(0, 10**10)}
+    initScale = 10**9
+    res = scipy.optimize.minimize(
+        likelihoodIncomeSorting, initScale, bounds=bnds,
+        options={'maxiter': 10, 'disp': True})
+    # scaleParameter = res.x
+    errorIncomeSorting = res.fun
+    exitFlag = res.success
+    if exitFlag is True:
+        scoreIncomeSorting = - errorIncomeSorting
+    elif exitFlag is False:
+        scoreIncomeSorting = - likelihoodIncomeSorting(10000)
 
     # %% Errors on the dwelling sizes
     # Simulated rent, real sorting
@@ -164,7 +172,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
 
 def utilityFromRents(Ro, income, basic_q, beta):
-    """d."""
+    """Return utility / amenity index ratio."""
     # Equal to u/A (equation C2)
     utility = (((1 - beta) ** (1 - beta))
                * (beta ** beta)
@@ -176,11 +184,7 @@ def utilityFromRents(Ro, income, basic_q, beta):
 
 
 def InterpolateRents(beta, basicQ, net_income):
-    """Precalculate for rents, as a function."""
-    # The output of the function is a griddedInterpolant object, that gives the
-    # log of rents as a function of the log utility and the log income.
-    # Really?
-
+    """Interpolate log(rents) as a function of log(beta) and log(q0)."""
     # Decomposition for the interpolation (the more points, the slower)
     decompositionRent = np.concatenate(
         ([np.array([10 ** (-9), 10 ** (-4), 10 ** (-3), 10 ** (-2)]),
@@ -203,7 +207,8 @@ def InterpolateRents(beta, basicQ, net_income):
     # We do the same for rent vector by considering that the rent is maximized
     # when utility equals zero
     choiceRent = choiceIncome / basicQ
-    rentMatrix = choiceRent[:, None] * decompositionRent[None, :]
+    rentMatrix = (np.array(choiceRent)[:, None]
+                  * np.array(decompositionRent)[None, :])
 
     #  Yields u/A for all values of decomposition
     utilityMatrix = utilityFromRents(
@@ -216,10 +221,21 @@ def InterpolateRents(beta, basicQ, net_income):
     #     beta
     #     )
 
-    #  We interpolate rent as a function of income and u/A (calculated upon
-    #  initial values of parameters)
+    #  We interpolate ln(rent) as a function of ln(income) and ln(u/A)
+    #  (calculated upon initial values of parameters)
     #  Note that we observe rent but not actual max bid rent
     #  for all income groups
+
+    # We first do it in simple form
+    # TODO: we may consider griddata or RBFInterpolator
+    # solusRentTemp = (
+    #     lambda x, y:
+    #         interp2d(
+    #             np.transpose(incomeMatrix),
+    #             utilityMatrix,
+    #             rentMatrix ** beta
+    #             )(x, y)
+    #         )
     # solusRentTemp = (
     #     lambda x, y:
     #         interp2d(
@@ -231,26 +247,47 @@ def InterpolateRents(beta, basicQ, net_income):
     #             )(x, y)
     #         )
 
-    # TODO: we may consider griddata or RBFInterpolator
-    # Check issue with knots and beta
+    x = np.transpose(incomeMatrix)
+    y = utilityMatrix
+    z = rentMatrix ** beta
+
+    xx = np.linspace(np.min(x.ravel()), np.max(x.ravel()))
+    yy = np.linspace(np.min(y.ravel()), np.max(y.ravel()))
+    # xx, yy = np.meshgrid(xx, yy)
+
+    # TODO: remove the lambda function
     solusRentTemp = (
-        lambda x, y:
-            interp2d(
-                np.transpose(incomeMatrix),
-                utilityMatrix,
-                rentMatrix ** beta
-                )(x, y)
+        lambda a, b:
+            interpolate.griddata(
+                (x.ravel(), y.ravel()),
+                z.ravel(),
+                (xx, yy)
+                )(a, b)
             )
 
-    # Redefine a grid (to use griddedInterpolant)
+    # Then we go to log-form (quickens computations and helps convergence)
     utilityVectLog = np.arange(-1, np.log(np.nanmax(10 * net_income)), 0.1)
     incomeLog = np.arange(-1, np.log(np.nanmax(np.nanmax(10 * net_income))),
                           0.2)
+    # ndarray not callable!
     rentLog = (
         np.log(solusRentTemp(np.exp(incomeLog), np.exp(utilityVectLog)))
         ) * 1/beta
-    griddedRents = interp2d(utilityVectLog, incomeLog, np.transpose(rentLog))
+
+    # griddedRents = interp2d(utilityVectLog, incomeLog, np.transpose(rentLog))
+
+    x = utilityVectLog
+    y = incomeLog
+    z = np.transpose(rentLog)
+
+    xx = np.linspace(np.min(x.ravel()), np.max(x.ravel()))
+    yy = np.linspace(np.min(y.ravel()), np.max(y.ravel()))
+    # xx, yy = np.meshgrid(xx, yy)
+
+    griddedRents = interpolate.griddata(
+        (x.ravel(), y.ravel()), z.ravel(),
+        (xx, yy)
+        )
 
     return griddedRents
-
     # return solusRentTemp

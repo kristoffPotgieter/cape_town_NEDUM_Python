@@ -190,30 +190,24 @@ def estim_util_func_param(data_number_formal, data_income_group,
         & (data_income_group > 0)
         )
 
-    # Coefficients of the model for simulations (arbitrary)
-    listBeta = np.arange(0.18, 0.22, 0.01)
-    # listBeta = np.arange(0.25, 0.35, 0.02)
-    # listBeta = np.arange(0.31, 0.36, 0.01)
-    listBasicQ = np.arange(3, 4.1, 0.1)
-    # listBasicQ = np.arange(2, 4, 0.2)
-    # listBasicQ = np.arange(1, 2, 0.1)
-    # listBasicQ = np.arange(3.8, 4.31, 0.1)
+    # Coefficients of the model for simulations: set by trial and error
+    #  This naturally tends to 0.2, hence the reduced range
+    listBeta = np.arange(0.18, 0.23, 0.01)
+    #  This naturally tends to 0, hence the floor which will be updated
+    #  in later optimization
+    listBasicQ = np.arange(1, 2, 1)
 
     # Coefficient for spatial autocorrelation
     # TODO: how would this work if implemented?
     listRho = 0
 
-    # Utilities for simulations (arbitrary)
-    # TODO: why not start with same set as in compute_equilibrium?
-    # utilityTarget = np.array([300, 1000, 3000, 10000])
-    # utilityTarget = np.array([1501, 4819, 16947, 79809])
-    utilityTarget = np.array([1500, 4000, 17000, 80000])
+    # Utilities for simulations: we start with levels close from what we expect
+    # in equilibrium
+    utilityTarget = np.array([1500, 5000, 17000, 80000])
 
     # We scan varying values of utility targets
-    # TODO: why does it tend to zero?
-    # listVariation = np.arange(0.7, 1.3, 0.1)
-    listVariation = np.arange(1, 1.6, 0.1)
-    # listVariation = np.arange(1, 1.01, 0.1)
+    #  This is also set by trial and error
+    listVariation = np.arange(1.1, 1.6, 0.1)
     # Note that the poorest income group is not taken into account as it is
     # excluded from the analysis.
     # Then, we do not vary the first income group as the magnitude is not that
@@ -256,7 +250,7 @@ def estim_util_func_param(data_number_formal, data_income_group,
         'airport_cone2', 'distance_distr_parks', 'distance_biosphere_reserve',
         'distance_train', 'distance_urban_herit']
 
-    # Note that this is long to run as it depends on the combination of all
+    # Note that this may be long to run as it depends on the combination of all
     # inputs
 
     (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
@@ -265,9 +259,7 @@ def estim_util_func_param(data_number_formal, data_income_group,
          data_income_group, data_density, selected_density,
          housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
          amenities_sp, variables_regression, listRho, listBeta, listBasicQ,
-         initUti2, listUti3, listUti4)
-
-    # TODO: Amenity regression table makes no sense
+         initUti2, listUti3, listUti4, options)
 
     # Now we run the optimization algo with identified value of the parameters:
     # corresponds to interior-point algorithm
@@ -277,8 +269,7 @@ def estim_util_func_param(data_number_formal, data_income_group,
     initUti3 = parametersScan[2]
     initUti4 = parametersScan[3]
 
-    # TODO: check in two steps
-    # LONG TO RUN!
+    # Note that this may be long to run
     (parameters, scoreTot, parametersAmenities, modelAmenity,
      parametersHousing, selectedSPRent
      ) = calopt.EstimateParametersByOptimization(
@@ -286,7 +277,7 @@ def estim_util_func_param(data_number_formal, data_income_group,
          data_income_group, data_density, selected_density,
          housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
          amenities_sp, variables_regression, listRho, initBeta, initBasicQ,
-         initUti2, initUti3, initUti4)
+         initUti2, initUti3, initUti4, options)
 
     # Exporting and saving outputs
 
@@ -303,8 +294,10 @@ def estim_util_func_param(data_number_formal, data_income_group,
     outexp.export_map(calw_amenities, grid, path_plots + 'amenity_map',
                       1.3, 0.8)
 
-    modelAmenity.save(path_precalc_inp + 'modelAmenity')
-    # utilitiesCorrected = parameters[3:] / np.exp(parametersAmenities[1])
+    # Note that amenity map from GLM estimates yields absurd results, hence it
+    # is not coded here
+    if options["glm"] == 1:
+        modelAmenity.save(path_precalc_inp + 'modelAmenity')
     calibratedUtility_beta = parameters[0]
     calibratedUtility_q0 = parameters[1]
 
