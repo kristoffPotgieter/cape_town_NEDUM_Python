@@ -102,7 +102,8 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
              groupLivingSpMatrix, dataDwellingSize, selectedDwellingSize,
              dataRent, selectedRents, selectedDensity,
              predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression,
+             options)
 
     print('\nScanning complete')
     print('\n')
@@ -126,7 +127,8 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
              dataDwellingSize, selectedDwellingSize, dataRent,
              selectedRents, selectedDensity,
              predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression,
+             options)
 
     return (parameters, scoreTot, parametersAmenities, modelAmenities,
             parametersHousing, selectedRents)

@@ -18,7 +18,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
                        selectedDensity, predictorsAmenitiesMatrix,
                        tableRegression, variables_regression,
                        CalculateDwellingSize, ComputeLogLikelihood,
-                       optionRegression):
+                       optionRegression, options):
     """Estimate the total likelihood of the model given the parameters."""
     beta = X0[0]
     basicQ = X0[1]
@@ -86,23 +86,24 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
     #  We get a function that predicts ln(rent) based on any given ln(income)
     #  and ln(u/A), interpolated from parameter initial values
-    griddedRents = InterpolateRents(beta, basicQ, net_income)
+    griddedRents = InterpolateRents(beta, basicQ, net_income, options)
     bidRents = np.empty((3, sum(selectedRents)))
     for i in range(0, 3):
         for j in range(0, sum(selectedRents)):
-            # bidRents[i, j] = griddedRents(
-            #     net_income[:, selectedRents][i, j],
-            #     (Uo[:, None] / residualAmenities[None, :])[i, j]
-            #     )
-            # bidRents[i, j] = griddedRents(
-            #     net_income[:, selectedRents][i, j],
-            #     (Uo[:, None] / np.exp(residualAmenities[None, :]))[i, j]
-            #     )
-            bidRents[i, j] = np.exp(griddedRents(
-                (np.log(np.array(Uo)[:, None])
-                 - np.array(residualAmenities)[None, :])[i, j],
-                np.log(net_income[:, selectedRents][i, j])
-                ))
+            if options["griddata"] == 0:
+                bidRents[i, j] = np.exp(griddedRents(
+                    (np.log(np.array(Uo)[:, None])
+                     - np.array(residualAmenities)[None, :])[i, j],
+                    np.log(net_income[:, selectedRents][i, j])
+                    ))
+            elif options["griddata"] == 1:
+                coord = np.stack([
+                    (np.log(np.array(Uo)[:, None])
+                     - np.array(residualAmenities)[None, :])[i, j],
+                    np.log(net_income[:, selectedRents][i, j])
+                    ], -1)
+                coord = np.expand_dims(coord, axis=0)
+                bidRents[i, j] = np.exp(griddedRents(coord))
 
     # Estimation of the parameters by maximization of the log-likelihood
     # (in overarching function)
@@ -183,7 +184,7 @@ def utilityFromRents(Ro, income, basic_q, beta):
     return utility
 
 
-def InterpolateRents(beta, basicQ, net_income):
+def InterpolateRents(beta, basicQ, net_income, options):
     """Interpolate log(rents) as a function of log(beta) and log(q0)."""
     # Decomposition for the interpolation (the more points, the slower)
     decompositionRent = np.concatenate(
@@ -201,93 +202,76 @@ def InterpolateRents(beta, basicQ, net_income):
          np.array([20, 10 ** 9]))
         )
 
-    # We scale the income vector accordingly
-    choiceIncome = 100000 * decompositionIncome
-    incomeMatrix = np.matlib.repmat(choiceIncome, len(decompositionRent), 1)
-    # We do the same for rent vector by considering that the rent is maximized
-    # when utility equals zero
-    choiceRent = choiceIncome / basicQ
-    rentMatrix = (np.array(choiceRent)[:, None]
-                  * np.array(decompositionRent)[None, :])
+    if options["griddata"] == 0:
 
-    #  Yields u/A for all values of decomposition
-    utilityMatrix = utilityFromRents(
-        rentMatrix, np.transpose(incomeMatrix), basicQ, beta)
-    # utilityMatrix = utilityFromRents(
-    #     np.matlib.repmat(decompositionRent, len(decompositionIncome), 1),
-    #     np.transpose(np.matlib.repmat(
-    #         decompositionIncome, len(decompositionRent), 1)),
-    #     basicQ,
-    #     beta
-    #     )
+        # We scale the income vector accordingly
+        choiceIncome = 100000 * decompositionIncome
+        incomeMatrix = np.matlib.repmat(
+            choiceIncome, len(decompositionRent), 1)
+        # We do the same for rent vector by considering that the rent is max
+        # when utility equals zero
+        choiceRent = choiceIncome / basicQ
+        rentMatrix = (np.array(choiceRent)[:, None]
+                      * np.array(decompositionRent)[None, :])
+        #  Yields u/A for all values of decomposition
+        utilityMatrix = utilityFromRents(
+            rentMatrix, np.transpose(incomeMatrix), basicQ, beta)
 
-    #  We interpolate ln(rent) as a function of ln(income) and ln(u/A)
-    #  (calculated upon initial values of parameters)
-    #  Note that we observe rent but not actual max bid rent
-    #  for all income groups
+        #  We interpolate ln(rent) as a function of ln(income) and ln(u/A)
+        #  (calculated upon initial values of parameters)
+        #  Note that we observe rent but not actual max bid rent
+        #  for all income groups
 
-    # We first do it in simple form
-    # TODO: we may consider griddata or RBFInterpolator
-    # solusRentTemp = (
-    #     lambda x, y:
-    #         interp2d(
-    #             np.transpose(incomeMatrix),
-    #             utilityMatrix,
-    #             rentMatrix ** beta
-    #             )(x, y)
-    #         )
-    # solusRentTemp = (
-    #     lambda x, y:
-    #         interp2d(
-    #             np.transpose(np.matlib.repmat(
-    #                 decompositionIncome, len(decompositionRent), 1)),
-    #             utilityMatrix,
-    #             np.matlib.repmat(
-    #                 decompositionRent, len(decompositionIncome), 1)
-    #             )(x, y)
-    #         )
+        # We first do it in simple form
+        solusRentTemp = (
+            lambda x, y:
+                interp2d(
+                    np.transpose(incomeMatrix),
+                    utilityMatrix,
+                    rentMatrix ** beta
+                    )(x, y)
+                )
 
-    x = np.transpose(incomeMatrix)
-    y = utilityMatrix
-    z = rentMatrix ** beta
+        # Then we go to log-form (quickens computations and helps convergence)
+        utilityVectLog = np.arange(-1, np.log(np.nanmax(10 * net_income)), 0.1)
+        incomeLog = np.arange(
+            -1, np.log(np.nanmax(np.nanmax(10 * net_income))), 0.2)
+        rentLog = (
+            np.log(solusRentTemp(np.exp(incomeLog), np.exp(utilityVectLog)))
+            ) * 1/beta
 
-    xx = np.linspace(np.min(x.ravel()), np.max(x.ravel()))
-    yy = np.linspace(np.min(y.ravel()), np.max(y.ravel()))
-    # xx, yy = np.meshgrid(xx, yy)
+        griddedRents = interp2d(
+            utilityVectLog, incomeLog, np.transpose(rentLog))
 
-    # TODO: remove the lambda function
-    solusRentTemp = (
-        lambda a, b:
-            interpolate.griddata(
-                (x.ravel(), y.ravel()),
-                z.ravel(),
-                (xx, yy)
-                )(a, b)
-            )
+    if options["griddata"] == 1:
 
-    # Then we go to log-form (quickens computations and helps convergence)
-    utilityVectLog = np.arange(-1, np.log(np.nanmax(10 * net_income)), 0.1)
-    incomeLog = np.arange(-1, np.log(np.nanmax(np.nanmax(10 * net_income))),
-                          0.2)
-    # ndarray not callable!
-    rentLog = (
-        np.log(solusRentTemp(np.exp(incomeLog), np.exp(utilityVectLog)))
-        ) * 1/beta
+        # We scale the income vector accordingly
+        choiceIncome = 100000 * decompositionIncome
+        incomeVector = np.repeat(choiceIncome, len(decompositionRent))
+        # We do the same for rent vector by considering that the rent is max
+        # when utility equals zero
+        choiceRent = choiceIncome / basicQ
+        rentList = [rent * decompositionRent for rent in choiceRent]
+        rentVector = np.concatenate(rentList)
 
-    # griddedRents = interp2d(utilityVectLog, incomeLog, np.transpose(rentLog))
+        logincomeVector = np.log(incomeVector)
+        logrentVector = np.log(rentVector)
 
-    x = utilityVectLog
-    y = incomeLog
-    z = np.transpose(rentLog)
+        y, z = logincomeVector, logrentVector
+        ey, ez = np.exp(y), np.exp(z)
+        x = np.log(utilityFromRents(ez, ey, basicQ, beta))
 
-    xx = np.linspace(np.min(x.ravel()), np.max(x.ravel()))
-    yy = np.linspace(np.min(y.ravel()), np.max(y.ravel()))
-    # xx, yy = np.meshgrid(xx, yy)
+        # npts = 400
+        # index_select = np.random.randint(
+        #     0, len(logincomeVector), size=npts)
+        # py, pz = logincomeVector[index_select], logrentVector[index_select]
+        # epy, epz = np.exp(py), np.exp(pz)
+        # px = np.log(utilityFromRents(epz, epy, basicQ, beta))
+        # pX, pY = np.meshgrid(px, py)
+        # X, Y = np.meshgrid(x, y)
 
-    griddedRents = interpolate.griddata(
-        (x.ravel(), y.ravel()), z.ravel(),
-        (xx, yy)
-        )
+        points = np.stack([x, y], -1)
+        griddedRents = interpolate.RBFInterpolator(points, z, kernel='linear')
+        # griddedRents = interpolate.griddata((x, y), z, (pX, pY))
 
     return griddedRents
-    # return solusRentTemp

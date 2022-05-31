@@ -79,7 +79,7 @@ def EstimateParametersByOptimization(
                 selectedRents, selectedDensity,
                 predictorsAmenitiesMatrix, tableRegression,
                 variablesRegression, CalculateDwellingSize,
-                ComputeLogLikelihood, optionRegression)[0]
+                ComputeLogLikelihood, optionRegression, options)[0]
             )
 
     # Now, we optimize using interior-point minimization algorithms
@@ -106,7 +106,8 @@ def EstimateParametersByOptimization(
              dataDwellingSize, selectedDwellingSize, dataRent,
              selectedRents, selectedDensity,
              predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression,
+             options)
     elif options["glm"] == 0:
         optionRegression = 0
         (*_, parametersAmenities, modelAmenity, parametersHousing
@@ -115,7 +116,8 @@ def EstimateParametersByOptimization(
              dataDwellingSize, selectedDwellingSize, dataRent,
              selectedRents, selectedDensity,
              predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-             CalculateDwellingSize, ComputeLogLikelihood, optionRegression)
+             CalculateDwellingSize, ComputeLogLikelihood, optionRegression,
+             options)
 
     print('*** Estimation of beta and q0 done ***')
 

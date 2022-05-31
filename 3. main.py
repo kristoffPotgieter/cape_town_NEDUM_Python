@@ -87,6 +87,7 @@ options["correct_eq3"] = 1
 options["scan_type"] = "fine"
 options["reverse_elasticities"] = 0
 options["glm"] = 0
+options["griddata"] = 0
 
 # TODO: set default values in parameter script (with limited choice)
 
