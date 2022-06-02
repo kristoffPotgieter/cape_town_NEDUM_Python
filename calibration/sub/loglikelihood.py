@@ -55,10 +55,17 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
         # Note that predictors are dummies, and not log-values as in paper
         A = predictorsAmenitiesMatrix[~np.isnan(residualAmenities), :]
         y = (residualAmenities[~np.isnan(residualAmenities)]).real
-        parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y,
-                                                                  rcond=None)
-        errorAmenities = y - np.nansum(A * parametersAmenities, 1)
-        modelAmenities = 0
+        # parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y,
+        #                                                           rcond=None)
+        # res = scipy.optimize.lsq_linear(A, y)
+        # parametersAmenities = res.x
+        # residuals = res.fun
+        modelSpecification = sm.OLS(y, A)
+        modelAmenities = modelSpecification.fit()
+        parametersAmenities = modelAmenities.params
+        errorAmenities = modelAmenities.resid_pearson
+        # errorAmenities = y - np.nansum(A * parametersAmenities, 1)
+        # modelAmenities = 0
 
     elif (optionRegression == 1):
         # Compute regression with fitglm (longer)
@@ -129,6 +136,7 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     # scaleParameter = res.x
     errorIncomeSorting = res.fun
     exitFlag = res.success
+    # print(exitFlag)
     if exitFlag is True:
         scoreIncomeSorting = - errorIncomeSorting
     elif exitFlag is False:
@@ -187,6 +195,7 @@ def utilityFromRents(Ro, income, basic_q, beta):
 def InterpolateRents(beta, basicQ, net_income, options):
     """Interpolate log(rents) as a function of log(beta) and log(q0)."""
     # Decomposition for the interpolation (the more points, the slower)
+    # TODO: should be changed?
     decompositionRent = np.concatenate(
         ([np.array([10 ** (-9), 10 ** (-4), 10 ** (-3), 10 ** (-2)]),
           np.arange(0.02, 0.80, 0.01),
@@ -271,7 +280,9 @@ def InterpolateRents(beta, basicQ, net_income, options):
         # X, Y = np.meshgrid(x, y)
 
         points = np.stack([x, y], -1)
-        griddedRents = interpolate.RBFInterpolator(points, z, kernel='linear')
+        griddedRents = interpolate.RBFInterpolator(
+            points, z, kernel='linear', neighbors=options["interpol_neighbors"]
+            )
         # griddedRents = interpolate.griddata((x, y), z, (pX, pY))
 
     return griddedRents

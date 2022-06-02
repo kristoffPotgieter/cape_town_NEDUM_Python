@@ -209,6 +209,8 @@ def import_macro_data(param, path_scenarios):
     # Population
     # Raw figures come from Claus/ comes from housing_types
     # TODO: link with data and correct for granny flats
+    # Supposedly includes council housing! What about former RDP having been
+    # privatized?
     total_RDP = 194258
     total_formal = 626770
     # total_formal = 616560
@@ -281,6 +283,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # Pixel selection for scenario correction
     # TODO: determine where it comes from
+    # We want to include pushback from farmers around Philipi, hence we delay
+    # settlement of those areas
     polygon_medium_timing = pd.read_excel(
         path_folder + 'Land occupation/polygon_medium_timing.xlsx',
         header=None)

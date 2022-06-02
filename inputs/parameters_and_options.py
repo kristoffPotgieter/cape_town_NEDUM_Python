@@ -108,14 +108,16 @@ def import_param(path_precalc_inp, path_outputs):
     #  Original excel specification with non-durable goods and current income
     # param["fraction_z_dwellings"] = 0.53
     #  Original code specification
-    # param["fraction_z_dwellings"] = 0.49
+    param["fraction_z_dwellings"] = 0.49
     #  Alternative specification without non-durable goods and with disposable
     #  income
-    param["fraction_z_dwellings"] = 0.18
+    #  param["fraction_z_dwellings"] = 0.18
     #  Value of a social housing dwelling unit (in rands): again needed for
     #  flood damage estimation
     #  TODO: How to determine it?
-    param["subsidized_structure_value"] = 150000
+    # param["subsidized_structure_value"] = 150000
+    param["subsidized_structure_value"] = 127000
+
 
     # Max % of land that can be built for housing (to take roads into account),
     # by housing type: comes from analogy with Viguié et al., 2014 (table B1)
@@ -128,8 +130,11 @@ def import_param(path_precalc_inp, path_outputs):
 
     # Constraints on housing supply (in meters), a priori not binding
     # TODO: where does it come from?
-    param["historic_radius"] = 100
-    param["limit_height_center"] = 10
+    # param["historic_radius"] = 100
+    param["historic_radius"] = 6
+    # param["limit_height_center"] = 10
+    param["limit_height_center"] = 80
+    # param["limit_height_out"] = 10
     param["limit_height_out"] = 10
 
     # Agricultural land rents (in rands)
@@ -184,7 +189,7 @@ def import_param(path_precalc_inp, path_outputs):
     param["iter_calc_lite"] = 1
 
     # Size (in m^2) above which we need to switch flood damage functions for
-    # formal housing
+    # formal housing: corresponds to 2nd floor
     # TODO: Where from?
     param["threshold"] = 130
 

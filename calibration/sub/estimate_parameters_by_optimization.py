@@ -86,13 +86,29 @@ def EstimateParametersByOptimization(
 
     # We first define wide bounds for our parameters
     # TODO: put a floor on q0?
-    bnds = ((0.1, 1), (1, 18), (0, 18 ** 6), (0, 10 ** 7))
+    bnds = ((0.1, 1), (1, 20), (0, 10 ** 6), (0, 10 ** 7))
+
+    # Nfeval = 1
+
+    def callbackF(Xi):
+        # global Nfeval
+        # print(
+        #     '{0:4d} {1:3.6f}'.format(Nfeval, minusLogLikelihoodModel(Xi))
+        #     )
+        # Nfeval += 1
+        print(
+            '{0:3.6f}'.format(minusLogLikelihoodModel(Xi))
+            )
+
+    # print('{0:4s} {1:9s}'.format('Iter', 'f(X)'))
 
     # Then we run the algorithm
     res = scipy.optimize.minimize(
         minusLogLikelihoodModel, initialVector, bounds=bnds,
-        options={'maxiter': 10, 'disp': True})
+        options={'maxiter': 10, 'disp': True},
+        callback=callbackF)
 
+    print(res)
     parameters = res.x
     scoreTot = res.fun
     # exitFlag = res.success

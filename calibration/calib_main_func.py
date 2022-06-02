@@ -117,7 +117,9 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
     # Note that this is long to run
     # Here again, we are considering rescaled income data
 
-    incomeCenters, distanceDistribution = calcmp.EstimateIncome(
+    # TODO: get the errors
+    (incomeCenters, distanceDistribution, scoreMatrix, errorMatrix
+     ) = calcmp.EstimateIncome(
         param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
         job_centers, average_income, income_distribution, list_lambda, options)
 
@@ -150,6 +152,9 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
     # distanceDistributionKeep = distanceDistribution[:, whichLambda]
     incomeCentersKeep = incomeCenters[:, :, whichLambda]
 
+    scoreKeep = scoreMatrix[whichLambda, :]
+    errorKeep = errorMatrix[whichLambda, :]
+
     # Note that income is set to -inf for job centers and income groups in
     # which it could not be calibrated
 
@@ -168,7 +173,7 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
     # incomeCentersKeep_mat[incomeCentersKeep_mat < 0] = math.nan
     # cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
 
-    return incomeCentersKeep, lambdaKeep, cal_avg_income
+    return incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep, errorKeep
 
 
 def estim_util_func_param(data_number_formal, data_income_group,
@@ -191,11 +196,20 @@ def estim_util_func_param(data_number_formal, data_income_group,
         )
 
     # Coefficients of the model for simulations: set by trial and error
-    #  This naturally tends to 0.2, hence the reduced range
-    listBeta = np.arange(0.18, 0.23, 0.01)
-    #  This naturally tends to 0, hence the floor which will be updated
-    #  in later optimization
-    listBasicQ = np.arange(1, 2, 1)
+    #  This naturally tends to 0.2 without griddata, hence the reduced range
+    # listBeta = np.arange(0.18, 0.221, 0.01)
+    #  This tends to 0.12 with griddata (neighbors=10)
+    # listBeta = np.arange(0.10, 0.141, 0.01)
+    #  This tends to 0.13 with griddata (neighbors=100)
+    listBeta = np.arange(0.12, 0.141, 0.01)
+
+    #  This naturally tends to 0 without griddata, hence the floor which will
+    #  be updated in later optimization
+    # listBasicQ = np.arange(0.01, 0.1, 0.01)
+    #  This tends to 2.8 with griddata (neighbors=10)
+    # listBasicQ = np.arange(2.6, 3.01, 0.1)
+    #  This tends to 3.4 with griddata (neighbors=100)
+    listBasicQ = np.arange(3.3, 3.51, 0.1)
 
     # Coefficient for spatial autocorrelation
     # TODO: how would this work if implemented?
@@ -203,11 +217,18 @@ def estim_util_func_param(data_number_formal, data_income_group,
 
     # Utilities for simulations: we start with levels close from what we expect
     # in equilibrium
+    # TODO: to be updated with values close to what we obtain in equilibrium
+    # (to speed up convergence)
     utilityTarget = np.array([1500, 5000, 17000, 80000])
 
     # We scan varying values of utility targets
     #  This is also set by trial and error
-    listVariation = np.arange(1.1, 1.6, 0.1)
+    #  This converges towards 1.3 for U_3 and 1.1 for U_4 without griddata
+    # listVariation = np.arange(1.0, 1.51, 0.1)
+    #  This tends to 1.2 for U_3 and 1.1 for U_4 with griddata (neighbors=10)
+    # listVariation = np.arange(0.9, 1.31, 0.1)
+    #  This tends to 1.1 for U_3 and 1 for U_4 with griddata (neighbors=100)
+    listVariation = np.arange(0.9, 1.21, 0.1)
     # Note that the poorest income group is not taken into account as it is
     # excluded from the analysis.
     # Then, we do not vary the first income group as the magnitude is not that
@@ -215,6 +236,7 @@ def estim_util_func_param(data_number_formal, data_income_group,
     initUti2 = utilityTarget[1]
     # However, we do so for the two richest groups.
     listUti3 = utilityTarget[2] * listVariation
+    # listUti3 = utilityTarget[2]
     listUti4 = utilityTarget[3] * listVariation
 
     # Cf. inversion of footnote 16
@@ -261,6 +283,10 @@ def estim_util_func_param(data_number_formal, data_income_group,
          amenities_sp, variables_regression, listRho, listBeta, listBasicQ,
          initUti2, listUti3, listUti4, options)
 
+    # Amenity results differ a bit from the paper, but are not absurd
+    # (even though hard to interpret)
+    print(modelAmenityScan.summary())
+
     # Now we run the optimization algo with identified value of the parameters:
     # corresponds to interior-point algorithm
 
@@ -270,6 +296,7 @@ def estim_util_func_param(data_number_formal, data_income_group,
     initUti4 = parametersScan[3]
 
     # Note that this may be long to run
+    # TODO: should score be positive?
     (parameters, scoreTot, parametersAmenities, modelAmenity,
      parametersHousing, selectedSPRent
      ) = calopt.EstimateParametersByOptimization(
@@ -278,6 +305,8 @@ def estim_util_func_param(data_number_formal, data_income_group,
          housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
          amenities_sp, variables_regression, listRho, initBeta, initBasicQ,
          initUti2, initUti3, initUti4, options)
+
+    print(modelAmenityScan.summary())
 
     # Exporting and saving outputs
 

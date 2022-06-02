@@ -194,6 +194,9 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
     distanceDistribution = np.zeros(
         (len(bracketsDistance) - 1, len(list_lambda)))
 
+    scoreMatrix = np.zeros((len(list_lambda), param["nb_of_income_classes"]))
+    errorMatrix = np.zeros((len(list_lambda), param["nb_of_income_classes"]))
+
     # We begin simulations for different values of lambda
 
     for i in range(0, len(list_lambda)):
@@ -308,7 +311,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
 
             # At the end of the process, we keep the minimum score, and define
             # the corresponding best solution for some lambda and income group
-            if (iter > maxIter):
+            if (iter > maxIter - 1):
                 scoreBest = np.amin(scoreIter)
                 bestSolution = np.argmin(scoreIter)
                 incomeCenters[:, iter-1] = incomeCenters[:, bestSolution]
@@ -316,6 +319,9 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
 
             else:
                 print(' - computed - max error', errorMax)
+
+            scoreMatrix[i, j] = np.amin(scoreIter)
+            errorMatrix[i, j] = errorMax
 
             # We also get (for the given income group) the number of commuters
             # for all job centers in given distance brackets
@@ -348,7 +354,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
             / np.nansum(distanceDistributionGroup)
         )
 
-    return incomeCentersSave, distanceDistribution
+    return incomeCentersSave, distanceDistribution, scoreMatrix, errorMatrix
 
 
 def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,

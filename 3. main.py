@@ -87,7 +87,10 @@ options["correct_eq3"] = 1
 options["scan_type"] = "fine"
 options["reverse_elasticities"] = 0
 options["glm"] = 0
-options["griddata"] = 0
+# TODO: discuss pros and cons
+options["griddata"] = 1
+options["interpol_neighbors"] = 100
+# TODO: test with other kernels / solvers?
 
 # TODO: set default values in parameter script (with limited choice)
 
@@ -367,8 +370,15 @@ if options["run_calib"] == 1:
     if options["scan_type"] == "fine":
         list_lambda = 10 ** np.arange(0.71, 0.735, 0.005)
     # TODO: temporary modif to be removed (saves time)
-    list_lambda = 10 ** np.arange(0.72, 0.73, 0.01)
-    incomeCentersKeep, lambdaKeep, cal_avg_income = (
+    list_lambda = 10 ** np.arange(0.72, 0.721, 0.01)
+    # NB: this is too long and complex to run a solver directly
+    # TODO: discuss value compared to litterature
+    # TODO: Gumbel or Fréchet?
+    # NB: We need to proceed in two steps are errors were drawn directly on
+    # transport costs (and not on commuting pairs), hence no separate
+    # identification of the gravity parameter and the incomes net of commuting
+    # costs
+    incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep, errorKeep = (
         calmain.estim_incomes_and_gravity(
             param, grid, list_lambda, households_per_income_class,
             average_income, income_distribution, spline_inflation, spline_fuel,
@@ -402,6 +412,13 @@ if options["run_calib"] == 1:
          spline_population_income_distribution, spline_income_distribution,
          path_precalc_inp, path_precalc_transp, 'SP', options)
 
+#%%
+
+    # TODO: discuss estimation of the amenity index
+    # Add peer effects?
+    # TODO: why was error on household density dropped?
+    # What about spatial autocorelation?
+
     (calibratedUtility_beta, calibratedUtility_q0, cal_amenities
      ) = calmain.estim_util_func_param(
          data_number_formal, data_income_group, housing_types_sp, data_sp,
@@ -411,12 +428,27 @@ if options["run_calib"] == 1:
 
     param["beta"] = calibratedUtility_beta
     param["q0"] = calibratedUtility_q0
-    # Note pb with q0...
 
 # DO DISAMENITY ON THE SIDE
 
 
 # %% Compute initial state
+
+# TODO: work on structural transparency + flood effects on infra/health
+# + go from MDE to GMM (only if bad validation) + model completeness
+# (compared to QSE) + include discussion on Stone-Geary (good a priori)
+# Main difference is explicit modeling of housing supply (through endogenous
+# rent) and commuting choice (through endogenous transport choice
+# vs. preference/productivity shocks)?
+# Need to observe number of commuting pairs in Tsivanidis?
+# Also discuss alternative specifications from Fujita (family structure and
+# public ownership) + job search + insurance + heterogeneous preferences
+# Also note that open-city model is supposedly more adapted to developing
+# countries with a surplus labor in rural areas
+# Do bootstrap for standard errors
+# Private investment?
+# Extensions with congestion, endogenous employment centers / income / unempl,
+# segregation...
 
 # TODO: Note that we use a Cobb-Douglas production function (with rho+delta)
 # all along!
