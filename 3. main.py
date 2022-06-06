@@ -37,6 +37,8 @@ path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
 path_outputs = path_code + '/4. Sorties/'
 path_floods = path_folder + "FATHOM/"
 
+# TODO: rethink folder architecture
+
 
 # START TIMER FOR CODE OPTIMIZATION
 
@@ -49,7 +51,8 @@ start = time.process_time()
 # IMPORT PARAMETERS AND OPTIONS
 
 options = inpprm.import_options()
-param = inpprm.import_param(path_precalc_inp, path_outputs)
+param = inpprm.import_param(
+    path_precalc_inp, path_outputs, path_folder, options)
 
 #  Set custom options for this simulation
 options["agents_anticipate_floods"] = 1
@@ -67,11 +70,9 @@ options["slr"] = 1
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
 
-#  Code correction options
+#  Main code correction options
 options["actual_backyards"] = 0
 options["unempl_reweight"] = 1
-# TODO: recalibrate incomes net of commuting costs using implicit empl rate?
-# implicit_empl_rate = 0.74/0.99/0.98/0.99
 options["correct_agri_rent"] = 1
 
 #  Options for calibration code correction
@@ -87,10 +88,8 @@ options["correct_eq3"] = 1
 options["scan_type"] = "fine"
 options["reverse_elasticities"] = 0
 options["glm"] = 0
-# TODO: discuss pros and cons
 options["griddata"] = 1
 options["interpol_neighbors"] = 100
-# TODO: test with other kernels / solvers?
 
 # TODO: set default values in parameter script (with limited choice)
 
@@ -110,13 +109,13 @@ path_plots = path_outputs + name + '/plots/'
 # BASIC GEOGRAPHIC DATA
 
 grid, center = inpdt.import_grid(path_data)
-amenities = inpdt.import_amenities(path_precalc_inp)
+amenities = inpdt.import_amenities(path_precalc_inp, options)
 
 
 # MACRO DATA
 
 (interest_rate, population, housing_type_data, total_RDP
- ) = inpdt.import_macro_data(param, path_scenarios)
+ ) = inpdt.import_macro_data(param, path_scenarios, path_folder)
 
 
 # HOUSEHOLDS AND INCOME DATA
@@ -146,7 +145,6 @@ if options["convert_sal_data"] == 1:
                                           housing_type_data)
 
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
-
 
 # LAND USE PROJECTIONS
 

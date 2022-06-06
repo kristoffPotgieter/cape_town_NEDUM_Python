@@ -31,13 +31,15 @@ def import_grid(path_data):
     return grid, np.array([x_center, y_center])
 
 
-def import_amenities(path_precalc_inp):
+def import_amenities(path_precalc_inp, options):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
-    precalculated_amenities = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
-    # precalculated_amenities = np.load(
-    #     path_precalc_inp + 'calibratedAmenities.npy')
+    if options["load_precal_param"] == 1:
+        precalculated_amenities = scipy.io.loadmat(
+            path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
+    elif options["load_precal_param"] == 0:
+        precalculated_amenities = np.load(
+            path_precalc_inp + 'calibratedAmenities.npy')
     # Normalize index by mean of values
     amenities = (precalculated_amenities
                  / np.nanmean(precalculated_amenities)).squeeze()
@@ -125,18 +127,15 @@ def import_households_data(path_precalc_inp):
         'thresholdIncomeDistribution'][0][0].squeeze()
 
     # Get data from RDP for pixels (24,014)
+    # NB: this is obtained from cadastre data (pre-processed by Claus)
     data_rdp = pd.DataFrame()
     #  Number of RDP units
     data_rdp["count"] = data['gridCountRDPfromGV'][0][0].squeeze()
     #  Surface of RDP units
     data_rdp["area"] = data['gridAreaRDPfromGV'][0][0].squeeze()
 
-    # TODO: describe General Validation process in more details
-
     # Get other data for pixels
     #  Dummy indicating wheter pixel belongs to Mitchell's Plain district
-    #  TODO: shouldn't we also identify other neighbourhoods in need of
-    #  correction
     mitchells_plain_grid_2011 = data['MitchellsPlain'][0][0].squeeze()
     #  Population density in formal housing
     grid_formal_density_HFA = data['gridFormalDensityHFA'][0][0].squeeze()
@@ -150,6 +149,7 @@ def import_households_data(path_precalc_inp):
     housing_types_sp["informal_SP_2011"] = data[
         'spInformalSettlement'][0][0].squeeze()
     #  Number of dwellings
+    #  TODO: check if this includes formal backyards
     housing_types_sp["total_dwellings_SP_2011"] = data[
         'spTotalDwellings'][0][0].squeeze()
     #  Coordinates
@@ -184,7 +184,7 @@ def import_households_data(path_precalc_inp):
             income_distribution, cape_town_limits)
 
 
-def import_macro_data(param, path_scenarios):
+def import_macro_data(param, path_scenarios, path_folder):
     """Import interest rate and population per housing type."""
     # Interest rate
     #  Import interest_rate history + scenario until 2040
@@ -202,20 +202,48 @@ def import_macro_data(param, path_scenarios):
     #  Get interest rate as the mean (in %) over x last years
     interest_rate = eqdyn.interpolate_interest_rate(spline_interest_rate, 0)
 
-    # TODO: does it make sense to use spline when we have accurate data?
-    # Shouldn't we keep it for scenarios?
-    # interest_rate = spline_interest_rate(0) / 100
+    # Aggregate population: this come from SAL data and serves as a benchmark
+    # to reweight aggregates obtained from diverse granular data sets so that
+    # the same overall population is indeed considered
 
-    # Population
-    # Raw figures come from Claus/ comes from housing_types
-    # TODO: link with data and correct for granny flats
-    # Supposedly includes council housing! What about former RDP having been
-    # privatized?
-    total_RDP = 194258
-    total_formal = 626770
-    # total_formal = 616560
-    total_informal = 143765
-    total_backyard = 91132
+    sal_data = pd.read_excel(
+        path_folder
+        + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
+        header=6, nrows=5339)
+    sal_data["informal"] = sal_data[
+        "Informal dwelling (shack; not in backyard; e.g. in an"
+        + " informal/squatter settlement or on a farm)"]
+    sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
+    sal_data["backyard_informal"] = sal_data[
+        "Informal dwelling (shack; in backyard)"]
+    # NB: we do not include traditional houses, granny flats, caravans, and
+    # others
+    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
+
+    rdp_data = pd.read_excel(
+        path_folder
+        + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
+        sheet_name='Analysis', header=None, names=None, usecols="A:B",
+        skiprows=18, nrows=6)
+
+    total_RDP = int(rdp_data.iloc[5, 1])
+    # Else, SR2 (incremental housing) properties according to 2012 General
+    # Valuation yield 138,444 properties. By adding approximately 40,000
+    # council housing units (similar to RDP/BNG in use), we get a "close"
+    # estimate:
+    # total_RDP = 138444 + 40000
+    total_formal = sal_data["formal"].sum() - total_RDP
+    total_informal = sal_data["informal"].sum()
+    total_backyard = sal_data["backyard_informal"].sum()
+    # Note that we only include informal backyards  by assumption in the model:
+    # we are sure that formal backyards are note included in formal count here
+
+    # Old raw figures from Claus
+    # total_RDP = 194258
+    # total_formal = 626770
+    # total_informal = 143765
+    # total_backyard = 91132
+
     housing_type_data = np.array([total_formal, total_backyard, total_informal,
                                   total_RDP])
     population = sum(housing_type_data)
