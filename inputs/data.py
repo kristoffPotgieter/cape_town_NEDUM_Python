@@ -56,6 +56,8 @@ def import_hypothesis_housing_type():
     income_class_by_housing_type["backyard"] = np.array([1, 1, 0, 0])
     # Select which income class can live in informal settlements
     income_class_by_housing_type["settlement"] = np.array([1, 1, 0, 0])
+    # Select which income class can live in informal settlements
+    income_class_by_housing_type["subsidized"] = np.array([1, 0, 0, 0])
 
     return income_class_by_housing_type
 
@@ -263,10 +265,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     # RDP population data
     #  We take total population in RDP at baseline year
-    #  TODO: check difference with GV in data.mat
     RDP_2011 = housing_type_data[3]
-    #  Comes from GV in data.mat
-    #  TODO: deprecated wrt np.nansum(number_properties_2000)?
+    #  Also comes from general validation for 2001
+    #  TODO: ask Claus for references
     RDP_2001 = 1.1718e+05
 
     # Land cover for informal settlements (see R code for details)
@@ -310,9 +311,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     informal_risks_2020[np.isnan(informal_risks_2020)] = 0
 
     # Pixel selection for scenario correction
-    # TODO: determine where it comes from
+
     # We want to include pushback from farmers around Philipi, hence we delay
-    # settlement of those areas
+    # settlement of those areas compared to other short-term risks
     polygon_medium_timing = pd.read_excel(
         path_folder + 'Land occupation/polygon_medium_timing.xlsx',
         header=None)
@@ -381,12 +382,11 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  We weight by closeness to the center to get retrospective number of RDP
     #  in 2000 (by assuming that central areas where built before)
-    #  TODO: cross-check with new data?
     number_properties_2000 = (
         data_rdp["count"]
         * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
         )
-    #  Actual nb of RDP houses
+    #  Actual nb of RDP houses in 2011
     RDP_houses_estimates = data_rdp["count"]
 
     # Regression spline
@@ -411,9 +411,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # already corrected and we want to make the spline coherent with other
     # non-corrected housing types
 
-    # TODO: choose between right or original specification
-
-    #  % of the pixel area dedicated to RDP (after accounting for backyard)
+    #  % of the pixel area dedicated to RDP (after accounting for backyards)
     area_RDP = (data_rdp["area"] * param["RDP_size"]
                 / (param["backyard_size"] + param["RDP_size"])
                 / area_pixel) / param["max_land_use"]
@@ -421,14 +419,14 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  For the RDP constructed area, we take the min between declared value and
     #  extrapolation from our initial size parameters
 
-    #  We do it for the ST
+    #  We do it for the short term
     area_RDP_short_term = np.minimum(
         construction_rdp.area_ST,
         (param["backyard_size"] + param["RDP_size"])
         * construction_rdp.total_yield_DU_ST
         ) / param["max_land_use"]
-    #  Then for the LT, while capping the constructed area at the pixel size
-    #  (just in case)
+    #  Then for the long term, while capping the constructed area at the pixel
+    #  size (just in case)
     area_RDP_long_term = np.minimum(
         np.minimum(
             construction_rdp.area_ST + construction_rdp.area_LT,
@@ -474,7 +472,6 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  take formal backyards into account, but rather that we abstract from
     #  backyarding occurring within formal private houses
 
-    #  TODO: check pb with floods when removed
     actual_backyards = (
         (housing_types.backyard_formal_grid
          + housing_types.backyard_informal_grid)
@@ -593,8 +590,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  conditions and prospective scenario
     informal_2020 = np.fmax(informal_risks_2020 / area_pixel, informal_2011)
 
-    #  We also get area for high risk scenario
-    #  TODO: discuss choice of scenarios
+    #  We also get area for high risk scenario retained in projections
+    #  TODO: add option to take into account less likely developments?
     high_proba = informal_risks_VERYHIGH.area + informal_risks_HIGH.area
 
     #  We consider some scenario for 2023 and correct for RDP construction
@@ -724,14 +721,17 @@ def import_init_floods_data(options, param, path_folder):
     d_fluvial = {}
     d_coastal = {}
     for flood in fluvial_floods:
+        print(flood)
         d_fluvial[flood] = np.squeeze(
             pd.read_excel(path_data + flood + ".xlsx")
             )
     for flood in pluvial_floods:
+        print(flood)
         d_pluvial[flood] = np.squeeze(
             pd.read_excel(path_data + flood + ".xlsx")
             )
     for flood in coastal_floods:
+        print(flood)
         d_coastal[flood] = np.squeeze(
             pd.read_excel(path_data + flood + ".xlsx")
             )
@@ -743,11 +743,11 @@ def import_init_floods_data(options, param, path_folder):
     # table 4)
     structural_damages_small_houses = interp1d(
         [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
-        [0, 0.0479, 0.1312, 0.1795, 0.3591, 1, 1]
+        [0, 0.0479, 0.1317, 0.1795, 0.3591, 1, 1]
         )
     structural_damages_medium_houses = interp1d(
         [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
-        [0, 0.083, 0.2273, 0.3083, 0.62, 1, 1]
+        [0, 0.0830, 0.2273, 0.3083, 0.6166, 1, 1]
         )
     structural_damages_large_houses = interp1d(
         [0, 0.1, 0.6, 1.2, 2.4, 6, 10],
@@ -784,7 +784,7 @@ def import_init_floods_data(options, param, path_folder):
         [0, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.62, 0.64, 0.65, 0.65]
         )
 
-    # Take the max from the two sources to be conservative
+    # If WBUS2 is used, we take the max from the two sources to be conservative
     if options["WBUS2"] == 1:
         WBUS2_20yr = pd.read_excel(
             path_folder + "Flood plains - from Claus/WBUS2_20yr.xlsx")
@@ -832,11 +832,10 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         interval9 = (1/500) - (1/1000)
         interval10 = (1/1000)
 
-        # We consider that formal housing is not vulnerable to pluvial floods over
-        # medium run, and that RDP and backyard are not over short run
-        # This is based on CCT Minimum Standards for Stormwater Design 2014 (p.37)
-        # and Govender 2011 (fig.8 and p.30): see Aux data and discussion w/ CLaus
-        # TODO: ask if other data than FATHOM for pluvial
+        # We consider that formal housing is not vulnerable to pluvial floods
+        # over medium run, and that RDP and backyard are not over short run.
+        # This is based on CCT Minimum Standards for Stormwater Design 2014
+        # (p.37) and Govender 2011 (fig.8 and p.30)
         if options["correct_pluvial"] == 1:
             if ((type_flood == 'P') & (housing_type == 'formal')):
                 d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
@@ -846,7 +845,8 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                 d[type_flood + '_10yr'].flood_depth = np.zeros(24014)
                 d[type_flood + '_20yr'].flood_depth = np.zeros(24014)
             elif ((type_flood == 'P')
-                  & ((housing_type == 'subsidized') | (housing_type == 'backyard'))):
+                  & ((housing_type == 'subsidized')
+                     | (housing_type == 'backyard'))):
                 d[type_flood + '_5yr'].prop_flood_prone = np.zeros(24014)
                 d[type_flood + '_10yr'].prop_flood_prone = np.zeros(24014)
                 d[type_flood + '_5yr'].flood_depth = np.zeros(24014)
@@ -857,7 +857,7 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         # define damage intervals to be used in final computation
 
         # TODO: should we take zero value at t = 0?
-        # TODO: is continuous the right framework?
+        # TODO: is continuous time risk the right framework?
         damages0 = (d[type_flood + '_5yr'].prop_flood_prone
                     * damage_function(d[type_flood + '_5yr'].flood_depth))
         # damages0 = (
@@ -885,32 +885,39 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         damages5 = ((d[type_flood + '_75yr'].prop_flood_prone
                      * damage_function(d[type_flood + '_75yr'].flood_depth))
                     + (d[type_flood + '_100yr'].prop_flood_prone
-                       * damage_function(d[type_flood + '_100yr'].flood_depth)))
+                       * damage_function(d[type_flood + '_100yr'].flood_depth))
+                    )
         damages6 = ((d[type_flood + '_100yr'].prop_flood_prone
                      * damage_function(d[type_flood + '_100yr'].flood_depth))
                     + (d[type_flood + '_200yr'].prop_flood_prone
-                       * damage_function(d[type_flood + '_200yr'].flood_depth)))
+                       * damage_function(d[type_flood + '_200yr'].flood_depth))
+                    )
         damages7 = ((d[type_flood + '_200yr'].prop_flood_prone
                      * damage_function(d[type_flood + '_200yr'].flood_depth))
                     + (d[type_flood + '_250yr'].prop_flood_prone
-                       * damage_function(d[type_flood + '_250yr'].flood_depth)))
+                       * damage_function(d[type_flood + '_250yr'].flood_depth))
+                    )
         damages8 = ((d[type_flood + '_250yr'].prop_flood_prone
                      * damage_function(d[type_flood + '_250yr'].flood_depth))
                     + (d[type_flood + '_500yr'].prop_flood_prone
-                       * damage_function(d[type_flood + '_500yr'].flood_depth)))
+                       * damage_function(d[type_flood + '_500yr'].flood_depth))
+                    )
         damages9 = ((d[type_flood + '_500yr'].prop_flood_prone
                      * damage_function(d[type_flood + '_500yr'].flood_depth))
                     + (d[type_flood + '_1000yr'].prop_flood_prone
-                       * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+                       * damage_function(d[type_flood + '_1000yr'].flood_depth)
+                       ))
         # We assume that value stays the same when t = +inf
         damages10 = ((d[type_flood + '_1000yr'].prop_flood_prone
                       * damage_function(d[type_flood + '_1000yr'].flood_depth))
                      + (d[type_flood + '_1000yr'].prop_flood_prone
-                        * damage_function(d[type_flood + '_1000yr'].flood_depth)))
+                        * damage_function(d[type_flood + '_1000yr'].flood_depth
+                                          )))
 
-        # The formula for expected fraction of capital destroyed is given by the
-        # integral of damage according to time (or rather, inverse probability).
-        # Assuming that damage increase linearly with time (or inverse
+        # The formula for expected fraction of capital destroyed is given by
+        # the integral of damage according to time (or rather, inverse
+        # probability).
+        # Assuming that damages increase linearly with time (or inverse
         # probability), we can approximate this area as a sum of rectangles
         # defined for each of our intervals: this yields the following formula
 
@@ -934,6 +941,9 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         interval5 = (1/50) - (1/100)
         interval6 = (1/100) - (1/250)
         interval7 = (1/250)
+    # NB: note that we do not use the same intervals for coastal as for
+    # pluvial/fluvial since we do not have the same return periods available
+    # in Deltares and FATHOM data
 
         name = type_flood + '_' + options["dem"] + '_' + str(options["slr"])
         damages0 = ((d[name + '_0000'].prop_flood_prone
@@ -989,155 +999,217 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
          options, param, path_folder)
 
     if options["pluvial"] == 0 and options["coastal"] == 0:
+        print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'formal', options)
+        print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'informal', options)
+        print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'backyard', options)
+        print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
-         ) = compute_fraction_capital_destroyed
-        (d_fluvial, 'FD', content_damages, 'subsidized', options)
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', content_damages, 'subsidized', options)
+        print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
+        print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
+        print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
+        print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
+        print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'informal', options)
+        print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
+        print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
+        print("Formal backyard structures (two floors)")
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3b, 'backyard', options)
 
     elif options["pluvial"] == 1 and options["coastal"] == 0:
+        print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'formal', options))
+        print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'informal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'informal', options))
+        print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'backyard', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'backyard', options))
+        print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'subsidized', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'subsidized', options))
+        print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4a, 'formal', options))
+        print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4b, 'formal', options))
+        print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4a, 'subsidized', options))
+                 d_pluvial, 'P', structural_damages_type4a, 'subsidized',
+                 options))
+        print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4b, 'subsidized', options))
+                 d_pluvial, 'P', structural_damages_type4b, 'subsidized',
+                 options))
+        print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'informal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type2, 'informal', options))
+                 d_pluvial, 'P', structural_damages_type2, 'informal',
+                 options))
+        print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type2, 'backyard', options))
+                 d_pluvial, 'P', structural_damages_type2, 'backyard',
+                 options))
+        print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type3a, 'backyard', options))
+                 d_pluvial, 'P', structural_damages_type3a, 'backyard',
+                 options))
+        print("Formal backyard structures (two floors)")
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3b, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type3b, 'backyard',
+                 options))
 
     elif options["pluvial"] == 0 and options["coastal"] == 1:
+        print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'formal', options))
+        print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'informal', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'informal', options))
+        print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'backyard', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'backyard', options))
+        print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'subsidized', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'subsidized', options))
+        print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type4a, 'formal', options))
+        print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'P', structural_damages_type4b, 'formal', options))
+        print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type4a, 'subsidized', options))
+                 d_coastal, 'C', structural_damages_type4a, 'subsidized',
+                 options))
+        print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type4b, 'subsidized', options))
+                 d_coastal, 'C', structural_damages_type4b, 'subsidized',
+                 options))
+        print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'informal', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type2, 'informal', options))
+                 d_coastal, 'C', structural_damages_type2, 'informal',
+                 options))
+        print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type2, 'backyard', options))
+                 d_coastal, 'C', structural_damages_type2, 'backyard',
+                 options))
+        print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type3a, 'backyard', options))
+                 d_coastal, 'C', structural_damages_type3a, 'backyard',
+                 options))
+        print("Formal backyard structures (two floors)")
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3b, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type3b, 'backyard',
+                 options))
 
     elif options["pluvial"] == 1 and options["coastal"] == 1:
+        print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'formal', options)
@@ -1145,6 +1217,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
                  d_coastal, 'C', content_damages, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'formal', options))
+        print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'informal', options)
@@ -1152,6 +1225,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
                  d_coastal, 'C', content_damages, 'informal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'informal', options))
+        print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'backyard', options)
@@ -1159,6 +1233,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
                  d_coastal, 'C', content_damages, 'backyard', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'backyard', options))
+        print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', content_damages, 'subsidized', options)
@@ -1166,6 +1241,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
                  d_coastal, 'C', content_damages, 'subsidized', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'subsidized', options))
+        print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'formal', options)
@@ -1173,6 +1249,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
                  d_coastal, 'C', structural_damages_type4a, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4a, 'formal', options))
+        print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'formal', options)
@@ -1180,58 +1257,85 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
                  d_coastal, 'C', structural_damages_type4b, 'formal', options)
              + compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4b, 'formal', options))
+        print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4a, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type4a, 'subsidized', options)
+                 d_coastal, 'C', structural_damages_type4a, 'subsidized',
+                 options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4a, 'subsidized', options))
+                 d_pluvial, 'P', structural_damages_type4a, 'subsidized',
+                 options))
+        print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type4b, 'subsidized', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type4b, 'subsidized', options)
+                 d_coastal, 'C', structural_damages_type4b, 'subsidized',
+                 options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type4b, 'subsidized', options))
+                 d_pluvial, 'P', structural_damages_type4b, 'subsidized',
+                 options))
+        print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'informal', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type2, 'informal', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type2, 'informal', options))
+                 d_pluvial, 'P', structural_damages_type2, 'informal',
+                 options))
+        print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type2, 'backyard', options)
              + compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type2, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type2, 'backyard', options))
+                 d_pluvial, 'P', structural_damages_type2, 'backyard',
+                 options))
+        print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = (compute_fraction_capital_destroyed(
              d_fluvial, 'FD', structural_damages_type3a, 'backyard', options)
              + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type3a, 'backyard', options)
+                 d_coastal, 'C', structural_damages_type3a, 'backyard',
+                 options)
              + compute_fraction_capital_destroyed(
-                 d_pluvial, 'P', structural_damages_type3a, 'backyard', options))
+                 d_pluvial, 'P', structural_damages_type3a, 'backyard',
+                 options))
+        print("Formal backyard structures (two floors)")
+        (fraction_capital_destroyed["structure_formal_backyards"]
+         ) = (compute_fraction_capital_destroyed(
+             d_fluvial, 'FD', structural_damages_type3b, 'backyard', options)
+             + compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type3b, 'backyard',
+                 options)
+             + compute_fraction_capital_destroyed(
+                 d_pluvial, 'P', structural_damages_type3b, 'backyard',
+                 options))
 
     # We take a weighted average for structures in bricks and shacks among
-    # all backyard structures
+    # all backyard structures in case we include both in the model.
+    # To do so, we rely on SAL-level housing type data.
 
-    backyards_by_material = pd.read_excel(
+    sal_data = pd.read_excel(
         path_folder
         + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
-        sheet_name="Analysis", header=None, names=None, usecols="G:H",
-        skiprows=9, nrows=2)
+        header=6, nrows=5339)
+    sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
+    sal_data["backyard_informal"] = sal_data[
+        "Informal dwelling (shack; in backyard)"]
+    total_backyard_formal = sal_data["backyard_formal"].sum()
+    total_backyard_informal = sal_data["backyard_informal"].sum()
 
-    # TODO: is it the right way to go?
     (fraction_capital_destroyed["structure_backyards"]
-     ) = ((backyards_by_material.iloc[0, 0]
+     ) = ((total_backyard_formal
            * fraction_capital_destroyed["structure_formal_backyards"])
-          + (backyards_by_material.iloc[1, 0]
+          + (total_backyard_informal
               * fraction_capital_destroyed["structure_informal_backyards"])
-          ) / housing_type_data[1]
+          ) / (total_backyard_formal + total_backyard_informal)
 
     return (fraction_capital_destroyed, structural_damages_small_houses,
             structural_damages_medium_houses, structural_damages_large_houses,
@@ -1242,7 +1346,7 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
 
 
 def infer_WBUS2_depth(housing_types, param, path_floods):
-    """Update parameters with flood depth."""
+    """Update CoCT flood data with FATHOM flood depth (deprecated)."""
     FATHOM_20yr = np.squeeze(pd.read_excel(path_floods + 'FD_20yr' + ".xlsx"))
     FATHOM_50yr = np.squeeze(pd.read_excel(path_floods + 'FD_50yr' + ".xlsx"))
     FATHOM_100yr = np.squeeze(pd.read_excel(
@@ -1291,6 +1395,7 @@ def import_transport_data(grid, param, yearTraffic,
                           spline_income_distribution,
                           path_precalc_inp, path_precalc_transp, dim, options):
     """Compute job center distribution, commuting and net income."""
+    # Import (monetary and time) transport costs
     (timeOutput, distanceOutput, monetaryCost, costTime
      ) = calcmp.import_transport_costs(
          grid, param, yearTraffic, households_per_income_class,
@@ -1317,15 +1422,20 @@ def import_transport_data(grid, param, yearTraffic,
          param["nb_of_income_classes"])
         )
 
-    # Income
+    # Update average income and number of households per income group
+    # for considered year
     incomeGroup, households_per_income_class = eqdyn.compute_average_income(
         spline_population_income_distribution, spline_income_distribution,
         param, yearTraffic)
-    # Income centers: corresponds to expected income associated with each
-    # income center and income group
-    # income_centers_init = scipy.io.loadmat(
-    #     path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
-    income_centers_init = np.load(path_precalc_inp + 'incomeCentersKeep.npy')
+
+    # We import expected income associated with each income center and income
+    # group (from calibration)
+    if options["load_precal_param"] == 1:
+        income_centers_init = scipy.io.loadmat(
+            path_precalc_inp + 'incomeCentersKeep.mat')['incomeCentersKeep']
+    elif options["load_precal_param"] == 0:
+        income_centers_init = np.load(
+            path_precalc_inp + 'incomeCentersKeep.npy')
     # This allows to correct incomes for unemployed population not taken into
     # account in initial income data (just in scenarios)
     incomeCenters = income_centers_init * incomeGroup / average_income
@@ -1334,31 +1444,6 @@ def import_transport_data(grid, param, yearTraffic,
     annualToHourly = 1 / (8*20*12)
     monetaryCost = monetaryCost * annualToHourly
     incomeCenters = incomeCenters * annualToHourly
-
-    # xInterp = grid.x
-    # yInterp = grid.y
-
-    # If changes?
-    # (monetaryCost[:, (grid.dist < 15) & (grid.dist > 10), :]
-    #  ) = monetaryCost[:, (grid.dist < 15) & (grid.dist > 10), :] * 1.2
-    # (monetaryCost[:, (grid.dist < 30) & (grid.dist > 22), :]
-    #  ) = monetaryCost[:, (grid.dist < 30) & (grid.dist > 22), :] * 0.7
-    # (costTime[:, (grid.dist < 15) & (grid.dist > 10), :]
-    #  ) = costTime[:, (grid.dist < 15) & (grid.dist > 10), :] * 1.2
-    # (costTime[:, (grid.dist < 30) & (grid.dist > 22), :]
-    #  ) = costTime[:, (grid.dist < 30) & (grid.dist > 22), :] * 0.7
-    # (monetaryCost[:, (grid.dist < 25) & (grid.dist > 22), :]
-    #  ) = monetaryCost[:, (grid.dist < 25) & (grid.dist > 22), :] * 0.8
-    # (costTime[:, (grid.dist < 25) & (grid.dist > 22), :]
-    #  ) = costTime[:, (grid.dist < 25) & (grid.dist > 22), :] * 0.8
-    # (monetaryCost[:, (grid.dist < 11) & (grid.dist > 8), :]
-    #  ) = monetaryCost[:, (grid.dist < 11) & (grid.dist > 8), :] * 0.8
-    # (costTime[:, (grid.dist < 11) & (grid.dist > 8), :]
-    #  ) = costTime[:, (grid.dist < 11) & (grid.dist > 8), :] * 0.8
-    # (monetaryCost[:, (grid.dist < 22) & (grid.dist > 14), :]
-    #  ) = monetaryCost[:, (grid.dist < 22) & (grid.dist > 14), :] * 0.8
-    # (costTime[:, (grid.dist < 22) & (grid.dist > 14), :]
-    #  ) = costTime[:, (grid.dist < 22) & (grid.dist > 14), :] * 0.8
 
     for j in range(0, param["nb_of_income_classes"]):
 
@@ -1370,14 +1455,15 @@ def import_transport_data(grid, param, yearTraffic,
         whichCenters = incomeCenters[:, j] > -100000
         incomeCentersGroup = incomeCenters[whichCenters, j]
 
-        # Transport costs and employment allocation (cost per hour)
+        # We compute transport costs for each mode and per chosen mode
+        # (cost per hour)
 
         (transportCostModes, transportCost, _, valueMax, minIncome
          ) = calcmp.compute_ODflows(
             householdSize, monetaryCost, costTime, incomeCentersGroup,
             whichCenters, param_lambda)
 
-        # NB: we compute OD flows again to get the full matrix
+        # NB: we compute OD flows again later to get the full matrix
 
         # Modal shares
         # This comes from the multinomial model resulting from extreme value
@@ -1415,6 +1501,7 @@ def import_transport_data(grid, param, yearTraffic,
         averageIncome[j, :] = np.nansum(
             ODflows[whichCenters, :, j] * incomeCentersGroup[:, None], 0)
 
+    # We go back to yearly format before saving results
     incomeNetOfCommuting = incomeNetOfCommuting / annualToHourly
     averageIncome = averageIncome / annualToHourly
 
@@ -1435,37 +1522,59 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
     sal_data = pd.read_excel(
         path_folder
         + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
-        header=6)
+        header=6, nrows=5339)
     sal_data["informal"] = sal_data[
         "Informal dwelling (shack; not in backyard; e.g. in an"
         + " informal/squatter settlement or on a farm)"]
     sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
     sal_data["backyard_informal"] = sal_data[
         "Informal dwelling (shack; in backyard)"]
-    # TODO: include or not granny flats
+    # NB: we do not include traditional houses, granny flats, caravans, and
+    # others
     sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
-    # sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8, 12]], 1)
 
+    sal_data = pd.read_excel(
+        path_folder
+        + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
+        header=6, nrows=5339)
+    sal_data["informal"] = sal_data[
+        "Informal dwelling (shack; not in backyard; e.g. in an"
+        + " informal/squatter settlement or on a farm)"]
+    sal_data["backyard_formal"] = sal_data["House/flat/room in backyard"]
+    sal_data["backyard_informal"] = sal_data[
+        "Informal dwelling (shack; in backyard)"]
+    # NB: we do not include traditional houses, granny flats, caravans, and
+    # others
+    sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
+
+    # We import information on intersection between SAL and grid pixels
     grid_intersect = pd.read_csv(
         path_data + 'grid_SAL_intersect.csv', sep=';')
     grid_intersect.rename(columns={"Area_inter": "Area"}, inplace=True)
 
+    # We then proceed to the disaggregation of SAL data
+    print("Informal settlements")
     informal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["informal"],
         sal_data["Small Area Code"], 'SAL')
+    print("Formal backyards")
     backyard_formal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["backyard_formal"],
         sal_data["Small Area Code"], 'SAL')
+    print("Informal backyards")
     backyard_informal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["backyard_informal"],
         sal_data["Small Area Code"], 'SAL')
+    # NB: this does include RDP
+    print("Private formal + subsidized formal housing")
     formal_grid = gen_small_areas_to_grid(
         grid, grid_intersect, sal_data["formal"], sal_data["Small Area Code"],
         'SAL')
 
     # We correct the number of dwellings per pixel by reweighting with the
     # ratio of total original number over total estimated number
-    # TODO: is it useful?
+    # NB: this allows to correct for potential errors or imperfect information
+    # in the matching of small areas and grid pixels
     informal_grid = (informal_grid * (np.nansum(sal_data["informal"])
                                       / np.nansum(informal_grid)))
     backyard_formal_grid = (backyard_formal_grid
@@ -1476,13 +1585,6 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
                                  / np.nansum(backyard_informal_grid)))
     formal_grid = (formal_grid * (np.nansum(sal_data["formal"])
                                   / np.nansum(formal_grid)))
-    # We adapt the fraction given for formal housing to our initial data:
-    # housing_type_data[0] + housing_type_data[3] = total_formal + total_RDP
-    # TODO: is it the right way to go given that housing type data indeed comes
-    # from SAL data?
-    # formal_grid = formal_grid * (
-    #     (housing_type_data[0] + housing_type_data[3])
-    #     / np.nansum(formal_grid))
 
     housing_types_grid_sal = pd.DataFrame()
     housing_types_grid_sal["informal_grid"] = informal_grid
@@ -1503,7 +1605,11 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
                             small_area_code, unit):
     """Convert SAL/SP to grid dimensions."""
     grid_data = np.zeros(len(grid.dist))
+    # We loop over grid pixels
+    print("Looping over pixels")
     for index in range(0, len(grid.dist)):
+        print(index)
+        # We define a list of SAL/SP codes that do intersect considered pixel
         intersect = np.unique(
             grid_intersect[unit + '_CODE'][grid_intersect.ID_grille
                                            == grid.id[index]]
@@ -1511,8 +1617,12 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
         if len(intersect) == 0:
             grid_data[index] = np.nan
         else:
+            # If the intersection is not empty, we loop over intersecting
+            # SAL/SPs
             for i in range(0, len(intersect)):
                 small_code = intersect[i]
+                # Then, we get the corresponding area for the sub-intersection
+                # and for the overall SAL/SP
                 small_area_intersect = np.nansum(
                     grid_intersect.Area[
                         (grid_intersect.ID_grille == grid.id[index])
@@ -1522,14 +1632,19 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
                     grid_intersect.Area[
                         (grid_intersect[unit + '_CODE'] == small_code)]
                     )
+                # If such SAL/SP code does indeed exist in the matching data,
+                # we store a weighted average of the info it contains
                 if len(small_area_data[
                         small_area_code == small_code]) > 0:
-                    # Yields number of dwellings/people given by the
-                    # intersection
+                    # More precisely, this yields the number of
+                    # dwellings/households given by the intersection
                     add = (small_area_data[small_area_code == small_code]
                            * (small_area_intersect / small_area))
                 else:
                     add = 0
+                # Finally, we update our output data with each weighted info
+                # corresponding to each of the SAL/SP intersection with
+                # considered grid pixel
                 grid_data[index] = grid_data[index] + add
 
     return grid_data

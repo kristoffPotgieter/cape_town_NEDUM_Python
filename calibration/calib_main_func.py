@@ -9,9 +9,11 @@ Created on Mon May 23 16:26:37 2022.
 import numpy as np
 import numpy.matlib
 # import scipy.io
-from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import LinearRegression
+import statsmodels.api as sm
 import os
 import math
+import scipy.io
 
 # import inputs.parameters_and_options as inpprm
 # import inputs.data as inpdt
@@ -42,40 +44,51 @@ def estim_construct_func_param(options, param, data_sp,
     # Note that we use data_sp["unconstrained_area"] (which is accurate data at
     # SP level) rather than coeff_land (which is an estimate at grid level)
     X = np.transpose(
-        np.array([np.log(data_sp["price"][selected_density]),
+        np.array([np.ones(len(data_sp["price"][selected_density])),
+                  np.log(data_sp["price"][selected_density]),
+                  np.log(data_sp["dwelling_size"][selected_density]),
                   np.log(param["max_land_use"]
-                         * data_sp["unconstrained_area"][selected_density]),
-                  np.log(data_sp["dwelling_size"][selected_density])])
+                         * data_sp["unconstrained_area"][selected_density])])
         )
     # NB: Our data set for dwelling sizes only provides the average (not
     # median) dwelling size at the Sub-Place level, aggregating formal and
     # informal housing
 
-    model_construction = LinearRegression().fit(X, y)
+    # model_construction = LinearRegression().fit(X, y)
+
+    modelSpecification = sm.OLS(y, X, missing='drop')
+    model_construction = modelSpecification.fit()
+    print(model_construction.summary())
+    parametersConstruction = model_construction.params
 
     # We export outputs of the model
-    coeff_b = model_construction.coef_[0]
+    # coeff_b = model_construction.coef_[0]
+    coeff_b = parametersConstruction["x1"]
     coeff_a = 1 - coeff_b
     # Comes from zero profit condition combined with footnote 16 from
     # optimization
     # TODO: correct typo in paper
     if options["correct_kappa"] == 1:
+        # coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
+        #               * np.exp(model_construction.intercept_))
         coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
-                      * np.exp(model_construction.intercept_))
+                      * np.exp(parametersConstruction["const"]))
     elif options["correct_kappa"] == 0:
+        # coeffKappa = ((1 / (coeff_b) ** coeff_b)
+        #               * np.exp(model_construction.intercept_))
         coeffKappa = ((1 / (coeff_b) ** coeff_b)
-                      * np.exp(model_construction.intercept_))
+                      * np.exp(parametersConstruction["const"]))
 
     try:
         os.mkdir(path_precalc_inp)
     except OSError as error:
         print(error)
 
-    # TODO: why capital and land elasticities seem to be reversed compared
-    # to the literature?
     np.save(path_precalc_inp + 'calibratedHousing_b.npy', coeff_b)
     np.save(path_precalc_inp + 'calibratedHousing_kappa.npy', coeffKappa)
 
+    # We add the option in case we want to reverse estimated elasticties to
+    # stick closer to the literature
     if options["reverse_elasticities"] == 1:
         coeff_a = coeff_b
         coeff_b = 1 - coeff_a
@@ -117,8 +130,7 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
     # Note that this is long to run
     # Here again, we are considering rescaled income data
 
-    # TODO: get the errors
-    (incomeCenters, distanceDistribution, scoreMatrix, errorMatrix
+    (incomeCenters, distanceDistribution, scoreMatrix
      ) = calcmp.EstimateIncome(
         param, timeOutput, distanceOutput[:, :, 0], monetaryCost, costTime,
         job_centers, average_income, income_distribution, list_lambda, options)
@@ -153,7 +165,6 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
     incomeCentersKeep = incomeCenters[:, :, whichLambda]
 
     scoreKeep = scoreMatrix[whichLambda, :]
-    errorKeep = errorMatrix[whichLambda, :]
 
     # Note that income is set to -inf for job centers and income groups in
     # which it could not be calibrated
@@ -167,13 +178,15 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
 
     # Note that it is unclear whether "average" income from data includes
     # unemployment or not: a priori, it does for short spells (less than one
-    # year) and should therefore be slightly bigger than calibrated income
+    # year) and should therefore be slightly bigger than calibrated income:
+    # this is what we observe in practice
     incomeCentersKeep[incomeCentersKeep < 0] = math.nan
     cal_avg_income = np.nanmean(incomeCentersKeep, 0)
     # incomeCentersKeep_mat[incomeCentersKeep_mat < 0] = math.nan
     # cal_avg_income_mat = np.nanmean(incomeCentersKeep_mat, 0)
 
-    return incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep, errorKeep
+    return (incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep,
+            bhattacharyyaDistances)
 
 
 def estim_util_func_param(data_number_formal, data_income_group,
@@ -189,30 +202,21 @@ def estim_util_func_param(data_number_formal, data_income_group,
     # appropriate rents and dwelling sizes. Criterion is less stringent than
     # for density as added criteria are more specific to the use of
     # construction technology.
-    # TODO: add option to change the selection
     selectedSP = (
         (data_number_formal > 0.90 * housing_types_sp.total_dwellings_SP_2011)
         & (data_income_group > 0)
         )
 
-    # Coefficients of the model for simulations: set by trial and error
-    #  This naturally tends to 0.2 without griddata, hence the reduced range
-    # listBeta = np.arange(0.18, 0.221, 0.01)
-    #  This tends to 0.12 with griddata (neighbors=10)
-    # listBeta = np.arange(0.10, 0.141, 0.01)
-    #  This tends to 0.13 with griddata (neighbors=100)
-    listBeta = np.arange(0.12, 0.141, 0.01)
+    # Coefficients of the model for simulations: acceptable range
+    # listBeta = np.arange(0.43, 0.451, 0.01)
+    # listBeta = np.arange(0.44, 0.441, 0.01)
+    # listBeta = np.arange(0.1, 0.51, 0.1)
+    listBeta = np.arange(0.27, 0.321, 0.01)
 
-    #  This naturally tends to 0 without griddata, hence the floor which will
-    #  be updated in later optimization
-    # listBasicQ = np.arange(0.01, 0.1, 0.01)
-    #  This tends to 2.8 with griddata (neighbors=10)
-    # listBasicQ = np.arange(2.6, 3.01, 0.1)
-    #  This tends to 3.4 with griddata (neighbors=100)
-    listBasicQ = np.arange(3.3, 3.51, 0.1)
+    # listBasicQ = np.arange(2, 14.1, 1)
+    listBasicQ = np.arange(12.7, 13.21, 0.1)
 
     # Coefficient for spatial autocorrelation
-    # TODO: how would this work if implemented?
     listRho = 0
 
     # Utilities for simulations: we start with levels close from what we expect
@@ -220,27 +224,27 @@ def estim_util_func_param(data_number_formal, data_income_group,
     # TODO: to be updated with values close to what we obtain in equilibrium
     # (to speed up convergence)
     utilityTarget = np.array([1500, 5000, 17000, 80000])
+    # utilityTarget = np.array([300, 1000, 3000, 10000])
+    # utilityTarget = np.array([3000, 10000, 30000, 100000])
 
     # We scan varying values of utility targets
-    #  This is also set by trial and error
-    #  This converges towards 1.3 for U_3 and 1.1 for U_4 without griddata
-    # listVariation = np.arange(1.0, 1.51, 0.1)
-    #  This tends to 1.2 for U_3 and 1.1 for U_4 with griddata (neighbors=10)
-    # listVariation = np.arange(0.9, 1.31, 0.1)
-    #  This tends to 1.1 for U_3 and 1 for U_4 with griddata (neighbors=100)
-    listVariation = np.arange(0.9, 1.21, 0.1)
+    listVariation = np.arange(0.5, 2.01, 0.25)
+    # listVariation1 = np.arange(1, 1.01, 0.1)
+    # listVariation2 = np.arange(0.5, 0.51, 0.1)
+
     # Note that the poorest income group is not taken into account as it is
     # excluded from the analysis.
     # Then, we do not vary the first income group as the magnitude is not that
-    # large.
+    # large...
     initUti2 = utilityTarget[1]
     # However, we do so for the two richest groups.
+    # NB: having opposite variations is key to maintain stability of beta and
+    # q0 estimates
+    # TODO: is it robust?
     listUti3 = utilityTarget[2] * listVariation
-    # listUti3 = utilityTarget[2]
     listUti4 = utilityTarget[3] * listVariation
 
     # Cf. inversion of footnote 16
-    # TODO: should we use param["interest_rate"]?
     if options["correct_kappa"] == 1:
         dataRent = (
             data_sp["price"] ** (coeff_a)
@@ -274,7 +278,8 @@ def estim_util_func_param(data_number_formal, data_income_group,
 
     # Note that this may be long to run as it depends on the combination of all
     # inputs
-
+    # NB: RBFInterpolator does not work well but interp2d does not have
+    # a regular behaviour...
     (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
      parametersHousing, _) = calscan.EstimateParametersByScanning(
          incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
@@ -283,30 +288,53 @@ def estim_util_func_param(data_number_formal, data_income_group,
          amenities_sp, variables_regression, listRho, listBeta, listBasicQ,
          initUti2, listUti3, listUti4, options)
 
-    # Amenity results differ a bit from the paper, but are not absurd
-    # (even though hard to interpret)
+    # Coefficients appear to be stable as long as we allow utilities to vary
+    # widly... Where should we set the limit?
+
     print(modelAmenityScan.summary())
 
     # Now we run the optimization algo with identified value of the parameters:
     # corresponds to interior-point algorithm
 
-    initBeta = parametersScan[0]
-    initBasicQ = parametersScan[1]
-    initUti3 = parametersScan[2]
-    initUti4 = parametersScan[3]
-
     # Note that this may be long to run
-    # TODO: should score be positive?
-    (parameters, scoreTot, parametersAmenities, modelAmenity,
-     parametersHousing, selectedSPRent
-     ) = calopt.EstimateParametersByOptimization(
-         incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
-         data_income_group, data_density, selected_density,
-         housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
-         amenities_sp, variables_regression, listRho, initBeta, initBasicQ,
-         initUti2, initUti3, initUti4, options)
+    # TODO: Should we allow more iterations?
+    if options["param_optim"] == 1:
+        options["griddata"] = 1
+        options["log_form"] = 1
+        # Gets pretty slow above 100
+        options["interpol_neighbors"] = 100
+        # Cannot rely on solver? Stuck on the wrong side of q0?
 
-    print(modelAmenityScan.summary())
+        # initBeta = parametersScan[0]
+        # initBasicQ = parametersScan[1]
+        # This allows to be on the good side of the solver?
+        # TODO: how to justify?
+        # initBasicQ = max(parametersScan[1], 5.1)
+        # initUti3 = parametersScan[2]
+        # initUti4 = parametersScan[3]
+
+        initBeta = scipy.io.loadmat(
+            path_precalc_inp + 'calibratedUtility_beta.mat'
+            )["calibratedUtility_beta"].squeeze()
+        initBasicQ = scipy.io.loadmat(
+            path_precalc_inp + 'calibratedUtility_q0.mat'
+            )["calibratedUtility_q0"].squeeze()
+        utils = scipy.io.loadmat(
+            path_precalc_inp + 'calibratedUtilities.mat'
+            )["utilitiesCorrected"].squeeze()
+        initUti3 = utils[0]
+        initUti4 = utils[1]
+
+        (parameters, scoreTot, parametersAmenities, modelAmenity,
+         parametersHousing, selectedSPRent
+         ) = calopt.EstimateParametersByOptimization(
+             incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
+             data_income_group, data_density, selected_density,
+             housing_types_sp["x_sp"], housing_types_sp["y_sp"], selectedSP,
+             amenities_sp, variables_regression, listRho, initBeta, initBasicQ,
+             initUti2, initUti3, initUti4, options)
+
+        print(modelAmenity.summary())
 
     # Exporting and saving outputs
 
@@ -318,8 +346,16 @@ def estim_util_func_param(data_number_formal, data_income_group,
          predictors_grid.T]
         ).T
 
-    cal_amenities = np.exp(np.nansum(predictors_grid * parametersAmenities, 1))
+    if options["param_optim"] == 1:
+        cal_amenities = np.exp(np.nansum(predictors_grid * parametersAmenities, 1))
+    elif options["param_optim"] == 0:
+        cal_amenities = np.exp(np.nansum(predictors_grid * parametersAmenitiesScan, 1))
     calw_amenities = cal_amenities / np.nanmean(cal_amenities)
+
+    try:
+        os.mkdir(path_plots)
+    except OSError as error:
+        print(error)
     outexp.export_map(calw_amenities, grid, path_plots + 'amenity_map',
                       1.3, 0.8)
 
@@ -327,12 +363,17 @@ def estim_util_func_param(data_number_formal, data_income_group,
     # is not coded here
     if options["glm"] == 1:
         modelAmenity.save(path_precalc_inp + 'modelAmenity')
-    calibratedUtility_beta = parameters[0]
-    calibratedUtility_q0 = parameters[1]
+
+    if options["param_optim"] == 1:
+        calibratedUtility_beta = parameters[0]
+        calibratedUtility_q0 = parameters[1]
+    elif options["param_optim"] == 0:
+        calibratedUtility_beta = parametersScan[0]
+        calibratedUtility_q0 = parametersScan[1]
 
     np.save(path_precalc_inp + 'calibratedUtility_beta',
             calibratedUtility_beta)
     np.save(path_precalc_inp + 'calibratedUtility_q0', calibratedUtility_q0)
     np.save(path_precalc_inp + 'calibratedAmenities', cal_amenities)
 
-    return calibratedUtility_beta, calibratedUtility_q0, cal_amenities
+    return (calibratedUtility_beta, calibratedUtility_q0, cal_amenities)

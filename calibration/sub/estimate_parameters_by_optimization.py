@@ -8,10 +8,12 @@ Created on Tue Oct 20 10:49:58 2020.
 import numpy as np
 import math
 import scipy
+from numba import jit
 
 import calibration.sub.loglikelihood as callog
 
 
+# @jit
 def EstimateParametersByOptimization(
         incomeNetOfCommuting, dataRent, dataDwellingSize, dataIncomeGroup,
         dataHouseholdDensity, selectedDensity, xData, yData, selectedSP,
@@ -22,7 +24,7 @@ def EstimateParametersByOptimization(
     net_income = incomeNetOfCommuting[1:4, :]
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
-        groupLivingSpMatrix[i, dataIncomeGroup != i] = np.zeros(1, 'bool')
+        groupLivingSpMatrix[i, dataIncomeGroup != i+1] = np.zeros(1, 'bool')
 
     selectedTransportMatrix = (sum(groupLivingSpMatrix) == 1)
     net_income[net_income < 0] = np.nan
@@ -85,7 +87,6 @@ def EstimateParametersByOptimization(
     # Now, we optimize using interior-point minimization algorithms
 
     # We first define wide bounds for our parameters
-    # TODO: put a floor on q0?
     bnds = ((0.1, 1), (1, 20), (0, 10 ** 6), (0, 10 ** 7))
 
     # Nfeval = 1
@@ -103,6 +104,7 @@ def EstimateParametersByOptimization(
     # print('{0:4s} {1:9s}'.format('Iter', 'f(X)'))
 
     # Then we run the algorithm
+    # TODO: play with algorigthm used?
     res = scipy.optimize.minimize(
         minusLogLikelihoodModel, initialVector, bounds=bnds,
         options={'maxiter': 10, 'disp': True},

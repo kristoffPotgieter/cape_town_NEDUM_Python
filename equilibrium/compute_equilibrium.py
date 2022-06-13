@@ -18,12 +18,12 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                         grid, options, agricultural_rent, interest_rate,
                         number_properties_RDP, average_income, mean_income,
                         income_class_by_housing_type, minimum_housing_supply,
-                        construction_param):
+                        construction_param, income_2011):
     """Determine static equilibrium allocation from iterative algorithm."""
     # Adjust the population to include unemployed people, then take out RDP
     # by considering that they all belong to poorest income group
 
-    # General reweighting using SAL/census data
+    # General reweighting using SAL data (no formal backyards)
     if options["unempl_reweight"] == 0:
         ratio = population / sum(households_per_income_class)
         households_per_income_class = households_per_income_class * ratio
@@ -31,15 +31,17 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Alternative strategy: we attribute the unemployed population in
     # proportion with calibrated unemployment rates, without applying them
     # directly
-    elif options["unempl_reweight"] == 1:
+    if options["unempl_reweight"] == 1:
         ratio = [2 / size for size in param["household_size"]]
         households_tot = households_per_income_class * ratio
         households_unempl = households_tot - households_per_income_class
         weights = households_unempl / sum(households_unempl)
-        unempl_pop = population - sum(households_per_income_class)
+        unempl_pop = income_2011.Households_nb[0]
         unempl_attrib = [unempl_pop * w for w in weights]
         households_per_income_class = (
             households_per_income_class + unempl_attrib)
+        ratio = population / sum(households_per_income_class)
+        households_per_income_class = households_per_income_class * ratio
         # implicit_empl_rate = ((households_per_income_class - unempl_attrib)
         #                       / households_per_income_class)
         # 0.74/0.99/0.98/0.99
@@ -378,6 +380,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # housing_supply_RDP = (
     #     construction_RDP * 1000000
     #     )
+    dwelling_size_RDP = dwelling_size_RDP * (coeff_land_full[3, :] > 0)
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
     # Note that RDP housing supply per unit of land has nothing to do with
@@ -392,7 +395,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     rent_export[:, selected_pixels] = copy.deepcopy(rent_temp)
     rent_export[:, selected_pixels == 0] = np.nan
     initial_state_rent = np.vstack(
-        [rent_export, np.zeros(len(grid_temp.dist))])
+        [rent_export, np.full(len(grid_temp.dist), np.nan)])
     rent_matrix_export = np.zeros(
         (3, len(average_income), len(grid_temp.dist)))
     rent_matrix_export[:, :, selected_pixels] = copy.deepcopy(R_mat)

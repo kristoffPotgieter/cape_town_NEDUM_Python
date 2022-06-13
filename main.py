@@ -7,7 +7,6 @@ Created on Tue Oct 27 15:33:37 2020.
 
 # %% Preamble
 
-
 # IMPORT PACKAGES
 
 import numpy as np
@@ -15,6 +14,7 @@ import pandas as pd
 import time
 import os
 import matplotlib.pyplot as plt
+import datetime
 
 import inputs.data as inpdt
 import inputs.parameters_and_options as inpprm
@@ -24,6 +24,8 @@ import equilibrium.run_simulations as eqsim
 import equilibrium.functions_dynamic as eqdyn
 
 import calibration.calib_main_func as calmain
+
+print("Import packages and define file paths")
 
 
 # DEFINE FILE PATHS
@@ -47,6 +49,9 @@ start = time.process_time()
 
 # %% Import parameters and options
 
+print("Import default parameters and options, define custom ones")
+
+# TODO: convert excel to csv
 
 # IMPORT PARAMETERS AND OPTIONS
 
@@ -54,56 +59,57 @@ options = inpprm.import_options()
 param = inpprm.import_param(
     path_precalc_inp, path_outputs, path_folder, options)
 
-#  Set custom options for this simulation
+# Set custom options for this simulation
+#  Dummy for taking floods into account in the utility function
 options["agents_anticipate_floods"] = 1
+#  Dummy for preventing new informal settlement development
 options["informal_land_constrained"] = 0
+#  TODO: add option to take into account less likely developments?
 
-#  More custom options regarding flood model
+
+# More custom options regarding flood model
+#  Dummy for taking pluvial floods into account (on top of fluvial floods)
 options["pluvial"] = 1
+#  Dummy for reducing pluvial risk for (better protected) formal structures
 options["correct_pluvial"] = 1
+#  Dummy for taking coastal floods into account (on top of fluvial floods)
 options["coastal"] = 1
-# This is in line with the DEM used in FATHOM data for fluvial and pluvial
+#  Digital elevation to be used with coastal flood data (MERITDEM or NASADEM)
+#  NB: MERITDEM is also the DEM used for fluvial and pluvial flood data
 options["dem"] = "MERITDEM"
+#  Dummy for taking sea-level rise into account in coastal flood data
+#  NB: Projections are up to 2050, based upon IPCC AR5 assessment for the
+#  RCP 8.5 scenario
 options["slr"] = 1
 
-#  Re-processing options
+# Re-processing options: default is set at zero to save computing time (data
+# is simply loaded in the model)
+# NB: this is only needed to create the data for the first time, or when the
+# source is changed, so that pre-processed data is updated
 options["convert_sal_data"] = 0
 options["compute_net_income"] = 0
 
-#  Main code correction options
-options["actual_backyards"] = 0
-options["unempl_reweight"] = 1
-options["correct_agri_rent"] = 1
-
-#  Options for calibration code correction
+# RE-RUN CALIBRATION: note that this takes time and is only useful for the
+# first time or if data used for calibration changes
 options["run_calib"] = 1
-options["correct_dominant_incgrp"] = 0
-options["substract_RDP_from_formal"] = 1
-options["correct_mitchells_plain"] = 0
-options["correct_selected_density"] = 1
-options["correct_kappa"] = 1
-options["correct_infla_base"] = 1
-options["correct_round_trip"] = 1
-options["correct_eq3"] = 1
-options["scan_type"] = "fine"
-options["reverse_elasticities"] = 0
-options["glm"] = 0
-options["griddata"] = 1
-options["interpol_neighbors"] = 100
 
-# TODO: set default values in parameter script (with limited choice)
-
-#  Set timeline for simulations
+#  SET TIMELINE FOR SIMULATIONS
 t = np.arange(0, 30)
 
 # GIVE NAME TO SIMULATION TO EXPORT THE RESULTS
 # (change according to custom parameters to be included)
 
-name = ('allfloods_precal_modif')
+name = ('floods' + str(options["agents_anticipate_floods"])
+        + str(options["informal_land_constrained"]) + '_P'
+        + str(options["pluvial"]) + str(options["correct_pluvial"])
+        + '_C' + str(options["coastal"]) + str(options["slr"]))
 path_plots = path_outputs + name + '/plots/'
 
 
 # %% Load data
+
+print("Load and pre-process data to be used in model (may take some time"
+      + " when agents anticipate floods and we re-process some data)")
 
 
 # BASIC GEOGRAPHIC DATA
@@ -122,7 +128,7 @@ amenities = inpdt.import_amenities(path_precalc_inp, options)
 
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
-# See appendix A1
+#  See appendix A1 for income group and housing type definitions
 (mean_income, households_per_income_class, average_income, income_mult,
  income_2011, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
@@ -132,19 +138,23 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 #  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
+#  Other data at SP level used for calibration and validation
 (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
-#  Import nb of households per pixel, by housing type.
+#  Import nb of households per pixel, by housing type (from SAL data).
 #  Note that RDP is included in formal, and there are both formal and informal
 #  backyards
 
 if options["convert_sal_data"] == 1:
+    print("Convert SAL data to grid dimensions - start")
     housing_types = inpdt.import_sal_data(grid, path_folder, path_data,
                                           housing_type_data)
+    print("Convert SAL data to grid dimensions - end")
 
 housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
+housing_types[np.isnan(housing_types)] = 0
 
 # LAND USE PROJECTIONS
 
@@ -157,9 +167,9 @@ housing_types = pd.read_excel(path_folder + 'housing_types_grid_sal.xlsx')
 
 # Correction needed with Charlotte's calibration
 # TODO: check if still needed after recalibration
-param["pockets"][
-    (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-    ] = 0.79
+# param["pockets"][
+#     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
+#     ] = 0.79
 
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
@@ -180,9 +190,10 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 
 # FLOOD DATA (takes some time when agents anticipate floods)
 #  TODO: create a new variable instead of storing in param
-#  TODO: check if WBUS2 data is indeed deprecated
+#  NB: WBUS2 corresponds to old data from CoCT (not useful anymore with FATHOM)
 #  param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
+    print("Compute flood damages for each damage category - start")
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,
      content_damages, structural_damages_type1, structural_damages_type2,
@@ -190,6 +201,8 @@ if options["agents_anticipate_floods"] == 1:
      structural_damages_type4a, structural_damages_type4b
      ) = inpdt.import_full_floods_data(options, param, path_folder,
                                        housing_type_data)
+    print("Compute flood damages for each damage category - end")
+
 elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed = pd.DataFrame()
     fraction_capital_destroyed["structure_formal_2"] = np.zeros(24014)
@@ -201,8 +214,12 @@ elif options["agents_anticipate_floods"] == 0:
     fraction_capital_destroyed["contents_subsidized"] = np.zeros(24014)
     fraction_capital_destroyed["contents_backyard"] = np.zeros(24014)
     fraction_capital_destroyed["structure_backyards"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_formal_backyards"] = np.zeros(24014)
+    fraction_capital_destroyed["structure_informal_backyards"
+                               ] = np.zeros(24014)
     fraction_capital_destroyed["structure_informal_settlements"
                                ] = np.zeros(24014)
+
 
 # SCENARIOS
 
@@ -216,6 +233,8 @@ elif options["agents_anticipate_floods"] == 0:
 #  (see part 3.1 or appendix C3)
 
 if options["compute_net_income"] == 1:
+    print("Compute local incomes net of commuting costs for every simulation"
+          + " period - start")
     for t_temp in t:
         print(t_temp)
         (incomeNetOfCommuting, modalShares, ODflows, averageIncome
@@ -224,6 +243,8 @@ if options["compute_net_income"] == 1:
              spline_inflation, spline_fuel,
              spline_population_income_distribution, spline_income_distribution,
              path_precalc_inp, path_precalc_transp, 'GRID', options)
+        print("Compute local incomes net of commuting costs for every"
+              + " simulation period - end")
 
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
@@ -231,7 +252,13 @@ income_net_of_commuting_costs = np.load(
 
 # %% Re-run calibration (takes time, only if needed)
 
+# TODO: use np.linspace instead of np.arange?
+
 if options["run_calib"] == 1:
+
+    print("Calibration process - start")
+
+    # TODO: play around with construction options
 
     # PREAMBLE
 
@@ -251,6 +278,9 @@ if options["run_calib"] == 1:
     # the first one given that we are going to regress on median SP prices
 
     # We get the number of formal housing units per SP
+    # NB: it is not clear whether RDP are included in SP formal count, and
+    # if they should be taken out based on imperfect cadastral estimations.
+    # For our benchmark, we prefer to rely on sample selection.
 
     if options["substract_RDP_from_formal"] == 1:
         # We retrieve number of RDP units per SP from grid-level data
@@ -276,8 +306,18 @@ if options["run_calib"] == 1:
         rdp_sp_fill['count'] = rdp_sp_fill['count'].fillna(0)
         rdp_sp_fill = rdp_sp_fill.sort_values(by='sp_code')
 
+        data_number_formal = (
+            housing_types_sp.total_dwellings_SP_2011
+            - housing_types_sp.backyard_SP_2011
+            - housing_types_sp.informal_SP_2011
+            - rdp_sp_fill['count'])
+
     elif options["substract_RDP_from_formal"] == 0:
-        rdp_sp_fill = np.zeros(housing_types_sp.total_dwellings_SP_2011.shape)
+        data_number_formal = (
+            housing_types_sp.total_dwellings_SP_2011
+            - housing_types_sp.backyard_SP_2011
+            - housing_types_sp.informal_SP_2011
+            )
 
     # Although it makes more sense to substract RDP from number of formal
     # private units, it may make sense to keep them if we are unable to select
@@ -286,12 +326,6 @@ if options["run_calib"] == 1:
     # Note that SP housing type data contain more households than SAL housing
     # type data, or aggregate income data (with fewer backyards and more of
     # everything else): in fact, it seems to include more SPs
-
-    data_number_formal = (
-        housing_types_sp.total_dwellings_SP_2011
-        - housing_types_sp.backyard_SP_2011
-        - housing_types_sp.informal_SP_2011
-        - rdp_sp_fill['count'])
 
     # We select the data points we are going to use (cf. appendix C2).
     # As Cobb-Douglas log-linear relation is only true for the formal sector,
@@ -340,15 +374,19 @@ if options["run_calib"] == 1:
             & (data_sp["distance"] < 40)
             )
 
+    # TODO: re-run the following regressions with robust standard errors
+
     # CONSTRUCTION FUNCTION PARAMETERS
 
     # We then estimate the coefficients of construction function
-    # Note that scale factor is significantly smaller than in paper
     coeff_b, coeff_a, coeffKappa = calmain.estim_construct_func_param(
         options, param, data_sp, threshold_income_distribution,
         income_distribution, data_rdp, housing_types_sp,
         data_number_formal, data_income_group, selected_density,
         path_data, path_precalc_inp, path_folder)
+
+    # TODO: relation between invested capital and building density to back up
+    # values of empirical estimates?
 
     # We update parameter vector
     param["coeff_a"] = coeff_a
@@ -362,27 +400,28 @@ if options["run_calib"] == 1:
     # The value range is set by trial and error: the wider the range you want
     # to test, the longer.
     if options["scan_type"] == "rough":
-        list_lambda = 10 ** np.arange(0.6, 0.85, 0.05)
+        list_lambda = 10 ** np.arange(0.40, 0.51, 0.05)
     if options["scan_type"] == "normal":
-        list_lambda = 10 ** np.arange(0.65, 0.76, 0.01)
+        list_lambda = 10 ** np.arange(0.42, 0.441, 0.01)
     if options["scan_type"] == "fine":
-        list_lambda = 10 ** np.arange(0.71, 0.735, 0.005)
-    # TODO: temporary modif to be removed (saves time)
-    list_lambda = 10 ** np.arange(0.72, 0.721, 0.01)
+        list_lambda = 10 ** np.arange(0.427, 0.4291, 0.001)
+
     # NB: this is too long and complex to run a solver directly
-    # TODO: discuss value compared to litterature
-    # TODO: Gumbel or Fréchet?
-    # NB: We need to proceed in two steps are errors were drawn directly on
+    # NB: We need to proceed in two steps as errors were drawn directly on
     # transport costs (and not on commuting pairs), hence no separate
     # identification of the gravity parameter and the incomes net of commuting
     # costs
-    incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep, errorKeep = (
+
+    (incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep,
+     bhattacharyyaDistances) = (
         calmain.estim_incomes_and_gravity(
             param, grid, list_lambda, households_per_income_class,
             average_income, income_distribution, spline_inflation, spline_fuel,
             spline_population_income_distribution, spline_income_distribution,
             path_data, path_precalc_inp, path_precalc_transp, options)
         )
+
+    # TODO: compare estimates with existing literature
 
     # We validate calibrated incomes
     data_graph = pd.DataFrame(
@@ -395,14 +434,19 @@ if options["run_calib"] == 1:
     plt.ylabel("Average income")
     plt.tick_params(labelbottom=True)
     plt.xticks(rotation='horizontal')
-    plt.savefig(path_plots + 'validation_cal_income.png')
-    plt.close()
+    # plt.savefig(path_plots + 'validation_cal_income.png')
+    # plt.close()
 
     # We update parameter vector
     param["lambda"] = np.array(lambdaKeep)
 
     # UTILITY FUNCTION PARAMETERS
 
+    # We compute local incomes net of commuting costs at the SP (not grid)
+    # level that is used in calibration
+    # Note that lambda and calibrated incomes have an impact here:
+    # from now on, we will stop loading precalibrated parameters
+    options["load_precal_param"] = 0
     (incomeNetOfCommuting, *_
      ) = inpdt.import_transport_data(
          grid, param, 0, households_per_income_class, average_income,
@@ -410,13 +454,16 @@ if options["run_calib"] == 1:
          spline_population_income_distribution, spline_income_distribution,
          path_precalc_inp, path_precalc_transp, 'SP', options)
 
-#%%
+    # NB: add peer effects?
+    # Note that we dropped potential spatial autocorrelation for numerical
+    # simplicity
 
-    # TODO: discuss estimation of the amenity index
-    # Add peer effects?
-    # TODO: why was error on household density dropped?
-    # What about spatial autocorelation?
+    # Here, we also have an impact from construction parameters and sample
+    # selection (+ number of formal units)
 
+    # TODO: note that we enforce realistic scanning, more refined optimization
+    # should follow
+    # NB: optimization is slow with 100 interpol_neighbors
     (calibratedUtility_beta, calibratedUtility_q0, cal_amenities
      ) = calmain.estim_util_func_param(
          data_number_formal, data_income_group, housing_types_sp, data_sp,
@@ -427,7 +474,316 @@ if options["run_calib"] == 1:
     param["beta"] = calibratedUtility_beta
     param["q0"] = calibratedUtility_q0
 
-# DO DISAMENITY ON THE SIDE
+
+# %% Reload calibrated data
+
+if options["run_calib"] == 1:
+
+    # First, incomes net of commuting costs for all periods
+    for t_temp in t:
+        print(t_temp)
+        (incomeNetOfCommuting, modalShares, ODflows, averageIncome
+         ) = inpdt.import_transport_data(
+             grid, param, t_temp, households_per_income_class, average_income,
+             spline_inflation, spline_fuel,
+             spline_population_income_distribution, spline_income_distribution,
+             path_precalc_inp, path_precalc_transp, 'GRID', options)
+
+    income_net_of_commuting_costs = np.load(
+        path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
+
+    # Then, amenity data
+    amenities = inpdt.import_amenities(path_precalc_inp, options)
+
+
+# %% End calibration by fitting disamenity parameter for backyard
+# and informal housing to the model
+
+# TODO: actually, this could be updated each period
+
+# Unemployment reweighting does not work fine: results should be shown for
+# employed population
+
+if options["run_calib"] == 1:
+
+    # General calibration (see Pfeiffer et al., appendix C5)
+
+    list_amenity_backyard = np.arange(0.64, 0.681, 0.01)
+    list_amenity_settlement = np.arange(0.60, 0.641, 0.01)
+    housing_type_total = pd.DataFrame(np.array(np.meshgrid(
+        list_amenity_backyard, list_amenity_settlement)).T.reshape(-1, 2))
+    housing_type_total.columns = ["param_backyard", "param_settlement"]
+    housing_type_total["formal"] = np.zeros(
+        len(housing_type_total.param_backyard))
+    housing_type_total["backyard"] = np.zeros(
+        len(housing_type_total.param_backyard))
+    housing_type_total["informal"] = np.zeros(
+        len(housing_type_total.param_backyard))
+    housing_type_total["subsidized"] = np.zeros(
+        len(housing_type_total.param_backyard))
+
+    debut_calib_time = time.process_time()
+    number_total_iterations = (
+        len(list_amenity_backyard) * len(list_amenity_settlement))
+    print(f"** Calibration: {number_total_iterations} iterations **")
+
+    for i in range(0, len(list_amenity_backyard)):
+        for j in range(0, len(list_amenity_settlement)):
+            param["amenity_backyard"] = list_amenity_backyard[i]
+            param["amenity_settlement"] = list_amenity_settlement[j]
+            param["pockets"] = np.ones(24014) * param["amenity_settlement"]
+            param["backyard_pockets"] = (np.ones(24014)
+                                         * param["amenity_backyard"])
+            (initial_state_utility,
+             initial_state_error,
+             initial_state_simulated_jobs,
+             initial_state_households_housing_types,
+             initial_state_household_centers,
+             initial_state_households,
+             initial_state_dwelling_size,
+             initial_state_housing_supply,
+             initial_state_rent,
+             initial_state_rent_matrix,
+             initial_state_capital_land,
+             initial_state_average_income,
+             initial_state_limit_city) = eqcmp.compute_equilibrium(
+                 fraction_capital_destroyed,
+                 amenities,
+                 param,
+                 housing_limit,
+                 population,
+                 households_per_income_class,
+                 total_RDP,
+                 coeff_land,
+                 income_net_of_commuting_costs,
+                 grid,
+                 options,
+                 agricultural_rent,
+                 interest_rate,
+                 number_properties_RDP,
+                 average_income,
+                 mean_income,
+                 income_class_by_housing_type,
+                 minimum_housing_supply,
+                 param["coeff_A"],
+                 income_2011)
+
+            # We fill output matrix with the total number of HHs per housing
+            # type for given values of backyard and informal amenity parameters
+            housing_type_total.iloc[
+                (housing_type_total.param_backyard
+                 == param["amenity_backyard"])
+                & (housing_type_total.param_settlement
+                   == param["amenity_settlement"]),
+                2:6] = np.nansum(initial_state_households_housing_types, 1)
+            time_elapsed = time.process_time() - debut_calib_time
+            iteration_number = i * len(list_amenity_settlement) + j + 1
+
+            print(f"iteration {iteration_number}/{number_total_iterations}.",
+                  str(datetime.timedelta(seconds=round(time_elapsed))),
+                  f"elapsed ({round(time_elapsed/iteration_number)}s per iter",
+                  "There remains:",
+                  str(datetime.timedelta(seconds=round(
+                      time_elapsed
+                      / iteration_number
+                      * (number_total_iterations-iteration_number)))))
+
+    # We choose the set of parameters that minimize the sum of abs differences
+    # between simulated and observed total number of households in each housing
+    # type (without RDP, which is exogenously set equal to data)
+
+    distance_share = np.abs(
+        housing_type_total.iloc[:, 2:5] - housing_type_data[None, 0:3])
+    distance_share_score = (
+        distance_share.iloc[:, 1] + distance_share.iloc[:, 2])
+
+    which = np.argmin(distance_share_score)
+    min_score = np.nanmin(distance_share_score)
+    calibrated_amenities = housing_type_total.iloc[which, 0:2]
+
+    param["amenity_backyard"] = calibrated_amenities[0]
+    param["amenity_settlement"] = calibrated_amenities[1]
+
+    try:
+        os.mkdir(path_precalc_inp)
+    except OSError as error:
+        print(error)
+
+    # Works the same as in paper
+    np.save(path_precalc_inp + 'param_amenity_backyard.npy',
+            param["amenity_backyard"])
+    np.save(path_precalc_inp + 'param_amenity_settlement.npy',
+            param["amenity_settlement"])
+
+    if options["location_based_calib"] == 1:
+
+        index = 0
+        index_max = 50
+        metrics = np.zeros(index_max)
+
+        # We start from where we left (to gain time) and compute the
+        # equilibrium again
+        param["pockets"] = np.zeros(24014) + param["amenity_settlement"]
+        save_param_informal_settlements = np.zeros((index_max, 24014))
+        metrics_is = np.zeros(index_max)
+        param["backyard_pockets"] = np.zeros(24014) + param["amenity_backyard"]
+        save_param_backyards = np.zeros((index_max, 24014))
+        metrics_ib = np.zeros(index_max)
+
+        print("\n* City limits *")
+
+        (initial_state_utility,
+         initial_state_error,
+         initial_state_simulated_jobs,
+         initial_state_households_housing_types,
+         initial_state_household_centers,
+         initial_state_households,
+         initial_state_dwelling_size,
+         initial_state_housing_supply,
+         initial_state_rent,
+         initial_state_rent_matrix,
+         initial_state_capital_land,
+         initial_state_average_income,
+         initial_state_limit_city
+         ) = eqcmp.compute_equilibrium(
+             fraction_capital_destroyed,
+             amenities,
+             param,
+             housing_limit,
+             population,
+             households_per_income_class,
+             total_RDP,
+             coeff_land,
+             income_net_of_commuting_costs,
+             grid,
+             options,
+             agricultural_rent,
+             interest_rate,
+             number_properties_RDP,
+             average_income,
+             mean_income,
+             income_class_by_housing_type,
+             minimum_housing_supply,
+             param["coeff_A"],
+             income_2011)
+
+        print("\n** ITERATIONS **")
+
+        debut_iterations_time = time.process_time()
+        number_total_iterations = index_max
+
+        # Then we optimize over the number of households per housing type
+        # PER PIXEL, and not just on the aggregate number (to acccount for
+        # differing disamenities per location, e.g. eviction probability,
+        # infrastructure networks, etc.)
+
+        # To do so, we use granular housing_types (from SAL data) instead of
+        # aggregate housing_types
+
+        for index in range(0, index_max):
+
+            # IS
+            diff_is = np.zeros(24014)
+            for i in range(0, 24014):
+                diff_is[i] = (housing_types.informal_grid[i]
+                              - initial_state_households_housing_types[2, :][i]
+                              )
+                # We apply an empirical reweighting that helps convergence
+                adj = (diff_is[i] / 150000)
+                # We increase the amenity score when we underestimate the nb of
+                # HHs
+                param["pockets"][i] = param["pockets"][i] + adj
+            # We store iteration outcome and prevent extreme sorting from
+            # happening due to the amenity score
+            metrics_is[index] = sum(np.abs(diff_is))
+            param["pockets"][param["pockets"] < 0.05] = 0.05
+            param["pockets"][param["pockets"] > 0.99] = 0.99
+            save_param_informal_settlements[index, :] = param["pockets"]
+
+            # IB
+            diff_ib = np.zeros(24014)
+            for i in range(0, 24014):
+                if options["actual_backyards"] == 1:
+                    diff_ib[i] = (
+                        housing_types.backyard_informal_grid[i]
+                        + housing_types.backyard_formal_grid[i]
+                        - initial_state_households_housing_types[1, :][i])
+                elif options["actual_backyards"] == 0:
+                    diff_ib[i] = (
+                        housing_types.backyard_informal_grid[i]
+                        - initial_state_households_housing_types[1, :][i])
+                adj = (diff_ib[i] / 75000)
+                param["backyard_pockets"][i] = (
+                    param["backyard_pockets"][i] + adj)
+            metrics_ib[index] = sum(np.abs(diff_ib))
+            param["backyard_pockets"][param["backyard_pockets"] < 0.05] = 0.05
+            param["backyard_pockets"][param["backyard_pockets"] > 0.99] = 0.99
+            save_param_backyards[index, :] = param["backyard_pockets"]
+
+            metrics[index] = metrics_is[index] + metrics_ib[index]
+
+            # We run the equilibrium again with updated values of
+            # informal/backyard housing disamenity indices, then go to the next
+            # iteration
+
+            (initial_state_utility, initial_state_error,
+             initial_state_simulated_jobs,
+             initial_state_households_housing_types,
+             initial_state_household_centers,
+             initial_state_households, initial_state_dwelling_size,
+             initial_state_housing_supply, initial_state_rent,
+             initial_state_rent_matrix, initial_state_capital_land,
+             initial_state_average_income, initial_state_limit_city
+             ) = eqcmp.compute_equilibrium(
+                 fraction_capital_destroyed, amenities, param, housing_limit,
+                 population, households_per_income_class, total_RDP,
+                 coeff_land, income_net_of_commuting_costs, grid, options,
+                 agricultural_rent, interest_rate, number_properties_RDP,
+                 average_income, mean_income, income_class_by_housing_type,
+                 minimum_housing_supply, param["coeff_A"], income_2011)
+
+            time_elapsed = time.process_time() - debut_iterations_time
+            iteration_number = index + 1
+
+            print(f"iteration {iteration_number}/{number_total_iterations}",
+                  str(datetime.timedelta(seconds=round(time_elapsed))),
+                  f"elapsed ({round(time_elapsed/iteration_number)}s / iter)",
+                  "There remains:",
+                  str(datetime.timedelta(seconds=round(
+                      time_elapsed
+                      / iteration_number
+                      * (number_total_iterations-iteration_number))))
+                  )
+
+        # We pick the set of parameters that minimize the sum of absolute diffs
+        # between data and simulation
+        # TODO: is it necessarily an improvement over general calibration?
+        score_min = np.min(metrics)
+        index_min = np.argmin(metrics)
+        # metrics[index_min]
+        param["pockets"] = save_param_informal_settlements[index_min]
+        param["backyard_pockets"] = save_param_backyards[index_min]
+
+        print(np.nanmin(param["pockets"]))
+        print(np.nanmean(param["pockets"]))
+        print(np.nanmax(param["pockets"]))
+        print(np.nanmin(param["backyard_pockets"]))
+        print(np.nanmean(param["backyard_pockets"]))
+        print(np.nanmax(param["backyard_pockets"]))
+
+        # TODO: check that there is no missing value we need to fill in
+
+        try:
+            os.mkdir(path_precalc_inp)
+        except OSError as error:
+            print(error)
+
+        np.save(path_precalc_inp + 'param_pockets.npy',
+                param["pockets"])
+        np.save(path_precalc_inp + 'param_backyards.npy',
+                param["backyard_pockets"])
+
+    print("Calibration process - end")
 
 
 # %% Compute initial state
@@ -457,6 +813,8 @@ if options["run_calib"] == 1:
 
 # population = sum(income_2011.Households_nb)
 # param["max_iter"] = 10000
+
+options["location_based_calib"] = 0
 
 (initial_state_utility,
  initial_state_error,
@@ -489,8 +847,11 @@ if options["run_calib"] == 1:
      mean_income,
      income_class_by_housing_type,
      minimum_housing_supply,
-     param["coeff_A"])
+     param["coeff_A"],
+     income_2011)
 
+test_housing_types = np.nansum(initial_state_households_housing_types, 1)
+# With location-based, takes 10,000 from informal to backyard
 
 # Reminder: income groups are ranked from poorer to richer, and housing types
 # follow the following order: formal-backyard-informal-RDP

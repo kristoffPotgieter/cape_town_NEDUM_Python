@@ -96,6 +96,8 @@ def import_transport_costs(grid, param, yearTraffic,
     # in both directions) multiplied by 1.2 (sinusoity coefficient), divided
     # by the walking speed (in km/h), which we multiply by 60 to get minutes
     # NB: see Viguié et al. (2014), table B.1 for sinusoity estimate
+    # NB: duration is already for round trips in principle, as we would get low
+    # average speeds of 13 km/h otherwise
     timeOutput[:, :, 0] = (transport_times["distanceCar"]
                            / param["walking_speed"] * 60 * 1.2 * 2)
     timeOutput[:, :, 0][np.isnan(transport_times["durationCar"])] = np.nan
@@ -104,7 +106,7 @@ def import_transport_costs(grid, param, yearTraffic,
     timeOutput[:, :, 3] = copy.deepcopy(transport_times["durationMinibus"])
     timeOutput[:, :, 4] = copy.deepcopy(transport_times["durationBus"])
 
-    # Length (in km) using each mode (for round trip)
+    # Length (in km) using each mode
     if options["correct_round_trip"] == 1:
         multiplierPrice = np.empty((timeOutput.shape))
         multiplierPrice[:] = np.nan
@@ -131,7 +133,7 @@ def import_transport_costs(grid, param, yearTraffic,
     pricePerKM[3] = priceTaxiPerKMMonth*numberDaysPerYear
     pricePerKM[4] = priceBusPerKMMonth*numberDaysPerYear
 
-    # Simple distances (not useful to calculate price but useful output)
+    # Simple distances (not useful to calculate price but interesting output)
     distanceOutput = np.empty((timeOutput.shape))
     distanceOutput[:] = np.nan
     distanceOutput[:, :, 0] = transport_times["distanceCar"]
@@ -195,7 +197,6 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
         (len(bracketsDistance) - 1, len(list_lambda)))
 
     scoreMatrix = np.zeros((len(list_lambda), param["nb_of_income_classes"]))
-    errorMatrix = np.zeros((len(list_lambda), param["nb_of_income_classes"]))
 
     # We begin simulations for different values of lambda
 
@@ -214,7 +215,6 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
         for j in range(0, param["nb_of_income_classes"]):
 
             # Household size varies with income group / transport costs
-            # TODO: add option to use implicit employment rate?
             householdSize = param["household_size"][j]
             # So does average income (which needs to be adapted to hourly
             # from income data)
@@ -240,7 +240,8 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
 
             # We reweight population in each income group per SP to make it
             # comparable with population in SELECTED job centers
-            # Note that unemployed population is indeed included
+            # Note that unemployed population is not included!
+            # Also note that SP data includes more areas than included in grid
             popResidence = (
                 income_distribution[:, j]
                 * sum(job_centers[whichCenters, j])
@@ -255,8 +256,10 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                 factorConvergenge = 0.008
             elif j == 1:
                 factorConvergenge = 0.005
-            else:
-                factorConvergenge = 0.0005
+            elif j == 2:
+                factorConvergenge = 0.003
+            elif j == 3:
+                factorConvergenge = 0.001
 
             iter = 0
             error = np.zeros((len(popCenters), maxIter))
@@ -313,15 +316,18 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
             # the corresponding best solution for some lambda and income group
             if (iter > maxIter - 1):
                 scoreBest = np.amin(scoreIter)
+                scoreMatrix[i, j] = scoreBest
                 bestSolution = np.argmin(scoreIter)
                 incomeCenters[:, iter-1] = incomeCenters[:, bestSolution]
                 print(' - max iteration reached - mean error', scoreBest)
 
+            # If we manage to have a maximum error that falls under the
+            # tolerance threshold, we leave the loop and consider the solution
+            # corresponding to the latest iteration
             else:
+                scoreBest = scoreIter[iter-1]
+                scoreMatrix[i, j] = scoreBest
                 print(' - computed - max error', errorMax)
-
-            scoreMatrix[i, j] = np.amin(scoreIter)
-            errorMatrix[i, j] = errorMax
 
             # We also get (for the given income group) the number of commuters
             # for all job centers in given distance brackets
@@ -354,7 +360,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
             / np.nansum(distanceDistributionGroup)
         )
 
-    return incomeCentersSave, distanceDistribution, scoreMatrix, errorMatrix
+    return incomeCentersSave, distanceDistribution, scoreMatrix
 
 
 def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
@@ -365,11 +371,9 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
     #  already taken into account as a multiplier of w_ic, therefore there
     #  is no need to multiply the second term by householdSize (and both
     #  monetary and time costs indeed correspond to round trips).
-    #  However, the time cost should still be taken into account for the two
-    #  members of the household, hence the first factor.
+    #  However, the monetary cost should still be taken into account for the
+    #  two members of the household, hence the first factor.
 
-    #  TODO: need to cross-check that income data indeed takes unemployment
-    #  into account (important difference with benchmark script)
     transportCostModes = (
         (householdSize * monetaryCost[whichCenters, :, :]
          + (costTime[whichCenters, :, :]
@@ -430,6 +434,8 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
 
     # TODO: is it equivalent to selection criterion from paper?
     # Note that ODflows is of dimension 119x24014
+    # NB: correction is not needed a priori, as income distribution data from
+    # SP does not include people out of employment
     if options["correct_eq3"] == 1:
         score = (popCenters
                  - (householdSize / 2

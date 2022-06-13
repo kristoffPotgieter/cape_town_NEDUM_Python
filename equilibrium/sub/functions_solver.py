@@ -100,7 +100,6 @@ def compute_housing_supply_formal(
 
         # See research note, p.10
         # NB: we convert to supply per km²
-        # TODO: should we use interest_rate or param["interest_rate"]?
         housing_supply = (
             1000000
             * (construction_param ** (1/param["coeff_a"]))
@@ -130,21 +129,33 @@ def compute_housing_supply_formal(
 
 
 def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
-                                    fraction_capital_destroyed, dwelling_size):
+                                    fraction_capital_destroyed, grid,
+                                    income_class_by_housing_type):
     """Compute backyard housing supply as a function of rents."""
     # Same as before
     capital_destroyed = np.ones(
         len(fraction_capital_destroyed.structure_formal_2))
+    # TODO: shouldn't we consider size of RDP instead?
+    # Check potential dimensionality issues
+    # capital_destroyed[dwelling_size > param["threshold"]
+    #                   ] = fraction_capital_destroyed.structure_subsidized_2[
+    #                       dwelling_size > param["threshold"]]
+    # capital_destroyed[dwelling_size <= param["threshold"]
+    #                   ] = fraction_capital_destroyed.structure_subsidized_1[
+    #                       dwelling_size <= param["threshold"]]
+    dwelling_size = param["RDP_size"] * np.ones((len(grid.dist)))
+    # dwelling_size[income_class_by_housing_type.subsidized == 0, :] = np.nan
     capital_destroyed[dwelling_size > param["threshold"]
                       ] = fraction_capital_destroyed.structure_subsidized_2[
                           dwelling_size > param["threshold"]]
     capital_destroyed[dwelling_size <= param["threshold"]
                       ] = fraction_capital_destroyed.structure_subsidized_1[
                           dwelling_size <= param["threshold"]]
+    # NB: in practice, the distinction is not used
 
     # See research note, p.11
     # TODO: Check that divide by zero come from groups 3 and 4
-    np.seterr(divide='ignore', invalid='ignore')
+    # np.seterr(divide='ignore', invalid='ignore')
     housing_supply = (
         (param["alpha"] *
          (param["RDP_size"] + param["backyard_size"] - param["q0"])

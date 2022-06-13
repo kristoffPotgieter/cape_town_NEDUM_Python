@@ -10,6 +10,8 @@ import numpy as np
 import scipy.io
 import copy
 
+# TODO: set limited choice for parameters and options
+
 
 def import_options():
     """Import default options."""
@@ -17,19 +19,105 @@ def import_options():
     options = {"urban_edge": 0}
     # Used in solver_equil (dummy for housing supply adaptability)
     options["adjust_housing_supply"] = 1
+
     # Dummy for agents taking floods into account in their choices
     options["agents_anticipate_floods"] = 1
     # Dummy for using flood data from WBUS2 on top of FATHOM
     options["WBUS2"] = 0
     # Dummy for considering pluvial floods on top of fluvial floods
     options["pluvial"] = 1
-    # Dummy for new informal housing construction possibility
+    #  Dummy for reducing pluvial risk for (better protected) formal structures
+    options["correct_pluvial"] = 1
+    #  Dummy for taking coastal floods into account (on top of fluvial floods)
+    options["coastal"] = 1
+    #  DEM to be used with coastal flood data (MERITDEM or NASADEM)
+    options["dem"] = "MERITDEM"
+    #  Dummy for taking sea-level rise into account in coastal flood data
+    options["slr"] = 1
+    # Dummy for forbidding new informal housing construction
     options["informal_land_constrained"] = 0
+
     # Dummy for loading pre-calibrated (from Basile) parameters, as opposed
     # to newly calibrated paramaters
-    options["load_precal_param"] = 1
+    options["load_precal_param"] = 0
     # Dummy for fitting informal housing disamenity parameter to grid pixels
     options["location_based_calib"] = 0
+    # Re-processing options: default is set at zero to save computing time
+    # (data is simply loaded in the model)
+    #  Convert housing type SAL data to grid level
+    options["convert_sal_data"] = 0
+    #  Compute income net of commuting costs for each pixel in each income
+    #  group based upon calibrated incomes for each job center in each income
+    #  group (for every period)
+    options["compute_net_income"] = 0
+
+    # Main code correction options
+    #  Dummy for taking formal backyards into account in backyard land use
+    #  coefficients and structural damages from floods
+    options["actual_backyards"] = 0
+    #  Dummy for allocating no-income population to each income group based on
+    #  their respective unemployment rates (instead of applying same rate)
+    options["unempl_reweight"] = 0
+    #  Dummy for correcting the formula for agricultural rent
+    #  (compared to original version of the code)
+    options["correct_agri_rent"] = 1
+    #  Dummy for taking into account capital depreciation as a factor of
+    #  land price in profit function (impact on agricultural land)
+    options["deprec_land"] = 0
+
+    # Dummy for running calibration again
+    options["run_calib"] = 1
+
+    # Options for calibration code correction
+    #  Dummy for defining dominant income group based on number of people
+    #  instead of median income at SP level
+    options["correct_dominant_incgrp"] = 0
+    #  Dummy for substracting RDP units to nb of formal units at SP level
+    options["substract_RDP_from_formal"] = 0
+    #  Dummy for leaving Mitchell's Plain out in calibration and ad hoc
+    #  correction in housing supply
+    options["correct_mitchells_plain"] = 0
+    #  Dummy for including more criteria in sample selection for calibration
+    #  (compared to working paper)
+    options["correct_selected_density"] = 1
+    #  Dummy for correcting the formula for the construction function scale
+    #  factor (compared to original code)
+    options["correct_kappa"] = 1
+    #  Dummy for setting inflation base year at 2011
+    #  (instead of 2012 in original code)
+    options["correct_infla_base"] = 1
+    #  Dummy for taking round trips into account in estimated
+    #  monetary transport costs
+    options["correct_round_trip"] = 1
+    #  Dummy for taking unemployment into account in the formula for
+    #  the nb of commuters (equation 3): a priori not needed
+    options["correct_eq3"] = 0
+    #  Resolution of the scanning to be used in calibration
+    #  (for commuting gravity and utility function parameters)
+    #  NB: should be set to rough, normal, or fine
+    options["scan_type"] = "fine"
+    #  Dummy for reversing calibrated capital and land elasticities in
+    #  construction cost function
+    #  NB: estimate is not in line with the literature and we might want to
+    #  check how this affects the model
+    options["reverse_elasticities"] = 0
+    #  Dummy for using GLM (instead of OLS) for the estimation of exogenous
+    #  amenity parameters
+    options["glm"] = 0
+    #  Dummy for using RBFInterpolator instead of interp2d for 2D interpolation
+    #  of rents based on incomes and utilities
+    options["griddata"] = 0
+    #  Number of neighbours to be used if RBFInterpolator is chosen
+    options["interpol_neighbors"] = 50
+    #  Test for improving rent interpolation in calibration by assuming away
+    #  basic need in housing from max rent estimation
+    options["test_maxrent"] = 0
+    #  Option for using scipy solver to refine utility function parameter
+    #  estimates from scanning
+    options["param_optim"] = 0
+    #  Option for taking log into account in rent interpolation for utility
+    #  function parameter estimation
+    options["log_form"] = 1
 
     return options
 
@@ -41,20 +129,26 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
 
     # Utility function parameters, as calibrated in Pfeiffer et al. (table C7)
     #  Surplus housing elasticity
-    if options["load_precal_param"] == 1:
-        param["beta"] = scipy.io.loadmat(
-            path_precalc_inp + 'calibratedUtility_beta.mat'
-            )["calibratedUtility_beta"].squeeze()
-    elif options["load_precal_param"] == 0:
-        param["beta"] = np.load(
-            path_precalc_inp + 'calibratedUtility_beta.npy')
+    param["beta"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedUtility_beta.mat'
+        )["calibratedUtility_beta"].squeeze()
+    # if options["load_precal_param"] == 1:
+    #     param["beta"] = scipy.io.loadmat(
+    #         path_precalc_inp + 'calibratedUtility_beta.mat'
+    #         )["calibratedUtility_beta"].squeeze()
+    # elif options["load_precal_param"] == 0:
+    #     param["beta"] = np.load(
+    #         path_precalc_inp + 'calibratedUtility_beta.npy')
     #  Basic need in housing
-    if options["load_precal_param"] == 1:
-        param["q0"] = scipy.io.loadmat(
-            path_precalc_inp + 'calibratedUtility_q0.mat'
-            )["calibratedUtility_q0"].squeeze()
-    elif options["load_precal_param"] == 0:
-        param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.npy')
+    param["q0"] = scipy.io.loadmat(
+        path_precalc_inp + 'calibratedUtility_q0.mat'
+        )["calibratedUtility_q0"].squeeze()
+    # if options["load_precal_param"] == 1:
+    #     param["q0"] = scipy.io.loadmat(
+    #         path_precalc_inp + 'calibratedUtility_q0.mat'
+    #         )["calibratedUtility_q0"].squeeze()
+    # elif options["load_precal_param"] == 0:
+    #     param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.npy')
     #  Composite good elasticity
     param["alpha"] = 1 - param["beta"]
 
@@ -196,8 +290,12 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     # computed nb of households per income bracket falls below some precision
     # level, or when the nb of iterations reaches some threshold (to limit
     # processing time)
-    param["max_iter"] = 5000
+    param["max_iter"] = 1000
     param["precision"] = 0.01
+
+    # We also allow for customisation of convergence factor for disamenity
+    # parameter calibration
+    param["disamenity_cvfactor"] = 20000
 
     # Dynamic parameters (from Viguié et al., 2014, table B1)
     #  Lag in housing building
@@ -333,17 +431,34 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
 def compute_agricultural_rent(rent, scale_fact, interest_rate, param, options):
     """Convert land price into real estate price for land."""
-    if options["correct_agri_rent"] == 1:
+    # TODO: should we include fraction_capital_destroyed? A priori no
+    agricultural_rent = 0
+    if options["correct_agri_rent"] == 1 & options["deprec_land"] == 1:
         agricultural_rent = (
             rent ** (param["coeff_a"])
             * (param["depreciation_rate"] + interest_rate)
             / (scale_fact * param["coeff_b"] ** param["coeff_b"]
                 * param["coeff_a"] ** param["coeff_a"])
             )
-    elif options["correct_agri_rent"] == 0:
+    elif options["correct_agri_rent"] == 0 & options["deprec_land"] == 1:
         agricultural_rent = (
             rent ** (param["coeff_a"])
             * (param["depreciation_rate"] + interest_rate)
+            / (scale_fact * param["coeff_b"] ** param["coeff_b"])
+            )
+    elif options["correct_agri_rent"] == 1 & options["deprec_land"] == 0:
+        agricultural_rent = (
+            rent ** param["coeff_a"]
+            * interest_rate ** param["coeff_a"]
+            * (param["depreciation_rate"] + interest_rate) ** param["coeff_b"]
+            / (scale_fact * param["coeff_b"] ** param["coeff_b"]
+                * param["coeff_a"] ** param["coeff_a"])
+            )
+    elif options["correct_agri_rent"] == 0 & options["deprec_land"] == 0:
+        agricultural_rent = (
+            rent ** param["coeff_a"]
+            * interest_rate ** param["coeff_a"]
+            * (param["depreciation_rate"] + interest_rate) ** param["coeff_b"]
             / (scale_fact * param["coeff_b"] ** param["coeff_b"])
             )
 

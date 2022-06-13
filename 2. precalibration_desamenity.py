@@ -269,8 +269,10 @@ for i in range(0, len(list_amenity_backyard)):
 distance_share = np.abs(
     housing_type_total.iloc[:, 2:5] - housing_type_data[None, 0:3])
 distance_share_score = (
-    distance_share.iloc[:, 1] + distance_share.iloc[:, 2]
-    + distance_share.iloc[:, 0])
+    distance_share.iloc[:, 1] + distance_share.iloc[:, 2])
+# distance_share_score = (
+#     distance_share.iloc[:, 1] + distance_share.iloc[:, 2]
+#     + distance_share.iloc[:, 0])
 # distance_share = np.abs(
 #     housing_type_total.iloc[:, 3:5] - housing_type_data[None, 1:3])
 # distance_share_score = (
@@ -298,7 +300,7 @@ np.save(path_precalc_inp + 'param_amenity_settlement.npy',
 # Note that this is VERY long! Shorten index_max and run in the background
 
 index = 0
-index_max = 100
+index_max = 20
 metrics = np.zeros(index_max)
 
 # We start from where we left (to gain time) and compute the equilibrium again
@@ -357,6 +359,8 @@ number_total_iterations = index_max
 # To do so, we use granular housing_types (from SAL data) instead of aggregate
 # housing_types
 
+param["disamenity_cvfactor"] = 100000
+
 for index in range(0, index_max):
 
     # Note that rescaling the benchmark data is not necessary here, as we are
@@ -368,7 +372,7 @@ for index in range(0, index_max):
         diff_is[i] = (housing_types.informal_grid[i]
                       - initial_state_households_housing_types[2, :][i])
         # We apply an empirical reweighting that helps convergence
-        adj = (diff_is[i] / (50000))
+        adj = (diff_is[i] / param["disamenity_cvfactor"])
         # We increase the amenity score when we underestimate the nb of HHs
         param["pockets"][i] = param["pockets"][i] + adj
     # We store iteration outcome and prevent extreme sorting from happening
@@ -378,13 +382,17 @@ for index in range(0, index_max):
     param["pockets"][param["pockets"] > 0.99] = 0.99
     save_param_informal_settlements[index, :] = param["pockets"]
 
-    # IB (both formal and informal)
+    # IB
     diff_ib = np.zeros(24014)
     for i in range(0, 24014):
-        diff_ib[i] = (housing_types.backyard_informal_grid[i]
-                      + housing_types.backyard_formal_grid[i]
-                      - initial_state_households_housing_types[1, :][i])
-        adj = (diff_ib[i] / 50000)
+        if options["actual_backyards"] == 1:
+            diff_ib[i] = (housing_types.backyard_informal_grid[i]
+                          + housing_types.backyard_formal_grid[i]
+                          - initial_state_households_housing_types[1, :][i])
+        elif options["actual_backyards"] == 0:
+            diff_ib[i] = (housing_types.backyard_informal_grid[i]
+                          - initial_state_households_housing_types[1, :][i])
+        adj = (diff_ib[i] / param["disamenity_cvfactor"])
         param["backyard_pockets"][i] = param["backyard_pockets"][i] + adj
     metrics_ib[index] = sum(np.abs(diff_ib))
     param["backyard_pockets"][param["backyard_pockets"] < 0.05] = 0.05

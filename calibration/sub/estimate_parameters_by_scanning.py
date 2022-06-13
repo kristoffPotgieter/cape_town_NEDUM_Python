@@ -7,10 +7,12 @@ Created on Tue Oct 20 10:50:37 2020.
 
 import numpy as np
 import math
+# from numba import jit
 
 import calibration.sub.loglikelihood as callog
 
 
+# @jit
 def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
                                  dataDwellingSize, dataIncomeGroup,
                                  dataHouseholdDensity, selectedDensity,
@@ -31,7 +33,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # (can be always false when dominant group is poorest)
     groupLivingSpMatrix = (net_income > 0)
     for i in range(0, 3):
-        groupLivingSpMatrix[i, dataIncomeGroup != i] = np.zeros(1, 'bool')
+        groupLivingSpMatrix[i, dataIncomeGroup != i+1] = np.zeros(1, 'bool')
 
     # We generate an array of dummies for dominant being not poorest
     selectedTransportMatrix = (np.nansum(groupLivingSpMatrix, 0) == 1)
@@ -92,7 +94,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     print('\nDone: ')
 
-    # TODO: how strong are underlying Gumbel assumptions?
+    # We import the aggregate score from log-likelihood functions
     for index in range(0, combinationInputs.shape[0]):
         print(index)
         (scoreTotal[index], scoreAmenities[index], scoreDwellingSize[index],
@@ -115,10 +117,8 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     which = np.argmax(scoreVect)
     parameters = combinationInputs[which, :]
 
-    # We just re-estimate the function to get the (right) parameters for
-    # amenities: we did not do it before as optionRegression = 0 is better for
-    # the rest. Note that paramaters remain the same, but model is a GLM and
-    # errors are Pearson residuals
+    # Option to implement GLM (not used in practice as this yields absurd
+    # results)
     if options["glm"] == 1:
         optionRegression = 1
         (*_, parametersAmenities, modelAmenities, parametersHousing

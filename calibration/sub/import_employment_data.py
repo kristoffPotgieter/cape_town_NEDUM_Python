@@ -42,9 +42,6 @@ def import_employment_data(households_per_income_class, param, path_data):
     selectedCenters[codeCentersInitial == 1499] = np.zeros(1, 'bool')
     selectedCenters[codeCentersInitial == 4703] = np.zeros(1, 'bool')
 
-    # xCenter = xCoord[selectedCenters]
-    # yCenter = yCoord[selectedCenters]
-
     # Number of workers per group for the selected centers
     jobsCentersNgroup = np.zeros((len(xCoord), param["nb_of_income_classes"]))
     for j in range(0, param["nb_of_income_classes"]):

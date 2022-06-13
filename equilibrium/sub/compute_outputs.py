@@ -58,11 +58,6 @@ def compute_outputs(housing_type,
 
     # %% Bid rent functions in selected pixels per (endogenous) housing type
 
-    # What is the point? Set as parameter?
-    # fraction_capital_destroyed = 0
-
-    # TODO: should we use interest_rate or param["interest_rate"]?
-
     if housing_type == 'formal':
 
         # See research note, p.11
@@ -74,23 +69,46 @@ def compute_outputs(housing_type,
     elif housing_type == 'backyard':
 
         # See research note, p.12
-        # TODO: should we use interest_rate or param["interest_rate"]?
 
-        R_mat = (
-            (1 / param["shack_size"])
-            * (income_net_of_commuting_costs
-                - ((1 + np.array(fraction_capital_destroyed.contents_backyard)[
-                    None, :] * param["fraction_z_dwellings"])
-                    * ((utility[:, None] / (amenities[None, :]
-                                            * param_backyards_pockets[None, :]
-                                            * ((dwelling_size - param["q0"])
-                                               ** param["beta"])))
-                       ** (1 / param["alpha"])))
-                - (param["informal_structure_value"]
-                   * (interest_rate + param["depreciation_rate"]))
-                - (np.array(fraction_capital_destroyed.structure_backyards)[
-                    None, :] * param["informal_structure_value"]))
-            )
+        if options["actual_backyards"] == 1:
+            R_mat = (
+                (1 / param["shack_size"])
+                * (income_net_of_commuting_costs
+                   - ((1 + np.array(
+                       fraction_capital_destroyed.contents_backyard)[None, :]
+                       * param["fraction_z_dwellings"])
+                       * ((utility[:, None]
+                           / (amenities[None, :]
+                              * param_backyards_pockets[None, :]
+                              * ((dwelling_size - param["q0"])
+                                 ** param["beta"])))
+                          ** (1 / param["alpha"])))
+                   - (param["informal_structure_value"]
+                      * (interest_rate + param["depreciation_rate"]))
+                   - (np.array(
+                       fraction_capital_destroyed.structure_backyards
+                       )[None, :] * param["informal_structure_value"]))
+                )
+
+        elif options["actual_backyards"] == 0:
+            R_mat = (
+                (1 / param["shack_size"])
+                * (income_net_of_commuting_costs
+                    - ((1 + np.array(
+                        fraction_capital_destroyed.contents_backyard)[None, :]
+                        * param["fraction_z_dwellings"])
+                        * ((utility[:, None]
+                            / (amenities[None, :]
+                               * param_backyards_pockets[None, :]
+                               * ((dwelling_size - param["q0"])
+                                  ** param["beta"])))
+                           ** (1 / param["alpha"])))
+                    - (param["informal_structure_value"]
+                       * (interest_rate + param["depreciation_rate"]))
+                    - (np.array(
+                        fraction_capital_destroyed.structure_informal_backyards
+                        )[None, :] * param["informal_structure_value"]))
+                )
 
         R_mat[income_class_by_housing_type.backyard == 0, :] = 0
 
@@ -157,7 +175,7 @@ def compute_outputs(housing_type,
     elif housing_type == 'backyard':
         housing_supply = eqsol.compute_housing_supply_backyard(
             R, param, income_net_of_commuting_costs,
-            fraction_capital_destroyed, dwelling_size)
+            fraction_capital_destroyed, grid, income_class_by_housing_type)
         housing_supply[R == 0] = 0
     elif housing_type == 'informal':
         # We simply take a supply equal to the available constructible land,

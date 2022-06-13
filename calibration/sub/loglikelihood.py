@@ -10,8 +10,10 @@ import statsmodels.api as sm
 from scipy.interpolate import interp2d
 from scipy import interpolate
 import scipy
+# from numba import jit
 
 
+# @jit
 def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
                        dataDwellingSize,
                        selectedDwellingSize, dataRent, selectedRents,
@@ -97,20 +99,26 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
     bidRents = np.empty((3, sum(selectedRents)))
     for i in range(0, 3):
         for j in range(0, sum(selectedRents)):
-            if options["griddata"] == 0:
+            if options["griddata"] == 0 & options["log_form"] == 1:
                 bidRents[i, j] = np.exp(griddedRents(
                     (np.log(np.array(Uo)[:, None])
                      - np.array(residualAmenities)[None, :])[i, j],
                     np.log(net_income[:, selectedRents][i, j])
                     ))
-            elif options["griddata"] == 1:
-                coord = np.stack([
-                    (np.log(np.array(Uo)[:, None])
-                     - np.array(residualAmenities)[None, :])[i, j],
-                    np.log(net_income[:, selectedRents][i, j])
-                    ], -1)
-                coord = np.expand_dims(coord, axis=0)
-                bidRents[i, j] = np.exp(griddedRents(coord))
+            # elif options["griddata"] == 0 & options["log_form"] == 0:
+            #     bidRents[i, j] = griddedRents(
+            #         (np.array(Uo)[:, None]
+            #          / np.exp(np.array(residualAmenities)[None, :])[i, j]),
+            #         net_income[:, selectedRents][i, j]
+            #         )
+            # elif options["griddata"] == 1 & options["log_form"] == 1:
+            #     coord = np.stack([
+            #         (np.log(np.array(Uo)[:, None])
+            #          - np.array(residualAmenities)[None, :])[i, j],
+            #         np.log(net_income[:, selectedRents][i, j])
+            #         ], -1)
+            #     coord = np.expand_dims(coord, axis=0)
+            #     bidRents[i, j] = np.exp(griddedRents(coord))
 
     # Estimation of the parameters by maximization of the log-likelihood
     # (in overarching function)
@@ -172,6 +180,8 @@ def LogLikelihoodModel(X0, Uo2, net_income, groupLivingSpMatrix,
 
     # We may also include a measure of the fit for household density,
     # which has not been retained in this version
+    # NB: this is because it is already taken into account in other likelihoods
+    # and we want to avoid overfit
     scoreHousing = 0
     parametersHousing = 0
 
@@ -192,6 +202,7 @@ def utilityFromRents(Ro, income, basic_q, beta):
     return utility
 
 
+# @jit
 def InterpolateRents(beta, basicQ, net_income, options):
     """Interpolate log(rents) as a function of log(beta) and log(q0)."""
     # Decomposition for the interpolation (the more points, the slower)
@@ -219,7 +230,10 @@ def InterpolateRents(beta, basicQ, net_income, options):
             choiceIncome, len(decompositionRent), 1)
         # We do the same for rent vector by considering that the rent is max
         # when utility equals zero
-        choiceRent = choiceIncome / basicQ
+        if options["test_maxrent"] == 0:
+            choiceRent = choiceIncome / basicQ
+        elif options["test_maxrent"] == 1:
+            choiceRent = choiceIncome
         rentMatrix = (np.array(choiceRent)[:, None]
                       * np.array(decompositionRent)[None, :])
         #  Yields u/A for all values of decomposition
@@ -237,20 +251,26 @@ def InterpolateRents(beta, basicQ, net_income, options):
                 interp2d(
                     np.transpose(incomeMatrix),
                     utilityMatrix,
-                    rentMatrix ** beta
+                    rentMatrix  # ** beta
                     )(x, y)
                 )
 
-        # Then we go to log-form (quickens computations and helps convergence)
-        utilityVectLog = np.arange(-1, np.log(np.nanmax(10 * net_income)), 0.1)
-        incomeLog = np.arange(
-            -1, np.log(np.nanmax(np.nanmax(10 * net_income))), 0.2)
-        rentLog = (
-            np.log(solusRentTemp(np.exp(incomeLog), np.exp(utilityVectLog)))
-            ) * 1/beta
+        if options["log_form"] == 1:
+            # Then we go to log-form (quickens computations and helps convergence)
+            utilityVectLog = np.arange(-1, np.log(np.nanmax(10 * net_income)), 0.1)
+            incomeLog = np.arange(
+                -1, np.log(np.nanmax(np.nanmax(10 * net_income))), 0.2)
+            rentLog = (
+                np.log(solusRentTemp(np.exp(incomeLog), np.exp(utilityVectLog)))
+                )  # * 1/beta
 
-        griddedRents = interp2d(
-            utilityVectLog, incomeLog, np.transpose(rentLog))
+            griddedRents = interp2d(
+                utilityVectLog, incomeLog, np.transpose(rentLog))
+
+            return griddedRents
+
+        elif options["log_form"] == 0:
+            return solusRentTemp
 
     if options["griddata"] == 1:
 
@@ -259,7 +279,10 @@ def InterpolateRents(beta, basicQ, net_income, options):
         incomeVector = np.repeat(choiceIncome, len(decompositionRent))
         # We do the same for rent vector by considering that the rent is max
         # when utility equals zero
-        choiceRent = choiceIncome / basicQ
+        if options["test_maxrent"] == 0:
+            choiceRent = choiceIncome / basicQ
+        elif options["test_maxrent"] == 1:
+            choiceRent = choiceIncome
         rentList = [rent * decompositionRent for rent in choiceRent]
         rentVector = np.concatenate(rentList)
 
@@ -269,6 +292,7 @@ def InterpolateRents(beta, basicQ, net_income, options):
         y, z = logincomeVector, logrentVector
         ey, ez = np.exp(y), np.exp(z)
         x = np.log(utilityFromRents(ez, ey, basicQ, beta))
+        ex = np.exp(x)
 
         # npts = 400
         # index_select = np.random.randint(
@@ -279,10 +303,18 @@ def InterpolateRents(beta, basicQ, net_income, options):
         # pX, pY = np.meshgrid(px, py)
         # X, Y = np.meshgrid(x, y)
 
-        points = np.stack([x, y], -1)
-        griddedRents = interpolate.RBFInterpolator(
-            points, z, kernel='linear', neighbors=options["interpol_neighbors"]
-            )
-        # griddedRents = interpolate.griddata((x, y), z, (pX, pY))
+        if options["log_form"] == 1:
+            points = np.stack([x, y], -1)
+            # TODO: play with kernel?
+            griddedRents = interpolate.RBFInterpolator(
+                points, z, neighbors=options["interpol_neighbors"]
+                )
+            # griddedRents = interpolate.griddata((x, y), z, (pX, pY))
 
-    return griddedRents
+        elif options["log_form"] == 0:
+            points = np.stack([ex, ey], -1)
+            griddedRents = interpolate.RBFInterpolator(
+                points, ez, neighbors=options["interpol_neighbors"]
+                )
+
+        return griddedRents
