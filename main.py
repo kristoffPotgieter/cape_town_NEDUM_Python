@@ -91,7 +91,7 @@ options["compute_net_income"] = 0
 
 # RE-RUN CALIBRATION: note that this takes time and is only useful for the
 # first time or if data used for calibration changes
-options["run_calib"] = 1
+options["run_calib"] = 0
 
 #  SET TIMELINE FOR SIMULATIONS
 t = np.arange(0, 30)
@@ -102,7 +102,8 @@ t = np.arange(0, 30)
 name = ('floods' + str(options["agents_anticipate_floods"])
         + str(options["informal_land_constrained"]) + '_P'
         + str(options["pluvial"]) + str(options["correct_pluvial"])
-        + '_C' + str(options["coastal"]) + str(options["slr"]))
+        + '_C' + str(options["coastal"]) + str(options["slr"])
+        + '_loc')
 path_plots = path_outputs + name + '/plots/'
 
 
@@ -253,6 +254,7 @@ income_net_of_commuting_costs = np.load(
 # %% Re-run calibration (takes time, only if needed)
 
 # TODO: use np.linspace instead of np.arange?
+# Re-run the whole thing without land depreciation
 
 if options["run_calib"] == 1:
 
@@ -454,16 +456,14 @@ if options["run_calib"] == 1:
          spline_population_income_distribution, spline_income_distribution,
          path_precalc_inp, path_precalc_transp, 'SP', options)
 
-    # NB: add peer effects?
     # Note that we dropped potential spatial autocorrelation for numerical
     # simplicity
 
     # Here, we also have an impact from construction parameters and sample
     # selection (+ number of formal units)
 
-    # TODO: note that we enforce realistic scanning, more refined optimization
-    # should follow
-    # NB: optimization is slow with 100 interpol_neighbors
+    # TODO: note that we are still not able to find a stable q0 either
+    # with scanning or optimization: we keep pre-loaded value for now
     (calibratedUtility_beta, calibratedUtility_q0, cal_amenities
      ) = calmain.estim_util_func_param(
          data_number_formal, data_income_group, housing_types_sp, data_sp,
@@ -471,8 +471,8 @@ if options["run_calib"] == 1:
          incomeNetOfCommuting, selected_density, path_data, path_precalc_inp,
          path_plots, options, param)
 
-    param["beta"] = calibratedUtility_beta
-    param["q0"] = calibratedUtility_q0
+    # param["beta"] = calibratedUtility_beta
+    # param["q0"] = calibratedUtility_q0
 
 
 # %% Reload calibrated data
@@ -498,8 +498,6 @@ if options["run_calib"] == 1:
 
 # %% End calibration by fitting disamenity parameter for backyard
 # and informal housing to the model
-
-# TODO: actually, this could be updated each period
 
 # Unemployment reweighting does not work fine: results should be shown for
 # employed population
@@ -788,33 +786,13 @@ if options["run_calib"] == 1:
 
 # %% Compute initial state
 
-# TODO: work on structural transparency + flood effects on infra/health
-# + go from MDE to GMM (only if bad validation) + model completeness
-# (compared to QSE) + include discussion on Stone-Geary (good a priori)
-# Main difference is explicit modeling of housing supply (through endogenous
-# rent) and commuting choice (through endogenous transport choice
-# vs. preference/productivity shocks)?
-# Need to observe number of commuting pairs in Tsivanidis?
-# Also discuss alternative specifications from Fujita (family structure and
-# public ownership) + job search + insurance + heterogeneous preferences
-# Also note that open-city model is supposedly more adapted to developing
-# countries with a surplus labor in rural areas
-# Do bootstrap for standard errors
-# Private investment?
-# Extensions with congestion, endogenous employment centers / income / unempl,
-# segregation...
+print("Compute initial state")
 
-# TODO: Note that we use a Cobb-Douglas production function (with rho+delta)
-# all along!
+# TODO: Note that we use a Cobb-Douglas production function all along!
 # Also note that we simulate households as two representative agents
 # (not as in the paper)
 
-# TODO: create option to run on old or new calibrated parameters
-
-# population = sum(income_2011.Households_nb)
-# param["max_iter"] = 10000
-
-options["location_based_calib"] = 0
+# TODO: Check with and without location-based, and do some bootstrapping
 
 (initial_state_utility,
  initial_state_error,
@@ -849,9 +827,6 @@ options["location_based_calib"] = 0
      minimum_housing_supply,
      param["coeff_A"],
      income_2011)
-
-test_housing_types = np.nansum(initial_state_households_housing_types, 1)
-# With location-based, takes 10,000 from informal to backyard
 
 # Reminder: income groups are ranked from poorer to richer, and housing types
 # follow the following order: formal-backyard-informal-RDP
@@ -921,19 +896,7 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
 
 # %% Scenarios
 
-# NB: From simulation 22 onwards (with constraint), algorithm does not converge
-# Note that this does not depend on calibration used!
-
-# TODO: choose between right and original specification
-# from scipy.interpolate import interp1d
-# RDP_2011 = 2.2666e+05
-# RDP_2001 = 1.1718e+05
-# spline_RDP = interp1d(
-#     [2001 - param["baseline_year"], 2011 - param["baseline_year"],
-#      2018 - param["baseline_year"], 2041 - param["baseline_year"]],
-#     [RDP_2001, RDP_2011, RDP_2011 + 7*5000,
-#      RDP_2011 + 7*5000 + 23 * param["future_rate_public_housing"]], 'linear'
-#     )
+print("Compute simulations")
 
 # RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
 (simulation_households_center,
@@ -978,7 +941,8 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
      spline_population,
      spline_income,
      spline_minimum_housing_supply,
-     spline_fuel
+     spline_fuel,
+     income_2011
      )
 
 # Save outputs
@@ -1008,5 +972,3 @@ np.save(path_outputs + name + '/simulation_deriv_housing.npy',
         simulation_deriv_housing)
 np.save(path_outputs + name + '/simulation_T.npy',
         simulation_T)
-
-# NB: how do we model income and amenity changes with floods?

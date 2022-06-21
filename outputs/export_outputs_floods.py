@@ -200,7 +200,7 @@ def validation_flood(name, stats1, stats2, legend1, legend2, type_flood,
     plt.show()
     plt.savefig(path_outputs +
                 name + '/validation_flood_depth_' + type_flood + '.png')
-    plt.close()
+    # plt.close()
 
     jeans = [
         stats1.fraction_formal_in_flood_prone_area[2],
@@ -291,4 +291,4 @@ def validation_flood(name, stats1, stats2, legend1, legend2, type_flood,
     plt.show()
     plt.savefig(path_outputs + name + 'validation_flood_proportion_'
                 + type_flood + '.png')
-    plt.close()
+    # plt.close()

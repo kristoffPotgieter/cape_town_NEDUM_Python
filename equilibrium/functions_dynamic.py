@@ -14,6 +14,7 @@ import numpy.matlib
 def import_scenarios(income_2011, param, grid, path_scenarios):
     """Return linear regression splines for various scenarios."""
     # Import Scenarios
+    # TODO: discuss choices
     scenario_income_distribution = pd.read_csv(
         path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
     scenario_population = pd.read_csv(

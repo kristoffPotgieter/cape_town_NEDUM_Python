@@ -1648,3 +1648,43 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
                 grid_data[index] = grid_data[index] + add
 
     return grid_data
+
+
+def convert_income_distribution(income_distribution, grid, path_data, data_sp):
+    """Import SP data for income distribution in grid form."""
+    grid_intersect = pd.read_csv(
+        path_data + 'grid_SP_intersect.csv', sep=';')
+
+    income0_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 0],
+        data_sp["sp_code"], 'SP')
+    income1_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 1],
+        data_sp["sp_code"], 'SP')
+    income2_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 2],
+        data_sp["sp_code"], 'SP')
+    income3_grid = gen_small_areas_to_grid(
+        grid, grid_intersect, income_distribution[:, 3],
+        data_sp["sp_code"], 'SP')
+
+    # We correct the values per pixel by reweighting with the
+    # ratio of total original number over total estimated number
+    income0_grid = (income0_grid * (np.nansum(income_distribution[:, 0])
+                                    / np.nansum(income0_grid)))
+    income1_grid = (income1_grid * (np.nansum(income_distribution[:, 1])
+                                    / np.nansum(income1_grid)))
+    income2_grid = (income2_grid * (np.nansum(income_distribution[:, 2])
+                                    / np.nansum(income2_grid)))
+    income3_grid = (income3_grid * (np.nansum(income_distribution[:, 3])
+                                    / np.nansum(income3_grid)))
+
+    income_grid = np.stack(
+        [income0_grid, income1_grid, income2_grid, income3_grid])
+
+    # Replace missing values by zero
+    income_grid[np.isnan(income_grid)] = 0
+
+    np.save(path_data + "income_distrib_grid.npy", income_grid)
+
+    return income_grid

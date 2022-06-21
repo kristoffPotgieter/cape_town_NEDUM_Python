@@ -41,11 +41,13 @@ def import_options():
     # to newly calibrated paramaters
     options["load_precal_param"] = 0
     # Dummy for fitting informal housing disamenity parameter to grid pixels
-    options["location_based_calib"] = 0
+    options["location_based_calib"] = 1
     # Re-processing options: default is set at zero to save computing time
     # (data is simply loaded in the model)
     #  Convert housing type SAL data to grid level
     options["convert_sal_data"] = 0
+    #  Convert income distribution SP data to grid level
+    options["convert_sp_data"] = 0
     #  Compute income net of commuting costs for each pixel in each income
     #  group based upon calibrated incomes for each job center in each income
     #  group (for every period)
@@ -66,7 +68,7 @@ def import_options():
     options["deprec_land"] = 0
 
     # Dummy for running calibration again
-    options["run_calib"] = 1
+    options["run_calib"] = 0
 
     # Options for calibration code correction
     #  Dummy for defining dominant income group based on number of people

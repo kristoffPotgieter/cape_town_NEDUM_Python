@@ -331,7 +331,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # RDP houses
     #  We correct output coming from data_RDP with more reliable estimations
-    #  from SAL data
+    #  from SAL data (to include council housing)
     households_RDP = (number_properties_RDP * total_RDP
                       / sum(number_properties_RDP))
     #  Share of housing (no backyard) in RDP surface (with land in km²)
@@ -371,7 +371,9 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     housing_supply_export[:, selected_pixels] = housing_supply
     dwelling_size_export[:, selected_pixels] = copy.deepcopy(dwelling_size)
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
-    # TODO: choose between right and original specification
+    # NB: we multiply by construction_RDP because we want the housing supply
+    # per unit of AVAILABLE land: RDP building is only a fraction of overall
+    # surface (also accounts for backyard)
     housing_supply_RDP = (
         construction_RDP * dwelling_size_RDP * households_RDP
         / (coeff_land_full[3, :] * 0.25)  # * 1000000

@@ -245,18 +245,32 @@ def estim_util_func_param(data_number_formal, data_income_group,
     listUti4 = utilityTarget[3] * listVariation
 
     # Cf. inversion of footnote 16
-    if options["correct_kappa"] == 1:
+    if options["correct_kappa"] == 1 & options["deprec_land"] == 1:
         dataRent = (
             data_sp["price"] ** (coeff_a)
             * (param["depreciation_rate"]
                + interest_rate)
             / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
             )
-    elif options["correct_kappa"] == 0:
+    elif options["correct_kappa"] == 1 & options["deprec_land"] == 0:
+        dataRent = (
+            (interest_rate * data_sp["price"]) ** coeff_a
+            * (param["depreciation_rate"]
+               + interest_rate) ** coeff_b
+            / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
+            )
+    elif options["correct_kappa"] == 0 & options["deprec_land"] == 1:
         dataRent = (
             data_sp["price"] ** (coeff_a)
             * (param["depreciation_rate"]
                + interest_rate)
+            / (coeffKappa * coeff_b ** coeff_b)
+            )
+    elif options["correct_kappa"] == 0 & options["deprec_land"] == 0:
+        dataRent = (
+            (data_sp["price"] * interest_rate) ** coeff_a
+            * (param["depreciation_rate"]
+               + interest_rate) ** coeff_b
             / (coeffKappa * coeff_b ** coeff_b)
             )
 
@@ -347,9 +361,11 @@ def estim_util_func_param(data_number_formal, data_income_group,
         ).T
 
     if options["param_optim"] == 1:
-        cal_amenities = np.exp(np.nansum(predictors_grid * parametersAmenities, 1))
+        cal_amenities = np.exp(
+            np.nansum(predictors_grid * parametersAmenities, 1))
     elif options["param_optim"] == 0:
-        cal_amenities = np.exp(np.nansum(predictors_grid * parametersAmenitiesScan, 1))
+        cal_amenities = np.exp(
+            np.nansum(predictors_grid * parametersAmenitiesScan, 1))
     calw_amenities = cal_amenities / np.nanmean(cal_amenities)
 
     try:

@@ -30,7 +30,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                    spline_population_income_distribution, spline_inflation,
                    spline_income_distribution, spline_population,
                    spline_income,
-                   spline_minimum_housing_supply, spline_fuel):
+                   spline_minimum_housing_supply, spline_fuel, income_2011):
     """Run simulations over several years according to scenarios."""
     # Parameters and options of the scenario
 
@@ -103,7 +103,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
             number_properties_RDP = spline_estimate_RDP(year_temp)
             # Scale factor needs to move to create monetary illusion in the
             # model, e.g. housing supply should not change when currency
-            # changes and all prices move:: this is where the formula comes
+            # changes and all prices move: this is where the formula comes
             # from
             construction_param = (
                 (mean_income / param["income_year_reference"])
@@ -113,9 +113,6 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 spline_land_constraints, spline_land_backyard,
                 spline_land_informal, spline_land_RDP, param, year_temp)
 
-            # TODO: here it seems more natural to use interest_rate instead of
-            # param["interest rate"]?
-            # TODO: choose between right and original formula
             agricultural_rent = inpprm.compute_agricultural_rent(
                 spline_agricultural_rent(year_temp), construction_param,
                 interest_rate, param, options)
@@ -131,7 +128,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 income_net_of_commuting_costs, grid, options,
                 agricultural_rent, interest_rate, number_properties_RDP,
                 average_income, mean_income, income_class_by_housing_type,
-                minimum_housing_supply, construction_param)
+                minimum_housing_supply, construction_param, income_2011)
 
             # Estimation of the derivation of housing supply between t and t+1
             # (only for formal housing)
@@ -163,7 +160,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 income_net_of_commuting_costs, grid, options,
                 agricultural_rent, interest_rate, number_properties_RDP,
                 average_income, mean_income, income_class_by_housing_type,
-                minimum_housing_supply, construction_param)
+                minimum_housing_supply, construction_param, income_2011)
 
             # stat_temp_utility = copy.deepcopy(tmpi_utility)
             stat_temp_deriv_housing = copy.deepcopy(deriv_housing_temp)
