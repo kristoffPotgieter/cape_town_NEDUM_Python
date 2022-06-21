@@ -11,15 +11,67 @@ import numpy as np
 import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import geopandas as gpd
 
 from scipy.interpolate import griddata
 
 import inputs.data as inpdt
 
+import inspect
+
+
+def retrieve_name(var, depth):
+    """Retrieve name of a variable."""
+    if depth==0:
+        callers_local_vars = inspect.currentframe().f_back.f_back.f_locals.items()
+    if depth==1:
+        callers_local_vars = inspect.currentframe().f_back.f_back.f_back.f_locals.items()
+    name = [var_name for var_name, var_val
+            in callers_local_vars if var_val is var]
+    return name[0]
+
+
+def from_df_to_gdf(array, path_data):
+    """Convert map array/series inputs into grid-level GeoDataFrames."""
+    # Load reference shapefile
+    geo_grid = gpd.read_file(path_data + "grid_reference_500.shp")
+    # Convert array or series to data frame
+    df = pd.DataFrame(array)
+    str_array = retrieve_name(array, depth=1)
+    df = df.rename(columns={df.columns[0]: str_array})
+    gdf = pd.merge(geo_grid, df, left_index=True, right_index=True)
+
+    return gdf
+
+
+def export_map(value, grid, export_name, title, path_tables, path_data,
+               ubnd, lbnd=0, cmap='Reds'):
+    """Generate 2D heat maps of any spatial input."""
+    plt.figure(figsize=(10, 7))
+    Map = plt.scatter(grid.x,
+                      grid.y,
+                      s=None,
+                      c=value,
+                      cmap=cmap,
+                      marker='.')
+    plt.colorbar(Map)
+    plt.axis('off')
+    plt.clim(lbnd, ubnd)
+    plt.title(title)
+    plt.savefig(export_name)
+    plt.close()
+
+    # value.to_csv(path_tables + str(value))
+    gdf = from_df_to_gdf(value, path_data)
+    str_value = retrieve_name(value, depth=0)
+    gdf.to_file(path_tables + str_value + '.shp')
+
+    return gdf
+
 
 def export_housing_types(
         housing_type_1, housing_type_2,
-        legend1, legend2, path_plots):
+        legend1, legend2, path_plots, path_tables):
     """Bar plot for equilibrium output across housing types."""
     figure, axis = plt.subplots(1, 1, figsize=(10, 7))
     # figure.tight_layout()
@@ -35,12 +87,14 @@ def export_housing_types(
     figure.savefig(path_plots + 'validation_housing_type.png')
     plt.close(figure)
 
+    data.to_csv(path_tables + 'validation_housing_type.png')
+
     return data
 
 
 def export_households(
         initial_state_households, households_per_income_and_housing,
-        legend1, legend2, path_plots):
+        legend1, legend2, path_plots, path_tables):
     """Bar plot for equilibrium output across housing and income groups."""
     # We apply same reweighting as in equilibrium to match aggregate
     # SAL data
@@ -102,12 +156,16 @@ def export_households(
     figure.savefig(path_plots + 'validation_housing_per_income.png')
     plt.close(figure)
 
+    data0.to_csv(path_tables + 'validation_formal_per_income.csv')
+    data1.to_csv(path_tables + 'validation_backyard_per_income.csv')
+    data2.to_csv(path_tables + 'validation_informal_per_income.csv')
+
     return data0, data1, data2
 
 
 def validation_density(
         grid, initial_state_households_housing_types, housing_types,
-        path_plots):
+        path_plots, path_tables):
     """Line plot for household density across space in 1D."""
     # Note that formal data here includes RDP
     sum_housing_types = (housing_types.informal_grid
@@ -152,12 +210,14 @@ def validation_density(
     plt.savefig(path_plots + 'validation_density.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_density.csv')
+
     return df
 
 
 def validation_density_housing_types(
         grid, initial_state_households_housing_types, housing_types,
-        path_plots):
+        path_plots, path_tables):
     """Line plot for number of households per housing type across 1D-space."""
     # Housing types
     xData = grid.dist
@@ -257,12 +317,14 @@ def validation_density_housing_types(
     plt.savefig(path_plots + 'validation_density_rdp.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_density_per_housing.csv')
+
     return df
 
 
 def validation_density_income_groups(
         grid, initial_state_household_centers, income_distribution_grid,
-        path_plots):
+        path_plots, path_tables):
     """Line plot for number of households per income group across 1D-space."""
     # We apply same reweighting as in equilibrium to match aggregate
     # SAL data
@@ -358,11 +420,13 @@ def validation_density_income_groups(
     plt.savefig(path_plots + 'validation_density_rich.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_density_per_income.csv')
+
     return df
 
 
 def validation_density_housing_and_income_groups(
-        grid, initial_state_households, path_plots):
+        grid, initial_state_households, path_plots, path_tables):
     """Plot number of HHs per housing and income group across 1D-space."""
     # Housing and income groups
     xData = grid.dist
@@ -446,11 +510,13 @@ def validation_density_housing_and_income_groups(
     plt.savefig(path_plots + 'validation_density_IS_income.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_density_per_housing_and_income.csv')
+
     return df
 
 
 def plot_income_net_of_commuting_costs(
-        grid, income_net_of_commuting_costs, path_plots):
+        grid, income_net_of_commuting_costs, path_plots, path_tables):
     """Plot avg income net of commuting costs across 1D-space."""
     # Housing and income groups
     xData = grid.dist
@@ -491,11 +557,13 @@ def plot_income_net_of_commuting_costs(
     plt.savefig(path_plots + 'avg_income_net_of_commuting_1d.png')
     plt.close()
 
+    df.to_csv(path_tables + 'avg_income_net_of_commuting_1d.csv')
+
     return df
 
 
 def plot_average_income(
-        grid, average_income, path_plots):
+        grid, average_income, path_plots, path_tables):
     """Plot average income across 1D-space."""
     # Housing and income groups
     xData = grid.dist
@@ -536,27 +604,13 @@ def plot_average_income(
     plt.savefig(path_plots + 'avg_income_1d.png')
     plt.close()
 
+    df.to_csv(path_tables + 'avg_income_1d.csv')
+
     return df
 
 
-def export_map(value, grid, export_name, title, ubnd, lbnd=0, cmap='Reds'):
-    """Generate 2D heat maps of any spatial input."""
-    plt.figure(figsize=(10, 7))
-    Map = plt.scatter(grid.x,
-                      grid.y,
-                      s=None,
-                      c=value,
-                      cmap=cmap,
-                      marker='.')
-    plt.colorbar(Map)
-    plt.axis('off')
-    plt.clim(lbnd, ubnd)
-    plt.title(title)
-    plt.savefig(export_name)
-    plt.close()
-
-
-def plot_housing_supply(grid, initial_state_housing_supply, path_plots):
+def plot_housing_supply(grid, initial_state_housing_supply, path_plots,
+                        path_tables):
     """Line plot of avg housing supply per type and unit of available land."""
     xData = grid.dist
     formal_simul = initial_state_housing_supply[0, :]
@@ -598,10 +652,13 @@ def plot_housing_supply(grid, initial_state_housing_supply, path_plots):
     plt.savefig(path_plots + 'validation_housing_supply.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_housing_supply.csv')
+
     return df
 
 
-def plot_housing_supply_noland(grid, housing_supply, path_plots):
+def plot_housing_supply_noland(grid, housing_supply, path_plots,
+                               path_tables):
     """Line plot of total housing supply per type across 1D-space."""
     xData = grid.dist
     formal_simul = housing_supply[0, :]
@@ -643,8 +700,11 @@ def plot_housing_supply_noland(grid, housing_supply, path_plots):
     plt.savefig(path_plots + 'validation_housing_supply_noland.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_housing_supply_noland.csv')
+
     return df
 
+#
 
 def validation_housing_price(
         grid, initial_state_rent, interest_rate, param, center,
