@@ -1,0 +1,24 @@
+                 Generalized Linear Model Regression Results                  
+==============================================================================
+Dep. Variable:                      y   No. Observations:                  145
+Model:                            GLM   Df Residuals:                      136
+Model Family:                Gaussian   Df Model:                            8
+Link Function:               identity   Scale:                        0.013399
+Method:                          IRLS   Log-Likelihood:                 111.56
+Date:                Wed, 25 May 2022   Deviance:                       1.8223
+Time:                        17:27:30   Pearson chi2:                     1.82
+No. Iterations:                     3   Pseudo R-squ. (CS):            -0.2310
+Covariance Type:            nonrobust                                         
+==============================================================================================
+                                 coef    std err          z      P>|z|      [0.025      0.975]
+----------------------------------------------------------------------------------------------
+distance_ocean                 0.0052      0.025      0.213      0.831      -0.043       0.053
+distance_ocean_2_4            -0.0107      0.030     -0.360      0.719      -0.069       0.048
+slope_1_5                     -0.0401      0.021     -1.956      0.050      -0.080    7.68e-05
+slope_5                       -0.0391      0.041     -0.965      0.335      -0.119       0.040
+airport_cone2                  0.0219      0.050      0.436      0.663      -0.077       0.120
+distance_distr_parks           0.0072      0.026      0.282      0.778      -0.043       0.058
+distance_biosphere_reserve    -0.1177      0.026     -4.515      0.000      -0.169      -0.067
+distance_train                -0.0917      0.016     -5.888      0.000      -0.122      -0.061
+distance_urban_herit          -0.0328      0.044     -0.740      0.460      -0.120       0.054
+==============================================================================================
