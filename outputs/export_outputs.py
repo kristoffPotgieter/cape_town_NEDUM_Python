@@ -812,25 +812,26 @@ def plot_housing_supply_noland(grid, housing_supply, path_plots,
 
     return df
 
-#
 
 def validation_housing_price(
         grid, initial_state_rent, interest_rate, param, center,
-        precalculated_inputs, path_outputs):
-    """d."""
-    data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
-    # Number of informal settlements in backyard per grid cell
-    sp_x = data['spX'][0][0].squeeze()
-    sp_y = data['spY'][0][0].squeeze()
-    sp_price = data['spPrice'][0][0].squeeze()[2, :]
+        housing_types_sp, data_sp,
+        path_plots, path_tables, land_price):
+    """Plot land price per housing type across space."""
+    sp_x = housing_types_sp["x_sp"]
+    sp_y = housing_types_sp["y_sp"]
+    sp_price = data_sp["price"]
 
-    priceSimul = (
-        ((initial_state_rent[0:3, :] * param["coeff_A"])
-         / (interest_rate + param["depreciation_rate"]))
-        ** (1 / param["coeff_a"])
-        * param["coeff_a"]
-        * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
-        )
+    if land_price == 1:
+        priceSimul = (
+            ((initial_state_rent[0:3, :] * param["coeff_A"])
+             / (interest_rate + param["depreciation_rate"]))
+            ** (1 / param["coeff_a"])
+            * param["coeff_a"]
+            * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
+            )
+    elif land_price == 0:
+        priceSimul = initial_state_rent
 
     priceSimulPricePoints_formal = griddata(
         np.transpose(np.array([grid.x, grid.y])),
@@ -849,8 +850,16 @@ def validation_housing_price(
         )
 
     xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
-    # TODO: a priori, no need to redefine
-    yData = sp_price
+    # TODO: check need to redefine
+    if land_price == 1:
+        yData = sp_price
+    elif land_price == 0:
+        yData = (sp_price ** param["coeff_a"]
+                 / (param["coeff_a"] ** param["coeff_a"]
+                    * param["coeff_b"]**param["coeff_b"])
+                 * (interest_rate + param["depreciation_rate"])
+                 / param["coeff_A"]
+                 )
     # xSimulation = xData
     ySimulation = priceSimulPricePoints_formal
     informalSimul = priceSimulPricePoints_informal
@@ -879,14 +888,115 @@ def validation_housing_price(
             color="blue", label="Backyard")
     ax.set_ylim(0)
     ax.set_xlim([0, 50])
-    plt.xlabel("Distance to the city center (km)")
-    plt.ylabel("Price (R/m² of land)")
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    if land_price == 1:
+        plt.ylabel("Land price (R/m² of land)", labelpad=15)
+    if land_price == 0:
+        plt.ylabel("Housing price (R/m² of housing)", labelpad=15)
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.tick_params(bottom=True, labelbottom=True)
-    plt.savefig(path_outputs + '/validation_housing_price.png')
+    plt.savefig(path_plots + '/validation_housing_price'
+                + str(land_price) + '.png')
     plt.close()
 
+    df.to_csv(path_tables + 'validation_housing_price'
+              + str(land_price) + '.csv')
+    print('validation_housing_price' + str(land_price) + ' done')
+
+    return df, yData
+
+
+def validation_housing_price_test(
+        grid, initial_state_rent, interest_rate, param, center,
+        housing_types_sp, data_sp,
+        path_plots, path_tables, land_price):
+    """Plot land price per housing type across space."""
+    sp_x = housing_types_sp["x_sp"]
+    sp_y = housing_types_sp["y_sp"]
+    sp_price = data_sp["price"]
+
+    if land_price == 1:
+        priceSimul = (
+            ((initial_state_rent[0:3, :] * param["coeff_A"])
+             / (interest_rate + param["depreciation_rate"]))
+            ** (1 / param["coeff_a"])
+            * param["coeff_a"]
+            * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
+            )
+    elif land_price == 0:
+        priceSimul = initial_state_rent
+
+    # TODO: check need to redefine
+    if land_price == 1:
+        yData = sp_price
+    elif land_price == 0:
+        yData = (sp_price ** param["coeff_a"]
+                 / (param["coeff_a"] ** param["coeff_a"]
+                    * param["coeff_b"]**param["coeff_b"])
+                 * (interest_rate + param["depreciation_rate"])
+                 / param["coeff_A"]
+                 )
+    xData = grid.dist
+    # TODO: check coordinate issues and lack of data in center
+    yData = griddata(
+        np.transpose(np.array([sp_x, sp_y])),
+        yData,
+        np.transpose(np.array([grid.x, grid.y]))
+        )
+    ySimulation = priceSimul[0, :]
+    informalSimul = priceSimul[1, :]
+    backyardSimul = priceSimul[2, :]
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array([xData, yData, ySimulation, informalSimul,
+                                    backyardSimul])),
+        columns=["xData", "yData", "ySimulation", "informalSimul",
+                 "backyardSimul"])
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).mean()
+    # test_df = df.groupby(['round']).agg({'yData': np.nanmean,
+    #                                 'ySimulation': np.nanmean,
+    #                                 'informalSimul': np.nanmean,
+    #                                 'backyardSimul': np.nanmean}).reset_index()
+
+    which_data = ~np.isnan(new_df.yData)
+    which_simul = ~np.isnan(new_df.ySimulation)
+    which_informal = ~np.isnan(new_df.informalSimul)
+    which_backyard = ~np.isnan(new_df.backyardSimul)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(new_df.xData[which_data], new_df.yData[which_data],
+            color="black", label="Data")
+    ax.plot(new_df.xData[which_simul], new_df.ySimulation[which_simul],
+            color="green", label="Simul")
+    ax.plot(new_df.xData[which_informal], new_df.informalSimul[which_informal],
+            color="red", label="Informal")
+    ax.plot(new_df.xData[which_backyard], new_df.backyardSimul[which_backyard],
+            color="blue", label="Backyard")
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    if land_price == 1:
+        plt.ylabel("Land price (R/m² of land)", labelpad=15)
+    if land_price == 0:
+        plt.ylabel("Housing price (R/m² of housing)", labelpad=15)
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.tick_params(bottom=True, labelbottom=True)
+    plt.savefig(path_plots + '/validation_housing_price'
+                + str(land_price) + '.png')
+    plt.close()
+
+    df.to_csv(path_tables + 'validation_housing_price'
+              + str(land_price) + '.csv')
+    print('validation_housing_price' + str(land_price) + ' done')
+
+    return df, yData
 
 def plot_housing_demand(grid, center, initial_state_dwelling_size,
                         path_precalc_inp, path_outputs):

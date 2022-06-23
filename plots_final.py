@@ -90,6 +90,7 @@ print("Load data and results to be plotted as outputs")
 grid, center = inpdt.import_grid(path_data)
 geo_grid = gpd.read_file(path_data + "grid_reference_500.shp")
 geo_TAZ = gpd.read_file(path_data + "TAZ_ampp_prod_attr_2013_2032.shp")
+amenities = inpdt.import_amenities(path_precalc_inp, options)
 
 
 # MACRO DATA
@@ -142,6 +143,9 @@ coeff_land = inpdt.import_coeff_land(
 # OTHER VALIDATION DATA
 
 data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
+data_avg_income = data['gridAverageIncome'][0][0].squeeze()
+data_avg_income[np.isnan(data_avg_income)] = 0
+
 
 # TODO: do loop for simulations
 income_net_of_commuting_costs = np.load(
@@ -364,7 +368,7 @@ rich_sim = outexp.export_map(
     ubnd=500)
 
 
-# HOUSING SUPPLY OUTPUTS
+# %% HOUSING SUPPLY OUTPUTS
 
 # By plotting the housing supply per unit of available land, we may check
 # whether the bell-shaped curve of urban development holds
@@ -463,27 +467,60 @@ FAR_rdp_2d_sim = outexp.export_map(
 # formal private
 
 
-# DWELLING SIZE OUTPUTS
+# %% HOUSING PRICE OUTPUTS
 
-# outexp.validation_housing_price(
-#     grid, initial_state_rent, interest_rate, param, center, path_precalc_inp,
-#     path_outputs + plot_repo
-#     )
+# First in one dimension
+housing_price_1d, data_land_price = outexp.validation_housing_price(
+    grid, initial_state_rent, interest_rate, param, center,
+    housing_types_sp, data_sp, path_plots, path_tables,
+    land_price=1)
+housing_price_1d, data_housing_price = outexp.validation_housing_price(
+    grid, initial_state_rent, interest_rate, param, center,
+    housing_types_sp, data_sp, path_plots, path_tables,
+    land_price=0)
 
-# # TODO: Also do breakdown for poorest across housing types and backyards
-# # vs. RDP
+housing_price_1d, data_land_price = outexp.validation_housing_price_test(
+    grid, initial_state_rent, interest_rate, param, center,
+    housing_types_sp, data_sp, path_plots, path_tables,
+    land_price=1)
+housing_price_1d, data_housing_price = outexp.validation_housing_price_test(
+    grid, initial_state_rent, interest_rate, param, center,
+    housing_types_sp, data_sp, path_plots, path_tables,
+    land_price=0)
 
-# # test = (initial_state_households_housing_types[1, :]
-# #         / initial_state_households_housing_types[3, :])
-# # test = test[test > 0]
+data_land_price_copy = data_land_price.copy()
+data_housing_price_copy = data_housing_price.copy()
+data_land_price_copy[np.isnan(data_land_price)] = 0
+data_housing_price_copy[np.isnan(data_housing_price)] = 0
 
-# # TODO: does it matter if price distribution is shifted to the right?
 
-# # TODO: how can dwelling size be so big?
+# Then in two dimensions
+
+rent_formal_simul = initial_state_rent[0, :].copy()
+housing_price_2d_sim = outexp.export_map(
+    rent_formal_simul, grid, geo_grid, path_plots + 'rent_formal_2d_sim',
+    "Simulated average housing rents per location (private formal)",
+    path_tables,
+    ubnd=4000)
+
+grid_intersect = pd.read_csv(
+    path_data + 'grid_SP_intersect.csv', sep=';')
+rent_formal_data = inpdt.gen_small_areas_to_grid(
+    grid, grid_intersect, data_housing_price_copy,
+    data_sp["sp_code"], 'SP')
+
+housing_price_2d_data = outexp.export_map(
+    rent_formal_data, grid, geo_grid, path_plots + 'rent_formal_2d_data',
+    "Data average housing rents per location (private formal)",
+    path_tables,
+    ubnd=2500)
+
+# %% DWELLING SIZE OUTPUTS
 # outexp.plot_housing_demand(grid, center, initial_state_dwelling_size,
 #                            path_precalc_inp, path_outputs + plot_repo)
 
-# TRANSPORT DATA
+
+# %% TRANSPORT OUTPUTS
 
 #  Income net of commuting costs
 netincome_poor = income_net_of_commuting_costs[0, :]
@@ -555,8 +592,6 @@ overall_avg_income = (cal_average_income
                       / np.nansum(initial_state_household_centers, 0))
 overall_avg_income[np.isnan(overall_avg_income)] = 0
 overall_avg_income = np.nansum(overall_avg_income, 0)
-data_avg_income = data['gridAverageIncome'][0][0].squeeze()
-data_avg_income[np.isnan(data_avg_income)] = 0
 
 # The validation is pretty bad, but we should check if this is indeed
 # a problem (calibration </> final output) and if validation data refers
@@ -696,26 +731,68 @@ plt.close()
 income_centers_init = np.load(
     path_precalc_inp + 'incomeCentersKeep.npy')
 income_centers_init[income_centers_init < 0] = 0
+income_centers_init_merge = pd.DataFrame(income_centers_init)
+income_centers_init_merge = income_centers_init_merge.rename(
+    columns={income_centers_init_merge.columns[0]: 'poor_income',
+             income_centers_init_merge.columns[1]: 'midpoor_income',
+             income_centers_init_merge.columns[2]: 'midrich_income',
+             income_centers_init_merge.columns[3]: 'rich_income'})
 
-incomes_rich_2d = pd.merge(geo_TAZ, income_centers_init[0],
-                        left_index=True, right_index=True)
-jobs_rich_2d = pd.merge(jobs_rich_2d, selected_centers,
-                        left_index=True, right_index=True)
-jobs_rich_2d.to_file(path_tables + 'jobs_rich' + '.shp')
-jobs_rich_2d_select = jobs_rich_2d[
-    (jobs_rich_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_rich_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_rich_2d_select.loc[
-    jobs_rich_2d_select["selected_centers"] == 0, 'jobs_rich'
-    ] = 0
+income_centers_init_merge["count"] = income_centers_init_merge.index + 1
+
+selected_centers_merge = selected_centers.copy()
+(selected_centers_merge["count"]
+ ) = selected_centers_merge.selected_centers.cumsum()
+selected_centers_merge.loc[
+    selected_centers_merge.selected_centers == 0, "count"] = 0
+
+income_centers_TAZ = pd.merge(income_centers_init_merge,
+                              selected_centers_merge,
+                              how='right', on='count')
+income_centers_TAZ = income_centers_TAZ.fillna(value=0)
+
+income_centers_2d = pd.merge(geo_TAZ, income_centers_TAZ,
+                             left_index=True, right_index=True)
+income_centers_2d.to_file(path_tables + 'income_centers_2d' + '.shp')
+
+income_centers_2d_select = income_centers_2d[
+    (income_centers_2d.geometry.bounds.maxy < -3740000)
+    & (income_centers_2d.geometry.bounds.maxx < -10000)].copy()
+
 fig, ax = plt.subplots(figsize=(8, 10))
 ax.set_axis_off()
-plt.title("Number of rich jobs in selected job centers (data)")
-jobs_rich_2d_select.plot(column='rich_jobs', ax=ax,
-                         cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_rich_in_selected_centers')
+plt.title("Average calibrated incomes per job center for poor households")
+income_centers_2d_select.plot(column='poor_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_plots + 'poor_income_in_selected_centers')
+plt.close()
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for mid-poor households")
+income_centers_2d_select.plot(column='midpoor_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_plots + 'midpoor_income_in_selected_centers')
+plt.close()
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for mid-rich households")
+income_centers_2d_select.plot(column='midrich_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_plots + 'midrich_income_in_selected_centers')
+plt.close()
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for rich households")
+income_centers_2d_select.plot(column='rich_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_plots + 'rich_income_in_selected_centers')
 plt.close()
 
 # TODO: ask for TAZ code dictionnary to identify OD flows for some key
 # job centers (CBD, etc.)
 
+amenity_map = outexp.export_map(
+    amenities, grid, geo_grid, path_plots + 'amenity_map',
+    "Map of average amenity index per location",
+    path_tables,
+    ubnd=1.3, lbnd=0.8)

@@ -467,9 +467,9 @@ if options["run_calib"] == 1:
     (calibratedUtility_beta, calibratedUtility_q0, cal_amenities
      ) = calmain.estim_util_func_param(
          data_number_formal, data_income_group, housing_types_sp, data_sp,
-         grid, coeff_a, coeff_b, coeffKappa, interest_rate,
+         coeff_a, coeff_b, coeffKappa, interest_rate,
          incomeNetOfCommuting, selected_density, path_data, path_precalc_inp,
-         path_plots, options, param)
+         options, param)
 
     # param["beta"] = calibratedUtility_beta
     # param["q0"] = calibratedUtility_q0

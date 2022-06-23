@@ -28,7 +28,7 @@ import calibration.sub.import_amenities as calam
 
 # import equilibrium.functions_dynamic as eqdyn
 
-import outputs.export_outputs as outexp
+# import outputs.export_outputs as outexp
 
 
 def estim_construct_func_param(options, param, data_sp,
@@ -190,10 +190,10 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
 
 
 def estim_util_func_param(data_number_formal, data_income_group,
-                          housing_types_sp, data_sp, grid,
+                          housing_types_sp, data_sp,
                           coeff_a, coeff_b, coeffKappa, interest_rate,
                           incomeNetOfCommuting, selected_density,
-                          path_data, path_precalc_inp, path_plots,
+                          path_data, path_precalc_inp,
                           options, param):
     """Calibrate utility function parameters."""
     # We select in which areas we actually measure the likelihood
@@ -366,14 +366,14 @@ def estim_util_func_param(data_number_formal, data_income_group,
     elif options["param_optim"] == 0:
         cal_amenities = np.exp(
             np.nansum(predictors_grid * parametersAmenitiesScan, 1))
-    calw_amenities = cal_amenities / np.nanmean(cal_amenities)
+    # calw_amenities = cal_amenities / np.nanmean(cal_amenities)
 
-    try:
-        os.mkdir(path_plots)
-    except OSError as error:
-        print(error)
-    outexp.export_map(calw_amenities, grid, path_plots + 'amenity_map',
-                      1.3, 0.8)
+    # try:
+    #     os.mkdir(path_plots)
+    # except OSError as error:
+    #     print(error)
+    # outexp.export_map(calw_amenities, grid, path_plots + 'amenity_map',
+    #                   1.3, 0.8)
 
     # Note that amenity map from GLM estimates yields absurd results, hence it
     # is not coded here
