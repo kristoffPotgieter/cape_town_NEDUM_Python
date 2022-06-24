@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 import inputs.parameters_and_options as inpprm
 import inputs.data as inpdt
 import outputs.export_outputs as outexp
+import outputs.flood_outputs as outfld
+import outputs.export_outputs_floods as outval
 
 print("Import information to be used in the simulation")
 
@@ -33,6 +35,7 @@ path_data = path_folder + 'data_Cape_Town/'
 path_precalc_transp = path_folder + 'precalculated_transport/'
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
 path_outputs = path_code + '/4. Sorties/'
+path_floods = path_folder + "FATHOM/"
 
 
 # IMPORT PARAMETERS AND OPTIONS
@@ -470,54 +473,115 @@ FAR_rdp_2d_sim = outexp.export_map(
 # %% HOUSING PRICE OUTPUTS
 
 # First in one dimension
-housing_price_1d, data_land_price = outexp.validation_housing_price(
-    grid, initial_state_rent, interest_rate, param, center,
-    housing_types_sp, data_sp, path_plots, path_tables,
-    land_price=1)
-housing_price_1d, data_housing_price = outexp.validation_housing_price(
-    grid, initial_state_rent, interest_rate, param, center,
-    housing_types_sp, data_sp, path_plots, path_tables,
-    land_price=0)
+# housing_price_1d, data_land_price = outexp.validation_housing_price(
+#     grid, initial_state_rent, interest_rate, param, center,
+#     housing_types_sp, data_sp, path_plots, path_tables,
+#     land_price=1)
+# housing_price_1d, data_housing_price = outexp.validation_housing_price(
+#     grid, initial_state_rent, interest_rate, param, center,
+#     housing_types_sp, data_sp, path_plots, path_tables,
+#     land_price=0)
 
 housing_price_1d, data_land_price = outexp.validation_housing_price_test(
-    grid, initial_state_rent, interest_rate, param, center,
+    grid, initial_state_rent, initial_state_households_housing_types,
+    interest_rate, param, center,
     housing_types_sp, data_sp, path_plots, path_tables,
     land_price=1)
 housing_price_1d, data_housing_price = outexp.validation_housing_price_test(
-    grid, initial_state_rent, interest_rate, param, center,
+    grid, initial_state_rent, initial_state_households_housing_types,
+    interest_rate, param, center,
     housing_types_sp, data_sp, path_plots, path_tables,
     land_price=0)
 
-data_land_price_copy = data_land_price.copy()
-data_housing_price_copy = data_housing_price.copy()
-data_land_price_copy[np.isnan(data_land_price)] = 0
-data_housing_price_copy[np.isnan(data_housing_price)] = 0
-
+# data_land_price_copy = data_land_price.copy()
+# data_housing_price_copy = data_housing_price.copy()
+# data_land_price_copy[np.isnan(data_land_price)] = 0
+# data_housing_price_copy[np.isnan(data_housing_price)] = 0
 
 # Then in two dimensions
 
+# TODO: why don't we manage to reproduce very high prices in center?
+# Has to do with amenity map?
 rent_formal_simul = initial_state_rent[0, :].copy()
-housing_price_2d_sim = outexp.export_map(
+housing_price_formal_2d_sim = outexp.export_map(
     rent_formal_simul, grid, geo_grid, path_plots + 'rent_formal_2d_sim',
     "Simulated average housing rents per location (private formal)",
     path_tables,
     ubnd=4000)
-
-grid_intersect = pd.read_csv(
-    path_data + 'grid_SP_intersect.csv', sep=';')
-rent_formal_data = inpdt.gen_small_areas_to_grid(
-    grid, grid_intersect, data_housing_price_copy,
-    data_sp["sp_code"], 'SP')
-
-housing_price_2d_data = outexp.export_map(
-    rent_formal_data, grid, geo_grid, path_plots + 'rent_formal_2d_data',
-    "Data average housing rents per location (private formal)",
+rent_backyard_simul = initial_state_rent[1, :].copy()
+housing_price_backyard_2d_sim = outexp.export_map(
+    rent_backyard_simul, grid, geo_grid, path_plots + 'rent_backyard_2d_sim',
+    "Simulated average housing rents per location (informal backyards)",
+    path_tables,
+    ubnd=2500)
+rent_informal_simul = initial_state_rent[2, :].copy()
+housing_price_informal_2d_sim = outexp.export_map(
+    rent_informal_simul, grid, geo_grid, path_plots + 'rent_informal_2d_sim',
+    "Simulated average housing rents per location (informal settlements)",
     path_tables,
     ubnd=2500)
 
+land_rent = (
+    (initial_state_rent[0:3, :] * param["coeff_A"])
+    ** (1 / param["coeff_a"])
+    * param["coeff_a"]
+    * (param["coeff_b"] / (interest_rate + param["depreciation_rate"]))
+    ** (param["coeff_b"] / param["coeff_a"])
+    / interest_rate
+    )
+landrent_formal_simul = land_rent[0, :].copy()
+land_price_formal_2d_sim = outexp.export_map(
+    landrent_formal_simul, grid, geo_grid,
+    path_plots + 'landrent_formal_2d_sim',
+    "Simulated average land rents per location (private formal)",
+    path_tables,
+    ubnd=15000)
+landrent_backyard_simul = land_rent[1, :].copy()
+land_price_backyard_2d_sim = outexp.export_map(
+    landrent_backyard_simul, grid, geo_grid,
+    path_plots + 'landrent_backyard_2d_sim',
+    "Simulated average land rents per location (informal backyards)",
+    path_tables,
+    ubnd=10000)
+landrent_informal_simul = initial_state_rent[2, :].copy()
+land_price_informal_2d_sim = outexp.export_map(
+    landrent_informal_simul, grid, geo_grid,
+    path_plots + 'landrent_informal_2d_sim',
+    "Simulated average land rents per location (informal settlements)",
+    path_tables,
+    ubnd=10000)
+
+# grid_intersect = pd.read_csv(
+#     path_data + 'grid_SP_intersect.csv', sep=';')
+# rent_formal_data = inpdt.gen_small_areas_to_grid(
+#     grid, grid_intersect, data_housing_price_copy,
+#     data_sp["sp_code"], 'SP')
+
+# housing_price_2d_data = outexp.export_map(
+#     rent_formal_data, grid, geo_grid, path_plots + 'rent_formal_2d_data',
+#     "Data average housing rents per location (private formal)",
+#     path_tables,
+#     ubnd=2500)
+
 # %% DWELLING SIZE OUTPUTS
-# outexp.plot_housing_demand(grid, center, initial_state_dwelling_size,
-#                            path_precalc_inp, path_outputs + plot_repo)
+
+# Note that we start getting a lot of nan values around 30km
+# Could this explain the low number of households in Mitchell's Plain
+# in spite of the housing supply
+# TODO: how should we interpret such high values
+dwelling_size_1d = outexp.plot_housing_demand(
+    grid, center, initial_state_dwelling_size,
+    initial_state_households_housing_types,
+    housing_types_sp, data_sp,
+    path_plots, path_tables)
+
+formal_dwelling_size = initial_state_dwelling_size[0, :]
+dwelling_size_2d = outexp.export_map(
+    formal_dwelling_size, grid, geo_grid,
+    path_plots + 'formal_dwellingsize_2d_sim',
+    "Simulated average dwelling size per location (formal private)",
+    path_tables,
+    ubnd=300)
 
 
 # %% TRANSPORT OUTPUTS
@@ -796,3 +860,78 @@ amenity_map = outexp.export_map(
     "Map of average amenity index per location",
     path_tables,
     ubnd=1.3, lbnd=0.8)
+
+
+# %% FLOOD OUPUTS
+
+# TODO: first do input flood maps in 1D and 2D, to be superimposed with
+# some previous maps
+# Then also compute damages, welfare impacts, aggregate effects, etc.
+# Finally, need to do dynamics and comparisons across scenarios, LVC, etc.
+
+# TODO: also need to add options for the code to run seamlessly across
+# scenarios
+
+fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
+                  'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
+pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
+                  'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
+coastal_floods = ['C_NASADEM_1_0000', 'C_NASADEM_1_0002', 'C_NASADEM_1_0005',
+                  'C_NASADEM_1_0010', 'C_NASADEM_1_0025', 'C_NASADEM_1_0050',
+                  'C_NASADEM_1_0100', 'C_NASADEM_1_0250']
+
+# Also for income groups and across the two? Maybe no need as we already have
+# the breakdown: suffices to apply respective shares
+# NB: evolution is not necessarily montonous on the short run because of
+# some decreasing flood depths (never proportion of flood-prone area)
+# TODO: is it normal?
+
+stats_fluvial_per_housing_data = outfld.compute_stats_per_housing_type(
+    fluvial_floods, path_floods, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_informal,
+    data_nb_households_backyard, path_tables, type_flood='fluvial')
+stats_fluvial_per_housing_sim = outfld.compute_stats_per_housing_type(
+    fluvial_floods, path_floods, sim_nb_households_formal,
+    data_nb_households_rdp,
+    sim_nb_households_informal,
+    sim_nb_households_backyard,
+    path_tables, type_flood='fluvial')
+# Need to do informal on the side!
+# TODO: does not work when calling function?
+outval.validation_flood
+(stats_fluvial_per_housing_data, stats_fluvial_per_housing_sim,
+ 'Data', 'Simul', 'fluvial', path_plots)
+
+stats_pluvial_per_housing_data = outfld.compute_stats_per_housing_type(
+    pluvial_floods, path_floods, data_nb_households_formal,
+    data_nb_households_rdp,
+    data_nb_households_informal,
+    data_nb_households_backyard,
+    options, param, type_flood='pluvial')
+stats_pluvial_per_housing_sim = outfld.compute_stats_per_housing_type(
+    pluvial_floods, path_floods, sim_nb_households_formal,
+    data_nb_households_rdp,
+    sim_nb_households_informal,
+    sim_nb_households_backyard,
+    options, param, type_flood='pluvial')
+outval.validation_flood
+(stats_pluvial_per_housing_data, stats_pluvial_per_housing_sim,
+ 'Data', 'Simul', 'pluvial', path_plots)
+
+stats_coastal_per_housing_data = outfld.compute_stats_per_housing_type(
+    coastal_floods, path_floods, data_nb_households_formal,
+    data_nb_households_rdp,
+    data_nb_households_informal,
+    data_nb_households_backyard,
+    options, param, type_flood='coastal')
+stats_coastal_per_housing_sim = outfld.compute_stats_per_housing_type(
+    coastal_floods, path_floods, sim_nb_households_formal,
+    data_nb_households_rdp,
+    sim_nb_households_informal,
+    sim_nb_households_backyard,
+    options, param, type_flood='coastal')
+outval.validation_flood
+(stats_coastal_per_housing_data, stats_coastal_per_housing_sim,
+ 'Data', 'Simul', 'coastal', path_plots)
+
+

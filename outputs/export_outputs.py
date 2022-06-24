@@ -5,7 +5,7 @@ Created on Mon Nov  2 11:32:48 2020.
 @author: Charlotte Liotta
 """
 
-import scipy
+# import scipy
 import pandas as pd
 import numpy as np
 # import os
@@ -910,8 +910,8 @@ def validation_housing_price(
 
 
 def validation_housing_price_test(
-        grid, initial_state_rent, interest_rate, param, center,
-        housing_types_sp, data_sp,
+        grid, initial_state_rent, initial_state_households_housing_types,
+        interest_rate, param, center, housing_types_sp, data_sp,
         path_plots, path_tables, land_price):
     """Plot land price per housing type across space."""
     sp_x = housing_types_sp["x_sp"]
@@ -919,26 +919,50 @@ def validation_housing_price_test(
     sp_price = data_sp["price"]
 
     if land_price == 1:
+        # priceSimul = (
+        #     ((initial_state_rent[0:3, :] * param["coeff_A"])
+        #      / (interest_rate + param["depreciation_rate"]))
+        #     ** (1 / param["coeff_a"])
+        #     * param["coeff_a"]
+        #     * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
+        #     )
         priceSimul = (
-            ((initial_state_rent[0:3, :] * param["coeff_A"])
-             / (interest_rate + param["depreciation_rate"]))
+            (initial_state_rent[0:3, :] * param["coeff_A"])
             ** (1 / param["coeff_a"])
             * param["coeff_a"]
-            * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
+            * (param["coeff_b"] / (interest_rate + param["depreciation_rate"]))
+            ** (param["coeff_b"] / param["coeff_a"])
+            / interest_rate
             )
     elif land_price == 0:
-        priceSimul = initial_state_rent
+        priceSimul = initial_state_rent[0:3, :]
+
+    np.seterr(divide='ignore', invalid='ignore')
+    avg_priceSimul = (
+        priceSimul * initial_state_households_housing_types[0:3, :]
+        / np.nansum(initial_state_households_housing_types[0:3, :], 0))
+    # Here, we preserve nan values!
+    avg_priceSimul = np.sum(avg_priceSimul, 0)
 
     # TODO: check need to redefine
     if land_price == 1:
         yData = sp_price
     elif land_price == 0:
+        # yData = (sp_price ** param["coeff_a"]
+        #          / (param["coeff_a"] ** param["coeff_a"]
+        #             * param["coeff_b"]**param["coeff_b"])
+        #          * (interest_rate + param["depreciation_rate"])
+        #          / param["coeff_A"]
+        #          )
         yData = (sp_price ** param["coeff_a"]
                  / (param["coeff_a"] ** param["coeff_a"]
                     * param["coeff_b"]**param["coeff_b"])
                  * (interest_rate + param["depreciation_rate"])
+                 ** param["coeff_b"]
+                 * interest_rate**param["coeff_a"]
                  / param["coeff_A"]
                  )
+
     xData = grid.dist
     # TODO: check coordinate issues and lack of data in center
     yData = griddata(
@@ -950,32 +974,32 @@ def validation_housing_price_test(
     informalSimul = priceSimul[1, :]
     backyardSimul = priceSimul[2, :]
 
+    # NB: we take yData out as we do not have enough observations
     df = pd.DataFrame(
-        data=np.transpose(np.array([xData, yData, ySimulation, informalSimul,
-                                    backyardSimul])),
-        columns=["xData", "yData", "ySimulation", "informalSimul",
-                 "backyardSimul"])
+        data=np.transpose(np.array([xData, ySimulation, informalSimul,
+                                    backyardSimul, avg_priceSimul])),
+        columns=["xData", "ySimulation", "informalSimul",
+                 "backyardSimul", "avgSimul"])
     df["round"] = round(df.xData)
     new_df = df.groupby(['round']).mean()
-    # test_df = df.groupby(['round']).agg({'yData': np.nanmean,
-    #                                 'ySimulation': np.nanmean,
-    #                                 'informalSimul': np.nanmean,
-    #                                 'backyardSimul': np.nanmean}).reset_index()
 
-    which_data = ~np.isnan(new_df.yData)
+    # which_data = ~np.isnan(new_df.yData)
     which_simul = ~np.isnan(new_df.ySimulation)
     which_informal = ~np.isnan(new_df.informalSimul)
     which_backyard = ~np.isnan(new_df.backyardSimul)
+    which_avg = ~np.isnan(new_df.avgSimul)
 
     fig, ax = plt.subplots(figsize=(10, 7))
-    ax.plot(new_df.xData[which_data], new_df.yData[which_data],
-            color="black", label="Data")
+    # ax.plot(new_df.xData[which_data], new_df.yData[which_data],
+    #         color="black", label="Data")
     ax.plot(new_df.xData[which_simul], new_df.ySimulation[which_simul],
-            color="green", label="Simul")
+            color="green", label="Formal")
     ax.plot(new_df.xData[which_informal], new_df.informalSimul[which_informal],
             color="red", label="Informal")
     ax.plot(new_df.xData[which_backyard], new_df.backyardSimul[which_backyard],
             color="blue", label="Backyard")
+    ax.plot(new_df.xData[which_avg], new_df.avgSimul[which_avg],
+            color="black", label="Average")
     ax.set_ylim(0)
     ax.set_xlim([0, 50])
     ax.yaxis.set_major_formatter(
@@ -998,23 +1022,31 @@ def validation_housing_price_test(
 
     return df, yData
 
+
 def plot_housing_demand(grid, center, initial_state_dwelling_size,
-                        path_precalc_inp, path_outputs):
-    """d."""
-    data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
-    # Number of informal settlements in backyard per grid cell
-    sp_x = data['spX'][0][0].squeeze()
-    sp_y = data['spY'][0][0].squeeze()
-    sp_size = data['spDwellingSize'][0][0].squeeze()
+                        initial_state_households_housing_types,
+                        housing_types_sp, data_sp,
+                        path_plots, path_tables):
+    """Plot average dwelling size in private formal across space."""
+    sp_x = housing_types_sp["x_sp"]
+    sp_y = housing_types_sp["y_sp"]
+    sp_size = data_sp["dwelling_size"]
 
-    sizeSimulPoints = griddata(
-        np.transpose(np.array([grid.x, grid.y])),
-        initial_state_dwelling_size[0, :],
-        np.transpose(np.array([sp_x, sp_y]))
+    # sizeSimulPoints = griddata(
+    #     np.transpose(np.array([grid.x, grid.y])),
+    #     initial_state_dwelling_size[0, :],
+    #     np.transpose(np.array([sp_x, sp_y]))
+    #     )
+    sizeSimulPoints = initial_state_dwelling_size[0, :]
+
+    # xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
+    xData = grid.dist
+    # yData = sp_size
+    yData = griddata(
+        np.transpose(np.array([sp_x, sp_y])),
+        sp_size,
+        np.transpose(np.array([grid.x, grid.y]))
         )
-
-    xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
-    yData = sp_size
     # xSimulation = xData
     ySimulation = sizeSimulPoints
 
@@ -1027,20 +1059,23 @@ def plot_housing_demand(grid, center, initial_state_dwelling_size,
     df["round"] = round(df.xData)
     new_df = df.groupby(['round']).mean()
 
-    which = ~np.isnan(new_df.yData) & ~np.isnan(new_df.ySimulation)
+    which_simul = ~np.isnan(new_df.ySimulation)
+    which_data = ~np.isnan(new_df.yData)
 
     fig, ax = plt.subplots(figsize=(10, 7))
-    ax.plot(new_df.xData[which], new_df.yData[which],
+    ax.plot(new_df.xData[which_data], new_df.yData[which_data],
             color="black", label="Data")
-    ax.plot(new_df.xData[which], new_df.ySimulation[which],
+    ax.plot(new_df.xData[which_simul], new_df.ySimulation[which_simul],
             color="green", label="Simul")
 
-    ax.set_ylim(0, 500)
-    ax.set_xlim([0, 40])
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
     plt.legend()
     plt.tick_params(labelbottom=True)
-    plt.xlabel("Distance to the city center (km)")
-    plt.ylabel("Avg dwelling size in formal sector (in m²)")
-    plt.savefig(path_outputs + 'validation_housing_demand.png')
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    plt.ylabel("Avg dwelling size in private formal sector (in m²)",
+               labelpad=15)
+    plt.savefig(path_plots + 'validation_housing_demand.png')
     plt.close()
-

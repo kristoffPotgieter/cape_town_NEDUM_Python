@@ -13,10 +13,10 @@ import inputs.data as inpdt
 
 
 def compute_stats_per_housing_type(
-        floods, path_data, nb_households_formal, nb_households_subsidized,
-        nb_households_informal, nb_households_backyard, options, param,
-        threshold):
-    """d."""
+        floods, path_floods, nb_households_formal, nb_households_subsidized,
+        nb_households_informal, nb_households_backyard, path_tables,
+        type_flood, threshold=0.1):
+    """Summarize flood-risk area and flood depth per housing and flood type."""
     stats_per_housing_type = pd.DataFrame(
         columns=['flood', 'fraction_formal_in_flood_prone_area',
                  'fraction_subsidized_in_flood_prone_area',
@@ -28,10 +28,10 @@ def compute_stats_per_housing_type(
 
     for flood in floods:
         type_flood = copy.deepcopy(flood)
-        flood = np.squeeze(pd.read_excel(path_data + flood + ".xlsx"))
+        flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
 
-        flood.prop_flood_prone[flood.flood_depth < threshold] = 0
-        flood.flood_depth[flood.flood_depth < threshold] = 0
+        # flood.prop_flood_prone[flood.flood_depth < threshold] = 0
+        # flood.flood_depth[flood.flood_depth < threshold] = 0
         print(type_flood)
 
         if ((type_flood == 'P_5yr') | (type_flood == 'P_10yr')):
@@ -111,6 +111,10 @@ def compute_stats_per_housing_type(
                      / sum(flood['prop_flood_prone'] * nb_households_backyard)
                      )},
                 ignore_index=True)
+
+    stats_per_housing_type = stats_per_housing_type.fillna(value=0)
+    stats_per_housing_type.to_csv(
+        path_tables + type_flood + '_stats_per_housing_type.csv')
 
     return stats_per_housing_type
 

@@ -115,6 +115,7 @@ print("Load and pre-process data to be used in model (may take some time"
 
 # BASIC GEOGRAPHIC DATA
 
+# TODO: should we redefine center to be at the CBD?
 grid, center = inpdt.import_grid(path_data)
 amenities = inpdt.import_amenities(path_precalc_inp, options)
 

@@ -665,6 +665,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
     """Return pixel share for housing scenarios, weighted by max building %."""
+    # TODO: do we consider area actually used for commercial purposes
+    # as "available" for residential construction?
     coeff_land_private = (spline_land_constraints(t)
                           - spline_land_backyard(t)
                           - spline_land_informal(t)
