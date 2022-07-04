@@ -872,66 +872,146 @@ amenity_map = outexp.export_map(
 # TODO: also need to add options for the code to run seamlessly across
 # scenarios
 
-fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
-                  'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
+# TODO: recompute floods with maximum bath-tub perspective (also coastal
+# matching)
+
+fluviald_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
+                   'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
+fluvialu_floods = ['FU_5yr', 'FU_10yr', 'FU_20yr', 'FU_50yr', 'FU_75yr',
+                   'FU_100yr', 'FU_200yr', 'FU_250yr', 'FU_500yr', 'FU_1000yr']
 pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
                   'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
 coastal_floods = ['C_NASADEM_1_0000', 'C_NASADEM_1_0002', 'C_NASADEM_1_0005',
                   'C_NASADEM_1_0010', 'C_NASADEM_1_0025', 'C_NASADEM_1_0050',
                   'C_NASADEM_1_0100', 'C_NASADEM_1_0250']
 
+for flood in fluviald_floods:
+    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
+    ref_flood_area = ref_flood["prop_flood_prone"]
+    ref_flood_depth = ref_flood["flood_depth"]
+    ref_flood_map_area = outexp.export_map(
+        ref_flood_area, grid, geo_grid,
+        path_plots + flood + '_map_area',
+        "",
+        path_tables,
+        ubnd=1)
+    ref_flood_map_depth = outexp.export_map(
+        ref_flood_depth, grid, geo_grid,
+        path_plots + flood + '_map_depth',
+        "",
+        path_tables,
+        ubnd=4)
+
+for flood in fluvialu_floods:
+    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
+    ref_flood_area = ref_flood["prop_flood_prone"]
+    ref_flood_depth = ref_flood["flood_depth"]
+    ref_flood_map_area = outexp.export_map(
+        ref_flood_area, grid, geo_grid,
+        path_plots + flood + '_map_area',
+        "",
+        path_tables,
+        ubnd=1)
+    ref_flood_map_depth = outexp.export_map(
+        ref_flood_depth, grid, geo_grid,
+        path_plots + flood + '_map_depth',
+        "",
+        path_tables,
+        ubnd=4)
+
+for flood in pluvial_floods:
+    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
+    ref_flood_area = ref_flood["prop_flood_prone"]
+    ref_flood_depth = ref_flood["flood_depth"]
+    ref_flood_map_area = outexp.export_map(
+        ref_flood_area, grid, geo_grid,
+        path_plots + flood + '_map_area',
+        "",
+        path_tables,
+        ubnd=1)
+    ref_flood_map_depth = outexp.export_map(
+        ref_flood_depth, grid, geo_grid,
+        path_plots + flood + '_map_depth',
+        "",
+        path_tables,
+        ubnd=4)
+
+for flood in coastal_floods:
+    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
+    ref_flood_area = ref_flood["prop_flood_prone"]
+    ref_flood_depth = ref_flood["flood_depth"]
+    ref_flood_map_area = outexp.export_map(
+        ref_flood_area, grid, geo_grid,
+        path_plots + flood + '_map_area',
+        "",
+        path_tables,
+        ubnd=1)
+    ref_flood_map_depth = outexp.export_map(
+        ref_flood_depth, grid, geo_grid,
+        path_plots + flood + '_map_depth',
+        "",
+        path_tables,
+        ubnd=4)
+
 # Also for income groups and across the two? Maybe no need as we already have
 # the breakdown: suffices to apply respective shares
-# NB: evolution is not necessarily montonous on the short run because of
+# NB: evolution is not necessarily monotonous on the short run because of
 # some decreasing flood depths (never proportion of flood-prone area)
 # TODO: is it normal?
 
-stats_fluvial_per_housing_data = outfld.compute_stats_per_housing_type(
-    fluvial_floods, path_floods, data_nb_households_formal,
+stats_fluvialu_per_housing_data = outfld.compute_stats_per_housing_type(
+    fluvialu_floods, path_floods, data_nb_households_formal,
     data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, type_flood='fluvial')
-stats_fluvial_per_housing_sim = outfld.compute_stats_per_housing_type(
-    fluvial_floods, path_floods, sim_nb_households_formal,
+    data_nb_households_backyard, path_tables, type_flood='fluvialu')
+stats_fluvialu_per_housing_sim = outfld.compute_stats_per_housing_type(
+    fluvialu_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    path_tables, type_flood='fluvial')
-# Need to do informal on the side!
-# TODO: does not work when calling function?
-outval.validation_flood
-(stats_fluvial_per_housing_data, stats_fluvial_per_housing_sim,
- 'Data', 'Simul', 'fluvial', path_plots)
+    path_tables, type_flood='fluvialu')
+outval.validation_flood(
+    stats_fluvialu_per_housing_data, stats_fluvialu_per_housing_sim,
+    'Data', 'Simul', 'fluvialu', path_plots)
+
+stats_fluviald_per_housing_data = outfld.compute_stats_per_housing_type(
+    fluviald_floods, path_floods, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_informal,
+    data_nb_households_backyard, path_tables, type_flood='fluviald')
+stats_fluviald_per_housing_sim = outfld.compute_stats_per_housing_type(
+    fluviald_floods, path_floods, sim_nb_households_formal,
+    data_nb_households_rdp,
+    sim_nb_households_informal,
+    sim_nb_households_backyard,
+    path_tables, type_flood='fluviald')
+outval.validation_flood(
+    stats_fluviald_per_housing_data, stats_fluviald_per_housing_sim,
+    'Data', 'Simul', 'fluviald', path_plots)
 
 stats_pluvial_per_housing_data = outfld.compute_stats_per_housing_type(
     pluvial_floods, path_floods, data_nb_households_formal,
-    data_nb_households_rdp,
-    data_nb_households_informal,
-    data_nb_households_backyard,
-    options, param, type_flood='pluvial')
+    data_nb_households_rdp, data_nb_households_informal,
+    data_nb_households_backyard, path_tables, type_flood='pluvial')
 stats_pluvial_per_housing_sim = outfld.compute_stats_per_housing_type(
     pluvial_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    options, param, type_flood='pluvial')
-outval.validation_flood
-(stats_pluvial_per_housing_data, stats_pluvial_per_housing_sim,
- 'Data', 'Simul', 'pluvial', path_plots)
+    path_tables, type_flood='pluvial')
+outval.validation_flood(
+    stats_pluvial_per_housing_data, stats_pluvial_per_housing_sim,
+    'Data', 'Simul', 'pluvial', path_plots)
 
 stats_coastal_per_housing_data = outfld.compute_stats_per_housing_type(
     coastal_floods, path_floods, data_nb_households_formal,
-    data_nb_households_rdp,
-    data_nb_households_informal,
-    data_nb_households_backyard,
-    options, param, type_flood='coastal')
+    data_nb_households_rdp, data_nb_households_informal,
+    data_nb_households_backyard, path_tables, type_flood='coastal')
 stats_coastal_per_housing_sim = outfld.compute_stats_per_housing_type(
     coastal_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    options, param, type_flood='coastal')
-outval.validation_flood
-(stats_coastal_per_housing_data, stats_coastal_per_housing_sim,
- 'Data', 'Simul', 'coastal', path_plots)
-
+    path_tables, type_flood='coastal')
+outval.validation_flood_coastal(
+    stats_coastal_per_housing_data, stats_coastal_per_housing_sim,
+    'Data', 'Simul', 'coastal', path_plots)
 

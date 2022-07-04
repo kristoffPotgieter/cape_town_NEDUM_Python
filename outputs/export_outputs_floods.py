@@ -55,7 +55,8 @@ def validation_flood(stats1, stats2, legend1, legend2, type_flood,
     plt.bar(r, np.array(tshirt),
             color=colors[1], edgecolor='white', width=barWidth,
             label='20 years')
-    # valueb = np.maximum(np.array(tshirtb) - np.array(tshirt), np.full(4, 0.003))
+    # valueb = np.maximum(np.array(tshirtb) - np.array(tshirt),
+    # np.full(4, 0.003))
     # floorb = np.maximum(np.array(tshirtb), np.array(tshirt))
     plt.bar(r, np.array(tshirtb) - np.array(tshirt),
             bottom=np.array(tshirt), color=colors[2], edgecolor='white',
@@ -66,64 +67,67 @@ def validation_flood(stats1, stats2, legend1, legend2, type_flood,
             width=barWidth, label='100 years')
     plt.bar(r + barWidth, np.array(tshirt2),
             color=colors[1], edgecolor='white', width=barWidth)
-    # valueb2 = np.maximum(np.array(tshirtb2) - np.array(tshirt2), np.full(4, 0.003))
+    # valueb2 = np.maximum(np.array(tshirtb2) - np.array(tshirt2),
+    # np.full(4, 0.003))
     # floorb2 = np.maximum(np.array(tshirtb2), np.array(tshirt2))
     plt.bar(r + barWidth, np.array(tshirtb2) - np.array(tshirt2),
             bottom=np.array(tshirt2), color=colors[2], edgecolor='white',
             width=barWidth)
-    # valuec2 = np.maximum(np.array(formal_shirt2) - floorb2, np.full(4, 0.003))
+    # valuec2 = np.maximum(np.array(formal_shirt2) - floorb2,
+    # np.full(4, 0.003))
     plt.bar(r + barWidth, np.array(formal_shirt2) - np.array(tshirtb2),
             bottom=np.array(tshirtb2), color=colors[3], edgecolor='white',
             width=barWidth)
     plt.legend()
     plt.xticks(r + barWidth/2, label)
-    plt.ylim(0, 1)
+    # plt.ylim(0, 1)
     # TODO: check look
     plt.text(r[0] - 0.1,
              np.maximum(
                  stats1.flood_depth_formal[5], stats1.flood_depth_formal[2]
-                 ) + 0.01,
+                 ) + 0.002,
              legend1)
     plt.text(r[1] - 0.1,
              np.maximum(
-                 stats1.flood_depth_subsidized[5], stats1.flood_depth_subsidized[2]
-                 ) + 0.01,
+                 stats1.flood_depth_subsidized[5],
+                 stats1.flood_depth_subsidized[2]
+                 ) + 0.002,
              legend1)
     plt.text(r[2] - 0.1,
              np.maximum(
                  stats1.flood_depth_informal[5], stats1.flood_depth_informal[2]
-                 ) + 0.01,
+                 ) + 0.002,
              legend1)
     plt.text(r[3] - 0.1,
              np.maximum(
                  stats1.flood_depth_backyard[5], stats1.flood_depth_backyard[2]
-                 ) + 0.01,
+                 ) + 0.002,
              legend1)
     plt.text(r[0] + 0.15,
              np.maximum(
                  stats2.flood_depth_formal[5], stats2.flood_depth_formal[2]
-                 ) + 0.01,
+                 ) + 0.002,
              legend2)
     plt.text(r[1] + 0.15,
              np.maximum(
-                 stats2.flood_depth_subsidized[5], stats2.flood_depth_subsidized[2]
-                 ) + 0.01,
+                 stats2.flood_depth_subsidized[5],
+                 stats2.flood_depth_subsidized[2]
+                 ) + 0.002,
              legend2)
     plt.text(r[2] + 0.15,
              np.maximum(
                  stats2.flood_depth_informal[5], stats2.flood_depth_informal[2]
-                 ) + 0.01,
+                 ) + 0.002,
              legend2)
     plt.text(r[3] + 0.15,
              np.maximum(
                  stats2.flood_depth_backyard[5], stats2.flood_depth_backyard[2]
-                 ) + 0.01,
+                 ) + 0.002,
              legend2)
     plt.ylabel("Average flood depth (m)", labelpad=15)
     plt.tick_params(labelbottom=True)
-    plt.savefig(path_plots + 'validation_flood_depth_' + type_flood + '.png',
-                format="png")
-    plt.show()
+    plt.savefig(path_plots + 'validation_flood_depth_' + type_flood + '.png')
+    # plt.show()
     plt.close()
 
     # FLOOD-PRONE AREA
@@ -187,15 +191,15 @@ def validation_flood(stats1, stats2, legend1, legend2, type_flood,
         stats1.fraction_formal_in_flood_prone_area[5] + 1000,
         legend1)
     plt.text(
-        r[1]- 0.1,
+        r[1] - 0.1,
         stats1.fraction_subsidized_in_flood_prone_area[5] + 1000,
         legend1)
     plt.text(
-        r[2]- 0.1,
+        r[2] - 0.1,
         stats1.fraction_informal_in_flood_prone_area[5] + 1000,
         legend1)
     plt.text(
-        r[3]- 0.1,
+        r[3] - 0.1,
         stats1.fraction_backyard_in_flood_prone_area[5] + 1000,
         legend1)
     plt.text(
@@ -218,8 +222,222 @@ def validation_flood(stats1, stats2, legend1, legend2, type_flood,
     plt.tick_params(labelbottom=True)
     plt.ylabel("Dwellings in flood-prone areas", labelpad=15)
     plt.savefig(path_plots + 'validation_flood_proportion_'
-                + type_flood + '.png', format="png")
-    plt.show()
+                + type_flood + '.png')
+    # plt.show()
+    plt.close()
+
+
+def validation_flood_coastal(stats1, stats2, legend1, legend2, type_flood,
+                             path_plots):
+    """Bar plot flood depth and area across some RPs per housing types."""
+    label = ["Formal private", "Formal subsidized",
+             "Informal \n settlements", "Informal \n backyards"]
+
+    # FLOOD DEPTH
+
+    # First for validation data
+    # RP = 25 yrs
+    tshirt = [stats1.flood_depth_formal[4], stats1.flood_depth_subsidized[4],
+              stats1.flood_depth_informal[4], stats1.flood_depth_backyard[4]]
+    # RP = 50 yrs
+    tshirtb = [stats1.flood_depth_formal[5], stats1.flood_depth_subsidized[5],
+               stats1.flood_depth_informal[5], stats1.flood_depth_backyard[5]]
+    # RP = 100 yrs
+    # TODO: change name?
+    formal_shirt = [
+        stats1.flood_depth_formal[6], stats1.flood_depth_subsidized[6],
+        stats1.flood_depth_informal[6], stats1.flood_depth_backyard[6]]
+
+    # Then for simulation
+    # RP = 20 yrs
+    tshirt2 = [stats2.flood_depth_formal[4], stats2.flood_depth_subsidized[4],
+               stats2.flood_depth_informal[4], stats2.flood_depth_backyard[4]]
+    # RP = 50 yrs
+    tshirtb2 = [stats2.flood_depth_formal[5], stats2.flood_depth_subsidized[5],
+                stats2.flood_depth_informal[5], stats2.flood_depth_backyard[5]]
+    # RP = 100 yrs
+    # TODO: change name?
+    formal_shirt2 = [
+        stats2.flood_depth_formal[6], stats2.flood_depth_subsidized[6],
+        stats2.flood_depth_informal[6], stats2.flood_depth_backyard[6]]
+
+    # TODO: check uses
+    colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
+    r = np.arange(len(label))
+    barWidth = 0.25
+    plt.figure(figsize=(10, 7))
+    plt.bar(r, np.array(tshirt),
+            color=colors[1], edgecolor='white', width=barWidth,
+            label='25 years')
+    # valueb = np.maximum(np.array(tshirtb) - np.array(tshirt),
+    # np.full(4, 0.003))
+    # floorb = np.maximum(np.array(tshirtb), np.array(tshirt))
+    plt.bar(r, np.array(tshirtb) - np.array(tshirt),
+            bottom=np.array(tshirt), color=colors[2], edgecolor='white',
+            width=barWidth, label='50 years')
+    # valuec = np.maximum(np.array(formal_shirt) - floorb, np.full(4, 0.003))
+    plt.bar(r, np.array(formal_shirt) - np.array(tshirtb),
+            bottom=np.array(tshirtb), color=colors[3], edgecolor='white',
+            width=barWidth, label='100 years')
+    plt.bar(r + barWidth, np.array(tshirt2),
+            color=colors[1], edgecolor='white', width=barWidth)
+    # valueb2 = np.maximum(np.array(tshirtb2) - np.array(tshirt2),
+    # np.full(4, 0.003))
+    # floorb2 = np.maximum(np.array(tshirtb2), np.array(tshirt2))
+    plt.bar(r + barWidth, np.array(tshirtb2) - np.array(tshirt2),
+            bottom=np.array(tshirt2), color=colors[2], edgecolor='white',
+            width=barWidth)
+    # valuec2 = np.maximum(np.array(formal_shirt2) - floorb2,
+    # np.full(4, 0.003))
+    plt.bar(r + barWidth, np.array(formal_shirt2) - np.array(tshirtb2),
+            bottom=np.array(tshirtb2), color=colors[3], edgecolor='white',
+            width=barWidth)
+    plt.legend()
+    plt.xticks(r + barWidth/2, label)
+    # plt.ylim(0, 1)
+    # TODO: check look
+    plt.text(r[0] - 0.1,
+             np.maximum(
+                 stats1.flood_depth_formal[6], stats1.flood_depth_formal[4]
+                 ) + 0.01,
+             legend1)
+    plt.text(r[1] - 0.1,
+             np.maximum(
+                 stats1.flood_depth_subsidized[6],
+                 stats1.flood_depth_subsidized[4]
+                 ) + 0.01,
+             legend1)
+    plt.text(r[2] - 0.1,
+             np.maximum(
+                 stats1.flood_depth_informal[6], stats1.flood_depth_informal[4]
+                 ) + 0.01,
+             legend1)
+    plt.text(r[3] - 0.1,
+             np.maximum(
+                 stats1.flood_depth_backyard[6], stats1.flood_depth_backyard[4]
+                 ) + 0.01,
+             legend1)
+    plt.text(r[0] + 0.15,
+             np.maximum(
+                 stats2.flood_depth_formal[6], stats2.flood_depth_formal[4]
+                 ) + 0.01,
+             legend2)
+    plt.text(r[1] + 0.15,
+             np.maximum(
+                 stats2.flood_depth_subsidized[6],
+                 stats2.flood_depth_subsidized[4]
+                 ) + 0.01,
+             legend2)
+    plt.text(r[2] + 0.15,
+             np.maximum(
+                 stats2.flood_depth_informal[6], stats2.flood_depth_informal[4]
+                 ) + 0.01,
+             legend2)
+    plt.text(r[3] + 0.15,
+             np.maximum(
+                 stats2.flood_depth_backyard[6], stats2.flood_depth_backyard[4]
+                 ) + 0.01,
+             legend2)
+    plt.ylabel("Average flood depth (m)", labelpad=15)
+    plt.tick_params(labelbottom=True)
+    plt.savefig(path_plots + 'validation_flood_depth_' + type_flood + '.png')
+    # plt.show()
+    plt.close()
+
+    # FLOOD-PRONE AREA
+    # TODO: really need to change names...
+    jeans = [
+        stats1.fraction_formal_in_flood_prone_area[4],
+        stats1.fraction_subsidized_in_flood_prone_area[4],
+        stats1.fraction_informal_in_flood_prone_area[4],
+        stats1.fraction_backyard_in_flood_prone_area[4]]
+    tshirt = [
+        stats1.fraction_formal_in_flood_prone_area[5],
+        stats1.fraction_subsidized_in_flood_prone_area[5],
+        stats1.fraction_informal_in_flood_prone_area[5],
+        stats1.fraction_backyard_in_flood_prone_area[5]]
+    formal_shirt = [
+        stats1.fraction_formal_in_flood_prone_area[6],
+        stats1.fraction_subsidized_in_flood_prone_area[6],
+        stats1.fraction_informal_in_flood_prone_area[6],
+        stats1.fraction_backyard_in_flood_prone_area[6]]
+    jeans2 = [
+        stats2.fraction_formal_in_flood_prone_area[4],
+        stats2.fraction_subsidized_in_flood_prone_area[4],
+        stats2.fraction_informal_in_flood_prone_area[4],
+        stats2.fraction_backyard_in_flood_prone_area[4]]
+    tshirt2 = [
+        stats2.fraction_formal_in_flood_prone_area[5],
+        stats2.fraction_subsidized_in_flood_prone_area[5],
+        stats2.fraction_informal_in_flood_prone_area[5],
+        stats2.fraction_backyard_in_flood_prone_area[5]]
+    formal_shirt2 = [
+        stats2.fraction_formal_in_flood_prone_area[6],
+        stats2.fraction_subsidized_in_flood_prone_area[6],
+        stats2.fraction_informal_in_flood_prone_area[6],
+        stats2.fraction_backyard_in_flood_prone_area[6]]
+    colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
+    r = np.arange(len(label))
+    barWidth = 0.25
+    plt.figure(figsize=(10, 7))
+    plt.bar(r, jeans, color=colors[0], edgecolor='white',
+            width=barWidth, label="25 years")
+    plt.bar(r, np.array(tshirt) - np.array(jeans), bottom=np.array(jeans),
+            color=colors[1], edgecolor='white', width=barWidth,
+            label='50 years')
+    plt.bar(r, np.array(formal_shirt) - np.array(tshirt),
+            bottom=np.array(tshirt), color=colors[2], edgecolor='white',
+            width=barWidth, label='100 years')
+    plt.bar(r + barWidth, np.array(jeans2),
+            color=colors[0], edgecolor='white', width=barWidth)
+    plt.bar(r + barWidth, np.array(tshirt2) - np.array(jeans2),
+            bottom=np.array(jeans2), color=colors[1], edgecolor='white',
+            width=barWidth)
+    plt.bar(r + barWidth, np.array(formal_shirt2) - np.array(tshirt2),
+            bottom=np.array(tshirt2), color=colors[2], edgecolor='white',
+            width=barWidth)
+    # TODO: why?
+    # plt.legend(loc='upper right')
+    plt.legend()
+    plt.xticks(r + barWidth/2, label)
+    plt.text(
+        r[0] - 0.1,
+        stats1.fraction_formal_in_flood_prone_area[6] + 20,
+        legend1)
+    plt.text(
+        r[1] - 0.1,
+        stats1.fraction_subsidized_in_flood_prone_area[6] + 20,
+        legend1)
+    plt.text(
+        r[2] - 0.1,
+        stats1.fraction_informal_in_flood_prone_area[6] + 20,
+        legend1)
+    plt.text(
+        r[3] - 0.1,
+        stats1.fraction_backyard_in_flood_prone_area[6] + 20,
+        legend1)
+    plt.text(
+        r[0] + 0.15,
+        stats2.fraction_formal_in_flood_prone_area[6] + 20,
+        legend2)
+    plt.text(
+        r[1] + 0.15,
+        stats2.fraction_subsidized_in_flood_prone_area[6] + 20,
+        legend2)
+    plt.text(
+        r[2] + 0.15,
+        stats2.fraction_informal_in_flood_prone_area[6] + 20,
+        legend2)
+    # TODO: no need to correct for ma x?
+    plt.text(
+        r[3] + 0.15,
+        stats2.fraction_backyard_in_flood_prone_area[6] + 20,
+        legend2)
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Dwellings in flood-prone areas", labelpad=15)
+    plt.savefig(path_plots + 'validation_flood_proportion_'
+                + type_flood + '.png')
+    # plt.show()
     plt.close()
 
 
