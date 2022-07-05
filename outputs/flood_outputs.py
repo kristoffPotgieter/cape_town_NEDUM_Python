@@ -15,7 +15,7 @@ import inputs.data as inpdt
 def compute_stats_per_housing_type(
         floods, path_floods, nb_households_formal, nb_households_subsidized,
         nb_households_informal, nb_households_backyard, path_tables,
-        type_flood, threshold=0.1):
+        flood_categ, threshold=0.1):
     """Summarize flood-risk area and flood depth per housing and flood type."""
     stats_per_housing_type = pd.DataFrame(
         columns=['flood', 'fraction_formal_in_flood_prone_area',
@@ -114,7 +114,7 @@ def compute_stats_per_housing_type(
 
     stats_per_housing_type = stats_per_housing_type.fillna(value=0)
     stats_per_housing_type.to_csv(
-        path_tables + type_flood + '_stats_per_housing_type.csv')
+        path_tables + flood_categ + '_stats_per_housing_type.csv')
 
     return stats_per_housing_type
 
@@ -125,8 +125,9 @@ def compute_damages(floods, path_data, param, content_cost,
                     dwelling_size, formal_structure_cost, content_damages,
                     structural_damages_type4b, structural_damages_type4a,
                     structural_damages_type2, structural_damages_type3a,
-                    options, spline_inflation, year_temp):
-    """d."""
+                    options, spline_inflation, year_temp,
+                    path_tables, flood_categ):
+    """Summarize flood damages per housing and flood type."""
     damages = pd.DataFrame(columns=['flood',
                                     'formal_structure_damages',
                                     'subsidized_structure_damages',
@@ -165,18 +166,26 @@ def compute_damages(floods, path_data, param, content_cost,
             * param["informal_structure_value_ref"]
             * (spline_inflation(year_temp) / spline_inflation(0))
             * structural_damages_type2(data_flood['flood_depth']))
-        backyard_structure_damages = (
-            16216 * np.nansum(
-                nb_households_backyard * data_flood["prop_flood_prone"]
-                * param["informal_structure_value_ref"]
-                * (spline_inflation(year_temp) / spline_inflation(0))
-                * structural_damages_type2(data_flood['flood_depth']))
-            + 74916 * np.nansum(
-                nb_households_backyard * data_flood["prop_flood_prone"]
-                * param["informal_structure_value_ref"]
-                * (spline_inflation(year_temp) / spline_inflation(0))
-                * structural_damages_type3a(data_flood['flood_depth']))
-            ) / (74916 + 16216)
+
+        # backyard_structure_damages = (
+        #     16216 * np.nansum(
+        #         nb_households_backyard * data_flood["prop_flood_prone"]
+        #         * param["informal_structure_value_ref"]
+        #         * (spline_inflation(year_temp) / spline_inflation(0))
+        #         * structural_damages_type2(data_flood['flood_depth']))
+        #     + 74916 * np.nansum(
+        #         nb_households_backyard * data_flood["prop_flood_prone"]
+        #         * param["informal_structure_value_ref"]
+        #         * (spline_inflation(year_temp) / spline_inflation(0))
+        #         * structural_damages_type3a(data_flood['flood_depth']))
+        #     ) / (74916 + 16216)
+
+        # In our benchmark, we only consider informal backyards
+        backyard_structure_damages = np.nansum(
+            nb_households_backyard * data_flood["prop_flood_prone"]
+            * param["informal_structure_value_ref"]
+            * (spline_inflation(year_temp) / spline_inflation(0))
+            * structural_damages_type3a(data_flood['flood_depth']))
 
         formal_content_damages = np.nansum(
             nb_households_formal * data_flood["prop_flood_prone"]
@@ -206,79 +215,109 @@ def compute_damages(floods, path_data, param, content_cost,
              'subsidized_content_damages': subsidized_content_damages},
             ignore_index=True)
 
+    damages = damages.fillna(value=0)
+    damages.to_csv(
+        path_tables + flood_categ + '_damages.csv')
+
     return damages
 
 
-def annualize_damages(array):
-    """d."""
-    interval0 = 1 - (1/5)
-    interval1 = (1/5) - (1/10)
-    interval2 = (1/10) - (1/20)
-    interval3 = (1/20) - (1/50)
-    interval4 = (1/50) - (1/75)
-    interval5 = (1/75) - (1/100)
-    interval6 = (1/100) - (1/200)
-    interval7 = (1/200) - (1/250)
-    interval8 = (1/250) - (1/500)
-    interval9 = (1/500) - (1/1000)
-    interval10 = (1/1000)
+# def annualize_damages(array):
+#     """d."""
+#     interval0 = 1 - (1/5)
+#     interval1 = (1/5) - (1/10)
+#     interval2 = (1/10) - (1/20)
+#     interval3 = (1/20) - (1/50)
+#     interval4 = (1/50) - (1/75)
+#     interval5 = (1/75) - (1/100)
+#     interval6 = (1/100) - (1/200)
+#     interval7 = (1/200) - (1/250)
+#     interval8 = (1/250) - (1/500)
+#     interval9 = (1/500) - (1/1000)
+#     interval10 = (1/1000)
 
-    return (0.5
-            * ((interval0 * 0) + (interval1 * array[0])
-               + (interval2 * array[1]) + (interval3 * array[2])
-               + (interval4 * array[3]) + (interval5 * array[4])
-               + (interval6 * array[5]) + (interval7 * array[6])
-               + (interval8 * array[7]) + (interval9 * array[8])
-               + (interval10 * array[9])))
+#     return (0.5
+#             * ((interval0 * 0) + (interval1 * array[0])
+#                + (interval2 * array[1]) + (interval3 * array[2])
+#                + (interval4 * array[3]) + (interval5 * array[4])
+#                + (interval6 * array[5]) + (interval7 * array[6])
+#                + (interval8 * array[7]) + (interval9 * array[8])
+#                + (interval10 * array[9])))
 
 
-# TODO: Not used in plots.py
-def compute_formal_structure_cost_method1(
-        sp_price, dwelling_size_sp, SP_code, grid):
-    """d."""
-    formal_structure_cost = sp_price * dwelling_size_sp
-    # TODO: check if deprecated
-    formal_structure_cost = inpdt.SP_to_grid_2011_1(
-        formal_structure_cost, SP_code, grid)
-    formal_structure_cost[np.isinf(formal_structure_cost)] = np.nan
-    formal_structure_cost[(formal_structure_cost) > 2000000] = 2000000
+# def compute_formal_structure_cost_method1(
+#         sp_price, dwelling_size_sp, SP_code, grid):
+#     """d."""
+#     formal_structure_cost = sp_price * dwelling_size_sp
+#     # TODO: check if deprecated
+#     formal_structure_cost = inpdt.SP_to_grid_2011_1(
+#         formal_structure_cost, SP_code, grid)
+#     formal_structure_cost[np.isinf(formal_structure_cost)] = np.nan
+#     formal_structure_cost[(formal_structure_cost) > 2000000] = 2000000
 
-    return formal_structure_cost
+#     return formal_structure_cost
 
 
 def compute_formal_structure_cost_method2(
         initial_state_rent, param, interest_rate, coeff_land,
         initial_state_households_housing_types, construction_coeff):
     """d."""
+    # We convert price to capital per unit of land?
     price_simul = (
         initial_state_rent[0, :] * construction_coeff * param["coeff_b"]
         / (interest_rate + param["depreciation_rate"])
         ) ** (1/param["coeff_a"])
+    # price_simul = initial_state_capital_land[0, :]
+    # We multiply by available land area, and average the output across
+    # households
+    np.seterr(divide='ignore', invalid='ignore')
     formal_structure_cost = (
         price_simul * (250000) * coeff_land[0, :]
         / initial_state_households_housing_types[0, :])
     formal_structure_cost[np.isinf(formal_structure_cost)] = np.nan
-    formal_structure_cost[(formal_structure_cost) > 2000000] = 2000000
+    # TODO: Should we put a cap? Are there negative values?
+    # formal_structure_cost[(formal_structure_cost) > 2000000] = 2000000
+    # TODO; should we multiply by capital cost?
 
     return formal_structure_cost
 
 
 def compute_content_cost(
-        initial_state_household_centers, income_net_of_commuting_costs, param,
+        initial_state_household_centers, initial_state_housing_supply,
+        income_net_of_commuting_costs, param,
         fraction_capital_destroyed, initial_state_rent,
         initial_state_dwelling_size, interest_rate):
-    """d."""
+    """Compute value of damaged composite good."""
     content_cost = pd.DataFrame()
 
-    income_class = np.nanargmax(initial_state_household_centers, 0)
-    income_temp = np.empty(24014)
-    income_temp[:] = np.nan
-    for i in range(0, 24014):
-        income_temp[i] = income_net_of_commuting_costs[int(income_class[i]), i]
-    income_temp[income_temp < 0] = 0
+    # We recover net income for dominant income group
+    # TODO: should we?
+    # income_class = np.nanargmax(initial_state_household_centers, 0)
+    # income_temp = np.empty(24014)
+    # income_temp[:] = np.nan
+    # for i in range(0, 24014):
+    #     income_temp[i] = income_net_of_commuting_costs[
+    #         int(income_class[i]), i]
+    # income_temp[income_temp < 0] = np.nan
 
-    capital_destroyed = np.ones(
+    income_formal = np.nansum(
+        income_net_of_commuting_costs * initial_state_household_centers
+        / np.nansum(initial_state_household_centers, 0), 0)
+    income_formal[income_formal < 0] = np.nan
+    income_informal = np.nansum(
+        income_net_of_commuting_costs[0:2, :]
+        * initial_state_household_centers[0:2, :]
+        / np.nansum(initial_state_household_centers[0:2, :], 0), 0)
+    income_informal[income_informal < 0] = np.nan
+    income_subsidized = income_net_of_commuting_costs[0, :]
+    income_subsidized[income_subsidized < 0] = np.nan
+
+    # We define fraction of capital destroyed for formal subsidized in zones
+    # where relevant?
+    # TODO: put nans?
+    capital_destroyed = np.zeros(
         len(fraction_capital_destroyed.structure_formal_2))
+    # capital_destroyed[:] = np.nan
     (capital_destroyed[initial_state_dwelling_size[3, :] > param["threshold"]]
      ) = fraction_capital_destroyed.structure_subsidized_2[
          initial_state_dwelling_size[3, :] > param["threshold"]]
@@ -286,36 +325,46 @@ def compute_content_cost(
      ) = fraction_capital_destroyed.structure_subsidized_1[
          initial_state_dwelling_size[3, :] <= param["threshold"]]
 
-    fraction_backyard = (
-        param["alpha"]
-        * (param["RDP_size"] + param["backyard_size"] - param["q0"])
-        / (param["backyard_size"])
-        - param["beta"]
-        * (income_net_of_commuting_costs[0, :]
-           - capital_destroyed * param["subsidized_structure_value"])
-        / (param["backyard_size"] * initial_state_rent[1, :])
-        )
-    fraction_backyard[initial_state_rent[1, :] == 0] = 0
-    fraction_backyard = np.minimum(fraction_backyard, 1)
-    fraction_backyard = np.maximum(fraction_backyard, 0)
+    # TODO: replace with housing supply
+    # fraction_backyard = (
+    #     param["alpha"]
+    #     * (param["RDP_size"] + param["backyard_size"] - param["q0"])
+    #     / (param["backyard_size"])
+    #     - param["beta"]
+    #     * (income_net_of_commuting_costs[0, :]
+    #         - (capital_destroyed + param["depreciation_rate"])
+    #         * param["subsidized_structure_value"])
+    #     / (param["backyard_size"] * initial_state_rent[1, :])
+    #     )
+    fraction_backyard = initial_state_housing_supply[1, :] / 1000000
+    # TODO: do we want to keep nans?
+    # fraction_backyard[initial_state_rent[1, :] == 0] = 0
+    # fraction_backyard[fraction_backyard < 0] = np.nan
+    # fraction_backyard[fraction_backyard == np.inf] = np.nan
+    # fraction_backyard = np.minimum(fraction_backyard, 1)
+    # fraction_backyard = np.maximum(fraction_backyard, 0)
 
+    # We just multiply the amount of composite good from the budget constraint
+    # by the share parameter
     content_cost["formal"] = (
         param["fraction_z_dwellings"]
         / (1 + param["fraction_z_dwellings"]
            * fraction_capital_destroyed.contents_formal)
-        * (income_temp
+        * (income_formal
            - initial_state_rent[0, :] * initial_state_dwelling_size[0, :])
         )
-    content_cost.formal[
-        income_temp
-        - initial_state_rent[0, :] * initial_state_dwelling_size[0, :] < 0
-        ] = np.nan
-    content_cost.formal[content_cost.formal < (0.2 * income_temp)] = np.nan
+    # TODO: is it useful given that we correct in the end?
+    # content_cost.formal[
+    #     income_temp
+    #     - initial_state_rent[0, :] * initial_state_dwelling_size[0, :] < 0
+    #     ] = np.nan
+    # TODO: should we put a floor on damage values?
+    # content_cost.formal[content_cost.formal < (0.2 * income_temp)] = np.nan
     content_cost["informal"] = (
         param["fraction_z_dwellings"]
         / (1 + param["fraction_z_dwellings"]
            * fraction_capital_destroyed.contents_informal)
-        * (income_temp
+        * (income_informal
            - initial_state_rent[2, :] * initial_state_dwelling_size[2, :]
            - fraction_capital_destroyed.structure_informal_settlements
            * param["informal_structure_value"]
@@ -326,15 +375,17 @@ def compute_content_cost(
         param["fraction_z_dwellings"]
         / (1 + param["fraction_z_dwellings"]
            * fraction_capital_destroyed.contents_subsidized)
-        * (income_temp + param["backyard_size"] * initial_state_rent[1, :]
+        * (income_subsidized
+           + param["backyard_size"] * initial_state_rent[1, :]
            * fraction_backyard
-           - capital_destroyed * param["subsidized_structure_value"])
+           - (capital_destroyed + param["depreciation_rate"])
+           * param["subsidized_structure_value"])
         )
     content_cost["backyard"] = (
         param["fraction_z_dwellings"] /
         (1 + param["fraction_z_dwellings"]
          * fraction_capital_destroyed.contents_backyard)
-        * (income_temp
+        * (income_informal
            - initial_state_rent[1, :] * initial_state_dwelling_size[1, :]
            - fraction_capital_destroyed.structure_backyards
            * param["informal_structure_value"]

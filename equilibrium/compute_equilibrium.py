@@ -407,7 +407,10 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # Other outputs
     #  See research note, p.10 (Cobb-Douglas)
-    initial_state_capital_land = ((housing_supply / (construction_param))
+    # initial_state_capital_land = ((housing_supply / (construction_param))
+    #                               ** (1 / param["coeff_b"]))
+    initial_state_capital_land = ((initial_state_housing_supply
+                                   / construction_param)
                                   ** (1 / param["coeff_b"]))
     #  NB: this is not an output of the model
     initial_state_average_income = copy.deepcopy(average_income)

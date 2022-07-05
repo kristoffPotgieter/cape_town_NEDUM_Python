@@ -214,6 +214,19 @@ simulation_T = np.load(
     path_outputs + name + '/simulation_T.npy')
 
 
+# LOAD FLOOD DATA
+
+# We enforce option to show damages even when agents do not anticipate them
+options["agents_anticipate_floods"] = 1
+(fraction_capital_destroyed, structural_damages_small_houses,
+ structural_damages_medium_houses, structural_damages_large_houses,
+ content_damages, structural_damages_type1, structural_damages_type2,
+ structural_damages_type3a, structural_damages_type3b,
+ structural_damages_type4a, structural_damages_type4b
+ ) = inpdt.import_full_floods_data(
+     options, param, path_folder, housing_type_data)
+
+
 # %% Validation: draw maps and figures
 
 print("Static equilibrium validation")
@@ -881,9 +894,9 @@ fluvialu_floods = ['FU_5yr', 'FU_10yr', 'FU_20yr', 'FU_50yr', 'FU_75yr',
                    'FU_100yr', 'FU_200yr', 'FU_250yr', 'FU_500yr', 'FU_1000yr']
 pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
                   'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
-coastal_floods = ['C_NASADEM_1_0000', 'C_NASADEM_1_0002', 'C_NASADEM_1_0005',
-                  'C_NASADEM_1_0010', 'C_NASADEM_1_0025', 'C_NASADEM_1_0050',
-                  'C_NASADEM_1_0100', 'C_NASADEM_1_0250']
+coastal_floods = ['C_MERITDEM_1_0000', 'C_MERITDEM_1_0002', 'C_MERITDEM_1_0005',
+                  'C_MERITDEM_1_0010', 'C_MERITDEM_1_0025', 'C_MERITDEM_1_0050',
+                  'C_MERITDEM_1_0100', 'C_MERITDEM_1_0250']
 
 for flood in fluviald_floods:
     ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
@@ -962,13 +975,13 @@ for flood in coastal_floods:
 stats_fluvialu_per_housing_data = outfld.compute_stats_per_housing_type(
     fluvialu_floods, path_floods, data_nb_households_formal,
     data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, type_flood='fluvialu')
+    data_nb_households_backyard, path_tables, 'fluvialu')
 stats_fluvialu_per_housing_sim = outfld.compute_stats_per_housing_type(
     fluvialu_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    path_tables, type_flood='fluvialu')
+    path_tables, 'fluvialu')
 outval.validation_flood(
     stats_fluvialu_per_housing_data, stats_fluvialu_per_housing_sim,
     'Data', 'Simul', 'fluvialu', path_plots)
@@ -976,13 +989,13 @@ outval.validation_flood(
 stats_fluviald_per_housing_data = outfld.compute_stats_per_housing_type(
     fluviald_floods, path_floods, data_nb_households_formal,
     data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, type_flood='fluviald')
+    data_nb_households_backyard, path_tables, 'fluviald')
 stats_fluviald_per_housing_sim = outfld.compute_stats_per_housing_type(
     fluviald_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    path_tables, type_flood='fluviald')
+    path_tables, 'fluviald')
 outval.validation_flood(
     stats_fluviald_per_housing_data, stats_fluviald_per_housing_sim,
     'Data', 'Simul', 'fluviald', path_plots)
@@ -990,13 +1003,13 @@ outval.validation_flood(
 stats_pluvial_per_housing_data = outfld.compute_stats_per_housing_type(
     pluvial_floods, path_floods, data_nb_households_formal,
     data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, type_flood='pluvial')
+    data_nb_households_backyard, path_tables, 'pluvial')
 stats_pluvial_per_housing_sim = outfld.compute_stats_per_housing_type(
     pluvial_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    path_tables, type_flood='pluvial')
+    path_tables, 'pluvial')
 outval.validation_flood(
     stats_pluvial_per_housing_data, stats_pluvial_per_housing_sim,
     'Data', 'Simul', 'pluvial', path_plots)
@@ -1004,14 +1017,37 @@ outval.validation_flood(
 stats_coastal_per_housing_data = outfld.compute_stats_per_housing_type(
     coastal_floods, path_floods, data_nb_households_formal,
     data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, type_flood='coastal')
+    data_nb_households_backyard, path_tables, 'coastal')
 stats_coastal_per_housing_sim = outfld.compute_stats_per_housing_type(
     coastal_floods, path_floods, sim_nb_households_formal,
     data_nb_households_rdp,
     sim_nb_households_informal,
     sim_nb_households_backyard,
-    path_tables, type_flood='coastal')
+    path_tables, 'coastal')
 outval.validation_flood_coastal(
     stats_coastal_per_housing_data, stats_coastal_per_housing_sim,
     'Data', 'Simul', 'coastal', path_plots)
 
+
+# FLOOD DAMAGES
+
+content_cost = outfld.compute_content_cost(
+    initial_state_household_centers, initial_state_housing_supply,
+    income_net_of_commuting_costs, param,
+    fraction_capital_destroyed, initial_state_rent,
+    initial_state_dwelling_size, interest_rate)
+
+# TODO: construction_coeff will need to be updated along other parameters
+# in simulations
+# NOTE THAT CAPITAL IS IN MONETARY VALUES
+formal_structure_cost = outfld.compute_formal_structure_cost_method2(
+        initial_state_rent, param, interest_rate, coeff_land,
+        initial_state_households_housing_types, param["coeff_A"])
+
+fluviald_damages_data = outfld.compute_damages(
+    fluviald_floods, path_floods, param, content_cost, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_informal, data_nb_households_backyard,
+    initial_state_dwelling_size, formal_structure_cost, content_damages,
+    structural_damages_type4b, structural_damages_type4a,
+    structural_damages_type2, structural_damages_type3a, options,
+    spline_inflation, year_temp, path_tables, type_flood)
