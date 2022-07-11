@@ -819,7 +819,7 @@ def import_init_floods_data(options, param, path_folder):
 def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                                        housing_type, options):
     """Define function used to get fraction of capital destroyed by floods."""
-    if type_flood == 'P' or type_flood == 'FD':
+    if type_flood == 'P' or type_flood == 'FD' or type_flood == 'FU':
         # This defines a probability rule (summing to 1) for each time interval
         # defined in FATHOM (the more distant, the less likely)
         interval0 = 1 - (1/5)
