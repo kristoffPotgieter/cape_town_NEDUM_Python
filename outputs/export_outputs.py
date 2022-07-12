@@ -24,6 +24,9 @@ def retrieve_name(var, depth):
     elif depth == 1:
         (callers_local_vars
          ) = inspect.currentframe().f_back.f_back.f_back.f_locals.items()
+    else:
+        (callers_local_vars
+         ) = inspect.currentframe().f_back.f_locals.items()
     name = [var_name for var_name, var_val
             in callers_local_vars if var_val is var]
     return name[0]
@@ -40,7 +43,7 @@ def from_df_to_gdf(array, geo_grid):
     return gdf
 
 
-def export_map(value, grid, geo_grid, export_name, title,
+def export_map(value, grid, geo_grid, path_plots, export_name, title,
                path_tables,
                ubnd, lbnd=0, cmap='Reds'):
     """Generate 2D heat maps of any spatial input."""
@@ -55,14 +58,15 @@ def export_map(value, grid, geo_grid, export_name, title,
     plt.axis('off')
     plt.clim(lbnd, ubnd)
     plt.title(title)
-    plt.savefig(export_name)
+    plt.savefig(path_plots + export_name)
     plt.close()
 
     # value.to_csv(path_tables + str(value))
     gdf = from_df_to_gdf(value, geo_grid)
-    str_value = retrieve_name(value, depth=0)
-    gdf.to_file(path_tables + str_value + '.shp')
-    print(str_value + ' done')
+    # str_value = retrieve_name(value, depth=0)
+    # gdf.to_file(path_tables + str_value + '.shp')
+    gdf.to_file(path_tables + export_name + '.shp')
+    print(export_name + ' done')
 
     return gdf
 

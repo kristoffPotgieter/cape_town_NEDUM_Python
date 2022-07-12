@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import scipy
-import matplotlib as mpl
+# import matplotlib as mpl
 import matplotlib.pyplot as plt
 # import copy
 
@@ -1103,7 +1103,7 @@ formal_structure_cost = outfld.compute_formal_structure_cost_method2(
         initial_state_households_housing_types, param["coeff_A"])
 
 # Then we run the aggregate tables
-# TODO: also need to draw maps
+
 fluviald_damages_data = outfld.compute_damages(
     fluviald_floods, path_floods, param, content_cost,
     data_nb_households_formal, data_nb_households_rdp,
@@ -1259,6 +1259,398 @@ coastal_damages_2d_sim = outfld.compute_damages_2d(
     spline_inflation, year_temp, path_tables, 'coastal_sim')
 
 # Hence the maps and shapefiles
+# TODO: should we annualize? Problem is that we need to loop over dfs
+# Make ndarray!
+fluviald_damages_2d_data_stacked = np.stack(
+    [df for df in fluviald_damages_2d_data.values()])
+fluviald_formal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_formal_structure_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 0],
+        'fluviald', 'formal', options) / 1000000
+fluviald_subsidized_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_subsidized_structure_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 1],
+        'fluviald', 'subsidized', options) / 1000000
+fluviald_informal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_informal_structure_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 2],
+        'fluviald', 'informal', options) / 1000000
+fluviald_backyard_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_backyard_structure_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 3],
+        'fluviald', 'backyard', options) / 1000000
+fluviald_formal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_formal_content_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 4],
+        'fluviald', 'formal', options) / 1000000
+fluviald_subsidized_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_subsidized_content_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 5],
+        'fluviald', 'subsidized', options) / 1000000
+fluviald_informal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_informal_content_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 6],
+        'fluviald', 'informal', options) / 1000000
+fluviald_backyard_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_backyard_content_2d_data[j] = outfld.annualize_damages(
+        fluviald_damages_2d_data_stacked[:, j, 7],
+        'fluviald', 'backyard', options) / 1000000
+
+fluvialu_damages_2d_data_stacked = np.stack(
+    [df for df in fluvialu_damages_2d_data.values()])
+fluvialu_formal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_formal_structure_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 0],
+        'fluvialu', 'formal', options) / 1000000
+fluvialu_subsidized_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_subsidized_structure_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 1],
+        'fluvialu', 'subsidized', options) / 1000000
+fluvialu_informal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_informal_structure_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 2],
+        'fluvialu', 'informal', options) / 1000000
+fluvialu_backyard_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_backyard_structure_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 3],
+        'fluvialu', 'backyard', options) / 1000000
+fluvialu_formal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_formal_content_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 4],
+        'fluvialu', 'formal', options) / 1000000
+fluvialu_subsidized_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_subsidized_content_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 5],
+        'fluvialu', 'subsidized', options) / 1000000
+fluvialu_informal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_informal_content_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 6],
+        'fluvialu', 'informal', options) / 1000000
+fluvialu_backyard_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_backyard_content_2d_data[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_data_stacked[:, j, 7],
+        'fluvialu', 'backyard', options) / 1000000
+
+pluvial_damages_2d_data_stacked = np.stack(
+    [df for df in pluvial_damages_2d_data.values()])
+pluvial_formal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_formal_structure_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 0],
+        'pluvial', 'formal', options) / 1000000
+pluvial_subsidized_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_subsidized_structure_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 1],
+        'pluvial', 'subsidized', options) / 1000000
+pluvial_informal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_informal_structure_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 2],
+        'pluvial', 'informal', options) / 1000000
+pluvial_backyard_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_backyard_structure_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 3],
+        'pluvial', 'backyard', options) / 1000000
+pluvial_formal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_formal_content_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 4],
+        'pluvial', 'formal', options) / 1000000
+pluvial_subsidized_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_subsidized_content_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 5],
+        'pluvial', 'subsidized', options) / 1000000
+pluvial_informal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_informal_content_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 6],
+        'pluvial', 'informal', options) / 1000000
+pluvial_backyard_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_backyard_content_2d_data[j] = outfld.annualize_damages(
+        pluvial_damages_2d_data_stacked[:, j, 7],
+        'pluvial', 'backyard', options) / 1000000
+
+coastal_damages_2d_data_stacked = np.stack(
+    [df for df in coastal_damages_2d_data.values()])
+coastal_formal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_formal_structure_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 0],
+        'coastal', 'formal', options) / 1000000
+coastal_subsidized_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_subsidized_structure_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 1],
+        'coastal', 'subsidized', options) / 1000000
+coastal_informal_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_informal_structure_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 2],
+        'coastal', 'informal', options) / 1000000
+coastal_backyard_structure_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_backyard_structure_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 3],
+        'coastal', 'backyard', options) / 1000000
+coastal_formal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_formal_content_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 4],
+        'coastal', 'formal', options) / 1000000
+coastal_subsidized_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_subsidized_content_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 5],
+        'coastal', 'subsidized', options) / 1000000
+coastal_informal_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_informal_content_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 6],
+        'coastal', 'informal', options) / 1000000
+coastal_backyard_content_2d_data = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_backyard_content_2d_data[j] = outfld.annualize_damages(
+        coastal_damages_2d_data_stacked[:, j, 7],
+        'coastal', 'backyard', options) / 1000000
+
+
+fluviald_damages_2d_sim_stacked = np.stack(
+    [df for df in fluviald_damages_2d_sim.values()])
+fluviald_formal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 0],
+        'fluviald', 'formal', options) / 1000000
+fluviald_subsidized_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_subsidized_structure_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 1],
+        'fluviald', 'subsidized', options) / 1000000
+fluviald_informal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_informal_structure_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 2],
+        'fluviald', 'informal', options) / 1000000
+fluviald_backyard_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_backyard_structure_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 3],
+        'fluviald', 'backyard', options) / 1000000
+fluviald_formal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_formal_content_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 4],
+        'fluviald', 'formal', options) / 1000000
+fluviald_subsidized_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_subsidized_content_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 5],
+        'fluviald', 'subsidized', options) / 1000000
+fluviald_informal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_informal_content_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 6],
+        'fluviald', 'informal', options) / 1000000
+fluviald_backyard_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluviald_backyard_content_2d_sim[j] = outfld.annualize_damages(
+        fluviald_damages_2d_sim_stacked[:, j, 7],
+        'fluviald', 'backyard', options) / 1000000
+
+fluvialu_damages_2d_sim_stacked = np.stack(
+    [df for df in fluvialu_damages_2d_sim.values()])
+fluvialu_formal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 0],
+        'fluvialu', 'formal', options) / 1000000
+fluvialu_subsidized_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_subsidized_structure_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 1],
+        'fluvialu', 'subsidized', options) / 1000000
+fluvialu_informal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_informal_structure_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 2],
+        'fluvialu', 'informal', options) / 1000000
+fluvialu_backyard_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_backyard_structure_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 3],
+        'fluvialu', 'backyard', options) / 1000000
+fluvialu_formal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_formal_content_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 4],
+        'fluvialu', 'formal', options) / 1000000
+fluvialu_subsidized_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_subsidized_content_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 5],
+        'fluvialu', 'subsidized', options) / 1000000
+fluvialu_informal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_informal_content_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 6],
+        'fluvialu', 'informal', options) / 1000000
+fluvialu_backyard_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    fluvialu_backyard_content_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 7],
+        'fluvialu', 'backyard', options) / 1000000
+
+pluvial_damages_2d_sim_stacked = np.stack(
+    [df for df in pluvial_damages_2d_sim.values()])
+pluvial_formal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 0],
+        'pluvial', 'formal', options) / 1000000
+pluvial_subsidized_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_subsidized_structure_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 1],
+        'pluvial', 'subsidized', options) / 1000000
+pluvial_informal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_informal_structure_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 2],
+        'pluvial', 'informal', options) / 1000000
+pluvial_backyard_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_backyard_structure_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 3],
+        'pluvial', 'backyard', options) / 1000000
+pluvial_formal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_formal_content_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 4],
+        'pluvial', 'formal', options) / 1000000
+pluvial_subsidized_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_subsidized_content_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 5],
+        'pluvial', 'subsidized', options) / 1000000
+pluvial_informal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_informal_content_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 6],
+        'pluvial', 'informal', options) / 1000000
+pluvial_backyard_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    pluvial_backyard_content_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 7],
+        'pluvial', 'backyard', options) / 1000000
+
+coastal_damages_2d_sim_stacked = np.stack(
+    [df for df in coastal_damages_2d_sim.values()])
+coastal_formal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 0],
+        'coastal', 'formal', options) / 1000000
+coastal_subsidized_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_subsidized_structure_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 1],
+        'coastal', 'subsidized', options) / 1000000
+coastal_informal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_informal_structure_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 2],
+        'coastal', 'informal', options) / 1000000
+coastal_backyard_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_backyard_structure_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 3],
+        'coastal', 'backyard', options) / 1000000
+coastal_formal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_formal_content_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 4],
+        'coastal', 'formal', options) / 1000000
+coastal_subsidized_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_subsidized_content_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 5],
+        'coastal', 'subsidized', options) / 1000000
+coastal_informal_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_informal_content_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 6],
+        'coastal', 'informal', options) / 1000000
+coastal_backyard_content_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_backyard_content_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 7],
+        'coastal', 'backyard', options) / 1000000
+
+list_annualized_2d_damages = [
+    fluviald_backyard_structure_2d_data, fluviald_backyard_structure_2d_sim,
+    fluviald_backyard_content_2d_data, fluviald_backyard_content_2d_sim,
+    fluviald_subsidized_structure_2d_data,
+    fluviald_subsidized_structure_2d_sim,
+    fluviald_subsidized_content_2d_data, fluviald_subsidized_content_2d_sim,
+    fluviald_informal_structure_2d_data, fluviald_informal_structure_2d_sim,
+    fluviald_informal_content_2d_data, fluviald_informal_content_2d_sim,
+    fluviald_formal_structure_2d_data, fluviald_formal_structure_2d_sim,
+    fluviald_formal_content_2d_data, fluviald_formal_content_2d_sim,
+    fluvialu_backyard_structure_2d_data, fluvialu_backyard_structure_2d_sim,
+    fluvialu_backyard_content_2d_data, fluvialu_backyard_content_2d_sim,
+    fluvialu_subsidized_structure_2d_data,
+    fluvialu_subsidized_structure_2d_sim,
+    fluvialu_subsidized_content_2d_data, fluvialu_subsidized_content_2d_sim,
+    fluvialu_informal_structure_2d_data, fluvialu_informal_structure_2d_sim,
+    fluvialu_informal_content_2d_data, fluvialu_informal_content_2d_sim,
+    fluvialu_formal_structure_2d_data, fluvialu_formal_structure_2d_sim,
+    fluvialu_formal_content_2d_data, fluvialu_formal_content_2d_sim,
+    pluvial_backyard_structure_2d_data, pluvial_backyard_structure_2d_sim,
+    pluvial_backyard_content_2d_data, pluvial_backyard_content_2d_sim,
+    pluvial_subsidized_structure_2d_data, pluvial_subsidized_structure_2d_sim,
+    pluvial_subsidized_content_2d_data, pluvial_subsidized_content_2d_sim,
+    pluvial_informal_structure_2d_data, pluvial_informal_structure_2d_sim,
+    pluvial_informal_content_2d_data, pluvial_informal_content_2d_sim,
+    pluvial_formal_structure_2d_data, pluvial_formal_structure_2d_sim,
+    pluvial_formal_content_2d_data, pluvial_formal_content_2d_sim,
+    coastal_backyard_structure_2d_data, coastal_backyard_structure_2d_sim,
+    coastal_backyard_content_2d_data, coastal_backyard_content_2d_sim,
+    coastal_subsidized_structure_2d_data, coastal_subsidized_structure_2d_sim,
+    coastal_subsidized_content_2d_data, coastal_subsidized_content_2d_sim,
+    coastal_informal_structure_2d_data, coastal_informal_structure_2d_sim,
+    coastal_informal_content_2d_data, coastal_informal_content_2d_sim,
+    coastal_formal_structure_2d_data, coastal_formal_structure_2d_sim,
+    coastal_formal_content_2d_data, coastal_formal_content_2d_sim]
+
+# NB: need to retrieve name of item
+for item in list_annualized_2d_damages:
+    outexp.export_map(item, grid, geo_grid,
+                      path_plots, outexp.retrieve_name(item, -1), "",
+                      path_tables,
+                      ubnd=np.quantile(item[item > 0], 0.9),
+                      lbnd=np.min(item[item > 0]))
+
+# TODO: put in old script
 
 for item in fluviald_floods:
 
@@ -1272,7 +1664,7 @@ for item in fluviald_floods:
 
     try:
         outexp.export_map(FP_damages, grid, geo_grid,
-                          path_plots + item + '_FP_damages_data', "",
+                          path_plots, item + '_FP_damages_data', "",
                           path_tables,
                           ubnd=np.quantile(FP_damages[FP_damages > 0], 0.9),
                           lbnd=np.min(FP_damages[FP_damages > 0]))
@@ -1280,7 +1672,7 @@ for item in fluviald_floods:
         pass
     try:
         outexp.export_map(FS_damages, grid, geo_grid,
-                          path_plots + item + '_FS_damages_data', "",
+                          path_plots, item + '_FS_damages_data', "",
                           path_tables,
                           ubnd=np.quantile(FS_damages[FS_damages > 0], 0.9),
                           lbnd=np.min(FS_damages[FS_damages > 0]))
@@ -1288,7 +1680,7 @@ for item in fluviald_floods:
         pass
     try:
         outexp.export_map(IB_damages, grid, geo_grid,
-                          path_plots + item + '_IB_damages_data', "",
+                          path_plots, item + '_IB_damages_data', "",
                           path_tables,
                           ubnd=np.quantile(IB_damages[IB_damages > 0], 0.9),
                           lbnd=np.min(IB_damages[IB_damages > 0]))
@@ -1296,17 +1688,261 @@ for item in fluviald_floods:
         pass
     try:
         outexp.export_map(IS_damages, grid, geo_grid,
-                          path_plots + item + '_IS_damages_data', "",
+                          path_plots, item + '_IS_damages_data', "",
                           path_tables,
                           ubnd=np.quantile(IS_damages[IS_damages > 0], 0.9),
                           lbnd=np.min(IS_damages[IS_damages > 0]))
     except IndexError:
         pass
 
+for item in fluvialu_floods:
 
-# Also graph the fraction of capital?
+    print(item)
+    df = fluvialu_damages_2d_data[item]
+    FP_damages = df.formal_structure_damages + df.formal_content_damages
+    FS_damages = (
+        df.subsidized_structure_damages + df.subsidized_content_damages)
+    IB_damages = df.backyard_structure_damages + df.backyard_content_damages
+    IS_damages = df.informal_structure_damages + df.informal_content_damages
+
+    try:
+        outexp.export_map(FP_damages, grid, geo_grid,
+                          path_plots, item + '_FP_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(FP_damages[FP_damages > 0], 0.9),
+                          lbnd=np.min(FP_damages[FP_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(FS_damages, grid, geo_grid,
+                          path_plots, item + '_FS_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(FS_damages[FS_damages > 0], 0.9),
+                          lbnd=np.min(FS_damages[FS_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(IB_damages, grid, geo_grid,
+                          path_plots, item + '_IB_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(IB_damages[IB_damages > 0], 0.9),
+                          lbnd=np.min(IB_damages[IB_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(IS_damages, grid, geo_grid,
+                          path_plots, item + '_IS_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(IS_damages[IS_damages > 0], 0.9),
+                          lbnd=np.min(IS_damages[IS_damages > 0]))
+    except IndexError:
+        pass
+
+for item in pluvial_floods:
+
+    print(item)
+    df = pluvial_damages_2d_data[item]
+    FP_damages = df.formal_structure_damages + df.formal_content_damages
+    FS_damages = (
+        df.subsidized_structure_damages + df.subsidized_content_damages)
+    IB_damages = df.backyard_structure_damages + df.backyard_content_damages
+    IS_damages = df.informal_structure_damages + df.informal_content_damages
+
+    try:
+        outexp.export_map(FP_damages, grid, geo_grid,
+                          path_plots, item + '_FP_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(FP_damages[FP_damages > 0], 0.9),
+                          lbnd=np.min(FP_damages[FP_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(FS_damages, grid, geo_grid,
+                          path_plots, item + '_FS_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(FS_damages[FS_damages > 0], 0.9),
+                          lbnd=np.min(FS_damages[FS_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(IB_damages, grid, geo_grid,
+                          path_plots, item + '_IB_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(IB_damages[IB_damages > 0], 0.9),
+                          lbnd=np.min(IB_damages[IB_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(IS_damages, grid, geo_grid,
+                          path_plots, item + '_IS_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(IS_damages[IS_damages > 0], 0.9),
+                          lbnd=np.min(IS_damages[IS_damages > 0]))
+    except IndexError:
+        pass
+
+for item in coastal_floods:
+
+    print(item)
+    df = coastal_damages_2d_data[item]
+    FP_damages = df.formal_structure_damages + df.formal_content_damages
+    FS_damages = (
+        df.subsidized_structure_damages + df.subsidized_content_damages)
+    IB_damages = df.backyard_structure_damages + df.backyard_content_damages
+    IS_damages = df.informal_structure_damages + df.informal_content_damages
+
+    try:
+        outexp.export_map(FP_damages, grid, geo_grid,
+                          path_plots, item + '_FP_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(FP_damages[FP_damages > 0], 0.9),
+                          lbnd=np.min(FP_damages[FP_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(FS_damages, grid, geo_grid,
+                          path_plots, item + '_FS_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(FS_damages[FS_damages > 0], 0.9),
+                          lbnd=np.min(FS_damages[FS_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(IB_damages, grid, geo_grid,
+                          path_plots, item + '_IB_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(IB_damages[IB_damages > 0], 0.9),
+                          lbnd=np.min(IB_damages[IB_damages > 0]))
+    except IndexError:
+        pass
+    try:
+        outexp.export_map(IS_damages, grid, geo_grid,
+                          path_plots, item + '_IS_damages_data', "",
+                          path_tables,
+                          ubnd=np.quantile(IS_damages[IS_damages > 0], 0.9),
+                          lbnd=np.min(IS_damages[IS_damages > 0]))
+    except IndexError:
+        pass
+
+# We could plot fraction of capital destroyed separately for each
+# flood type, but it would be similar due to bath-tub model
+# NB: note that content damage function is the same for all housing types
+for col in fraction_capital_destroyed.columns:
+    value = fraction_capital_destroyed[col]
+    outexp.export_map(value, grid, geo_grid,
+                      path_plots, col + '_fract_K_destroyed', "",
+                      path_tables,
+                      ubnd=1)
+
 # Graphs with share of annual income destroyed (by income group
 # and return period)?
+# TODO: also average/distribution graph?
+
+selected_net_income_formal = np.empty(24014)
+cond = np.argmax(initial_state_households[0, :, :], axis=0)
+for j in np.arange(24014):
+    selected_net_income_formal[j] = (
+        income_net_of_commuting_costs[cond[j], j])
+
+u, c = np.unique(initial_state_households[0, :, :], axis=0, return_counts=True)
+dup = u[c > 1]
+
+selected_net_income_rdp = np.empty(24014)
+cond = np.argmax(initial_state_households[3, :, :], axis=0)
+for j in np.arange(24014):
+    selected_net_income_rdp[j] = (
+        income_net_of_commuting_costs[cond[j], j])
+
+selected_net_income_backyard = np.empty(24014)
+cond = np.argmax(initial_state_households[1, :, :], axis=0)
+for j in np.arange(24014):
+    selected_net_income_backyard[j] = (
+        income_net_of_commuting_costs[cond[j], j])
+
+selected_net_income_informal = np.empty(24014)
+cond = np.argmax(initial_state_households[2, :, :], axis=0)
+for j in np.arange(24014):
+    selected_net_income_informal[j] = (
+        income_net_of_commuting_costs[cond[j], j])
+
+# TODO: Does it really make sense to take share of net income for formal
+# where households do not bear structural costs? Should we do the same with
+# share of housing price?
+fluviald_damages_share_2d_data = outfld.compute_share_income_destroyed(
+    fluviald_damages_2d_data, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_backyard,
+    data_nb_households_informal)
+fluviald_damages_share_2d_sim = outfld.compute_share_income_destroyed(
+    fluviald_damages_2d_sim, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, sim_nb_households_formal,
+    data_nb_households_rdp, sim_nb_households_backyard,
+    sim_nb_households_informal)
+
+fluvialu_damages_share_2d_data = outfld.compute_share_income_destroyed(
+    fluvialu_damages_2d_data, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_backyard,
+    data_nb_households_informal)
+fluvialu_damages_share_2d_sim = outfld.compute_share_income_destroyed(
+    fluvialu_damages_2d_sim, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, sim_nb_households_formal,
+    data_nb_households_rdp, sim_nb_households_backyard,
+    sim_nb_households_informal)
+
+pluvial_damages_share_2d_data = outfld.compute_share_income_destroyed(
+    pluvial_damages_2d_data, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_backyard,
+    data_nb_households_informal)
+pluvial_damages_share_2d_sim = outfld.compute_share_income_destroyed(
+    pluvial_damages_2d_sim, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, sim_nb_households_formal,
+    data_nb_households_rdp, sim_nb_households_backyard,
+    sim_nb_households_informal)
+
+coastal_damages_share_2d_data = outfld.compute_share_income_destroyed(
+    coastal_damages_2d_data, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, data_nb_households_formal,
+    data_nb_households_rdp, data_nb_households_backyard,
+    data_nb_households_informal)
+coastal_damages_share_2d_sim = outfld.compute_share_income_destroyed(
+    coastal_damages_2d_sim, selected_net_income_formal,
+    selected_net_income_rdp, selected_net_income_backyard,
+    selected_net_income_informal, sim_nb_households_formal,
+    data_nb_households_rdp, sim_nb_households_backyard,
+    sim_nb_households_informal)
+
+dict_list = [fluviald_damages_share_2d_data, fluviald_damages_share_2d_sim,
+             fluvialu_damages_share_2d_data, fluvialu_damages_share_2d_sim,
+             pluvial_damages_share_2d_data, pluvial_damages_share_2d_sim,
+             coastal_damages_share_2d_data, coastal_damages_share_2d_sim]
+column_list = ['formal_structure_damages', 'formal_content_damages',
+               'informal_structure_damages', 'informal_content_damages',
+               'subsidized_structure_damages', 'subsidized_content_damages',
+               'backyard_structure_damages', 'backyard_content_damages']
+for dictio in dict_list:
+    for key in dictio.keys():
+        df = dictio[key]
+        for col in column_list:
+            value = df[col]
+            try:
+                outexp.export_map(value, grid, geo_grid,
+                                  path_plots, key + '_share_netinc_' + col,
+                                  "",
+                                  path_tables,
+                                  ubnd=np.quantile(value[value > 0], 0.9))
+            except IndexError:
+                pass
+
+# TODO: shouldn't we annualize instead?
 
 # DYNAMICS
 # TODO: plot scenarios!
