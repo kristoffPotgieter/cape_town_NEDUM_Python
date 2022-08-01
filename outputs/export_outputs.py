@@ -61,11 +61,18 @@ def export_map(value, grid, geo_grid, path_plots, export_name, title,
     plt.savefig(path_plots + export_name)
     plt.close()
 
-    # value.to_csv(path_tables + str(value))
-    gdf = from_df_to_gdf(value, geo_grid)
-    # str_value = retrieve_name(value, depth=0)
-    # gdf.to_file(path_tables + str_value + '.shp')
-    gdf.to_file(path_tables + export_name + '.shp')
+    if isinstance(value, np.ndarray):
+        np.savetxt(path_tables + export_name, value, delimiter=",")
+
+    else:
+        # value.to_csv(path_tables + str(value))
+        value.to_csv(path_tables + export_name)
+        # gdf = from_df_to_gdf(value, geo_grid)
+        # str_value = retrieve_name(value, depth=0)
+        # gdf.to_file(path_tables + str_value + '.shp')
+        # gdf.to_file(path_tables + export_name + '.shp')
+
+    gdf = value
     print(export_name + ' done')
 
     return gdf
@@ -390,6 +397,57 @@ def validation_density_housing_types(
     return df
 
 
+def simulation_density_housing_types(
+        grid, initial_state_households_housing_types,
+        path_plots, path_tables):
+    """Line plot for number of households per housing type across 1D-space."""
+    # Housing types
+    xData = grid.dist
+    formal_simul = initial_state_households_housing_types[0, :]
+    informal_simul = initial_state_households_housing_types[2, :]
+    backyard_simul = initial_state_households_housing_types[1, :]
+    # Note that RDP population is not actually simulated but taken from data
+    rdp_simul = initial_state_households_housing_types[3, :]
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array(
+            [xData, formal_simul,
+             backyard_simul, informal_simul, rdp_simul]
+            )),
+        columns=["xData",
+                 "formal_simul", "backyard_simul", "informal_simul",
+                 "rdp_simul"]
+        )
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).sum()
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    # plt.figure(figsize=(10, 7))
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.formal_simul, color="gold", label='Formal')
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.informal_simul, color="red", label="Informal")
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.backyard_simul, color="darkorange", label="Backyard")
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.rdp_simul, color="maroon", label='Subsidized')
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    plt.ylabel("Total number of households per housing type", labelpad=15)
+    plt.savefig(path_plots + 'simulation_density_htype.png')
+    plt.close()
+
+    df.to_csv(path_tables + 'simulation_density_per_housing.csv')
+    print('simulation_density_per_housing done')
+
+    return df
+
+
 def validation_density_income_groups(
         grid, initial_state_household_centers, income_distribution_grid,
         path_plots, path_tables):
@@ -490,6 +548,55 @@ def validation_density_income_groups(
 
     df.to_csv(path_tables + 'validation_density_per_income.csv')
     print('validation_density_per_income done')
+
+    return df
+
+
+def simulation_density_income_groups(
+        grid, initial_state_household_centers,
+        path_plots, path_tables):
+    """Line plot for number of households per income group across 1D-space."""
+    # Income groups
+    xData = grid.dist
+    poor_simul = initial_state_household_centers[0, :]
+    midpoor_simul = initial_state_household_centers[1, :]
+    midrich_simul = initial_state_household_centers[2, :]
+    rich_simul = initial_state_household_centers[3, :]
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array(
+            [xData,
+             poor_simul, midpoor_simul, midrich_simul, rich_simul]
+            )),
+        columns=["xData",
+                 "poor_simul", "midpoor_simul", "midrich_simul",
+                 "rich_simul"]
+        )
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).sum()
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.poor_simul, color="maroon", label="Poor")
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.midpoor_simul, color="red", label="Mid-poor")
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.midrich_simul, color="darkorange", label="Mid-rich")
+    ax.plot(np.arange(max(df["round"] + 1)),
+            new_df.rich_simul, color="gold", label="Rich")
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    plt.ylabel("Total number of households per income group", labelpad=15)
+    plt.savefig(path_plots + 'simulation_density_incgroup.png')
+    plt.close()
+
+    df.to_csv(path_tables + 'simulation_density_per_income.csv')
+    print('simulation_density_per_income done')
 
     return df
 
@@ -913,6 +1020,91 @@ def validation_housing_price(
     return df, yData
 
 
+def simulation_housing_price(
+        grid, initial_state_rent, interest_rate, param, center,
+        housing_types_sp,
+        path_plots, path_tables, land_price):
+    """Plot land price per housing type across space."""
+    sp_x = housing_types_sp["x_sp"]
+    sp_y = housing_types_sp["y_sp"]
+
+    if land_price == 1:
+        priceSimul = (
+            ((initial_state_rent[0:3, :] * param["coeff_A"])
+             / (interest_rate + param["depreciation_rate"]))
+            ** (1 / param["coeff_a"])
+            * param["coeff_a"]
+            * param["coeff_b"] ** (param["coeff_b"] / param["coeff_a"])
+            )
+    elif land_price == 0:
+        priceSimul = initial_state_rent
+
+    priceSimulPricePoints_formal = griddata(
+        np.transpose(np.array([grid.x, grid.y])),
+        priceSimul[0, :],
+        np.transpose(np.array([sp_x, sp_y]))
+        )
+    priceSimulPricePoints_informal = griddata(
+        np.transpose(np.array([grid.x, grid.y])),
+        priceSimul[1, :],
+        np.transpose(np.array([sp_x, sp_y]))
+        )
+    priceSimulPricePoints_backyard = griddata(
+        np.transpose(np.array([grid.x, grid.y])),
+        priceSimul[2, :],
+        np.transpose(np.array([sp_x, sp_y]))
+        )
+
+    xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
+    # TODO: check need to redefine
+
+    # xSimulation = xData
+    ySimulation = priceSimulPricePoints_formal
+    informalSimul = priceSimulPricePoints_informal
+    backyardSimul = priceSimulPricePoints_backyard
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array([xData, ySimulation, informalSimul,
+                                    backyardSimul])),
+        columns=["xData", "ySimulation", "informalSimul",
+                 "backyardSimul"])
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).mean()
+
+    which = ~np.isnan(new_df.ySimulation)
+    which_informal = ~np.isnan(new_df.informalSimul)
+    which_backyard = ~np.isnan(new_df.backyardSimul)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(new_df.xData[which], new_df.ySimulation[which],
+            color="green", label="Formal")
+    ax.plot(new_df.xData[which_informal], new_df.informalSimul[which_informal],
+            color="red", label="Informal")
+    ax.plot(new_df.xData[which_backyard], new_df.backyardSimul[which_backyard],
+            color="blue", label="Backyard")
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    if land_price == 1:
+        plt.ylabel("Land price (R/m² of land)", labelpad=15)
+    if land_price == 0:
+        plt.ylabel("Housing price (R/m² of housing)", labelpad=15)
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.tick_params(bottom=True, labelbottom=True)
+    plt.savefig(path_plots + '/simulation_housing_price'
+                + str(land_price) + '.png')
+    plt.close()
+
+    df.to_csv(path_tables + 'simulation_housing_price'
+              + str(land_price) + '.csv')
+    print('simulation_housing_price' + str(land_price) + ' done')
+
+    return df
+
+
 def validation_housing_price_test(
         grid, initial_state_rent, initial_state_households_housing_types,
         interest_rate, param, center, housing_types_sp, data_sp,
@@ -1082,4 +1274,50 @@ def plot_housing_demand(grid, center, initial_state_dwelling_size,
     plt.ylabel("Avg dwelling size in private formal sector (in m²)",
                labelpad=15)
     plt.savefig(path_plots + 'validation_housing_demand.png')
+    plt.close()
+
+
+def simul_housing_demand(grid, center, initial_state_dwelling_size,
+                         initial_state_households_housing_types,
+                         path_plots, path_tables):
+    """Plot average dwelling size in private formal across space."""
+
+    # sizeSimulPoints = griddata(
+    #     np.transpose(np.array([grid.x, grid.y])),
+    #     initial_state_dwelling_size[0, :],
+    #     np.transpose(np.array([sp_x, sp_y]))
+    #     )
+    sizeSimulPoints = initial_state_dwelling_size[0, :]
+
+    # xData = np.sqrt((sp_x - center[0]) ** 2 + (sp_y - center[1]) ** 2)
+    xData = grid.dist
+    # yData = sp_size
+    # xSimulation = xData
+    ySimulation = sizeSimulPoints
+
+    df = pd.DataFrame(
+        data=np.transpose(np.array(
+            [xData, ySimulation]
+            )),
+        columns=["xData", "ySimulation"]
+        )
+    df["round"] = round(df.xData)
+    new_df = df.groupby(['round']).mean()
+
+    which_simul = ~np.isnan(new_df.ySimulation)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(new_df.xData[which_simul], new_df.ySimulation[which_simul],
+            color="green")
+
+    ax.set_ylim(0)
+    ax.set_xlim([0, 50])
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.xlabel("Distance to the city center (km)", labelpad=15)
+    plt.ylabel("Avg dwelling size in private formal sector (in m²)",
+               labelpad=15)
+    plt.savefig(path_plots + 'simulation_housing_demand.png')
     plt.close()

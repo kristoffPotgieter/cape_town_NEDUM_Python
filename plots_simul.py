@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 20 10:57:30 2022.
+Created on Mon Aug  1 16:21:32 2022
 
 @author: monni
 """
@@ -85,7 +85,6 @@ name = ('floods' + str(options["agents_anticipate_floods"])
 path_plots = path_outputs + name + '/plots/'
 path_tables = path_outputs + name + '/tables/'
 
-year_temp = 0
 
 # %% Load data
 
@@ -140,37 +139,6 @@ income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
                            housing_type_data, path_data, path_folder)
      )
 
-#  We correct areas for each housing type at baseline year for the amount of
-#  constructible land in each type
-coeff_land = inpdt.import_coeff_land(
-    spline_land_constraints, spline_land_backyard, spline_land_informal,
-    spline_land_RDP, param, 0)
-
-#  We update parameter vector with construction parameters
-(param, minimum_housing_supply, agricultural_rent
- ) = inpprm.import_construction_parameters(
-    param, grid, housing_types_sp, data_sp["dwelling_size"],
-    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
-    interest_rate, options
-    )
-
-# OTHER VALIDATION DATA
-
-# TODO: makes no sense?
-data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
-data_avg_income = data['gridAverageIncome'][0][0].squeeze()
-data_avg_income[np.isnan(data_avg_income)] = 0
-
-
-# TODO: do loop for simulations
-income_net_of_commuting_costs = np.load(
-    path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
-cal_average_income = np.load(
-    path_precalc_transp + 'GRID_averageIncome_0.npy')
-modal_shares = np.load(
-    path_precalc_transp + 'GRID_modalShares_0.npy')
-od_flows = np.load(
-    path_precalc_transp + 'GRID_ODflows_0.npy')
 
 # LOAD EQUILIBRIUM DATA
 
@@ -220,6 +188,8 @@ simulation_error = np.load(
     path_outputs + name + '/simulation_error.npy')
 simulation_utility = np.load(
     path_outputs + name + '/simulation_utility.npy')
+simulation_housing_supply = np.load(
+    path_outputs + name + '/simulation_housing_supply.npy')
 simulation_deriv_housing = np.load(
     path_outputs + name + '/simulation_deriv_housing.npy')
 simulation_T = np.load(
@@ -248,161 +218,166 @@ options["agents_anticipate_floods"] = 1
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
 
 
-# %% Validation: draw maps and figures
+# BEGIN THE LOOP
+year_temp = 0
 
-print("Static equilibrium validation")
-# TODO: integrate in shapefiles and csv + plotly
+income_net_of_commuting_costs = np.load(
+    path_precalc_transp
+    + 'GRID_incomeNetOfCommuting_' + str(year_temp) + '.npy')
+cal_average_income = np.load(
+    path_precalc_transp + 'GRID_averageIncome_' + str(year_temp) + '.npy')
+modal_shares = np.load(
+    path_precalc_transp + 'GRID_modalShares' + str(year_temp) + '.npy')
+od_flows = np.load(
+    path_precalc_transp + 'GRID_ODflows' + str(year_temp) + '.npy')
+
+# All that changes
+(average_income, households_per_income_class
+ ) = eqdyn.compute_average_income(
+     spline_population_income_distribution,
+     spline_income_distribution, param, year_temp)
+(param["subsidized_structure_value"]
+ ) = (param["subsidized_structure_value_ref"]
+     * (spline_inflation(year_temp) / spline_inflation(0)))
+(param["informal_structure_value"]
+ ) = (param["informal_structure_value_ref"]
+      * (spline_inflation(year_temp) / spline_inflation(0)))
+mean_income = spline_income(year_temp)
+interest_rate = eqdyn.interpolate_interest_rate(
+    spline_interest_rate, year_temp)
+population = spline_population(year_temp)
+total_RDP = spline_RDP(year_temp)
+minimum_housing_supply = spline_minimum_housing_supply(year_temp)
+# income_mult = average_income / mean_income
+number_properties_RDP = spline_estimate_RDP(year_temp)
+# Scale factor needs to move to create monetary illusion in the
+# model, e.g. housing supply should not change when currency
+# changes and all prices move: this is where the formula comes
+# from
+construction_param = (
+    (mean_income / param["income_year_reference"])
+    ** (- param["coeff_b"]) * param["coeff_A"]
+    )
+coeff_land = inpdt.import_coeff_land(
+    spline_land_constraints, spline_land_backyard,
+    spline_land_informal, spline_land_RDP, param, year_temp)
+
+agricultural_rent = inpprm.compute_agricultural_rent(
+    spline_agricultural_rent(year_temp), construction_param,
+    interest_rate, param, options)
+
+# %% Validation: draw maps and figures
 
 # POPULATION OUTPUTS
 
+path_plots_temp = path_plots + str(year_temp) + '/'
+path_tables_temp = path_tables + str(year_temp) + '/'
+
 try:
-    os.mkdir(path_plots)
+    os.mkdir(path_plots_temp)
 except OSError as error:
     print(error)
 
 try:
-    os.mkdir(path_tables)
+    os.mkdir(path_tables_temp)
 except OSError as error:
     print(error)
-
-# Note that aggregate fit on income groups hold by construction
-# Aggregate (and local) fit on housing types is enforced through
-# disamenity parameter calibration but is not perfect,
-# hence needs to be checked
-agg_housing_type_valid = outexp.export_housing_types(
-    initial_state_households_housing_types, housing_type_data,
-    'Simulation', 'Data', path_plots, path_tables
-    )
-
-# We also validate the fit across housing types and income groups
-(agg_FP_income_valid, agg_IB_income_valid, agg_IS_income_valid
- ) = outexp.export_households(
-     initial_state_households, households_per_income_and_housing, 'Simulation',
-     'Data', path_plots, path_tables)
 
 
 #  IN ONE DIMENSION
 
 # Now, we validate overall households density across space
-dens_valid_1d = outexp.validation_density(
-    grid, initial_state_households_housing_types, housing_types,
-    path_plots, path_tables)
 
 # We do the same for total number of households across space,
 # housing types and income groups
-dist_HH_per_housing_1d = outexp.validation_density_housing_types(
-    grid, initial_state_households_housing_types, housing_types,
-    path_plots, path_tables
+dist_HH_per_housing_1d = outexp.simulation_density_housing_types(
+    grid, simulation_households_housing_type[year_temp, :, :],
+    path_plots_temp, path_tables_temp
     )
+
 # TODO: switch back to SP level for more precision in validation data?
 # Else, aggregate distance at a higher level?
-dist_HH_per_income_1d = outexp.validation_density_income_groups(
-    grid, initial_state_household_centers, income_distribution_grid,
-    path_plots, path_tables
+dist_HH_per_income_1d = outexp.simulation_density_income_groups(
+    grid, simulation_households_housing_type[year_temp, :, :],
+    path_plots_temp, path_tables_temp
     )
 
 # We also plot income groups across space (in 1D) for each housing type,
 # even if we cannot validate such output
 (dist_HH_per_housing_and_income_1d
  ) = outexp.validation_density_housing_and_income_groups(
-     grid, initial_state_households, path_plots, path_tables)
+     grid, simulation_households[year_temp, :, :, :],
+     path_plots_temp, path_tables_temp)
 
 
 #  IN TWO DIMENSIONS
 
 #  For overall households
-sim_nb_households_tot = np.nansum(initial_state_households_housing_types, 0)
+sim_nb_households_tot = np.nansum(
+    simulation_households_housing_type[year_temp, :, :], 0)
 total_sim = outexp.export_map(
-    sim_nb_households_tot, grid, geo_grid, path_plots,  'total_sim',
+    sim_nb_households_tot, grid, geo_grid, path_plots_temp, 'total_sim',
     "Total number of households (simulation)",
-    path_tables,
-    ubnd=5000)
-
-# Note that we lack households in Mitchell's Plain
-# TODO: should we correct it?
-data_nb_households_tot = np.nansum(housing_types[
-    ["informal_grid", "backyard_informal_grid", "formal_grid"]
-    ], 1)
-total_data = outexp.export_map(
-    data_nb_households_tot, grid, geo_grid, path_plots,  'total_data',
-    "Total number of households (data)",
-    path_tables,
+    path_tables_temp,
     ubnd=5000)
 
 #  Per housing type
-sim_nb_households_formal = initial_state_households_housing_types[0, :]
+sim_nb_households_formal = simulation_households_housing_type[year_temp, 0, :]
 formal_sim = outexp.export_map(
-    sim_nb_households_formal, grid, geo_grid, path_plots,  'formal_sim',
+    sim_nb_households_formal, grid, geo_grid, path_plots_temp, 'formal_sim',
     "Number of households in formal private (simulation)",
-    path_tables,
-    ubnd=1000)
-data_nb_households_formal = (housing_types["formal_grid"]
-                             - initial_state_households_housing_types[3, :])
-formal_data = outexp.export_map(
-    data_nb_households_formal, grid, geo_grid, path_plots,  'formal_data',
-    "Number of households in formal private (data)",
-    path_tables,
+    path_tables_temp,
     ubnd=1000)
 
-sim_nb_households_backyard = initial_state_households_housing_types[1, :]
+sim_nb_households_backyard = simulation_households_housing_type[
+    year_temp, 1, :]
 backyard_sim = outexp.export_map(
-    sim_nb_households_backyard, grid, geo_grid, path_plots,  'backyard_sim',
+    sim_nb_households_backyard, grid, geo_grid, path_plots_temp,
+    'backyard_sim',
     "Number of households in informal backyard (simulation)",
-    path_tables,
-    ubnd=1000)
-data_nb_households_backyard = housing_types["backyard_informal_grid"]
-backyard_data = outexp.export_map(
-    data_nb_households_backyard, grid, geo_grid, path_plots,  'backyard_data',
-    "Number of households in informal backyard (data)",
-    path_tables,
+    path_tables_temp,
     ubnd=1000)
 
-sim_nb_households_informal = initial_state_households_housing_types[2, :]
+sim_nb_households_informal = simulation_households_housing_type[
+    year_temp, 2, :]
 informal_sim = outexp.export_map(
-    sim_nb_households_informal, grid, geo_grid, path_plots,  'informal_sim',
+    sim_nb_households_informal, grid, geo_grid, path_plots_temp,
+    'informal_sim',
     "Number of households in informal settlements (simulation)",
-    path_tables,
-    ubnd=3000)
-data_nb_households_informal = housing_types["informal_grid"]
-informal_data = outexp.export_map(
-    data_nb_households_informal, grid, geo_grid, path_plots,  'informal_data',
-    "Number of households in informal settlements (data)",
-    path_tables,
+    path_tables_temp,
     ubnd=3000)
 
-data_nb_households_rdp = initial_state_households_housing_types[3, :]
+data_nb_households_rdp = simulation_households_housing_type[year_temp, 3, :]
 rdp_sim = outexp.export_map(
-    data_nb_households_rdp, grid, geo_grid, path_plots,  'rdp_sim',
+    data_nb_households_rdp, grid, geo_grid, path_plots_temp, 'rdp_sim',
     "Number of households in formal subsidized (data)",
-    path_tables,
+    path_tables_temp,
     ubnd=1800)
 
 #  Per income group
-#  NB: validation data is disaggregated from SP, hence the smooth appearance,
-#  not necessarily corresponding to reality (we do not plot it)
-sim_nb_households_poor = initial_state_household_centers[0, :]
+sim_nb_households_poor = simulation_households_center[year_temp, 0, :]
 poor_sim = outexp.export_map(
-    sim_nb_households_poor, grid, geo_grid, path_plots,  'poor_sim',
+    sim_nb_households_poor, grid, geo_grid, path_plots_temp, 'poor_sim',
     "Number of poor households (simulation)",
-    path_tables,
+    path_tables_temp,
     ubnd=5000)
-sim_nb_households_midpoor = initial_state_household_centers[1, :]
+sim_nb_households_midpoor = simulation_households_center[year_temp, 1, :]
 midpoor_sim = outexp.export_map(
-    sim_nb_households_midpoor, grid, geo_grid, path_plots,  'midpoor_sim',
+    sim_nb_households_midpoor, grid, geo_grid, path_plots_temp, 'midpoor_sim',
     "Number of mid-poor households (simulation)",
-    path_tables,
+    path_tables_temp,
     ubnd=2000)
-sim_nb_households_midrich = initial_state_household_centers[2, :]
+sim_nb_households_midrich = simulation_households_center[year_temp, 2, :]
 midrich_sim = outexp.export_map(
-    sim_nb_households_midrich, grid, geo_grid, path_plots,  'midrich_sim',
+    sim_nb_households_midrich, grid, geo_grid, path_plots_temp, 'midrich_sim',
     "Number of mid-rich households (simulation)",
-    path_tables,
+    path_tables_temp,
     ubnd=1000)
-sim_nb_households_rich = initial_state_household_centers[3, :]
+sim_nb_households_rich = simulation_households_center[year_temp, 3, :]
 rich_sim = outexp.export_map(
-    sim_nb_households_rich, grid, geo_grid, path_plots,  'rich_sim',
+    sim_nb_households_rich, grid, geo_grid, path_plots_temp, 'rich_sim',
     "Number of rich households (simulation)",
-    path_tables,
+    path_tables_temp,
     ubnd=500)
 
 
@@ -411,93 +386,90 @@ rich_sim = outexp.export_map(
 # By plotting the housing supply per unit of available land, we may check
 # whether the bell-shaped curve of urban development holds
 avg_hsupply_1d = outexp.plot_housing_supply(
-    grid, initial_state_housing_supply, path_plots, path_tables)
+    grid, simulation_housing_supply[year_temp, :, :],
+    path_plots_temp, path_tables_temp)
 
 # We now consider overall land to recover building density
 #  TODO: pb with Mitchell's Plain?
-housing_supply = initial_state_housing_supply * coeff_land * 0.25
+housing_supply = simulation_housing_supply[year_temp, :, :] * coeff_land * 0.25
 hsupply_noland_1d = outexp.plot_housing_supply_noland(
-    grid, housing_supply, path_plots, path_tables)
+    grid, housing_supply, path_plots_temp, path_tables_temp)
 
 hsupply_tot = np.nansum(housing_supply, 0)
 hsupply_2d_sim = outexp.export_map(
-    hsupply_tot, grid, geo_grid, path_plots,  'hsupply_2d_sim',
+    hsupply_tot, grid, geo_grid, path_plots_temp, 'hsupply_2d_sim',
     "Total housing supply (in m²)",
-    path_tables,
+    path_tables_temp,
     ubnd=50000)
 FAR = np.nansum(housing_supply, 0) / (0.25 * 1000000)
 FAR_2d_sim = outexp.export_map(
-    FAR, grid, geo_grid, path_plots,  'FAR_2d_sim',
+    FAR, grid, geo_grid, path_plots_temp,  'FAR_2d_sim',
     "Overall floor-area ratio",
-    path_tables,
+    path_tables_temp,
     ubnd=0.3)
 
 hsupply_formal = housing_supply[0, :]
 hsupply_formal_2d_sim = outexp.export_map(
-    hsupply_formal, grid, geo_grid, path_plots,  'hsupply_formal_2d_sim',
+    hsupply_formal, grid, geo_grid, path_plots_temp, 'hsupply_formal_2d_sim',
     "Total housing supply in private formal (in m²)",
-    path_tables,
+    path_tables_temp,
     ubnd=35000)
 FAR_formal = housing_supply[0, :] / (0.25 * 1000000)
 FAR_formal_2d_sim = outexp.export_map(
-    FAR_formal, grid, geo_grid, path_plots,  'FAR_formal_2d_sim',
+    FAR_formal, grid, geo_grid, path_plots_temp, 'FAR_formal_2d_sim',
     "Floor-area ratio in formal private",
-    path_tables,
+    path_tables_temp,
     ubnd=0.15)
 
 # Pb of validation in hyper-centre is also reflected in price
-sim_HFA_dens_formal = initial_state_housing_supply[0, :] / 1000000
+sim_HFA_dens_formal = simulation_housing_supply[year_temp, 0, :] / 1000000
 HFA_dens_formal_2d_sim = outexp.export_map(
-    sim_HFA_dens_formal, grid, geo_grid, path_plots,  'HFA_dens_formal_2d_sim',
+    sim_HFA_dens_formal, grid, geo_grid, path_plots_temp,
+    'HFA_dens_formal_2d_sim',
     "Households density in formal private HFA (simulation)",
-    path_tables,
-    ubnd=1)
-grid_formal_density_HFA[np.isnan(grid_formal_density_HFA)] = 0
-data_HFA_dens_formal = grid_formal_density_HFA
-HFA_dens_formal_2d_data = outexp.export_map(
-    data_HFA_dens_formal, grid, geo_grid,
-    path_plots + 'HFA_dens_formal_2d_data',
-    "Households density in formal private HFA (data)",
-    path_tables,
+    path_tables_temp,
     ubnd=1)
 
 hsupply_backyard = housing_supply[1, :]
 hsupply_backyard_2d_sim = outexp.export_map(
-    hsupply_backyard, grid, geo_grid, path_plots,  'hsupply_backyard_2d_sim',
+    hsupply_backyard, grid, geo_grid, path_plots_temp,
+    'hsupply_backyard_2d_sim',
     "Total housing supply in informal backyards (in m²)",
-    path_tables,
+    path_tables_temp,
     ubnd=30000)
 FAR_backyard = housing_supply[1, :] / (0.25 * 1000000)
 FAR_backyard_2d_sim = outexp.export_map(
-    FAR_backyard, grid, geo_grid, path_plots,  'FAR_backyard_2d_sim',
+    FAR_backyard, grid, geo_grid, path_plots_temp, 'FAR_backyard_2d_sim',
     "Floor-area ratio in informal backyards",
-    path_tables,
+    path_tables_temp,
     ubnd=0.10)
 
 hsupply_informal = housing_supply[2, :]
 hsupply_informal_2d_sim = outexp.export_map(
-    hsupply_informal, grid, geo_grid, path_plots,  'hsupply_informal_2d_sim',
+    hsupply_informal, grid, geo_grid, path_plots_temp,
+    'hsupply_informal_2d_sim',
     "Total housing supply in informal settlements (in m²)",
-    path_tables,
+    path_tables_temp,
     ubnd=70000)
 FAR_informal = housing_supply[2, :] / (0.25 * 1000000)
 FAR_informal_2d_sim = outexp.export_map(
-    FAR_informal, grid, geo_grid, path_plots,  'FAR_informal_2d_sim',
+    FAR_informal, grid, geo_grid, path_plots_temp,
+    'FAR_informal_2d_sim',
     "Floor-area ratio in informal settlements",
-    path_tables,
+    path_tables_temp,
     ubnd=0.30)
 
 hsupply_rdp = housing_supply[3, :]
 hsupply_rdp_2d_sim = outexp.export_map(
-    hsupply_rdp, grid, geo_grid, path_plots,  'hsupply_rdp_2d_sim',
+    hsupply_rdp, grid, geo_grid, path_plots_temp, 'hsupply_rdp_2d_sim',
     "Total housing supply in formal subsidized (in m²)",
-    path_tables,
+    path_tables_temp,
     ubnd=25000)
 FAR_rdp = housing_supply[3, :] / (0.25 * 1000000)
 FAR_rdp_2d_sim = outexp.export_map(
-    FAR_rdp, grid, geo_grid, path_plots,  'FAR_rdp_2d_sim',
+    FAR_rdp, grid, geo_grid, path_plots_temp, 'FAR_rdp_2d_sim',
     "Floor-area ratio in formal subsidized",
-    path_tables,
+    path_tables_temp,
     ubnd=0.10)
 
 # As we do not know surface of built land (just of available land),
@@ -508,56 +480,47 @@ FAR_rdp_2d_sim = outexp.export_map(
 # %% HOUSING PRICE OUTPUTS
 
 # First in one dimension
-# housing_price_1d, data_land_price = outexp.validation_housing_price(
-#     grid, initial_state_rent, interest_rate, param, center,
-#     housing_types_sp, data_sp, path_plots, path_tables,
-#     land_price=1)
-# housing_price_1d, data_housing_price = outexp.validation_housing_price(
-#     grid, initial_state_rent, interest_rate, param, center,
-#     housing_types_sp, data_sp, path_plots, path_tables,
-#     land_price=0)
 
-land_price_1d, data_land_price = outexp.validation_housing_price_test(
-    grid, initial_state_rent, initial_state_households_housing_types,
+land_price_1d = outexp.simulation_housing_price_test(
+    grid, simulation_rent[year_temp, :, :],
+    simulation_households_housing_type[year_temp, :, :],
     interest_rate, param, center,
-    housing_types_sp, data_sp, path_plots, path_tables,
+    housing_types_sp, path_plots_temp, path_tables_temp,
     land_price=1)
-housing_price_1d, data_housing_price = outexp.validation_housing_price_test(
-    grid, initial_state_rent, initial_state_households_housing_types,
+housing_price_1d = outexp.simulation_housing_price_test(
+    grid, simulation_rent[year_temp, :, :],
+    simulation_households_housing_type[year_temp, :, :],
     interest_rate, param, center,
-    housing_types_sp, data_sp, path_plots, path_tables,
+    housing_types_sp, path_plots_temp, path_tables_temp,
     land_price=0)
-
-# data_land_price_copy = data_land_price.copy()
-# data_housing_price_copy = data_housing_price.copy()
-# data_land_price_copy[np.isnan(data_land_price)] = 0
-# data_housing_price_copy[np.isnan(data_housing_price)] = 0
 
 # Then in two dimensions
 
 # TODO: why don't we manage to reproduce very high prices in center?
 # Has to do with amenity map?
-rent_formal_simul = initial_state_rent[0, :].copy()
+rent_formal_simul = simulation_rent[year_temp, 0, :].copy()
 housing_price_formal_2d_sim = outexp.export_map(
-    rent_formal_simul, grid, geo_grid, path_plots,  'rent_formal_2d_sim',
+    rent_formal_simul, grid, geo_grid, path_plots_temp, 'rent_formal_2d_sim',
     "Simulated average housing rents per location (private formal)",
-    path_tables,
+    path_tables_temp,
     ubnd=4000)
-rent_backyard_simul = initial_state_rent[1, :].copy()
+rent_backyard_simul = simulation_rent[year_temp, 1, :].copy()
 housing_price_backyard_2d_sim = outexp.export_map(
-    rent_backyard_simul, grid, geo_grid, path_plots,  'rent_backyard_2d_sim',
+    rent_backyard_simul, grid, geo_grid, path_plots_temp,
+    'rent_backyard_2d_sim',
     "Simulated average housing rents per location (informal backyards)",
-    path_tables,
+    path_tables_temp,
     ubnd=2500)
-rent_informal_simul = initial_state_rent[2, :].copy()
+rent_informal_simul = simulation_rent[year_temp, 2, :].copy()
 housing_price_informal_2d_sim = outexp.export_map(
-    rent_informal_simul, grid, geo_grid, path_plots,  'rent_informal_2d_sim',
+    rent_informal_simul, grid, geo_grid, path_plots_temp,
+    'rent_informal_2d_sim',
     "Simulated average housing rents per location (informal settlements)",
-    path_tables,
+    path_tables_temp,
     ubnd=2500)
 
 land_rent = (
-    (initial_state_rent[0:3, :] * param["coeff_A"])
+    (simulation_rent[year_temp, 0:3, :] * param["coeff_A"])
     ** (1 / param["coeff_a"])
     * param["coeff_a"]
     * (param["coeff_b"] / (interest_rate + param["depreciation_rate"]))
@@ -567,55 +530,43 @@ land_rent = (
 landrent_formal_simul = land_rent[0, :].copy()
 land_price_formal_2d_sim = outexp.export_map(
     landrent_formal_simul, grid, geo_grid,
-    path_plots + 'landrent_formal_2d_sim',
+    path_plots_temp + 'landrent_formal_2d_sim',
     "Simulated average land rents per location (private formal)",
-    path_tables,
+    path_tables_temp,
     ubnd=15000)
 landrent_backyard_simul = land_rent[1, :].copy()
 land_price_backyard_2d_sim = outexp.export_map(
     landrent_backyard_simul, grid, geo_grid,
-    path_plots + 'landrent_backyard_2d_sim',
+    path_plots_temp + 'landrent_backyard_2d_sim',
     "Simulated average land rents per location (informal backyards)",
-    path_tables,
+    path_tables_temp,
     ubnd=10000)
 landrent_informal_simul = land_rent[2, :].copy()
 land_price_informal_2d_sim = outexp.export_map(
     landrent_informal_simul, grid, geo_grid,
-    path_plots + 'landrent_informal_2d_sim',
+    path_plots_temp + 'landrent_informal_2d_sim',
     "Simulated average land rents per location (informal settlements)",
-    path_tables,
+    path_tables_temp,
     ubnd=10000)
 
-# grid_intersect = pd.read_csv(
-#     path_data + 'grid_SP_intersect.csv', sep=';')
-# rent_formal_data = inpdt.gen_small_areas_to_grid(
-#     grid, grid_intersect, data_housing_price_copy,
-#     data_sp["sp_code"], 'SP')
-
-# housing_price_2d_data = outexp.export_map(
-#     rent_formal_data, grid, geo_grid, path_plots,  'rent_formal_2d_data',
-#     "Data average housing rents per location (private formal)",
-#     path_tables,
-#     ubnd=2500)
 
 # %% DWELLING SIZE OUTPUTS
 
 # Note that we start getting a lot of nan values around 30km
 # Could this explain the low number of households in Mitchell's Plain
 # in spite of the housing supply
-# TODO: how should we interpret such high values
-dwelling_size_1d = outexp.plot_housing_demand(
-    grid, center, initial_state_dwelling_size,
-    initial_state_households_housing_types,
-    housing_types_sp, data_sp,
-    path_plots, path_tables)
+# TODO: how should we interpret such high values?
+dwelling_size_1d = outexp.simul_housing_demand(
+    grid, center, simulation_dwelling_size[year_temp, :, :],
+    simulation_households_housing_type[year_temp, :, :],
+    path_plots_temp, path_tables_temp)
 
-formal_dwelling_size = initial_state_dwelling_size[0, :]
+formal_dwelling_size = simulation_dwelling_size[year_temp, 0, :]
 dwelling_size_2d = outexp.export_map(
     formal_dwelling_size, grid, geo_grid,
-    path_plots + 'formal_dwellingsize_2d_sim',
+    path_plots_temp + 'formal_dwellingsize_2d_sim',
     "Simulated average dwelling size per location (formal private)",
-    path_tables,
+    path_tables_temp,
     ubnd=300)
 
 
@@ -624,71 +575,76 @@ dwelling_size_2d = outexp.export_map(
 #  Income net of commuting costs
 netincome_poor = income_net_of_commuting_costs[0, :]
 netincome_poor_2d_sim = outexp.export_map(
-    netincome_poor, grid, geo_grid, path_plots,  'netincome_poor_2d_sim',
+    netincome_poor, grid, geo_grid, path_plots_temp, 'netincome_poor_2d_sim',
     "Estimated income net of commuting costs (poor)",
-    path_tables,
+    path_tables_temp,
     ubnd=25000, lbnd=-15000, cmap='bwr')
 netincome_midpoor = income_net_of_commuting_costs[1, :]
 netincome_midpoor_2d_sim = outexp.export_map(
-    netincome_midpoor, grid, geo_grid, path_plots,  'netincome_midpoor_2d_sim',
+    netincome_midpoor, grid, geo_grid, path_plots_temp,
+    'netincome_midpoor_2d_sim',
     "Estimated income net of commuting costs (mid-poor)",
-    path_tables,
+    path_tables_temp,
     ubnd=70000, lbnd=-20000, cmap='bwr')
 netincome_midrich = income_net_of_commuting_costs[2, :]
 netincome_midrich_2d_sim = outexp.export_map(
-    netincome_midrich, grid, geo_grid, path_plots,  'netincome_midrich_2d_sim',
+    netincome_midrich, grid, geo_grid, path_plots_temp,
+    'netincome_midrich_2d_sim',
     "Estimated income net of commuting costs (mid-rich)",
-    path_tables,
+    path_tables_temp,
     ubnd=200000, lbnd=25000)
 netincome_rich = income_net_of_commuting_costs[3, :]
 netincome_rich_2d_sim = outexp.export_map(
-    netincome_rich, grid, geo_grid, path_plots,  'netincome_rich_2d_sim',
+    netincome_rich, grid, geo_grid, path_plots_temp, 'netincome_rich_2d_sim',
     "Estimated income net of commuting costs (rich)",
-    path_tables,
+    path_tables_temp,
     ubnd=850000, lbnd=250000)
 
 (avg_income_net_of_commuting_1d
  ) = outexp.plot_income_net_of_commuting_costs(
-     grid, income_net_of_commuting_costs, path_plots, path_tables)
+     grid, income_net_of_commuting_costs, path_plots_temp, path_tables_temp)
 
 
 #  Average income
 
 avgincome_poor = cal_average_income[0, :]
 avgincome_poor_2d_sim = outexp.export_map(
-    avgincome_poor, grid, geo_grid, path_plots,  'avgincome_poor_2d_sim',
+    avgincome_poor, grid, geo_grid, path_plots_temp, 'avgincome_poor_2d_sim',
     "Estimated average income (poor)",
-    path_tables,
+    path_tables_temp,
     ubnd=25000, lbnd=10000)
 avgincome_midpoor = cal_average_income[1, :]
 avgincome_midpoor_2d_sim = outexp.export_map(
-    avgincome_midpoor, grid, geo_grid, path_plots,  'avgincome_midpoor_2d_sim',
+    avgincome_midpoor, grid, geo_grid, path_plots_temp,
+    'avgincome_midpoor_2d_sim',
     "Estimated average income (mid-poor)",
-    path_tables,
+    path_tables_temp,
     ubnd=70000, lbnd=25000)
 avgincome_midrich = cal_average_income[2, :]
 avgincome_midrich_2d_sim = outexp.export_map(
-    avgincome_midrich, grid, geo_grid, path_plots,  'avgincome_midrich_2d_sim',
+    avgincome_midrich, grid, geo_grid, path_plots_temp,
+    'avgincome_midrich_2d_sim',
     "Estimated average income (mid-rich)",
-    path_tables,
+    path_tables_temp,
     ubnd=200000, lbnd=100000)
 avgincome_rich = cal_average_income[3, :]
 avgincome_rich_2d_sim = outexp.export_map(
-    avgincome_rich, grid, geo_grid, path_plots,  'avgincome_rich_2d_sim',
+    avgincome_rich, grid, geo_grid, path_plots_temp, 'avgincome_rich_2d_sim',
     "Estimated average income (rich)",
-    path_tables,
+    path_tables_temp,
     ubnd=850000, lbnd=550000)
 
 (avg_income_1d
  ) = outexp.plot_average_income(
-     grid, cal_average_income, path_plots, path_tables)
+     grid, cal_average_income, path_plots_temp, path_tables_temp)
 
 # We also conduct validation with overall average income
 # Also do fit in 1D
 np.seterr(divide='ignore', invalid='ignore')
 overall_avg_income = (cal_average_income
-                      * initial_state_household_centers
-                      / np.nansum(initial_state_household_centers, 0))
+                      * simulation_households_center[year_temp, :, :]
+                      / np.nansum(
+                          simulation_households_center[year_temp, :, :], 0))
 overall_avg_income[np.isnan(overall_avg_income)] = 0
 overall_avg_income = np.nansum(overall_avg_income, 0)
 
@@ -697,215 +653,19 @@ overall_avg_income = np.nansum(overall_avg_income, 0)
 # to same incomes (we can make the case that we only model employed households
 # with two members, etc.)
 avgincome_all_2d_sim = outexp.export_map(
-    overall_avg_income, grid, geo_grid, path_plots,  'avgincome_all_2d_sim',
+    overall_avg_income, grid, geo_grid, path_plots_temp,
+    'avgincome_all_2d_sim',
     "Estimated average income (all income groups)",
-    path_tables,
+    path_tables_temp,
     ubnd=850000)
-avgincome_all_2d_data = outexp.export_map(
-    data_avg_income, grid, geo_grid, path_plots,  'avgincome_all_2d_data',
-    "Average income from data (all income groups)",
-    path_tables,
-    ubnd=850000)
-overall_avg_income_valid_1d = outexp.validate_average_income(
-    grid, overall_avg_income, data_avg_income,
-    path_plots, path_tables)
 
 
-# For job centers, need to map transport zones
-
-jobsTable, selected_centers = outexp.import_employment_geodata(
-    households_per_income_class, param, path_data)
-
-jobs_total = np.nansum([jobsTable["poor_jobs"], jobsTable["midpoor_jobs"],
-                        jobsTable["midrich_jobs"], jobsTable["rich_jobs"]],
-                       0)
-jobs_total = pd.DataFrame(jobs_total)
-jobs_total = jobs_total.rename(columns={jobs_total.columns[0]: 'jobs_total'})
-
-jobs_total_2d = pd.merge(geo_TAZ, jobs_total,
-                         left_index=True, right_index=True)
-jobs_total_2d = pd.merge(jobs_total_2d, selected_centers,
-                         left_index=True, right_index=True)
-jobs_total_2d.to_file(path_tables + 'jobs_total' + '.shp')
-
-jobs_total_2d_select = jobs_total_2d[
-    (jobs_total_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_total_2d.geometry.bounds.maxx < -10000)].copy()
-# fig, ax = plt.subplots(figsize=(8, 10))
-# ax.set_axis_off()
-# plt.title("Selected job centers")
-# jobs_total_2d.plot(column='selected_centers', ax=ax)
-# plt.savefig(path_plots + 'selected_centers')
-# plt.close()
-jobs_total_2d_select.loc[
-    jobs_total_2d_select["selected_centers"] == 0, 'jobs_total'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of jobs in selected job centers (data)")
-jobs_total_2d_select.plot(column='jobs_total', ax=ax,
-                          cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_total_in_selected_centers')
-plt.close()
-
-# We do the same across income groups
-jobs_poor_2d = pd.merge(geo_TAZ, jobsTable["poor_jobs"],
-                        left_index=True, right_index=True)
-jobs_poor_2d = pd.merge(jobs_poor_2d, selected_centers,
-                        left_index=True, right_index=True)
-jobs_poor_2d.to_file(path_tables + 'jobs_poor' + '.shp')
-jobs_poor_2d_select = jobs_poor_2d[
-    (jobs_poor_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_poor_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_poor_2d_select.loc[
-    jobs_poor_2d_select["selected_centers"] == 0, 'jobs_poor'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of poor jobs in selected job centers (data)")
-jobs_poor_2d_select.plot(column='poor_jobs', ax=ax,
-                         cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_poor_in_selected_centers')
-plt.close()
-
-jobs_midpoor_2d = pd.merge(geo_TAZ, jobsTable["midpoor_jobs"],
-                           left_index=True, right_index=True)
-jobs_midpoor_2d = pd.merge(jobs_midpoor_2d, selected_centers,
-                           left_index=True, right_index=True)
-jobs_midpoor_2d.to_file(path_tables + 'jobs_midpoor' + '.shp')
-jobs_midpoor_2d_select = jobs_midpoor_2d[
-    (jobs_midpoor_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_midpoor_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_midpoor_2d_select.loc[
-    jobs_midpoor_2d_select["selected_centers"] == 0, 'jobs_midpoor'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of midpoor jobs in selected job centers (data)")
-jobs_midpoor_2d_select.plot(column='midpoor_jobs', ax=ax,
-                            cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_midpoor_in_selected_centers')
-plt.close()
-
-jobs_midrich_2d = pd.merge(geo_TAZ, jobsTable["midrich_jobs"],
-                           left_index=True, right_index=True)
-jobs_midrich_2d = pd.merge(jobs_midrich_2d, selected_centers,
-                           left_index=True, right_index=True)
-jobs_midrich_2d.to_file(path_tables + 'jobs_midrich' + '.shp')
-jobs_midrich_2d_select = jobs_midrich_2d[
-    (jobs_midrich_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_midrich_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_midrich_2d_select.loc[
-    jobs_midrich_2d_select["selected_centers"] == 0, 'jobs_midrich'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of midrich jobs in selected job centers (data)")
-jobs_midrich_2d_select.plot(column='midrich_jobs', ax=ax,
-                            cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_midrich_in_selected_centers')
-plt.close()
-
-jobs_rich_2d = pd.merge(geo_TAZ, jobsTable["rich_jobs"],
-                        left_index=True, right_index=True)
-jobs_rich_2d = pd.merge(jobs_rich_2d, selected_centers,
-                        left_index=True, right_index=True)
-jobs_rich_2d.to_file(path_tables + 'jobs_rich' + '.shp')
-jobs_rich_2d_select = jobs_rich_2d[
-    (jobs_rich_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_rich_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_rich_2d_select.loc[
-    jobs_rich_2d_select["selected_centers"] == 0, 'jobs_rich'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of rich jobs in selected job centers (data)")
-jobs_rich_2d_select.plot(column='rich_jobs', ax=ax,
-                         cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_rich_in_selected_centers')
-plt.close()
-
-# We also map calibrated incomes per job center (not spatialized through map)
-
-income_centers_init = np.load(
-    path_precalc_inp + 'incomeCentersKeep.npy')
-income_centers_init[income_centers_init < 0] = 0
-income_centers_init_merge = pd.DataFrame(income_centers_init)
-income_centers_init_merge = income_centers_init_merge.rename(
-    columns={income_centers_init_merge.columns[0]: 'poor_income',
-             income_centers_init_merge.columns[1]: 'midpoor_income',
-             income_centers_init_merge.columns[2]: 'midrich_income',
-             income_centers_init_merge.columns[3]: 'rich_income'})
-
-income_centers_init_merge["count"] = income_centers_init_merge.index + 1
-
-selected_centers_merge = selected_centers.copy()
-(selected_centers_merge["count"]
- ) = selected_centers_merge.selected_centers.cumsum()
-selected_centers_merge.loc[
-    selected_centers_merge.selected_centers == 0, "count"] = 0
-
-income_centers_TAZ = pd.merge(income_centers_init_merge,
-                              selected_centers_merge,
-                              how='right', on='count')
-income_centers_TAZ = income_centers_TAZ.fillna(value=0)
-
-income_centers_2d = pd.merge(geo_TAZ, income_centers_TAZ,
-                             left_index=True, right_index=True)
-income_centers_2d.to_file(path_tables + 'income_centers_2d' + '.shp')
-
-income_centers_2d_select = income_centers_2d[
-    (income_centers_2d.geometry.bounds.maxy < -3740000)
-    & (income_centers_2d.geometry.bounds.maxx < -10000)].copy()
-
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for poor households")
-income_centers_2d_select.plot(column='poor_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'poor_income_in_selected_centers')
-plt.close()
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for mid-poor households")
-income_centers_2d_select.plot(column='midpoor_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'midpoor_income_in_selected_centers')
-plt.close()
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for mid-rich households")
-income_centers_2d_select.plot(column='midrich_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'midrich_income_in_selected_centers')
-plt.close()
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for rich households")
-income_centers_2d_select.plot(column='rich_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'rich_income_in_selected_centers')
-plt.close()
-
-# TODO: ask for TAZ code dictionnary to identify OD flows for some key
-# job centers (CBD, etc.)
-
-amenity_map = outexp.export_map(
-    amenities, grid, geo_grid, path_plots,  'amenity_map',
-    "Map of average amenity index per location",
-    path_tables,
-    ubnd=1.3, lbnd=0.8)
-
-
-# %% FLOOD OUPUTS
+# %% FLOOD OUTPUTS
 
 # TODO: first do input flood maps in 2D, to be superimposed with
 # some previous maps
 # Then also compute damages, welfare impacts, aggregate effects, etc.
 # Finally, need to do dynamics and comparisons across scenarios, LVC, etc.
-
-# TODO: also need to add options for the code to run seamlessly across
-# scenarios
 
 # TODO: recompute floods with maximum bath-tub perspective (also coastal
 # matching)
@@ -921,188 +681,20 @@ coastal_floods = ['C_MERITDEM_1_0000', 'C_MERITDEM_1_0002',
                   'C_MERITDEM_1_0025', 'C_MERITDEM_1_0050',
                   'C_MERITDEM_1_0100', 'C_MERITDEM_1_0250']
 
-for flood in fluviald_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-for flood in fluvialu_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-for flood in pluvial_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-for flood in coastal_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-# Also for income groups and across the two?
-# NB: evolution is not necessarily monotonous on the short run because of
-# some decreasing flood depths (never proportion of flood-prone area)
-# TODO: is it normal?
-
-stats_fluvialu_per_housing_data = outfld.compute_stats_per_housing_type(
-    fluvialu_floods, path_floods, data_nb_households_formal,
-    data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, 'fluvialu_data')
-stats_fluvialu_per_housing_sim = outfld.compute_stats_per_housing_type(
-    fluvialu_floods, path_floods, sim_nb_households_formal,
-    data_nb_households_rdp,
-    sim_nb_households_informal,
-    sim_nb_households_backyard,
-    path_tables, 'fluvialu_sim')
-outval.validation_flood(
-    stats_fluvialu_per_housing_data, stats_fluvialu_per_housing_sim,
-    'Data', 'Simul', 'fluvialu', path_plots)
-
-stats_fluviald_per_housing_data = outfld.compute_stats_per_housing_type(
-    fluviald_floods, path_floods, data_nb_households_formal,
-    data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, 'fluviald_data')
-stats_fluviald_per_housing_sim = outfld.compute_stats_per_housing_type(
-    fluviald_floods, path_floods, sim_nb_households_formal,
-    data_nb_households_rdp,
-    sim_nb_households_informal,
-    sim_nb_households_backyard,
-    path_tables, 'fluviald_sim')
-outval.validation_flood(
-    stats_fluviald_per_housing_data, stats_fluviald_per_housing_sim,
-    'Data', 'Simul', 'fluviald', path_plots)
-
-stats_pluvial_per_housing_data = outfld.compute_stats_per_housing_type(
-    pluvial_floods, path_floods, data_nb_households_formal,
-    data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, 'pluvial_data')
-stats_pluvial_per_housing_sim = outfld.compute_stats_per_housing_type(
-    pluvial_floods, path_floods, sim_nb_households_formal,
-    data_nb_households_rdp,
-    sim_nb_households_informal,
-    sim_nb_households_backyard,
-    path_tables, 'pluvial_sim')
-outval.validation_flood(
-    stats_pluvial_per_housing_data, stats_pluvial_per_housing_sim,
-    'Data', 'Simul', 'pluvial', path_plots)
-
-stats_coastal_per_housing_data = outfld.compute_stats_per_housing_type(
-    coastal_floods, path_floods, data_nb_households_formal,
-    data_nb_households_rdp, data_nb_households_informal,
-    data_nb_households_backyard, path_tables, 'coastal_data')
-stats_coastal_per_housing_sim = outfld.compute_stats_per_housing_type(
-    coastal_floods, path_floods, sim_nb_households_formal,
-    data_nb_households_rdp,
-    sim_nb_households_informal,
-    sim_nb_households_backyard,
-    path_tables, 'coastal_sim')
-outval.validation_flood_coastal(
-    stats_coastal_per_housing_data, stats_coastal_per_housing_sim,
-    'Data', 'Simul', 'coastal', path_plots)
-
-# TODO: could add validation data if needed
-
-fluviald_floods_dict = outfld.create_flood_dict(
-    fluviald_floods, path_floods, path_tables,
-    sim_nb_households_poor, sim_nb_households_midpoor,
-    sim_nb_households_midrich, sim_nb_households_rich)
-fluvialu_floods_dict = outfld.create_flood_dict(
-    fluvialu_floods, path_floods, path_tables,
-    sim_nb_households_poor, sim_nb_households_midpoor,
-    sim_nb_households_midrich, sim_nb_households_rich)
-pluvial_floods_dict = outfld.create_flood_dict(
-    pluvial_floods, path_floods, path_tables,
-    sim_nb_households_poor, sim_nb_households_midpoor,
-    sim_nb_households_midrich, sim_nb_households_rich)
-coastal_floods_dict = outfld.create_flood_dict(
-    coastal_floods, path_floods, path_tables,
-    sim_nb_households_poor, sim_nb_households_midpoor,
-    sim_nb_households_midrich, sim_nb_households_rich)
-
-barWidth = 0.1
-transparency = [1, 0.5, 0.25]
-
-outval.plot_flood_severity_distrib(barWidth, transparency,
-                                   fluviald_floods_dict, 'FD',
-                                   path_plots, ylim=15000)
-outval.plot_flood_severity_distrib(barWidth, transparency,
-                                   fluvialu_floods_dict, 'FU',
-                                   path_plots, ylim=15000)
-outval.plot_flood_severity_distrib(barWidth, transparency,
-                                   pluvial_floods_dict, 'P',
-                                   path_plots, ylim=90000)
-outval.plot_flood_severity_distrib(barWidth, transparency,
-                                   coastal_floods_dict, 'C_MERITDEM_1',
-                                   path_plots, ylim=1000)
-
-
-# %% FLOOD DAMAGES
-
 # TODO: check MAUP
 # We get damages per housing type for one representative household!
 
 content_cost = outfld.compute_content_cost(
-    initial_state_household_centers, initial_state_housing_supply,
+    simulation_households_center[year_temp, :, :],
+    simulation_housing_supply[year_temp, :, :],
     income_net_of_commuting_costs, param,
-    fraction_capital_destroyed, initial_state_rent,
-    initial_state_dwelling_size, interest_rate)
+    fraction_capital_destroyed, simulation_rent[year_temp, :, :],
+    simulation_dwelling_size[year_temp, :, :], interest_rate)
 
-# TODO: construction_coeff will need to be updated along other parameters
-# in simulations
 # NOTE THAT CAPITAL IS IN MONETARY VALUES
 formal_structure_cost = outfld.compute_formal_structure_cost_method2(
-        initial_state_rent, param, interest_rate, coeff_land,
-        initial_state_households_housing_types, param["coeff_A"])
+        simulation_rent[year_temp, :, :], param, interest_rate, coeff_land,
+        simulation_households_housing_type[year_temp, :, :], param["coeff_A"])
 
 # Then we run the aggregate tables
 
@@ -1857,3 +1449,9 @@ plt.close()
 # NB: Where do aggregate flood damage estimates come from?
 
 # COMPARISONS
+
+
+
+###
+
+year_temp = simulation_T[0]
