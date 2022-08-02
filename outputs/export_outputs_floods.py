@@ -568,6 +568,77 @@ def plot_damages(damages1, damages2, path_plots, flood_categ, options):
     # plt.close()
 
 
+def simul_damages(damages, path_plots, flood_categ, options):
+    """Plot aggregate annualized damages per housing type."""
+    # TODO: Check look
+    plt.rcParams['axes.spines.right'] = False
+    plt.rcParams['axes.spines.top'] = False
+    plt.rcParams['xtick.bottom'] = False
+    plt.rcParams['xtick.labelbottom'] = False
+    plt.rcParams['ytick.left'] = True
+    plt.rcParams['ytick.labelleft'] = True
+
+    data = [
+        [outfld.annualize_damages(
+            damages.formal_structure_damages, flood_categ, 'formal', options)
+            / 1000000,
+         outfld.annualize_damages(
+             damages.subsidized_structure_damages, flood_categ, 'subsidized',
+             options) / 1000000,
+         outfld.annualize_damages(
+             damages.informal_structure_damages, flood_categ, 'informal',
+             options) / 1000000,
+         outfld.annualize_damages(
+             damages.backyard_structure_damages, flood_categ, 'backyard',
+             options) / 1000000],
+        [outfld.annualize_damages(
+            damages.formal_content_damages, flood_categ, 'formal', options)
+            / 1000000,
+         outfld.annualize_damages(
+             damages.subsidized_content_damages, flood_categ, 'subsidized',
+             options) / 1000000,
+         outfld.annualize_damages(
+             damages.informal_content_damages, flood_categ, 'informal',
+             options) / 1000000,
+         outfld.annualize_damages(
+             damages.backyard_content_damages, flood_categ, 'backyard',
+             options) / 1000000]
+        ]
+
+    barWidth = 0.25
+    X = np.arange(4)
+    colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
+    plt.figure(figsize=(10, 7))
+    plt.bar(
+        X, data[0], color=colors[1], width=barWidth,
+        label="Structures")
+    plt.legend()
+    # plt.ylim(0, 25)
+    quarter = ["Formal private", "Formal subsidized",
+               "Informal \n settlements", "Informal \n in backyards"]
+    plt.xticks(X, quarter)
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Million R per year")
+    plt.savefig(path_plots + flood_categ + '_structures_damages.png')
+    # plt.show()
+    plt.close()
+
+    plt.figure(figsize=(10, 7))
+    plt.bar(
+        X, data[1], color=colors[1], width=barWidth,
+        label="Contents")
+    plt.legend()
+    # plt.ylim(0, 25)
+    quarter = ["Formal private", "Formal subsidized",
+               "Informal \n settlements", "Informal \n in backyards"]
+    plt.xticks(X, quarter)
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Million R per year")
+    plt.savefig(path_plots + flood_categ + '_contents_damages.png')
+    # plt.show()
+    plt.close()
+
+
 # TODO: not used?
 # def compare_damages(damages1, damages2, label1, label2, name, path_outputs):
 #     """d."""

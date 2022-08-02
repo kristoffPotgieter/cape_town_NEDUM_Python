@@ -448,7 +448,7 @@ FAR_formal_2d_sim = outexp.export_map(
 # Pb of validation in hyper-centre is also reflected in price
 sim_HFA_dens_formal = initial_state_housing_supply[0, :] / 1000000
 HFA_dens_formal_2d_sim = outexp.export_map(
-    sim_HFA_dens_formal, grid, geo_grid, path_plots,  'HFA_dens_formal_2d_sim',
+    sim_HFA_dens_formal, grid, geo_grid, path_plots, 'HFA_dens_formal_2d_sim',
     "Households density in formal private HFA (simulation)",
     path_tables,
     ubnd=1)
@@ -456,46 +456,46 @@ grid_formal_density_HFA[np.isnan(grid_formal_density_HFA)] = 0
 data_HFA_dens_formal = grid_formal_density_HFA
 HFA_dens_formal_2d_data = outexp.export_map(
     data_HFA_dens_formal, grid, geo_grid,
-    path_plots + 'HFA_dens_formal_2d_data',
+    path_plots, 'HFA_dens_formal_2d_data',
     "Households density in formal private HFA (data)",
     path_tables,
     ubnd=1)
 
 hsupply_backyard = housing_supply[1, :]
 hsupply_backyard_2d_sim = outexp.export_map(
-    hsupply_backyard, grid, geo_grid, path_plots,  'hsupply_backyard_2d_sim',
+    hsupply_backyard, grid, geo_grid, path_plots, 'hsupply_backyard_2d_sim',
     "Total housing supply in informal backyards (in m²)",
     path_tables,
     ubnd=30000)
 FAR_backyard = housing_supply[1, :] / (0.25 * 1000000)
 FAR_backyard_2d_sim = outexp.export_map(
-    FAR_backyard, grid, geo_grid, path_plots,  'FAR_backyard_2d_sim',
+    FAR_backyard, grid, geo_grid, path_plots, 'FAR_backyard_2d_sim',
     "Floor-area ratio in informal backyards",
     path_tables,
     ubnd=0.10)
 
 hsupply_informal = housing_supply[2, :]
 hsupply_informal_2d_sim = outexp.export_map(
-    hsupply_informal, grid, geo_grid, path_plots,  'hsupply_informal_2d_sim',
+    hsupply_informal, grid, geo_grid, path_plots, 'hsupply_informal_2d_sim',
     "Total housing supply in informal settlements (in m²)",
     path_tables,
     ubnd=70000)
 FAR_informal = housing_supply[2, :] / (0.25 * 1000000)
 FAR_informal_2d_sim = outexp.export_map(
-    FAR_informal, grid, geo_grid, path_plots,  'FAR_informal_2d_sim',
+    FAR_informal, grid, geo_grid, path_plots, 'FAR_informal_2d_sim',
     "Floor-area ratio in informal settlements",
     path_tables,
     ubnd=0.30)
 
 hsupply_rdp = housing_supply[3, :]
 hsupply_rdp_2d_sim = outexp.export_map(
-    hsupply_rdp, grid, geo_grid, path_plots,  'hsupply_rdp_2d_sim',
+    hsupply_rdp, grid, geo_grid, path_plots, 'hsupply_rdp_2d_sim',
     "Total housing supply in formal subsidized (in m²)",
     path_tables,
     ubnd=25000)
 FAR_rdp = housing_supply[3, :] / (0.25 * 1000000)
 FAR_rdp_2d_sim = outexp.export_map(
-    FAR_rdp, grid, geo_grid, path_plots,  'FAR_rdp_2d_sim',
+    FAR_rdp, grid, geo_grid, path_plots, 'FAR_rdp_2d_sim',
     "Floor-area ratio in formal subsidized",
     path_tables,
     ubnd=0.10)
@@ -567,21 +567,21 @@ land_rent = (
 landrent_formal_simul = land_rent[0, :].copy()
 land_price_formal_2d_sim = outexp.export_map(
     landrent_formal_simul, grid, geo_grid,
-    path_plots + 'landrent_formal_2d_sim',
+    path_plots, 'landrent_formal_2d_sim',
     "Simulated average land rents per location (private formal)",
     path_tables,
     ubnd=15000)
 landrent_backyard_simul = land_rent[1, :].copy()
 land_price_backyard_2d_sim = outexp.export_map(
     landrent_backyard_simul, grid, geo_grid,
-    path_plots + 'landrent_backyard_2d_sim',
+    path_plots, 'landrent_backyard_2d_sim',
     "Simulated average land rents per location (informal backyards)",
     path_tables,
     ubnd=10000)
 landrent_informal_simul = land_rent[2, :].copy()
 land_price_informal_2d_sim = outexp.export_map(
     landrent_informal_simul, grid, geo_grid,
-    path_plots + 'landrent_informal_2d_sim',
+    path_plots, 'landrent_informal_2d_sim',
     "Simulated average land rents per location (informal settlements)",
     path_tables,
     ubnd=10000)
@@ -613,7 +613,7 @@ dwelling_size_1d = outexp.plot_housing_demand(
 formal_dwelling_size = initial_state_dwelling_size[0, :]
 dwelling_size_2d = outexp.export_map(
     formal_dwelling_size, grid, geo_grid,
-    path_plots + 'formal_dwellingsize_2d_sim',
+    path_plots, 'formal_dwellingsize_2d_sim',
     "Simulated average dwelling size per location (formal private)",
     path_tables,
     ubnd=300)
@@ -927,13 +927,13 @@ for flood in fluviald_floods:
     ref_flood_depth = ref_flood["flood_depth"]
     ref_flood_map_area = outexp.export_map(
         ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
+        path_plots, flood + '_map_area',
         "",
         path_tables,
         ubnd=1)
     ref_flood_map_depth = outexp.export_map(
         ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
+        path_plots, flood + '_map_depth',
         "",
         path_tables,
         ubnd=4)
@@ -944,13 +944,13 @@ for flood in fluvialu_floods:
     ref_flood_depth = ref_flood["flood_depth"]
     ref_flood_map_area = outexp.export_map(
         ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
+        path_plots, flood + '_map_area',
         "",
         path_tables,
         ubnd=1)
     ref_flood_map_depth = outexp.export_map(
         ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
+        path_plots, flood + '_map_depth',
         "",
         path_tables,
         ubnd=4)
@@ -961,13 +961,13 @@ for flood in pluvial_floods:
     ref_flood_depth = ref_flood["flood_depth"]
     ref_flood_map_area = outexp.export_map(
         ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
+        path_plots, flood + '_map_area',
         "",
         path_tables,
         ubnd=1)
     ref_flood_map_depth = outexp.export_map(
         ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
+        path_plots, flood + '_map_depth',
         "",
         path_tables,
         ubnd=4)
@@ -978,13 +978,13 @@ for flood in coastal_floods:
     ref_flood_depth = ref_flood["flood_depth"]
     ref_flood_map_area = outexp.export_map(
         ref_flood_area, grid, geo_grid,
-        path_plots + flood + '_map_area',
+        path_plots, flood + '_map_area',
         "",
         path_tables,
         ubnd=1)
     ref_flood_map_depth = outexp.export_map(
         ref_flood_depth, grid, geo_grid,
-        path_plots + flood + '_map_depth',
+        path_plots, flood + '_map_depth',
         "",
         path_tables,
         ubnd=4)
