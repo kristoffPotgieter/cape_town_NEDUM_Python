@@ -62,11 +62,11 @@ def export_map(value, grid, geo_grid, path_plots, export_name, title,
     plt.close()
 
     if isinstance(value, np.ndarray):
-        np.savetxt(path_tables + export_name, value, delimiter=",")
+        np.savetxt(path_tables + export_name + '.csv', value, delimiter=",")
 
     else:
         # value.to_csv(path_tables + str(value))
-        value.to_csv(path_tables + export_name)
+        value.to_csv(path_tables + export_name + '.csv')
         # gdf = from_df_to_gdf(value, geo_grid)
         # str_value = retrieve_name(value, depth=0)
         # gdf.to_file(path_tables + str_value + '.shp')
@@ -158,7 +158,7 @@ def export_housing_types(
     figure.savefig(path_plots + 'validation_housing_type.png')
     plt.close(figure)
 
-    data.to_csv(path_tables + 'validation_housing_type.png')
+    data.to_csv(path_tables + 'validation_housing_type.csv')
     print('validation_housing_type done')
 
     return data

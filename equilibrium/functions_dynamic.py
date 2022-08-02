@@ -11,20 +11,47 @@ import numpy as np
 import numpy.matlib
 
 
-def import_scenarios(income_2011, param, grid, path_scenarios):
+def import_scenarios(income_2011, param, grid, path_scenarios,
+                     options):
     """Return linear regression splines for various scenarios."""
     # Import Scenarios
     # TODO: discuss choices
-    scenario_income_distribution = pd.read_csv(
-        path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
-    scenario_population = pd.read_csv(
-        path_scenarios + 'Scenario_pop_20201209.csv', sep=';')
+    if options["inc_ineq_scenario"] == "medium":
+        scenario_income_distribution = pd.read_csv(
+            path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
+    elif options["inc_ineq_scenario"] == "low":
+        scenario_income_distribution = pd.read_csv(
+            path_scenarios + 'Scenario_inc_distrib_1.csv', sep=';')
+    elif options["inc_ineq_scenario"] == "high":
+        scenario_income_distribution = pd.read_csv(
+            path_scenarios + 'Scenario_inc_distrib_3.csv', sep=';')
+
+    if options["pop_growth_scenario"] == "high_corrected":
+        scenario_population = pd.read_csv(
+            path_scenarios + 'Scenario_pop_20201209.csv', sep=';')
+    elif options["pop_growth_scenario"] == "high":
+        scenario_population = pd.read_csv(
+            path_scenarios + 'Scenario_pop_3.csv', sep=';')
+    elif options["pop_growth_scenario"] == "medium":
+        scenario_population = pd.read_csv(
+            path_scenarios + 'Scenario_pop_2.csv', sep=';')
+    elif options["pop_growth_scenario"] == "low":
+        scenario_population = pd.read_csv(
+            path_scenarios + 'Scenario_pop_1.csv', sep=';')
     scenario_inflation = pd.read_csv(
         path_scenarios + 'Scenario_inflation_1.csv', sep=';')
     scenario_interest_rate = pd.read_csv(
         path_scenarios + 'Scenario_interest_rate_1.csv', sep=';')
-    scenario_price_fuel = pd.read_csv(
-        path_scenarios + 'Scenario_price_fuel_1.csv', sep=';')
+    # TODO: correct separators in source file
+    if options["fuel_price_scenario"] == "medium":
+        scenario_price_fuel = pd.read_csv(
+            path_scenarios + 'Scenario_price_fuel_2.csv', sep=';')
+    elif options["fuel_price_scenario"] == "low":
+        scenario_price_fuel = pd.read_csv(
+            path_scenarios + 'Scenario_price_fuel_1.csv', sep=',')
+    elif options["fuel_price_scenario"] == "high":
+        scenario_price_fuel = pd.read_csv(
+            path_scenarios + 'Scenario_price_fuel_3.csv', sep=',')
 
     # Spline for population by income group in raw data
     spline_population_income_distribution = interp1d(

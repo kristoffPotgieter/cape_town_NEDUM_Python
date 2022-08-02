@@ -115,7 +115,6 @@ print("Load and pre-process data to be used in model (may take some time"
 
 # BASIC GEOGRAPHIC DATA
 
-# TODO: should we redefine center to be at the CBD?
 grid, center = inpdt.import_grid(path_data)
 amenities = inpdt.import_amenities(path_precalc_inp, options)
 
@@ -137,7 +136,7 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
-#  TODO: Set as a variable, not a parameter
+#  NB: set as a variable, not a parameter?
 param["income_year_reference"] = mean_income
 
 #  Other data at SP level used for calibration and validation
@@ -167,12 +166,6 @@ housing_types[np.isnan(housing_types)] = 0
                            housing_type_data, path_data, path_folder)
      )
 
-# Correction needed with Charlotte's calibration
-# TODO: check if still needed after recalibration
-# param["pockets"][
-#     (spline_land_informal(29) > 0) & (spline_land_informal(0) == 0)
-#     ] = 0.79
-
 #  We correct areas for each housing type at baseline year for the amount of
 #  constructible land in each type
 coeff_land = inpdt.import_coeff_land(
@@ -182,7 +175,7 @@ coeff_land = inpdt.import_coeff_land(
 #  We update land use parameters at baseline (relies on loaded data)
 housing_limit = inpdt.import_housing_limit(grid, param)
 
-#  TODO: plug outputs in a new variable (not param) and adapt linked functions
+#  NB: plug outputs in a new variable (not param) and adapt linked functions?
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -191,7 +184,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
     )
 
 # FLOOD DATA (takes some time when agents anticipate floods)
-#  TODO: create a new variable instead of storing in param
+#  NB: create a new variable instead of storing in param
 #  NB: WBUS2 corresponds to old data from CoCT (not useful anymore with FATHOM)
 #  param = inpdt.infer_WBUS2_depth(housing_types, param, path_floods)
 if options["agents_anticipate_floods"] == 1:
@@ -229,7 +222,8 @@ elif options["agents_anticipate_floods"] == 0:
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
+                            options)
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
@@ -254,14 +248,11 @@ income_net_of_commuting_costs = np.load(
 
 # %% Re-run calibration (takes time, only if needed)
 
-# TODO: use np.linspace instead of np.arange?
-# Re-run the whole thing without land depreciation
+# NB: use np.linspace instead of np.arange?
 
 if options["run_calib"] == 1:
 
     print("Calibration process - start")
-
-    # TODO: play around with construction options
 
     # PREAMBLE
 
@@ -291,7 +282,7 @@ if options["run_calib"] == 1:
                                      sep=';')
         # When pixels are associated to several SPs, we allocate them to the
         # one with the biggest intersection area.
-        # TODO: it would be more rigorous to split the number of RDP across
+        # NB: it would be more rigorous to split the number of RDP across
         # SPs according to their respective intersection areas, but this is
         # unlikely to change much
         grid_intersect = grid_intersect.groupby('ID_grille').max('Area')
@@ -377,7 +368,7 @@ if options["run_calib"] == 1:
             & (data_sp["distance"] < 40)
             )
 
-    # TODO: re-run the following regressions with robust standard errors
+    # NB: re-run the following regressions with robust standard errors
 
     # CONSTRUCTION FUNCTION PARAMETERS
 
@@ -388,7 +379,7 @@ if options["run_calib"] == 1:
         data_number_formal, data_income_group, selected_density,
         path_data, path_precalc_inp, path_folder)
 
-    # TODO: relation between invested capital and building density to back up
+    # NB: relation between invested capital and building density to back up
     # values of empirical estimates?
 
     # We update parameter vector
@@ -424,7 +415,7 @@ if options["run_calib"] == 1:
             path_data, path_precalc_inp, path_precalc_transp, options)
         )
 
-    # TODO: compare estimates with existing literature
+    # NB: compare estimates with existing literature
 
     # We validate calibrated incomes
     data_graph = pd.DataFrame(
@@ -463,8 +454,7 @@ if options["run_calib"] == 1:
     # Here, we also have an impact from construction parameters and sample
     # selection (+ number of formal units)
 
-    # TODO: note that we are still not able to find a stable q0 either
-    # with scanning or optimization: we keep pre-loaded value for now
+    # TODO: q0 needs to be fixed for the solver to be stable!
     (calibratedUtility_beta, calibratedUtility_q0, cal_amenities
      ) = calmain.estim_util_func_param(
          data_number_formal, data_income_group, housing_types_sp, data_sp,
@@ -756,7 +746,6 @@ if options["run_calib"] == 1:
 
         # We pick the set of parameters that minimize the sum of absolute diffs
         # between data and simulation
-        # TODO: is it necessarily an improvement over general calibration?
         score_min = np.min(metrics)
         index_min = np.argmin(metrics)
         # metrics[index_min]
@@ -769,8 +758,6 @@ if options["run_calib"] == 1:
         print(np.nanmin(param["backyard_pockets"]))
         print(np.nanmean(param["backyard_pockets"]))
         print(np.nanmax(param["backyard_pockets"]))
-
-        # TODO: check that there is no missing value we need to fill in
 
         try:
             os.mkdir(path_precalc_inp)
@@ -789,11 +776,10 @@ if options["run_calib"] == 1:
 
 print("Compute initial state")
 
-# TODO: Note that we use a Cobb-Douglas production function all along!
-# Also note that we simulate households as two representative agents
-# (not as in the paper)
+# NB: Note that we use a Cobb-Douglas production function all along!
+# Also note that we simulate households as being a couple
 
-# TODO: Check with and without location-based, and do some bootstrapping
+# NB: Do some bootstrapping
 
 (initial_state_utility,
  initial_state_error,
@@ -899,7 +885,7 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
 
 print("Compute simulations")
 
-# RUN SIMULATION: time depends on the timeline (takes hours with 30 years)
+# RUN SIMULATION: time depends on the timeline (long with 30 years)
 (simulation_households_center,
  simulation_households_housing_type,
  simulation_dwelling_size,

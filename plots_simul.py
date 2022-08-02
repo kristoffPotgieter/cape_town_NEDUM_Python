@@ -210,6 +210,18 @@ options["agents_anticipate_floods"] = 1
 
 # SCENARIOS
 
+(param, minimum_housing_supply, agricultural_rent
+ ) = inpprm.import_construction_parameters(
+    param, grid, housing_types_sp, data_sp["dwelling_size"],
+    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+    interest_rate, options
+    )
+
+#  We create this parameter to maintain money illusion in simulations
+#  (see eqsim.run_simulation)
+#  TODO: Set as a variable, not a parameter
+param["income_year_reference"] = mean_income
+
 (spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
@@ -230,10 +242,10 @@ for year_temp in np.arange(0, 30):
         + 'GRID_incomeNetOfCommuting_' + str(year_temp) + '.npy')
     cal_average_income = np.load(
         path_precalc_transp + 'GRID_averageIncome_' + str(year_temp) + '.npy')
-    modal_shares = np.load(
-        path_precalc_transp + 'GRID_modalShares' + str(year_temp) + '.npy')
-    od_flows = np.load(
-        path_precalc_transp + 'GRID_ODflows' + str(year_temp) + '.npy')
+    # modal_shares = np.load(
+    #     path_precalc_transp + 'GRID_modalShares' + str(year_temp) + '.npy')
+    # od_flows = np.load(
+    #     path_precalc_transp + 'GRID_ODflows' + str(year_temp) + '.npy')
 
     # All that changes
     (average_income, households_per_income_class
@@ -299,7 +311,7 @@ for year_temp in np.arange(0, 30):
     # TODO: switch back to SP level for more precision in validation data?
     # Else, aggregate distance at a higher level?
     dist_HH_per_income_1d = outexp.simulation_density_income_groups(
-        grid, simulation_households_housing_type[year_temp, :, :],
+        grid, simulation_households_center[year_temp, :, :],
         path_plots_temp, path_tables_temp
     )
 
@@ -486,15 +498,13 @@ for year_temp in np.arange(0, 30):
 
     # First in one dimension
 
-    land_price_1d = outexp.simulation_housing_price_test(
+    land_price_1d = outexp.simulation_housing_price(
         grid, simulation_rent[year_temp, :, :],
-        simulation_households_housing_type[year_temp, :, :],
         interest_rate, param, center,
         housing_types_sp, path_plots_temp, path_tables_temp,
         land_price=1)
-    housing_price_1d = outexp.simulation_housing_price_test(
+    housing_price_1d = outexp.simulation_housing_price(
         grid, simulation_rent[year_temp, :, :],
-        simulation_households_housing_type[year_temp, :, :],
         interest_rate, param, center,
         housing_types_sp, path_plots_temp, path_tables_temp,
         land_price=0)
@@ -1163,34 +1173,15 @@ for year_temp in np.arange(0, 30):
 # %% DYNAMICS: GET OUT OF LOOP AFTER STORING WHAT'S NEEDED
 # TODO: Do aggregate damage graphs!
 
-years_simul = np.arange(2011, 2011 + 30)
+outval.simul_damages_time(
+    fluviald_damages_2d_dyn, path_plots, 'fluviald', options)
+outval.simul_damages_time(
+    fluvialu_damages_2d_dyn, path_plots, 'fluvialu', options)
+outval.simul_damages_time(
+    pluvial_damages_2d_dyn, path_plots, 'pluvial', options)
+outval.simul_damages_time(
+    coastal_damages_2d_dyn, path_plots, 'coastal', options)
 
-fig, ax = plt.subplots(figsize=(10, 7))
-ax.plot(years_simul, simulation_utility[:, 0],
-        color="maroon", label="Poor")
-ax.plot(years_simul, simulation_utility[:, 1],
-        color="red", label="Mid-poor")
-ax.plot(years_simul, simulation_utility[:, 2],
-        color="darkorange", label="Mid-rich")
-ax.plot(years_simul, simulation_utility[:, 3],
-        color="gold", label="Rich")
-ax.set_ylim(0)
-ax.yaxis.set_major_formatter(
-    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
-plt.legend()
-plt.tick_params(labelbottom=True)
-plt.ylabel("Utility levels", labelpad=15)
-plt.savefig(path_plots + 'evol_util_levels.png')
-plt.close()
-
-
-# TODO: also do 2D variations from 2011 to 2040
+# TODO: also do 2D variations from 2011 to 2040 and other comparisons?
 
 # NB: Where do aggregate flood damage estimates come from?
-
-# COMPARISONS
-
-
-###
-
-year_temp = simulation_T[0]

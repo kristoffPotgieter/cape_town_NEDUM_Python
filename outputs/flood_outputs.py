@@ -35,81 +35,110 @@ def compute_stats_per_housing_type(
         print(type_flood)
 
         if ((type_flood == 'P_5yr') | (type_flood == 'P_10yr')):
-            stats_per_housing_type = stats_per_housing_type.append(
-                {'flood': type_flood, 'fraction_formal_in_flood_prone_area': 0,
-                 'fraction_subsidized_in_flood_prone_area': 0,
-                 'fraction_informal_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_informal),
-                 'fraction_backyard_in_flood_prone_area': 0,
-                 'flood_depth_formal': 0,
-                 'flood_depth_subsidized': 0,
-                 'flood_depth_informal': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_informal)
-                     / sum(flood['prop_flood_prone'] * nb_households_informal)
-                     ),
-                 'flood_depth_backyard': 0},
+            stats_per_housing_type = pd.concat([
+                stats_per_housing_type,
+                pd.DataFrame(
+                    {'flood': [type_flood],
+                     'fraction_formal_in_flood_prone_area': [0],
+                     'fraction_subsidized_in_flood_prone_area': [0],
+                     'fraction_informal_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone'] * nb_households_informal)],
+                     'fraction_backyard_in_flood_prone_area': [0],
+                     'flood_depth_formal': [0],
+                     'flood_depth_subsidized': [0],
+                     'flood_depth_informal': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone'] * nb_households_informal)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_informal)
+                         )],
+                     'flood_depth_backyard': [0]}
+                    )],
                 ignore_index=True)
 
         elif (type_flood == 'P_20yr'):
-            stats_per_housing_type = stats_per_housing_type.append(
-                {'flood': type_flood,
-                 'fraction_formal_in_flood_prone_area': 0,
-                 'fraction_subsidized_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_subsidized),
-                 'fraction_informal_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_informal),
-                 'fraction_backyard_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_backyard),
-                 'flood_depth_formal': 0,
-                 'flood_depth_subsidized': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_subsidized)
-                     / sum(flood['prop_flood_prone'] * nb_households_subsidized
-                           )),
-                 'flood_depth_informal': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_informal)
-                     / sum(flood['prop_flood_prone'] * nb_households_informal)
-                     ),
-                 'flood_depth_backyard': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_backyard)
-                     / sum(flood['prop_flood_prone'] * nb_households_backyard)
-                     )},
+            stats_per_housing_type = pd.concat([
+                stats_per_housing_type,
+                pd.DataFrame(
+                    {'flood': [type_flood],
+                     'fraction_formal_in_flood_prone_area': [0],
+                     'fraction_subsidized_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone']
+                         * nb_households_subsidized)],
+                     'fraction_informal_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone'] * nb_households_informal)],
+                     'fraction_backyard_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone'] * nb_households_backyard)],
+                     'flood_depth_formal': [0],
+                     'flood_depth_subsidized': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone']
+                            * nb_households_subsidized)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_subsidized))],
+                     'flood_depth_informal': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone'] * nb_households_informal)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_informal)
+                         )],
+                     'flood_depth_backyard': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone'] * nb_households_backyard)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_backyard)
+                     )]}
+                    )],
                 ignore_index=True)
 
         else:
-            stats_per_housing_type = stats_per_housing_type.append(
-                {'flood': type_flood,
-                 'fraction_formal_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_formal),
-                 'fraction_subsidized_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_subsidized),
-                 'fraction_informal_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_informal),
-                 'fraction_backyard_in_flood_prone_area': np.sum(
-                     flood['prop_flood_prone'] * nb_households_backyard),
-                 'flood_depth_formal': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_formal)
-                     / sum(flood['prop_flood_prone'] * nb_households_formal)
-                     ),
-                 'flood_depth_subsidized': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_subsidized)
-                     / sum(flood['prop_flood_prone'] * nb_households_subsidized
-                           )),
-                 'flood_depth_informal': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_informal)
-                     / sum(flood['prop_flood_prone'] * nb_households_informal)
-                     ),
-                 'flood_depth_backyard': sum(
-                     flood['flood_depth']
-                     * (flood['prop_flood_prone'] * nb_households_backyard)
-                     / sum(flood['prop_flood_prone'] * nb_households_backyard)
-                     )},
+            stats_per_housing_type = pd.concat([
+                stats_per_housing_type,
+                pd.DataFrame(
+                    {'flood': [type_flood],
+                     'fraction_formal_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone'] * nb_households_formal)],
+                     'fraction_subsidized_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone']
+                         * nb_households_subsidized)],
+                     'fraction_informal_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone'] * nb_households_informal)],
+                     'fraction_backyard_in_flood_prone_area': [np.sum(
+                         flood['prop_flood_prone'] * nb_households_backyard)],
+                     'flood_depth_formal': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone'] * nb_households_formal)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_formal)
+                         )],
+                     'flood_depth_subsidized': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone']
+                            * nb_households_subsidized)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_subsidized))],
+                     'flood_depth_informal': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone']
+                            * nb_households_informal)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_informal)
+                         )],
+                     'flood_depth_backyard': [sum(
+                         flood['flood_depth']
+                         * (flood['prop_flood_prone'] * nb_households_backyard)
+                         / sum(
+                             flood['prop_flood_prone']
+                             * nb_households_backyard)
+                         )]}
+                    )],
                 ignore_index=True)
 
     stats_per_housing_type = stats_per_housing_type.fillna(value=0)
@@ -142,36 +171,39 @@ def compute_stats_per_income_group(
         # flood.flood_depth[flood.flood_depth < threshold] = 0
         print(type_flood)
 
-        stats_per_income_group = stats_per_income_group.append(
-            {'flood': type_flood,
-             'fraction_rich_in_flood_prone_area': np.sum(
-                 flood['prop_flood_prone'] * nb_households_rich),
-             'fraction_midrich_in_flood_prone_area': np.sum(
-                 flood['prop_flood_prone'] * nb_households_midrich),
-             'fraction_midpoor_in_flood_prone_area': np.sum(
-                 flood['prop_flood_prone'] * nb_households_midpoor),
-             'fraction_poor_in_flood_prone_area': np.sum(
-                 flood['prop_flood_prone'] * nb_households_poor),
-             'flood_depth_rich': sum(
-                 flood['flood_depth']
-                 * (flood['prop_flood_prone'] * nb_households_rich)
-                 / sum(flood['prop_flood_prone'] * nb_households_rich)
-                 ),
-             'flood_depth_midrich': sum(
-                 flood['flood_depth']
-                 * (flood['prop_flood_prone'] * nb_households_midrich)
-                 / sum(flood['prop_flood_prone'] * nb_households_midrich
-                       )),
-             'flood_depth_midpoor': sum(
-                 flood['flood_depth']
-                 * (flood['prop_flood_prone'] * nb_households_midpoor)
-                 / sum(flood['prop_flood_prone'] * nb_households_midpoor)
-                 ),
-             'flood_depth_poor': sum(
-                 flood['flood_depth']
-                 * (flood['prop_flood_prone'] * nb_households_poor)
-                 / sum(flood['prop_flood_prone'] * nb_households_poor)
-                 )},
+        stats_per_income_group = pd.concat([
+            stats_per_income_group,
+            pd.DataFrame(
+                {'flood': [type_flood],
+                 'fraction_rich_in_flood_prone_area': [np.sum(
+                     flood['prop_flood_prone'] * nb_households_rich)],
+                 'fraction_midrich_in_flood_prone_area': [np.sum(
+                     flood['prop_flood_prone'] * nb_households_midrich)],
+                 'fraction_midpoor_in_flood_prone_area': [np.sum(
+                     flood['prop_flood_prone'] * nb_households_midpoor)],
+                 'fraction_poor_in_flood_prone_area': [np.sum(
+                     flood['prop_flood_prone'] * nb_households_poor)],
+                 'flood_depth_rich': [sum(
+                     flood['flood_depth']
+                     * (flood['prop_flood_prone'] * nb_households_rich)
+                     / sum(flood['prop_flood_prone'] * nb_households_rich)
+                     )],
+                 'flood_depth_midrich': [sum(
+                     flood['flood_depth']
+                     * (flood['prop_flood_prone'] * nb_households_midrich)
+                     / sum(flood['prop_flood_prone'] * nb_households_midrich
+                           ))],
+                 'flood_depth_midpoor': [sum(
+                     flood['flood_depth']
+                     * (flood['prop_flood_prone'] * nb_households_midpoor)
+                     / sum(flood['prop_flood_prone'] * nb_households_midpoor)
+                     )],
+                 'flood_depth_poor': [sum(
+                     flood['flood_depth']
+                     * (flood['prop_flood_prone'] * nb_households_poor)
+                     / sum(flood['prop_flood_prone'] * nb_households_poor)
+                     )]}
+                )],
             ignore_index=True)
 
     stats_per_income_group = stats_per_income_group.fillna(value=0)
@@ -268,20 +300,24 @@ def compute_damages(floods, path_data, param, content_cost,
             * content_cost.backyard
             * content_damages(data_flood['flood_depth']))
 
-        damages = damages.append(
-            {'flood': type_flood,
-             'formal_structure_damages': formal_structure_damages,
-             'subsidized_structure_damages': subsidized_structure_damages,
-             'informal_structure_damages': informal_structure_damages,
-             'backyard_structure_damages': backyard_structure_damages,
-             'formal_content_damages': formal_content_damages,
-             'informal_content_damages': informal_content_damages,
-             'backyard_content_damages': backyard_content_damages,
-             'subsidized_content_damages': subsidized_content_damages},
+        damages = pd.concat([
+            damages,
+            pd.DataFrame(
+                {'flood': [type_flood],
+                 'formal_structure_damages': [formal_structure_damages],
+                 'subsidized_structure_damages': [
+                     subsidized_structure_damages],
+                 'informal_structure_damages': [informal_structure_damages],
+                 'backyard_structure_damages': [backyard_structure_damages],
+                 'formal_content_damages': [formal_content_damages],
+                 'informal_content_damages': [informal_content_damages],
+                 'backyard_content_damages': [backyard_content_damages],
+                 'subsidized_content_damages': [subsidized_content_damages]}
+                )],
             ignore_index=True)
 
     damages = damages.fillna(value=0)
-    damages[damages < 0] = 0
+    # damages[damages < 0] = 0
     damages.to_csv(
         path_tables + flood_categ + '_damages.csv')
 
@@ -386,8 +422,9 @@ def compute_damages_2d(floods, path_data, param, content_cost,
     return dict_damages
 
 
-def annualize_damages(array, type_flood, housing_type, options):
+def annualize_damages(array_init, type_flood, housing_type, options):
     """Annualize damages from floods."""
+    array = array_init.copy()
     if type_flood == 'pluvial' and options["correct_pluvial"] == 1:
         if housing_type == 'formal':
             array[0] = 0
@@ -641,7 +678,3 @@ def create_flood_dict(flood_type, path_floods, path_tables,
         flood_df.to_csv(path_tables + flood + 'distrib_households.csv')
         dictio[flood] = flood_df
     return dictio
-
-
-
-

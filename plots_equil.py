@@ -7,6 +7,8 @@ Created on Mon Jun 20 10:57:30 2022.
 
 # %% Preamble
 
+# TODO: check MAUP
+
 # IMPORT PACKAGES
 
 import os
@@ -156,21 +158,19 @@ coeff_land = inpdt.import_coeff_land(
 
 # OTHER VALIDATION DATA
 
-# TODO: makes no sense?
+# Makes no sense?
 data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
 data_avg_income = data['gridAverageIncome'][0][0].squeeze()
 data_avg_income[np.isnan(data_avg_income)] = 0
 
-
-# TODO: do loop for simulations
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 cal_average_income = np.load(
     path_precalc_transp + 'GRID_averageIncome_0.npy')
-modal_shares = np.load(
-    path_precalc_transp + 'GRID_modalShares_0.npy')
-od_flows = np.load(
-    path_precalc_transp + 'GRID_ODflows_0.npy')
+# modal_shares = np.load(
+#     path_precalc_transp + 'GRID_modalShares_0.npy')
+# od_flows = np.load(
+#     path_precalc_transp + 'GRID_ODflows_0.npy')
 
 # LOAD EQUILIBRIUM DATA
 
@@ -251,7 +251,6 @@ options["agents_anticipate_floods"] = 1
 # %% Validation: draw maps and figures
 
 print("Static equilibrium validation")
-# TODO: integrate in shapefiles and csv + plotly
 
 # POPULATION OUTPUTS
 
@@ -294,8 +293,6 @@ dist_HH_per_housing_1d = outexp.validation_density_housing_types(
     grid, initial_state_households_housing_types, housing_types,
     path_plots, path_tables
     )
-# TODO: switch back to SP level for more precision in validation data?
-# Else, aggregate distance at a higher level?
 dist_HH_per_income_1d = outexp.validation_density_income_groups(
     grid, initial_state_household_centers, income_distribution_grid,
     path_plots, path_tables
@@ -318,8 +315,6 @@ total_sim = outexp.export_map(
     path_tables,
     ubnd=5000)
 
-# Note that we lack households in Mitchell's Plain
-# TODO: should we correct it?
 data_nb_households_tot = np.nansum(housing_types[
     ["informal_grid", "backyard_informal_grid", "formal_grid"]
     ], 1)
@@ -414,7 +409,6 @@ avg_hsupply_1d = outexp.plot_housing_supply(
     grid, initial_state_housing_supply, path_plots, path_tables)
 
 # We now consider overall land to recover building density
-#  TODO: pb with Mitchell's Plain?
 housing_supply = initial_state_housing_supply * coeff_land * 0.25
 hsupply_noland_1d = outexp.plot_housing_supply_noland(
     grid, housing_supply, path_plots, path_tables)
@@ -535,8 +529,6 @@ housing_price_1d, data_housing_price = outexp.validation_housing_price_test(
 
 # Then in two dimensions
 
-# TODO: why don't we manage to reproduce very high prices in center?
-# Has to do with amenity map?
 rent_formal_simul = initial_state_rent[0, :].copy()
 housing_price_formal_2d_sim = outexp.export_map(
     rent_formal_simul, grid, geo_grid, path_plots,  'rent_formal_2d_sim',
@@ -601,9 +593,6 @@ land_price_informal_2d_sim = outexp.export_map(
 # %% DWELLING SIZE OUTPUTS
 
 # Note that we start getting a lot of nan values around 30km
-# Could this explain the low number of households in Mitchell's Plain
-# in spite of the housing supply
-# TODO: how should we interpret such high values
 dwelling_size_1d = outexp.plot_housing_demand(
     grid, center, initial_state_dwelling_size,
     initial_state_households_housing_types,
@@ -711,204 +700,12 @@ overall_avg_income_valid_1d = outexp.validate_average_income(
     path_plots, path_tables)
 
 
-# For job centers, need to map transport zones
-
-jobsTable, selected_centers = outexp.import_employment_geodata(
-    households_per_income_class, param, path_data)
-
-jobs_total = np.nansum([jobsTable["poor_jobs"], jobsTable["midpoor_jobs"],
-                        jobsTable["midrich_jobs"], jobsTable["rich_jobs"]],
-                       0)
-jobs_total = pd.DataFrame(jobs_total)
-jobs_total = jobs_total.rename(columns={jobs_total.columns[0]: 'jobs_total'})
-
-jobs_total_2d = pd.merge(geo_TAZ, jobs_total,
-                         left_index=True, right_index=True)
-jobs_total_2d = pd.merge(jobs_total_2d, selected_centers,
-                         left_index=True, right_index=True)
-jobs_total_2d.to_file(path_tables + 'jobs_total' + '.shp')
-
-jobs_total_2d_select = jobs_total_2d[
-    (jobs_total_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_total_2d.geometry.bounds.maxx < -10000)].copy()
-# fig, ax = plt.subplots(figsize=(8, 10))
-# ax.set_axis_off()
-# plt.title("Selected job centers")
-# jobs_total_2d.plot(column='selected_centers', ax=ax)
-# plt.savefig(path_plots + 'selected_centers')
-# plt.close()
-jobs_total_2d_select.loc[
-    jobs_total_2d_select["selected_centers"] == 0, 'jobs_total'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of jobs in selected job centers (data)")
-jobs_total_2d_select.plot(column='jobs_total', ax=ax,
-                          cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_total_in_selected_centers')
-plt.close()
-
-# We do the same across income groups
-jobs_poor_2d = pd.merge(geo_TAZ, jobsTable["poor_jobs"],
-                        left_index=True, right_index=True)
-jobs_poor_2d = pd.merge(jobs_poor_2d, selected_centers,
-                        left_index=True, right_index=True)
-jobs_poor_2d.to_file(path_tables + 'jobs_poor' + '.shp')
-jobs_poor_2d_select = jobs_poor_2d[
-    (jobs_poor_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_poor_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_poor_2d_select.loc[
-    jobs_poor_2d_select["selected_centers"] == 0, 'jobs_poor'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of poor jobs in selected job centers (data)")
-jobs_poor_2d_select.plot(column='poor_jobs', ax=ax,
-                         cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_poor_in_selected_centers')
-plt.close()
-
-jobs_midpoor_2d = pd.merge(geo_TAZ, jobsTable["midpoor_jobs"],
-                           left_index=True, right_index=True)
-jobs_midpoor_2d = pd.merge(jobs_midpoor_2d, selected_centers,
-                           left_index=True, right_index=True)
-jobs_midpoor_2d.to_file(path_tables + 'jobs_midpoor' + '.shp')
-jobs_midpoor_2d_select = jobs_midpoor_2d[
-    (jobs_midpoor_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_midpoor_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_midpoor_2d_select.loc[
-    jobs_midpoor_2d_select["selected_centers"] == 0, 'jobs_midpoor'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of midpoor jobs in selected job centers (data)")
-jobs_midpoor_2d_select.plot(column='midpoor_jobs', ax=ax,
-                            cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_midpoor_in_selected_centers')
-plt.close()
-
-jobs_midrich_2d = pd.merge(geo_TAZ, jobsTable["midrich_jobs"],
-                           left_index=True, right_index=True)
-jobs_midrich_2d = pd.merge(jobs_midrich_2d, selected_centers,
-                           left_index=True, right_index=True)
-jobs_midrich_2d.to_file(path_tables + 'jobs_midrich' + '.shp')
-jobs_midrich_2d_select = jobs_midrich_2d[
-    (jobs_midrich_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_midrich_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_midrich_2d_select.loc[
-    jobs_midrich_2d_select["selected_centers"] == 0, 'jobs_midrich'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of midrich jobs in selected job centers (data)")
-jobs_midrich_2d_select.plot(column='midrich_jobs', ax=ax,
-                            cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_midrich_in_selected_centers')
-plt.close()
-
-jobs_rich_2d = pd.merge(geo_TAZ, jobsTable["rich_jobs"],
-                        left_index=True, right_index=True)
-jobs_rich_2d = pd.merge(jobs_rich_2d, selected_centers,
-                        left_index=True, right_index=True)
-jobs_rich_2d.to_file(path_tables + 'jobs_rich' + '.shp')
-jobs_rich_2d_select = jobs_rich_2d[
-    (jobs_rich_2d.geometry.bounds.maxy < -3740000)
-    & (jobs_rich_2d.geometry.bounds.maxx < -10000)].copy()
-jobs_rich_2d_select.loc[
-    jobs_rich_2d_select["selected_centers"] == 0, 'jobs_rich'
-    ] = 0
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Number of rich jobs in selected job centers (data)")
-jobs_rich_2d_select.plot(column='rich_jobs', ax=ax,
-                         cmap='Reds', legend=True)
-plt.savefig(path_plots + 'jobs_rich_in_selected_centers')
-plt.close()
-
-# We also map calibrated incomes per job center (not spatialized through map)
-
-income_centers_init = np.load(
-    path_precalc_inp + 'incomeCentersKeep.npy')
-income_centers_init[income_centers_init < 0] = 0
-income_centers_init_merge = pd.DataFrame(income_centers_init)
-income_centers_init_merge = income_centers_init_merge.rename(
-    columns={income_centers_init_merge.columns[0]: 'poor_income',
-             income_centers_init_merge.columns[1]: 'midpoor_income',
-             income_centers_init_merge.columns[2]: 'midrich_income',
-             income_centers_init_merge.columns[3]: 'rich_income'})
-
-income_centers_init_merge["count"] = income_centers_init_merge.index + 1
-
-selected_centers_merge = selected_centers.copy()
-(selected_centers_merge["count"]
- ) = selected_centers_merge.selected_centers.cumsum()
-selected_centers_merge.loc[
-    selected_centers_merge.selected_centers == 0, "count"] = 0
-
-income_centers_TAZ = pd.merge(income_centers_init_merge,
-                              selected_centers_merge,
-                              how='right', on='count')
-income_centers_TAZ = income_centers_TAZ.fillna(value=0)
-
-income_centers_2d = pd.merge(geo_TAZ, income_centers_TAZ,
-                             left_index=True, right_index=True)
-income_centers_2d.to_file(path_tables + 'income_centers_2d' + '.shp')
-
-income_centers_2d_select = income_centers_2d[
-    (income_centers_2d.geometry.bounds.maxy < -3740000)
-    & (income_centers_2d.geometry.bounds.maxx < -10000)].copy()
-
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for poor households")
-income_centers_2d_select.plot(column='poor_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'poor_income_in_selected_centers')
-plt.close()
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for mid-poor households")
-income_centers_2d_select.plot(column='midpoor_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'midpoor_income_in_selected_centers')
-plt.close()
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for mid-rich households")
-income_centers_2d_select.plot(column='midrich_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'midrich_income_in_selected_centers')
-plt.close()
-fig, ax = plt.subplots(figsize=(8, 10))
-ax.set_axis_off()
-plt.title("Average calibrated incomes per job center for rich households")
-income_centers_2d_select.plot(column='rich_income', ax=ax,
-                              cmap='Reds', legend=True)
-plt.savefig(path_plots + 'rich_income_in_selected_centers')
-plt.close()
-
-# TODO: ask for TAZ code dictionnary to identify OD flows for some key
-# job centers (CBD, etc.)
-
-amenity_map = outexp.export_map(
-    amenities, grid, geo_grid, path_plots,  'amenity_map',
-    "Map of average amenity index per location",
-    path_tables,
-    ubnd=1.3, lbnd=0.8)
-
-
 # %% FLOOD OUPUTS
 
-# TODO: first do input flood maps in 2D, to be superimposed with
+# First do input flood maps in 2D, to be superimposed with
 # some previous maps
 # Then also compute damages, welfare impacts, aggregate effects, etc.
 # Finally, need to do dynamics and comparisons across scenarios, LVC, etc.
-
-# TODO: also need to add options for the code to run seamlessly across
-# scenarios
-
-# TODO: recompute floods with maximum bath-tub perspective (also coastal
-# matching)
 
 fluviald_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
                    'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr', 'FD_1000yr']
@@ -920,74 +717,6 @@ coastal_floods = ['C_MERITDEM_1_0000', 'C_MERITDEM_1_0002',
                   'C_MERITDEM_1_0005', 'C_MERITDEM_1_0010',
                   'C_MERITDEM_1_0025', 'C_MERITDEM_1_0050',
                   'C_MERITDEM_1_0100', 'C_MERITDEM_1_0250']
-
-for flood in fluviald_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots, flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots, flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-for flood in fluvialu_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots, flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots, flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-for flood in pluvial_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots, flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots, flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
-
-for flood in coastal_floods:
-    ref_flood = np.squeeze(pd.read_excel(path_floods + flood + ".xlsx"))
-    ref_flood_area = ref_flood["prop_flood_prone"]
-    ref_flood_depth = ref_flood["flood_depth"]
-    ref_flood_map_area = outexp.export_map(
-        ref_flood_area, grid, geo_grid,
-        path_plots, flood + '_map_area',
-        "",
-        path_tables,
-        ubnd=1)
-    ref_flood_map_depth = outexp.export_map(
-        ref_flood_depth, grid, geo_grid,
-        path_plots, flood + '_map_depth',
-        "",
-        path_tables,
-        ubnd=4)
 
 # Also for income groups and across the two?
 # NB: evolution is not necessarily monotonous on the short run because of
@@ -1050,7 +779,7 @@ outval.validation_flood_coastal(
     stats_coastal_per_housing_data, stats_coastal_per_housing_sim,
     'Data', 'Simul', 'coastal', path_plots)
 
-# TODO: could add validation data if needed
+# NB: could add validation data if needed
 
 fluviald_floods_dict = outfld.create_flood_dict(
     fluviald_floods, path_floods, path_tables,
@@ -1088,8 +817,7 @@ outval.plot_flood_severity_distrib(barWidth, transparency,
 
 # %% FLOOD DAMAGES
 
-# TODO: check MAUP
-# We get damages per housing type for one representative household!
+# NB: We get damages per housing type for one representative household!
 
 content_cost = outfld.compute_content_cost(
     initial_state_household_centers, initial_state_housing_supply,
@@ -1097,9 +825,7 @@ content_cost = outfld.compute_content_cost(
     fraction_capital_destroyed, initial_state_rent,
     initial_state_dwelling_size, interest_rate)
 
-# TODO: construction_coeff will need to be updated along other parameters
-# in simulations
-# NOTE THAT CAPITAL IS IN MONETARY VALUES
+# NB: note that capital is in monetary values
 formal_structure_cost = outfld.compute_formal_structure_cost_method2(
         initial_state_rent, param, interest_rate, coeff_land,
         initial_state_households_housing_types, param["coeff_A"])
@@ -1260,9 +986,8 @@ coastal_damages_2d_sim = outfld.compute_damages_2d(
     structural_damages_type2, structural_damages_type3a, options,
     spline_inflation, year_temp, path_tables, 'coastal_sim')
 
-# Hence the maps and shapefiles
-# TODO: should we annualize? Problem is that we need to loop over dfs
-# Make ndarray!
+# Hence the maps
+
 fluviald_damages_2d_data_stacked = np.stack(
     [df for df in fluviald_damages_2d_data.values()])
 fluviald_formal_structure_2d_data = np.zeros(24014)
@@ -1709,9 +1434,8 @@ for col in fraction_capital_destroyed.columns:
 
 # Graphs with share of annual income destroyed (by income group
 # and return period)?
-# TODO: also average/distribution graph?
 
-# TODO: are duplicates a problem?
+# NB: are duplicates a problem?
 # NB: note that share can be bigger than 1 (which is just a cap)
 
 selected_net_income_formal = np.empty(24014)
@@ -1783,18 +1507,13 @@ for item in list_annualized_2d_damages_informal:
         pass
 
 
-# TODO: Does it really make sense to take share of net income for formal
+# NB: Does it really make sense to take share of net income for formal
 # where households do not bear structural costs?
 # In that case, we should just superimpose fraction of capital destroyed
 # over capital map (for formal sector) or exogenous value (for other sectors)
 
 
-# DYNAMICS
-# TODO: plot scenarios (to track evolution of time-moving variables)!
-# NB: we can also run the code for each year in simulation arrays
-# (no validation needed)
-
-# TODO: Do aggregate damage graphs!
+# %% DYNAMICS
 
 years_simul = np.arange(2011, 2011 + 30)
 
@@ -1852,8 +1571,4 @@ plt.ylabel("Total number of households per housing type", labelpad=15)
 plt.savefig(path_plots + 'evol_nb_households_htype.png')
 plt.close()
 
-# TODO: also do 2D variations from 2011 to 2040
-
 # NB: Where do aggregate flood damage estimates come from?
-
-# COMPARISONS

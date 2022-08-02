@@ -639,6 +639,100 @@ def simul_damages(damages, path_plots, flood_categ, options):
     plt.close()
 
 
+def simul_damages_time(list_damages, path_plots, flood_categ, options):
+    """Plot aggregate annualized damages per housing type."""
+    list_data = []
+    for damages in list_damages:
+        data = [
+            [outfld.annualize_damages(
+                damages.formal_structure_damages, flood_categ,
+                'formal', options) / 1000000,
+             outfld.annualize_damages(
+                 damages.subsidized_structure_damages, flood_categ,
+                 'subsidized', options) / 1000000,
+             outfld.annualize_damages(
+                 damages.informal_structure_damages, flood_categ, 'informal',
+                 options) / 1000000,
+             outfld.annualize_damages(
+                 damages.backyard_structure_damages, flood_categ, 'backyard',
+                 options) / 1000000],
+            [outfld.annualize_damages(
+                damages.formal_content_damages, flood_categ, 'formal', options)
+                / 1000000,
+             outfld.annualize_damages(
+                 damages.subsidized_content_damages, flood_categ, 'subsidized',
+                 options) / 1000000,
+             outfld.annualize_damages(
+                 damages.informal_content_damages, flood_categ, 'informal',
+                 options) / 1000000,
+             outfld.annualize_damages(
+                 damages.backyard_content_damages, flood_categ, 'backyard',
+                 options) / 1000000]
+            ]
+    list_data.append(data)
+
+    years_simul = np.arange(2011, 2011 + 30)
+    colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
+
+    # It is best to separate housing types for visualisation
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(years_simul, list_data[:, 0, 0],
+            color=colors[1], label="Structure")
+    ax.plot(years_simul, list_data[:, 1, 0],
+            color=colors[2], label="Contents")
+    ax.set_ylim(0)
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Million R per year", labelpad=15)
+    plt.savefig(path_plots + flood_categ + '_evol_FP_damages.png')
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(years_simul, list_data[:, 0, 1],
+            color=colors[1], label="Structure")
+    ax.plot(years_simul, list_data[:, 1, 1],
+            color=colors[2], label="Contents")
+    ax.set_ylim(0)
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Million R per year)", labelpad=15)
+    plt.savefig(path_plots + flood_categ + '_evol_FS_damages.png')
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(years_simul, list_data[:, 0, 2],
+            color=colors[1], label="Structure")
+    ax.plot(years_simul, list_data[:, 1, 2],
+            color=colors[2], label="Contents")
+    ax.set_ylim(0)
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Million R per year", labelpad=15)
+    plt.savefig(path_plots + flood_categ + 'evol_IS_damages.png')
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(years_simul, list_data[:, 0, 3],
+            color=colors[1], label="Structure")
+    ax.plot(years_simul, list_data[:, 1, 3],
+            color=colors[2], label="Contents")
+    ax.set_ylim(0)
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+    plt.legend()
+    plt.tick_params(labelbottom=True)
+    plt.ylabel("Million R per year", labelpad=15)
+    plt.savefig(path_plots + flood_categ + 'evol_IB_damages.png')
+    plt.close()
+
+
 # TODO: not used?
 # def compare_damages(damages1, damages2, label1, label2, name, path_outputs):
 #     """d."""
