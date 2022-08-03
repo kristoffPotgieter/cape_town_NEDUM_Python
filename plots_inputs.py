@@ -16,9 +16,8 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import scipy
-# import matplotlib as mpl
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-# import matplotlib as mpl
 # import copy
 
 import inputs.parameters_and_options as inpprm
@@ -71,6 +70,11 @@ options["dem"] = "MERITDEM"
 #  RCP 8.5 scenario
 options["slr"] = 1
 
+# More custom options regarding scenarios
+options["inc_ineq_scenario"] = 2
+options["pop_growth_scenario"] = 4
+options["fuel_price_scenario"] = 2
+
 # Processing options for this simulation
 options["convert_sp_data"] = 0
 
@@ -82,7 +86,9 @@ name = ('floods' + str(options["agents_anticipate_floods"])
         + str(options["informal_land_constrained"]) + '_P'
         + str(options["pluvial"]) + str(options["correct_pluvial"])
         + '_C' + str(options["coastal"]) + str(options["slr"])
-        + '_loc')
+        + '_scenario' + str(options["inc_ineq_scenario"])
+        + str(options["pop_growth_scenario"])
+        + str(options["fuel_price_scenario"]))
 
 path_plots = path_outputs + '/input_plots/'
 path_tables = path_outputs + '/input_tables/'
@@ -204,26 +210,26 @@ initial_state_limit_city = np.load(
 
 # LOAD SIMULATION DATA (from main.py)
 
-simulation_households_center = np.load(
-    path_outputs + name + '/simulation_households_center.npy')
-simulation_households_housing_type = np.load(
-    path_outputs + name + '/simulation_households_housing_type.npy')
-simulation_dwelling_size = np.load(
-    path_outputs + name + '/simulation_dwelling_size.npy')
-simulation_rent = np.load(
-    path_outputs + name + '/simulation_rent.npy')
-simulation_households_housing_type = np.load(
-    path_outputs + name + '/simulation_households_housing_type.npy')
-simulation_households = np.load(
-    path_outputs + name + '/simulation_households.npy')
-simulation_error = np.load(
-    path_outputs + name + '/simulation_error.npy')
-simulation_utility = np.load(
-    path_outputs + name + '/simulation_utility.npy')
-simulation_deriv_housing = np.load(
-    path_outputs + name + '/simulation_deriv_housing.npy')
-simulation_T = np.load(
-    path_outputs + name + '/simulation_T.npy')
+# simulation_households_center = np.load(
+#     path_outputs + name + '/simulation_households_center.npy')
+# simulation_households_housing_type = np.load(
+#     path_outputs + name + '/simulation_households_housing_type.npy')
+# simulation_dwelling_size = np.load(
+#     path_outputs + name + '/simulation_dwelling_size.npy')
+# simulation_rent = np.load(
+#     path_outputs + name + '/simulation_rent.npy')
+# simulation_households_housing_type = np.load(
+#     path_outputs + name + '/simulation_households_housing_type.npy')
+# simulation_households = np.load(
+#     path_outputs + name + '/simulation_households.npy')
+# simulation_error = np.load(
+#     path_outputs + name + '/simulation_error.npy')
+# simulation_utility = np.load(
+#     path_outputs + name + '/simulation_utility.npy')
+# simulation_deriv_housing = np.load(
+#     path_outputs + name + '/simulation_deriv_housing.npy')
+# simulation_T = np.load(
+#     path_outputs + name + '/simulation_T.npy')
 
 
 # LOAD FLOOD DATA
@@ -245,7 +251,8 @@ options["agents_anticipate_floods"] = 1
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
+                            options)
 
 
 # %% INPUT PLOTS
@@ -259,6 +266,34 @@ try:
     os.mkdir(path_tables)
 except OSError as error:
     print(error)
+
+
+# First map land availability
+
+coeef_land_FP_map = outexp.export_map(
+    coeff_land[0], grid, geo_grid, path_plots, 'coeff_land_formal',
+    "Land availability (in %) for formal private housing",
+    path_tables,
+    ubnd=1, lbnd=0)
+
+coeef_land_IB_map = outexp.export_map(
+    coeff_land[1], grid, geo_grid, path_plots, 'coeff_land_backyard',
+    "Land availability (in %) for informal backyard housing",
+    path_tables,
+    ubnd=1, lbnd=0)
+
+coeef_land_IS_map = outexp.export_map(
+    coeff_land[2], grid, geo_grid, path_plots, 'coeff_land_informal',
+    "Land availability (in %) for informal settlement housing",
+    path_tables,
+    ubnd=1, lbnd=0)
+
+coeef_land_FS_map = outexp.export_map(
+    coeff_land[3], grid, geo_grid, path_plots, 'coeff_land_subsidized',
+    "Land availability (in %) for formal subsidized housing",
+    path_tables,
+    ubnd=1, lbnd=0)
+
 
 # For job centers, need to map transport zones
 
@@ -539,3 +574,115 @@ for flood in coastal_floods:
         "",
         path_tables,
         ubnd=4)
+
+# We could plot fraction of capital destroyed separately for each
+# flood type, but it would be similar due to bath-tub model
+# NB: note that content damage function is the same for all housing types
+for col in fraction_capital_destroyed.columns:
+    value = fraction_capital_destroyed[col]
+    outexp.export_map(value, grid, geo_grid,
+                      path_plots, col + '_fract_K_destroyed', "",
+                      path_tables,
+                      ubnd=1)
+
+
+# Finally, we map exogenous scenarios
+
+scenario_income_distribution_1 = pd.read_csv(
+    path_scenarios + 'Scenario_inc_distrib_1.csv', sep=';')
+scenario_income_distribution_2 = pd.read_csv(
+    path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
+scenario_income_distribution_3 = pd.read_csv(
+    path_scenarios + 'Scenario_inc_distrib_3.csv', sep=';')
+
+scenario_population_4 = pd.read_csv(
+    path_scenarios + 'Scenario_pop_20201209.csv', sep=';')
+scenario_population_3 = pd.read_csv(
+    path_scenarios + 'Scenario_pop_3.csv', sep=';')
+scenario_population_2 = pd.read_csv(
+    path_scenarios + 'Scenario_pop_2.csv', sep=';')
+scenario_population_1 = pd.read_csv(
+    path_scenarios + 'Scenario_pop_1.csv', sep=';')
+
+scenario_inflation = pd.read_csv(
+    path_scenarios + 'Scenario_inflation_1.csv', sep=';')
+
+scenario_interest_rate = pd.read_csv(
+    path_scenarios + 'Scenario_interest_rate_1.csv', sep=';')
+
+scenario_price_fuel_1 = pd.read_csv(
+    path_scenarios + 'Scenario_price_fuel_1.csv', sep=',')
+scenario_price_fuel_2 = pd.read_csv(
+    path_scenarios + 'Scenario_price_fuel_2.csv', sep=';')
+scenario_price_fuel_3 = pd.read_csv(
+    path_scenarios + 'Scenario_price_fuel_3.csv', sep=',')
+
+# NB: save tables?
+
+year_simul = np.arange(2011, 2011 + 30)
+income_groups = np.arange(1, 13)
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(income_groups, scenario_income_distribution_1["Households_nb_2040"],
+        color="red", label="Low")
+ax.plot(income_groups, scenario_income_distribution_2["Households_nb_2040"],
+        color="blue", label="Medium")
+ax.plot(income_groups, scenario_income_distribution_3["Households_nb_2040"],
+        color="green", label="High")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Number of households in each (data) income group in 2040"
+           + "according to several inequality scenarios", labelpad=15)
+plt.savefig(path_plots + 'inc_dist_nb_scenario.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(income_groups, scenario_income_distribution_1["INC_med_2040"],
+        color="red", label="Low")
+ax.plot(income_groups, scenario_income_distribution_2["INC_med_2040"],
+        color="blue", label="Medium")
+ax.plot(income_groups, scenario_income_distribution_3["INC_med_2040"],
+        color="green", label="High")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Median income of households in each (data) income group in 2040"
+           + "according to several inequality scenarios", labelpad=15)
+plt.savefig(path_plots + 'inc_dist_val_scenario.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(scenario_population_1["Year_pop"], scenario_population_1["HH_total"],
+        color="red", label="Low")
+ax.plot(scenario_population_1["Year_pop"], scenario_population_2["HH_total"],
+        color="blue", label="Medium")
+ax.plot(scenario_population_1["Year_pop"], scenario_population_3["HH_total"],
+        color="green", label="High")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Total population growth according to several scenarios",
+           labelpad=15)
+plt.savefig(path_plots + 'pop_growth_scenario.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(scenario_inflation["Year_infla"],
+        scenario_inflation["inflation_base_2010"],
+        color="blue")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Inflation growth relative to 2010 (in base 100)",
+           labelpad=15)
+plt.savefig(path_plots + 'infla_growth_scenario.png')
+plt.close()

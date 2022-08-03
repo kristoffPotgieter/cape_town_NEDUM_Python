@@ -82,6 +82,11 @@ options["dem"] = "MERITDEM"
 #  RCP 8.5 scenario
 options["slr"] = 1
 
+# More custom options regarding scenarios
+options["inc_ineq_scenario"] = 2
+options["pop_growth_scenario"] = 4
+options["fuel_price_scenario"] = 2
+
 # Re-processing options: default is set at zero to save computing time (data
 # is simply loaded in the model)
 # NB: this is only needed to create the data for the first time, or when the
@@ -103,7 +108,10 @@ name = ('floods' + str(options["agents_anticipate_floods"])
         + str(options["informal_land_constrained"]) + '_P'
         + str(options["pluvial"]) + str(options["correct_pluvial"])
         + '_C' + str(options["coastal"]) + str(options["slr"])
-        + '_loc')
+        + '_scenario' + str(options["inc_ineq_scenario"])
+        + str(options["pop_growth_scenario"])
+        + str(options["fuel_price_scenario"]))
+
 path_plots = path_outputs + name + '/plots/'
 
 

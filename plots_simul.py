@@ -210,13 +210,6 @@ options["agents_anticipate_floods"] = 1
 
 # SCENARIOS
 
-(param, minimum_housing_supply, agricultural_rent
- ) = inpprm.import_construction_parameters(
-    param, grid, housing_types_sp, data_sp["dwelling_size"],
-    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
-    interest_rate, options
-    )
-
 #  We create this parameter to maintain money illusion in simulations
 #  (see eqsim.run_simulation)
 #  TODO: Set as a variable, not a parameter
@@ -226,13 +219,75 @@ param["income_year_reference"] = mean_income
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
-
+ ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
+                            options)
 
 fluviald_damages_2d_dyn = []
 fluvialu_damages_2d_dyn = []
 pluvial_damages_2d_dyn = []
 coastal_damages_2d_dyn = []
+
+
+# %% DYNAMICS
+
+years_simul = np.arange(2011, 2011 + 30)
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(years_simul, simulation_utility[:, 0],
+        color="maroon", label="Poor")
+ax.plot(years_simul, simulation_utility[:, 1],
+        color="red", label="Mid-poor")
+ax.plot(years_simul, simulation_utility[:, 2],
+        color="darkorange", label="Mid-rich")
+ax.plot(years_simul, simulation_utility[:, 3],
+        color="gold", label="Rich")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Utility levels", labelpad=15)
+plt.savefig(path_plots + 'evol_util_levels.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 0],
+        color="maroon", label="Poor")
+ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 1],
+        color="red", label="Mid-poor")
+ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 2],
+        color="darkorange", label="Mid-rich")
+ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 3],
+        color="gold", label="Rich")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Total number of households per income group", labelpad=15)
+plt.savefig(path_plots + 'evol_nb_households_incgroup.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 0],
+        color="gold", label="Formal")
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 1],
+        color="darkorange", label="Backyard")
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 2],
+        color="red", label="Informal")
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 3],
+        color="maroon", label="Subsidized")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Total number of households per housing type", labelpad=15)
+plt.savefig(path_plots + 'evol_nb_households_htype.png')
+plt.close()
+
+# NB: Where do aggregate flood damage estimates come from?
+
 
 # %% BEGIN THE LOOP AFTER CREATING STORAGE VARIABLES
 for year_temp in np.arange(0, 30):
@@ -277,6 +332,13 @@ for year_temp in np.arange(0, 30):
     coeff_land = inpdt.import_coeff_land(
         spline_land_constraints, spline_land_backyard,
         spline_land_informal, spline_land_RDP, param, year_temp)
+
+    (param, minimum_housing_supply, agricultural_rent
+     ) = inpprm.import_construction_parameters(
+        param, grid, housing_types_sp, data_sp["dwelling_size"],
+        mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+        interest_rate, options
+        )
 
     agricultural_rent = inpprm.compute_agricultural_rent(
         spline_agricultural_rent(year_temp), construction_param,

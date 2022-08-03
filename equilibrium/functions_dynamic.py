@@ -16,26 +16,26 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
     """Return linear regression splines for various scenarios."""
     # Import Scenarios
     # TODO: discuss choices
-    if options["inc_ineq_scenario"] == "medium":
+    if options["inc_ineq_scenario"] == 2:
         scenario_income_distribution = pd.read_csv(
             path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
-    elif options["inc_ineq_scenario"] == "low":
+    elif options["inc_ineq_scenario"] == 1:
         scenario_income_distribution = pd.read_csv(
             path_scenarios + 'Scenario_inc_distrib_1.csv', sep=';')
-    elif options["inc_ineq_scenario"] == "high":
+    elif options["inc_ineq_scenario"] == 3:
         scenario_income_distribution = pd.read_csv(
             path_scenarios + 'Scenario_inc_distrib_3.csv', sep=';')
 
-    if options["pop_growth_scenario"] == "high_corrected":
+    if options["pop_growth_scenario"] == 4:
         scenario_population = pd.read_csv(
             path_scenarios + 'Scenario_pop_20201209.csv', sep=';')
-    elif options["pop_growth_scenario"] == "high":
+    elif options["pop_growth_scenario"] == 3:
         scenario_population = pd.read_csv(
             path_scenarios + 'Scenario_pop_3.csv', sep=';')
-    elif options["pop_growth_scenario"] == "medium":
+    elif options["pop_growth_scenario"] == 2:
         scenario_population = pd.read_csv(
             path_scenarios + 'Scenario_pop_2.csv', sep=';')
-    elif options["pop_growth_scenario"] == "low":
+    elif options["pop_growth_scenario"] == 1:
         scenario_population = pd.read_csv(
             path_scenarios + 'Scenario_pop_1.csv', sep=';')
     scenario_inflation = pd.read_csv(
@@ -43,13 +43,13 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
     scenario_interest_rate = pd.read_csv(
         path_scenarios + 'Scenario_interest_rate_1.csv', sep=';')
     # TODO: correct separators in source file
-    if options["fuel_price_scenario"] == "medium":
+    if options["fuel_price_scenario"] == 2:
         scenario_price_fuel = pd.read_csv(
             path_scenarios + 'Scenario_price_fuel_2.csv', sep=';')
-    elif options["fuel_price_scenario"] == "low":
+    elif options["fuel_price_scenario"] == 1:
         scenario_price_fuel = pd.read_csv(
             path_scenarios + 'Scenario_price_fuel_1.csv', sep=',')
-    elif options["fuel_price_scenario"] == "high":
+    elif options["fuel_price_scenario"] == 3:
         scenario_price_fuel = pd.read_csv(
             path_scenarios + 'Scenario_price_fuel_3.csv', sep=',')
 

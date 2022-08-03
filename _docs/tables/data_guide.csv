@@ -1,0 +1,568 @@
+Folder,Data set,Format,Dimension,Observation unit,Description,Type,Use,Source,Date,Theme
+0. Precalculated inputs,calibrated_param_amenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
+0. Precalculated inputs,calibratedAmenities,.mat,1x24014,Pixel,Amenity index: follows calibration from Pfeiffer et al. (appendix C4),User,Model,/,/,/
+0. Precalculated inputs,calibratedHousing_b,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity",User,Model,/,/,/
+0. Precalculated inputs,calibratedHousing_b_CES,.mat,1x1,Parameter,Same for a CES (vs. CD) housing production function,User,Model,/,/,/
+0. Precalculated inputs,calibratedHousing_kappa,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter",User,Model,/,/,/
+0. Precalculated inputs,calibratedHousing_kappa_CES,.mat,1x1,Parameter,Same for a CES (vs. CD) housing production function,User,Model,/,/,/
+0. Precalculated inputs,calibratedHousing_sigma_CES,.mat,1x1,Parameter,Elasticity of substitution for CES housing production function,User,Model,/,/,/
+0. Precalculated inputs,calibratedParamAmenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
+0. Precalculated inputs,calibratedUtilities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
+0. Precalculated inputs,calibratedUtility_beta,.mat,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity",User,Model,/,/,/
+0. Precalculated inputs,calibratedUtility_q0,.mat,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing",User,Model,/,/,/
+0. Precalculated inputs,coord_TAZ_2013,.mat,4x1787x1,TAZ (2013),"X: centroid x-axis coordinate (in km)
+Y: centroid y-axis coordinate (in km)
+TZ2013: TAZ code
+Area: area in km²",User,Model,/,/,/
+0. Precalculated inputs,data,.mat,1x1 struct with 54 fields,,See nested list,/,/,/,/,/
+0. Precalculated inputs,spCode,/,1046x1,SP (2011),SP code,Raw,Model,National census,2011,Land use map
+0. Precalculated inputs,spX,/,1046x1,SP (2011),Centroid x-coordinate in km,User,Model,National census,2011,Land use map
+0. Precalculated inputs,spY,/,1046x1,SP (2011),Centroid y-coordinate in km,User,Model,National census,2011,Land use map
+0. Precalculated inputs,sp2011Distance,/,1046x1,SP (2011),Centroid distance from grid center in km,User,Model,National census,2011,Land use map
+0. Precalculated inputs,sp2011Area,/,1046x1,SP (2011),Area in km²,User,Model,National census,2011,Land use map
+0. Precalculated inputs,sp2011CapeTown,/,1046x1,SP (2011),Boolean for SP belonging to CoCT,User,Model,National census,2011,Land use map
+0. Precalculated inputs,sp2011MitchellsPlain,/,1046x1,SP (2011),Boolean for SP belonging to Mitchell's Plain,User,Model,National census,2011,Land use map
+0. Precalculated inputs,gridAverageIncome,/,1x24014,Pixel,Average income in rand/year?,User,Model,/,/,/
+0. Precalculated inputs,sp2011AverageIncome,/,1046x1,SP (2011),Average income in rand/year?,Raw,Model,National census,2011,Data on households income
+0. Precalculated inputs,sp2011IncomeDistribution12Class,/,1046x12,SP (2011),Number of households per income bracket in data,Raw,Model,National census,2011,Urban area population
+0. Precalculated inputs,sp2011IncomeDistributionNClass,/,1046x4,SP (2011),Number of households per income bracket in model,User,Model,/,/,/
+0. Precalculated inputs,gridNumberPoor,/,1x24014,Pixel,Number of poor households,User,Model,/,/,/
+0. Precalculated inputs,gridNumberRich,/,1x24014,Pixel,Number of rich households,User,Model,/,/,/
+0. Precalculated inputs,MitchellsPlain,/,1x24014,Pixel,Boolean for pixel belonging to Mitchell's Plain,User,Model,/,/,/
+0. Precalculated inputs,medianIncome,/,12x1,Parameter,Median incomes for income brackets from data,User,Model,/,/,/
+0. Precalculated inputs,thresholdIncomeDistribution,/,1x4,Parameter,Lower thresholds for income brackets from model,User,Model,/,/,/
+0. Precalculated inputs,spTotalDwellings,/,1046x1,SP (2011),Number of dwellings,Raw,Model,National census,2011,Urban area population
+0. Precalculated inputs,spInformalBackyard,/,1046x1,SP (2011),Number of backyard settlements,Raw,Model,National census,2011,Urban area population
+0. Precalculated inputs,spInformalSettlement,/,1046x1,SP (2011),Number of informal settlements,Raw,Model,National census?,2011,Urban area population
+0. Precalculated inputs,gridInformalBackyard,/,1x24014,Pixel,Number of backyard settlements,User,Model,/,/,/
+0. Precalculated inputs,gridInformalSettlement,/,1x24014,Pixel,Number of informal settlements,User,Model,/,/,/
+0. Precalculated inputs,gridFormal,/,1x24014,Pixel,Number of formal housing units,User,Model,/,/,/
+0. Precalculated inputs,sp2001X,/,1013x1,SP (2001),Centroid x-coordinate in km,User,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001Y,/,1013x1,SP (2001),Centroid y-coordinate in km,User,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001Code,/,1013x1,SP (2001),SP code,Raw,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001DistanceCenter,/,1013x1,SP (2001),Centroid distance from grid center in km,User,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001Area,/,1013x1,SP (2001),Area in km²,User,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001CapeTown,/,1013x1,SP (2001),Boolean for SP belonging to CoCT,User,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001Distribution12Class,/,1013x12,SP (2001),Number of households per income bracket in data,Raw,Model,National census,2001,Urban area population
+0. Precalculated inputs,sp2001DistributionNClass,/,1013x4,SP (2001),Number of households per income bracket in model,User,Model,/,/,/
+0. Precalculated inputs,sp2001NumberPoor,/,1013x1,SP (2001),Number of poor households,User,Model,National census,2001,Urban area population
+0. Precalculated inputs,sp2001NumberRich,/,1013x1,SP (2001),Number of rich households,User,Model,National census,2001,Urban area population
+0. Precalculated inputs,sp2001Formal,/,1x1013,SP (2001),Number of formal housing units,User,Model,National census,2001,Urban area population
+0. Precalculated inputs,sp2001Backyard,/,1x1013,SP (2001),Number of backyard settlements,User,Model,National census,2001,Urban area population
+0. Precalculated inputs,sp2001Settlement,/,1x1013,SP (2001),Number of informal settlements,User,Model,National census,2001,Urban area population
+0. Precalculated inputs,grid2001Formal,/,1x24014,Pixel (2001),Number of formal housing units,User,Model,/,/,/
+0. Precalculated inputs,grid2001Backyard,/,1x24014,Pixel (2001),Number of backyard settlements,User,Model,/,/,/
+0. Precalculated inputs,grid2001Settlement,/,1x24014,Pixel (2001),Number of informal settlements,User,Model,/,/,/
+0. Precalculated inputs,totalNumberPerIncomeGroup,/,2x4,Parameter,Number of households per income brackets in model (for 2001 and 2011?),User,Model,/,/,/
+0. Precalculated inputs,totalNumberPerIncomeBracket,/,2x12,Parameter,Number of households per income brackets in data (for 2001 and 2011?),Raw,Model,National census,2001 & 2011,Urban area population
+0. Precalculated inputs,spPrice,/,3x1046,SP (2011),"Avg price of  real estate for 2001, 2006, 2011",Raw,Model,CoCT's housing sales registry,2011,Data on rents/real estate prices
+0. Precalculated inputs,yearPrice,/,1x3,Parameter,"Years for price data (2001, 2006, 2011)",User,Model,/,/,/
+0. Precalculated inputs,xPrice,/,1x1046,SP (2011),?,User,Model,/,/,/
+0. Precalculated inputs,yPrice,/,1x1046,SP (2011),?,User,Model,/,/,/
+0. Precalculated inputs,distancePrice,/,1x1046,SP (2011),?,User,Model,/,/,/
+0. Precalculated inputs,spDwellingSize,/,1x1046,SP (2011),Avg formal dwelling size (aggregated from TAZ),Raw,Model,CoCT,2011,Dwellings sizes
+0. Precalculated inputs,spFormalDensityHFA,/,1x1046,SP (2011),Avg formal population density,User,Model,/,/,/
+0. Precalculated inputs,SP_is_CT,/,1x1046,SP (2011),Difference with sp2011CapeTown?,User,Model,/,/,/
+0. Precalculated inputs,spUnconstrainedArea,/,1x1046,SP (2011),Constructible land area in km²,Raw,Model,?,?,Land use map
+0. Precalculated inputs,gridFormalDensityHFA,/,1x24014,Pixel,Avg formal population density,User,Model,/,/,/
+0. Precalculated inputs,limitCapeTown,/,1x24014,Pixel,Boolean for pixel belonging to CoCT,User,Model,/,/,/
+0. Precalculated inputs,gridCountRDPfromGV,/,1x24014,Pixel,Number of RDP housing units,Raw,Model,?,2012?,?
+0. Precalculated inputs,gridAreaRDPfromGV,/,1x24014,Pixel,Area of RDP housing,Raw,Model,CoCT's cadastre (Single Residential 2 - Incremental Housing),?,Land use map
+0. Precalculated inputs,householdSizeIncomeGroup,/,1x4,Parameter,Nb of households in each model income bracket,User,Model,/,/,/
+0. Precalculated inputs,gridDistanceRDP,.mat,24014x1,Pixel,Boolean for what?,User,Model,/,/,/
+0. Precalculated inputs,incomeCentersKeep,.mat,185x4,"Income centers (TAZ with more than 2,500 jobs)",What for each income bracket in model?,User,Model,/,/,/
+0. Precalculated inputs,lambda,.mat,1x1,Parameter,"Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3",User,Model,/,/,/
+0. Precalculated inputs,modelAmenity,.mat,1x1 GeneralizedLinearModel,Parameter,Fits a log-linear regression of residual utility on 9 predictors (amenities) among 16 distance variables for 307 SP (?) centroids (to get local amenity indices),User,Model,/,/,/
+0. Precalculated inputs,SPDistanceRDP,.mat,1046x1,SP (2011),Boolean for what?,User,Model,/,/,/
+0. Precalculated inputs,timeCenters,.mat,6x22x24014,Pixel,"distanceTrain: to what?
+distanceCar: to what?
+durationCar: to what?
+durationTrain: to what?
+durationMinibus: to what?
+durationBus: to what?",User,Model,/,/,/
+0. Precalculated inputs,Transport_times_GRID,.mat,5x185x24014,Pixel,"distanceCar: in km towards income center?
+durationCar: in min towards income center?
+durationTrain: in min towards income center?
+durationMinibus: in min towards income center?
+durationBus: in min towards income center?",User,Model,/,/,/
+0. Precalculated inputs,Transport_times_SP,.mat,5x185x1046,SP (2011),"distanceCar: in km towards income center?
+durationCar: in min towards income center?
+durationTrain: in min towards income center?
+durationMinibus: in min towards income center?
+durationBus: in min towards income center?",User,Model,/,/,/
+0. Precalculated inputs,transportMatrices,.mat,2x1787x1 + 4x1787x1787,TAZ (2013),"X: centroid x-coordinate
+Y: centroid y-coordinate
+bus: time (in min?) between all TAZ
+cars: time (in min?) between all TAZ
+distance_vol_oiseau: distance (in km?) between all TAZ
+taxi: time (in min?) between all TAZ
+train: time (in min?) between all TAZ",Raw,Model,CoCT,2013,Data on transport times to reach main employment centers
+data_Cape_Town\data_maps\Data to Map,employment_center_used_simulation,.csv,6x6,"Chosen employment centers (CBD, Claremont, Table View, Epping, Bellville, Sommerset West)","X: centroid x-coordinate in km
+Y: centroid y-coordinate in km
+jobs1: number of jobs in first model income bracket
+jobs2: number of jobs in second model income bracket
+jobs3: number of jobs in third model income bracket
+jobs4: number of jobs in fourth model income bracket",User,Model,/,/,/
+data_Cape_Town\data_maps\Data to Map,job_centers_simul,.csv,185x7,"Income centers (TAZ with more than 2,500 jobs)","X_center: centroid x-coordinate in km
+Y_center: centroid y-coordinate in km
+jobs1: number of jobs in first model income bracket
+jobs2: number of jobs in second model income bracket
+jobs3: number of jobs in third model income bracket
+jobs4: number of jobs in fourth model income bracket
+total_jobs: total number of jobs",Raw,Model,CoCT,2015,Data on main employment centers across the city and their specialization
+data_Cape_Town\data_maps\Data to Map,TAZ_amp_2013_proj_centro2,.csv,1787x26,TAZ (2013),"X: centroid x-coordinate in m
+Y: centroid y-coordinate in m
+TZ2013: TAZ code
+Area: area in m²
+diss: zero?
+Zones: difference with TZ2013?
+BY5Origins: ?
+BY5Destina: ?
+PTDOrigin: ?
+PTDDestin: ?
+Emploi_TAZ: dummy for what?
+Emploi_T_1-8: ?
+job_total: total number of jobs (rounded value)
+job_dens: jobs density per km²
+lnk1-4: difference with Emploi_T_4-8?
+job_tot: total number of jobs (truncated value)",Raw,Model,CoCT,2015,Data on main employment centers across the city and their specialization
+data_Cape_Town\data_maps\Data to Map,Roads_AICD,.shp,29521x24,Roads,"FID: object identifier
+Shape: polyline
+LINKNO: link identifier?
+ROADNO: road identifier
+START_KM: ?
+END_KM: ?
+LENGTH: length in km
+STARTDESC: name of departure point
+ENDDESC: name of endpoint
+CLASS: primary/secondary/tertiary
+REGION: region from SA
+WIDTH: width in meters
+LANES: number of lanes
+SURFYPE: paved/unpaved
+PAVETYPE: pavement type
+CONDITION: state of the road
+AADT: annual average daily traffic (in number of cars?)
+iso3: ZAF
+AICD_REG: dummy for what?
+Gab_Durban: dummy for what?
+Har_Durban: dummy for what?
+Lus_Durban: dummy for what?
+Lubum_Durb: dummy for what?
+TAH: dummy for what?",Raw,Model,?,?,?
+data_Cape_Town\data_maps\Data to Map,Taxi_Routes,.shp,1466x8,Taxi routes,"FID: default identifier
+Shape: polyline
+OBJECTID: object identifier
+ID: difference with OBJECTID?
+NAME: name of the road?
+ORGN: name of departure point
+DSTN: name of arrival point
+SHAPE_STLe: ?",Raw,Model,?,?,?
+data_Cape_Town\data_maps\Data to Map,CityGrowth_FINAL,.shp,680x4,?,"FID: object identifier
+Shape: polygon
+Year: ?
+Area: area in m²?",Raw,?,?,?,?
+data_Cape_Town\data_maps\Data to Map,Housing_LandStream_and_Projects,.shp,763x4,Housing projects,"FID: object identifier
+Shape: polygon
+Status: type of project (+ short or long term)
+Yield_DU: number of units?",Raw,Simulation,CoCT,2015,/
+data_Cape_Town\data_maps\Data to Map,TAZ_ampp_prod_attr_2013_2032,.shp,1787x10,TAZ (2013),"FID: object identifer
+Shape: polygon
+TZ2013: TAZ identifier
+Area: area in m²
+diss: zero?
+Zones: difference with TZ2013?
+BY5Origins: ?
+BY5Destina: ?
+PTODOrigin: ?
+PTODDestina: ?",Raw,?,?,?,?
+data_Cape_Town\data_maps,carre,.shp,1x12,Square convex hull,"FID: object identifier
+Shape: polygon
+MINX: left x-coordinate
+MINY: bottom y-coordinate
+MAXX: right x-coordinate
+MAXY: top y-coordinate
+CNTX: center x-coordinate
+CNTY: center y-coordinate
+AREA: which unit?
+PERIM: which unit?
+HEIGHT: which unit?
+WIDTH: which unit?",User,Model,/,/,/
+data_Cape_Town\data_maps,grid_reference_500,.shp,24014x7,Pixel,"FID: object identifier
+SHAPE: polygon
+ID: difference with FID?
+X_MIN: which unit?
+X_MAX: which unit?
+Y_MIN: which unit?
+Y_MAX: which unit?",User,Model,/,/,/
+data_Cape_Town\data_maps,sea,.shp,2x3,Sea shape,"FID: object identifier
+Shape: polygon
+FID_1: ?",User,Model,/,/,/
+data_Cape_Town\data_maps,UE3,.shp,68x6,Urban edge shapes,"FID: object identifier
+Shape: polygon
+OBJECTID: difference with FID?
+Shape_Leng: which unit?
+Shape_Area: which unit?
+Id: ?",User,Simulation,/,/,/
+data_Cape_Town\Scenarios,Income_distribution_scenarios_def,.xlsx,3x12x6,Scenarios (benchmark + low-inequality + high-inequality),"income_group: income bracket from data
+Households_nb: number of households per bracket
+INC_med: median income per bracket
+INC_ref: reference income per bracket (in 2011)
+group: income bracket from model (4)
+coefficients: inflation applied to reference income",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Data on households income
+data_Cape_Town\Scenarios,Scenario_inc_distrib_1,.csv,12x3,"Scenario (lower inequality, income of groups 3 and 4 decrease by 10% relatively to group 1 and 2)","income_group : income bracket from data
+Households_nb_2040: number of households in 2040
+INC_med_2040: median income in 2040
+",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Data on households income
+data_Cape_Town\Scenarios,Scenario_inc_distrib_2,.csv,12x3,"Scenario (reference scenario, income distribution the same as in 2011 )","income_group : income bracket from data
+Households_nb_2040: number of households in 2040
+INC_med_2040: median income in 2040
+",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Data on households income
+data_Cape_Town\Scenarios,Scenario_inc_distrib_3,.csv,12x3,"Scenario (higher inequality, income of groups 3 and 4 increase by 10% relatively to group 1 and 2)","income_group : income bracket from data
+Households_nb_2040: number of households in 2040
+INC_med_2040: median income in 2040
+",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Data on households income
+data_Cape_Town\Scenarios,Scenario_inflation_1,.csv,29x2,Scenario (references scenario),"Year_infla: from 1990 to 2018, then for 2040 and 2050
+inflation_base_2010: 2010 is taken as base 100
+",Raw,Simulation,?,?,Long term interest rate for mortgage (or equivalent)
+data_Cape_Town\Scenarios,Scenario_interest_rate_1,.csv,55x2,"Scenario (reference scenario, interest rate constant after 2014)","Year_interest_rate: from 1961 to 2014, then for 2040
+real_interest_rate: in %
+",Raw,Model/simulation,?,?,Long term interest rate for mortgage (or equivalent)
+data_Cape_Town\Scenarios,Scenario_pop_1,.csv,4x4,Scenario (pop in 2040 is 10% lower than reference scenario),"Year_pop: 1996, 2001, 2011, 2040
+Pop_total: HH_size * HH_total
+HH_size: average number of people per household
+HH_total: total number of households",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Urban area population
+data_Cape_Town\Scenarios,Scenario_pop_2,.csv,4x4,"Scenario (reference scenario, demographic scenario from the City of Cape Town)","Year_pop: 1996, 2001, 2011, 2040
+Pop_total: HH_size * HH_total
+HH_size: average number of people per household
+HH_total: total number of households",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Urban area population
+data_Cape_Town\Scenarios,Scenario_pop_3,.csv,4x4,Scenario (pop in 2040 is 10% higher than reference scenario),"Year_pop: 1996, 2001, 2011, 2040
+Pop_total: HH_size * HH_total
+HH_size: average number of people per household
+HH_total: total number of households",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Urban area population
+data_Cape_Town\Scenarios,Scenario_pop_20201209,.csv,4x4,Scenario (?),"Year_pop: 1996, 2001, 2011, 2040
+Pop_total: HH_size * HH_total
+HH_size: average number of people per household
+HH_total: total number of households",Raw,Simulation,CoCT's Medium Term Infrastructure Investment Framework,2017,Urban area population
+data_Cape_Town\Scenarios,Scenario_price_fuel_1,.csv,51x2,"Scenario (reference scenario, price of fuel increases with inflation)","Year_fuel: from 1990 to 2040
+price_fuel: unit?",Raw,Simulation,Energy South Africa,2016,Cost of private transport
+data_Cape_Town,BASE_2015,.csv,2283x30,TAZ (2015),"TZ2015: TAZ code
+MZ2015: 48?
+TZ_AREA: area in m²
+RES_DU: ?
+RES_POP: ?
+RES_HFA: ?
+JOBS: ?
+AGRIC: ?
+BUS_GENRC: ?
+BUS_OFFICE: ?
+BUS_RETAIL: ?
+CIV_GENRC: ?
+CIV_HOSP: ?
+IND_GEN: ?
+IND_SRVC: ?
+IND_WHS: ?
+INST_GENRC: ?
+INST_POI: ?
+MINING: ?
+MIXED_USE: ?
+OS: ?
+OTHER: ?
+POW: ?
+SPECIAL: ?
+UTILITY: ?
+Shape_Leng: ?
+Shape_Area: area in m²
+Xcoord: centroid x-coordinate
+Ycoord: centroid y-coordinate
+AREA: difference with Shape_Area?",Raw,Model,?,2015,Data on main employment centers across the city and their specialization
+data_Cape_Town,Census_2001_dwelling_type,.csv,1340x13,MP (2001),"MP_Code: MP code
+SP_Code: SP code
+House_brick_structure_separate_stand: number of dwellings
+Traditional_dwelling_traditional_materials: number of dwellings
+Flat_in_block: number of dwellings
+semi_detached_house: number of dwellings
+House_flat_in_backyard: number of dwellings
+Informal_dwelling_in_backyard: number of dwellings
+Informal_dwelling_NOT_backyard: number of dwellings
+Room_flatlet_shared_property: number of dwellings
+Caravan_tent: number of dwellings
+Ship_boat: number of dwellings
+Total: totalnumber of dwellings",Raw,Model,National census,2001,Urban area population
+data_Cape_Town,Census_2001_income,.csv,1013x20,SP (2001),"SP_CODE: SP code
+Area: area in ares
+Hectares: area in hectares
+X_2001: centroid x-coordinate (unit?)
+Y_2001: centroid y-coordinate (unit?)
+Area_sqm: area in m²
+Census_2001_inc_MP_Code: MP code
+Census_2001_inc_No_income: number of households per income bracket
+Census_2001_inc_R1_4800: number of households per income bracket
+Census_2001_inc_R4801_9600: number of households per income bracket
+Census_2001_inc_R9601_19200: number of households per income bracket
+Census_2001_inc_R19201_38400: number of households per income bracket
+Census_2001_inc_R38401_76800: number of households per income bracket
+Census_2001_inc_R76801_153600: number of households per income bracket
+Census_2001_inc_R153601_307200: number of households per income bracket
+Census_2001_inc_R307201_614400: number of households per income bracket
+Census_2001_inc_R614401_1228800: number of households per income bracket
+Census_2001_inc_R1228801_2457600: number of households per income bracket
+Census_2001_inc_R2457601_more: number of households per income bracket
+Census_2001_inc_Average_Income: average income",Raw,Model,National census,2001,Data on households income
+data_Cape_Town,Census_2011_dwelling-type,.csv,22110x15,Pixel?,"SP_Code: SP code
+House_solid: number of dwelling units
+Traditional: number of dw: number of dwelling unitselling units
+Flat: number of dwelling units
+Cluster_house: number of dwelling units
+Townhouse: number of dwelling units
+Semi_detached_house: number of dwelling units
+House_backyard: number of dwelling units
+Informal_backyard: number of dwelling units
+Informal_settlement: number of dwelling units
+Room_flatlet: number of dwelling units
+Caravan_tent: number of dwelling units
+Other: number of dwelling units
+Unspecified: number of dwelling units
+Not_applicable: number of dwelling units",Raw,Model,National census,2011,Urban area population
+data_Cape_Town,EA_definition_CPT_CAPE,.csv,6417x9,EA?,"EA_CODE
+SP_CODE
+MP_CODE
+MN_CODE
+DC_MN_C
+EA_GTYPE_C
+EA_TYPE_C
+ALBERS_ARE
+SAL_CODE",Raw,Model,?,?,Land use map
+data_Cape_Town,Emme_OD_matrices,.mat,1787x1787,TAZ (2013),Origin-destination matrix for all TAZ (time),Raw,Model,CoCT's 4-step travel demand mdoel (EMME/2 software),2013,Data on transport times to reach main employment centers
+data_Cape_Town,grid_amenities,.csv,24014x14,Pixel,"ID: pixel identifier
+distance_ocean: distance to amenity
+distance_world_herit: distance to amenity
+distance_distr_parks: distance to amenity
+distance_urban_herit: distance to amenity
+distance_UCT: distance to amenity
+distance_train: distance to amenity
+distance_protected_envir: distance to amenity
+distance_power_station: distance to amenity
+airport_cone: ?
+slope: unit?
+distance_biosphere_reserve: distance to amenity
+x: centroid x-coordinate
+y: centroid y-coordinate",User,Model,/,/,/
+data_Cape_Town,grid_NEDUM_Cape_Town_500,.csv,24014x14,Pixel,"ID
+X_MIN: left-corner x-coordinate
+X_MAX: right-corner x-coordinate
+Y_MIN: bottom-corner y-coordinate
+Y_MAX: top-corner y-coordinate
+agri_UE: agricultural area within urban edge
+agri_out: agricultural area out of urban edge
+urban: urban area
+constraint: non-constructible land
+informal: informal settlement area (?)
+unconstrained_UE: constructible land within urban edge
+unconstrained_out: constructible land out of urban edge
+Y: centroid y-coordinate
+X: centroid x-coordinate",User,Model,/,/,/
+data_Cape_Town,grid_new_RDP_projects,.csv,24014x7,Pixel,"ID_grille: pixel identifier
+count_ST: number of ST RDP projects
+total_yield_DU_ST: number of ST RDP units
+area_ST: area of ST RDP projects
+count_LT: number of LT RDP projects
+total_yield_DU_LT: number of LT RDP units
+area_LT: area of LT RDP projects",Raw?,Simulation,"CoCT's housing pipeline, Integrated Human Settlement Framework",2013,Land use map
+data_Cape_Town,grid_SAL_intersect,.csv,27490x4,Pixel & SAL,"Id_grille: pixel identifier
+Area_inter: overlap area
+OBJECTID_1: ?
+SAL_CODE: SAL code",User,Model,/,/,Land use map
+data_Cape_Town,grid_SP_intersect,.csv,32090x3,Pixel & SP (2011),"Id_grille : pixel identifier
+SP_CODE: SP code
+Area: overlap area",User,Model,/,/,Land use map
+data_Cape_Town,grid_SP2001_intersect,.csv,31875x3,Pixel & SP (2001),"ID_grille : pixel identifier
+SP_CODE: SP code
+Area_intersection: overlap area",User,Model,/,/,Land use map
+data_Cape_Town,GV2012_grid_RDP_count2,.csv,24014x4,Pixel,"ID_grille: pixel identifier
+count_RDP: number of RDP units
+EXTN: ?
+area_RDP: RDP area",User,Model,/,/,/
+data_Cape_Town,historic_price_data_CBD,.csv,15x6,Scenario,"YEAR_OF_SA: 2000, then from 2003 to 2016
+median_price: ?
+mean_price: ?
+count: ?
+quartile_1: ?
+quartile_3: ?",User,Model,/,/,/
+data_Cape_Town,Income_distribution_2011,.csv,12x9,Parameter,"income_group: income bracket from data
+formal: number of households in formal housing
+informal_backyard: number of households in backyards
+informal_settlement: number of households in informal settlements
+Households_nb: total number of households in 2011
+INC_med: median income
+INC_min: minimum income
+INC_max: maximum income
+Households_nb_2001: total number of households in 2001",Raw,Model,National census,2011,Urban area population
+data_Cape_Town,land_cover_GTI,.csv,25509x10,?,"X_MIN
+X_MAX
+Y_MIN
+Y_MAX
+ID_grid
+Category
+OBJECTID
+Cnt_ID_gri
+Shape_Leng
+Shape_Area",Raw,Model,?,?,Land use map
+data_Cape_Town,metro_station_poly,.csv,111x14,?,"ID_station
+time_mono
+Bellvill1_B
+Bellvill2_M
+Bellvill3_S
+Worcester
+Malmesbury
+Bonteheuwel1_C
+Bonteheuwel2_B
+Bonteheuwel3_K
+Capeflats
+Simonstown
+X_cape
+Y_cape",Raw,Model,?,?,Land use map
+data_Cape_Town,Res_SAL_coord,.csv,5500x33,?,"OBJECTID_1
+SAL_CODE
+SP_CODE
+CPop2011
+HH_Size
+SR_Erf_Ext
+SR_Cnt
+SR_Ext
+STS_Erf_Ex
+STS_Cnt
+STS_Ext
+FMD_Cnt
+GR_AvDUSz
+SR_AvDUSz
+N_Dens
+DUfrmCS
+Dus
+FMD
+IMD_1
+SD_OTHER
+HHSz_Adj
+Pop_Adj
+Erf_ExtAdj
+BF_ExtAdj
+BFAPPrsn
+AvgDUSz
+GDUsPHa
+GBDUsPHa
+Shape_Leng
+Shape_Area
+Area_sqm
+X_sal_CAPE
+Y_sal_CAPE",Raw,Model,?,?,Land use map
+data_Cape_Town,SAL_EA_inters_data_landuse,.csv,5500x10,SAL?,"ObjectID_2: SAL identifier?
+Collective_living_quarters: land use area
+Commercial: land use area
+Farms: land use area
+Formal_residential: land use area
+Industrial: land use area
+Informal_residential: land use area
+Parks_and_recreation: land use area
+Small_Holdings: land use area
+Vacant: land use area",Raw,Model,?,?,Land use map
+data_Cape_Town,SalePriceStat_SP,.csv,921x22,SP?,"SP_CODE
+Shape_Area
+Mean_2011/2006/2001
+Max_2011/2006/2001
+Min_2011/2006/2001
+Median_2011/2006/2001
+Std_2011/2006/2001
+count_2011/2006/2001
+Mean_size_2011
+Median_size_2011",Raw,Model,CoCT's housing sales registry,2011,Evolution of rents/real estate prices over time
+data_Cape_Town,Scenario_CoCT_2019,.csv,55x10,Scenario,"Year_pop: 1996, 2001, 2011, 2030, 2040
+Pop_total: total population
+HH_size: average number of people per household
+HH_total: total number of households
+Year_interest_rate: from 1961 to 2014, then 2040
+real_interest_rate: in %
+Year_fuel: from 1990 to 2040
+price_fuel: unit?
+Year_infla: from 1990 to 2018, then 2040 and 2050
+inflation_base_2010: 2010 is taken as base 100",User,Simulation,/,/,/
+data_Cape_Town,SP_amenities,.csv,1046x15,SP (2011),"ID: pixel identifier
+distance_ocean: distance to amenity
+distance_world_herit: distance to amenity
+distance_distr_parks: distance to amenity
+distance_urban_herit: distance to amenity
+distance_UCT: distance to amenity
+distance_train: distance to amenity
+distance_protected_envir: distance to amenity
+distance_power_station: distance to amenity
+distance_nature_reserve: distance to amenity
+airport_cone: ?
+slope: unit?
+distance_biosphere_reserve: distance to amenity
+x: centroid x-coordinate
+y: centroid y-coordinate",Raw,Model,CoCT OD portal + Environment Department of SA's SAPAD Q4 + OpenStreetMap + USGS Digital Elevation Model,?,Land use map
+data_Cape_Town,SP_dwelling_size_area_urb_constrained,.csv,1578x13,SP?,"SP_CODE
+area_prop
+nb_prop
+area_SP_sqkm
+HH_formal
+HH_informal_settlement
+HH_informal_backyard
+MEAN_RES_D
+area_HFA
+nb_prop_SR2
+unconstrained
+dens_HFA
+is_Cape_Town",Raw,Model,?,?,Dwellings sizes
+data_Cape_Town,sub-places-dwelling-statistics,.csv,1046x81,SP (2011),"SP_CODE
+MP_CODE(_st)
+MN_CODE(_st)
+DC_MN_C(_st)
+ALBERS_ARE
+Shape_Leng
+Shape_Area
+PERIM
+HEIGHT
+WIDTH
+CoordY
+CoordX
+Data_census_dwelling_INC_: 12 income brackets
+Data_census_dwelling_INC_Unspecified
+Data_census_dwelling_INC_average
+Data_census_dwelling_ROOM_1-20
+Data_census_dwelling_ROOM_AVERAGE
+Data_census_dwelling_STATUS_ : 5 statuses
+Data_census_dwelling_: 14 types of dwelling",Raw,Model,National census,2011,Dwellings sizes
+data_Cape_Town,TAZ_amp_2013_proj_centro2,.csv,1787x26,TAZ (2013),"X: centroid x-coordinate in m
+Y: centroid y-coordinate in m
+TZ2013: TAZ code
+Area: area in m²
+diss: zero?
+Zones: difference with TZ2013?
+BY5Origins: ?
+BY5Destina: ?
+PTDOrigin: ?
+PTDDestin: ?
+Emploi_TAZ: dummy for what?
+Emploi_T_1-8: ?
+job_total: total number of jobs (rounded value)
+job_dens: jobs density per km²
+lnk1-4: difference with Emploi_T_4-8?
+job_tot: total number of jobs (truncated value)
+Data_census_dwelling_HHSIZE_1-10
+Data_census_dwelling_HHSIZE_TotalHH
+Data_census_dwelling_HHSIZE_TotalPerson",Raw,Model,CoCT's Transport Survey,2013,Origin-destination statistics about inhabitants residence and workplace
+data_Cape_Town,TAZ_final,.csv,44x1,TAZ (2013),TAZ2013_centre?,Raw,Model,?,?,Land use map
+FATHOM,…,.xlsx,24014x2,Pixel,"Flood depth hazard and share of flood-prone areas for fluvial undefended (FU), fluvial defended (FD), and pluvial (P) floods; over 5, 10, 20, 50, 75, 100, 200, 250, 500, 750, and 1000 years",Raw,Model,World Bank,2019,Land use map
+Flood plains - from Claus,inf_dwellings_2020,.xlsx,24014x2,Pixel,Number of informal dwellings in 2020,Raw,Simulation,?,?,Land use map
+Land occupation,informal_settlements_risk_,.csv,24014x3,Pixel,Area at risk of new informal settlements (9 scenarios),Raw,Simulation,?,?,Land use map
+Land occupation,polygon_medium_timing,.xlsx,151x1,?,Selection of pixels?,User?,Simulation,?,?,Land use map
+Land occupation\Land occupation risk,Occupation_risk,.shp,106x8,?,"FID: object identifier
+Shape: polygon
+OBJECTID: difference with FID?
+TYPE: grow/spill/new/seeded
+PROBABILIT: low/medium/high/very high
+TIMING: short/medium/long
+SHAPE_Leng: ?
+SHAPE_Area: unit?",Raw,Simulation,?,?,Land use map
+precalculated_transport,incomeNetOfCommuting_0-29,.npy,4x24014,Pixel,"Income net of commuting costs for each income bracket in model, as calibrated in Pfeiffer et al. (see part 3.1 or appendix C3) and reproduced in inputs.sub.import_transport_data (not sure about the formula though), simulated over 30 years",User?,Simulation,/,/,Data on transport times to reach main employment centers
+\root,housing_types_grid_sal,.xlsx,24014x4,Pixel,"Population density per housing type (formal, informal, and both formal and informal backyards), cf. inputs.sub.small_areas_data.py. No RDP",User?,Validation,National census,2011,Population density

@@ -17,8 +17,8 @@ import pandas as pd
 import geopandas as gpd
 import scipy
 # import matplotlib as mpl
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+# import matplotlib.pyplot as plt
+# import matplotlib as mpl
 # import copy
 
 import inputs.parameters_and_options as inpprm
@@ -71,6 +71,11 @@ options["dem"] = "MERITDEM"
 #  RCP 8.5 scenario
 options["slr"] = 1
 
+# More custom options regarding scenarios
+options["inc_ineq_scenario"] = 2
+options["pop_growth_scenario"] = 4
+options["fuel_price_scenario"] = 2
+
 # Processing options for this simulation
 options["convert_sp_data"] = 0
 
@@ -82,7 +87,9 @@ name = ('floods' + str(options["agents_anticipate_floods"])
         + str(options["informal_land_constrained"]) + '_P'
         + str(options["pluvial"]) + str(options["correct_pluvial"])
         + '_C' + str(options["coastal"]) + str(options["slr"])
-        + '_loc')
+        + '_scenario' + str(options["inc_ineq_scenario"])
+        + str(options["pop_growth_scenario"])
+        + str(options["fuel_price_scenario"]))
 
 path_plots = path_outputs + name + '/plots/'
 path_tables = path_outputs + name + '/tables/'
@@ -204,26 +211,26 @@ initial_state_limit_city = np.load(
 
 # LOAD SIMULATION DATA (from main.py)
 
-simulation_households_center = np.load(
-    path_outputs + name + '/simulation_households_center.npy')
-simulation_households_housing_type = np.load(
-    path_outputs + name + '/simulation_households_housing_type.npy')
-simulation_dwelling_size = np.load(
-    path_outputs + name + '/simulation_dwelling_size.npy')
-simulation_rent = np.load(
-    path_outputs + name + '/simulation_rent.npy')
-simulation_households_housing_type = np.load(
-    path_outputs + name + '/simulation_households_housing_type.npy')
-simulation_households = np.load(
-    path_outputs + name + '/simulation_households.npy')
-simulation_error = np.load(
-    path_outputs + name + '/simulation_error.npy')
-simulation_utility = np.load(
-    path_outputs + name + '/simulation_utility.npy')
-simulation_deriv_housing = np.load(
-    path_outputs + name + '/simulation_deriv_housing.npy')
-simulation_T = np.load(
-    path_outputs + name + '/simulation_T.npy')
+# simulation_households_center = np.load(
+#     path_outputs + name + '/simulation_households_center.npy')
+# simulation_households_housing_type = np.load(
+#     path_outputs + name + '/simulation_households_housing_type.npy')
+# simulation_dwelling_size = np.load(
+#     path_outputs + name + '/simulation_dwelling_size.npy')
+# simulation_rent = np.load(
+#     path_outputs + name + '/simulation_rent.npy')
+# simulation_households_housing_type = np.load(
+#     path_outputs + name + '/simulation_households_housing_type.npy')
+# simulation_households = np.load(
+#     path_outputs + name + '/simulation_households.npy')
+# simulation_error = np.load(
+#     path_outputs + name + '/simulation_error.npy')
+# simulation_utility = np.load(
+#     path_outputs + name + '/simulation_utility.npy')
+# simulation_deriv_housing = np.load(
+#     path_outputs + name + '/simulation_deriv_housing.npy')
+# simulation_T = np.load(
+#     path_outputs + name + '/simulation_T.npy')
 
 
 # LOAD FLOOD DATA
@@ -245,7 +252,8 @@ options["agents_anticipate_floods"] = 1
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
+                            options)
 
 
 # %% Validation: draw maps and figures
@@ -1422,16 +1430,6 @@ for item in list_annualized_2d_damages:
     except IndexError:
         pass
 
-# We could plot fraction of capital destroyed separately for each
-# flood type, but it would be similar due to bath-tub model
-# NB: note that content damage function is the same for all housing types
-for col in fraction_capital_destroyed.columns:
-    value = fraction_capital_destroyed[col]
-    outexp.export_map(value, grid, geo_grid,
-                      path_plots, col + '_fract_K_destroyed', "",
-                      path_tables,
-                      ubnd=1)
-
 # Graphs with share of annual income destroyed (by income group
 # and return period)?
 
@@ -1511,64 +1509,3 @@ for item in list_annualized_2d_damages_informal:
 # where households do not bear structural costs?
 # In that case, we should just superimpose fraction of capital destroyed
 # over capital map (for formal sector) or exogenous value (for other sectors)
-
-
-# %% DYNAMICS
-
-years_simul = np.arange(2011, 2011 + 30)
-
-fig, ax = plt.subplots(figsize=(10, 7))
-ax.plot(years_simul, simulation_utility[:, 0],
-        color="maroon", label="Poor")
-ax.plot(years_simul, simulation_utility[:, 1],
-        color="red", label="Mid-poor")
-ax.plot(years_simul, simulation_utility[:, 2],
-        color="darkorange", label="Mid-rich")
-ax.plot(years_simul, simulation_utility[:, 3],
-        color="gold", label="Rich")
-ax.set_ylim(0)
-ax.yaxis.set_major_formatter(
-    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
-plt.legend()
-plt.tick_params(labelbottom=True)
-plt.ylabel("Utility levels", labelpad=15)
-plt.savefig(path_plots + 'evol_util_levels.png')
-plt.close()
-
-fig, ax = plt.subplots(figsize=(10, 7))
-ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 0],
-        color="maroon", label="Poor")
-ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 1],
-        color="red", label="Mid-poor")
-ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 2],
-        color="darkorange", label="Mid-rich")
-ax.plot(years_simul, np.nansum(simulation_households_center, 2)[:, 3],
-        color="gold", label="Rich")
-ax.set_ylim(0)
-ax.yaxis.set_major_formatter(
-    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
-plt.legend()
-plt.tick_params(labelbottom=True)
-plt.ylabel("Total number of households per income group", labelpad=15)
-plt.savefig(path_plots + 'evol_nb_households_incgroup.png')
-plt.close()
-
-fig, ax = plt.subplots(figsize=(10, 7))
-ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 0],
-        color="gold", label="Formal")
-ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 1],
-        color="darkorange", label="Backyard")
-ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 2],
-        color="red", label="Informal")
-ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 3],
-        color="maroon", label="Subsidized")
-ax.set_ylim(0)
-ax.yaxis.set_major_formatter(
-    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
-plt.legend()
-plt.tick_params(labelbottom=True)
-plt.ylabel("Total number of households per housing type", labelpad=15)
-plt.savefig(path_plots + 'evol_nb_households_htype.png')
-plt.close()
-
-# NB: Where do aggregate flood damage estimates come from?

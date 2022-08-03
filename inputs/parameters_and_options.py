@@ -123,18 +123,18 @@ def import_options():
 
     # We also add options for time-moving variables scenarios
     # See text description and raw numbers in Scenarios subfolder
-    #  Should be set to low/medium/high
-    options["inc_ineq_scenario"] = "medium"
-    #  Should be set to low/medium/high (with or without correction?)
-    options["pop_growth_scenario"] = "high_corrected"
+    #  Code corresponds to low/medium/high
+    options["inc_ineq_scenario"] = 2
+    #  Code corresponds to low/medium/high/high_corrected
+    options["pop_growth_scenario"] = 4
     #  NB: we do not add and option for interest rate: expected future value
     #  can just be plugged direcly into the scenario table.
     #  Same goes for inflation.
     #  TODO: why is 2010 taken as base year?
     #  However, price of fuel should be defined independently to be of interest
     #  We define dummy scenarios for the time being...
-    options["fuel_price_scenario"] = "medium"
-
+    #  Code corresponds to low/medium/high
+    options["fuel_price_scenario"] = 2
 
     return options
 
