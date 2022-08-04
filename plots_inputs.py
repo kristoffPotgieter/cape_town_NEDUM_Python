@@ -18,6 +18,7 @@ import geopandas as gpd
 import scipy
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 # import copy
 
 import inputs.parameters_and_options as inpprm
@@ -621,54 +622,67 @@ scenario_price_fuel_3 = pd.read_csv(
 
 year_simul = np.arange(2011, 2011 + 30)
 income_groups = np.arange(1, 13)
+barWidth = 0.25
 
 fig, ax = plt.subplots(figsize=(10, 7))
-ax.plot(income_groups, scenario_income_distribution_1["Households_nb_2040"],
-        color="red", label="Low")
-ax.plot(income_groups, scenario_income_distribution_2["Households_nb_2040"],
-        color="blue", label="Medium")
-ax.plot(income_groups, scenario_income_distribution_3["Households_nb_2040"],
-        color="green", label="High")
+ax.bar(income_groups - barWidth,
+       scenario_income_distribution_1["Households_nb_2040"],
+       width=barWidth,
+       color="tab:red", label="Low")
+ax.bar(income_groups, scenario_income_distribution_2["Households_nb_2040"],
+       width=barWidth,
+       color="tab:blue", label="Medium")
+ax.bar(income_groups + barWidth,
+       scenario_income_distribution_3["Households_nb_2040"],
+       width=barWidth,
+       color="tab:green", label="High")
 ax.set_ylim(0)
 ax.yaxis.set_major_formatter(
     mpl.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.legend()
-plt.tick_params(labelbottom=True)
-plt.ylabel("Number of households in each (data) income group in 2040"
-           + "according to several inequality scenarios", labelpad=15)
+
+plt.xticks(income_groups)
+plt.ylabel("Nb of HHs in each (data) income group in 2040"
+           + " (inequality scenarios)", labelpad=15)
 plt.savefig(path_plots + 'inc_dist_nb_scenario.png')
 plt.close()
 
 fig, ax = plt.subplots(figsize=(10, 7))
-ax.plot(income_groups, scenario_income_distribution_1["INC_med_2040"],
-        color="red", label="Low")
-ax.plot(income_groups, scenario_income_distribution_2["INC_med_2040"],
-        color="blue", label="Medium")
-ax.plot(income_groups, scenario_income_distribution_3["INC_med_2040"],
-        color="green", label="High")
+ax.bar(income_groups - barWidth,
+       scenario_income_distribution_1["INC_med_2040"],
+       width=barWidth,
+       color="tab:red", label="Low")
+ax.bar(income_groups, scenario_income_distribution_2["INC_med_2040"],
+       width=barWidth,
+       color="tab:blue", label="Medium")
+ax.bar(income_groups + barWidth,
+       scenario_income_distribution_3["INC_med_2040"],
+       width=barWidth,
+       color="tab:green", label="High")
 ax.set_ylim(0)
 ax.yaxis.set_major_formatter(
     mpl.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.legend()
-plt.tick_params(labelbottom=True)
-plt.ylabel("Median income of households in each (data) income group in 2040"
-           + "according to several inequality scenarios", labelpad=15)
+# plt.tick_params(labelbottom=True)
+plt.xticks(income_groups)
+plt.ylabel("Med. income of HHs in each (data) income group in 2040"
+           + " (inequality scenarios)", labelpad=15)
 plt.savefig(path_plots + 'inc_dist_val_scenario.png')
 plt.close()
 
 fig, ax = plt.subplots(figsize=(10, 7))
 ax.plot(scenario_population_1["Year_pop"], scenario_population_1["HH_total"],
-        color="red", label="Low")
+        color="tab:red", label="Low")
 ax.plot(scenario_population_1["Year_pop"], scenario_population_2["HH_total"],
-        color="blue", label="Medium")
+        color="tab:blue", label="Medium")
 ax.plot(scenario_population_1["Year_pop"], scenario_population_3["HH_total"],
-        color="green", label="High")
+        color="tab:green", label="High")
 ax.set_ylim(0)
 ax.yaxis.set_major_formatter(
     mpl.ticker.StrMethodFormatter('{x:,.0f}'))
 plt.legend()
 plt.tick_params(labelbottom=True)
-plt.ylabel("Total population growth according to several scenarios",
+plt.ylabel("Total population growth (scenarios)",
            labelpad=15)
 plt.savefig(path_plots + 'pop_growth_scenario.png')
 plt.close()
@@ -676,13 +690,175 @@ plt.close()
 fig, ax = plt.subplots(figsize=(10, 7))
 ax.plot(scenario_inflation["Year_infla"],
         scenario_inflation["inflation_base_2010"],
-        color="blue")
+        color="tab:blue")
 ax.set_ylim(0)
 ax.yaxis.set_major_formatter(
     mpl.ticker.StrMethodFormatter('{x:,.0f}'))
-plt.legend()
+# plt.legend()
 plt.tick_params(labelbottom=True)
 plt.ylabel("Inflation growth relative to 2010 (in base 100)",
            labelpad=15)
 plt.savefig(path_plots + 'infla_growth_scenario.png')
 plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(scenario_interest_rate["Year_interest_rate"],
+        scenario_interest_rate["real_interest_rate"],
+        color="tab:blue")
+# ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+# plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Interest rate (in %) history and projections",
+           labelpad=15)
+plt.savefig(path_plots + 'interest_rate_scenario.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(scenario_price_fuel_1["Year_fuel"],
+        scenario_price_fuel_1["price_fuel"],
+        color="tab:red", label="Low")
+ax.plot(scenario_price_fuel_2["Year_fuel"],
+        scenario_price_fuel_2["price_fuel"],
+        color="tab:blue", label="Medium")
+ax.plot(scenario_price_fuel_3["Year_fuel"],
+        scenario_price_fuel_3["price_fuel"],
+        color="tab:green", label="High")
+# ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Fuel price history and projections (scenarios)",
+           labelpad=15)
+plt.savefig(path_plots + 'price_fuel_scenario.png')
+plt.close()
+
+
+# We also do maps for informal settlement scenarios
+
+# TODO: apply polygon_medium_timing correction?
+
+#  First for timing
+informal_risks_short = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_SHORT.csv',
+    sep=',')
+informal_risks_short = informal_risks_short.rename(
+    columns={"area": "area_short"})
+informal_risks_medium = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_MEDIUM.csv',
+    sep=',')
+informal_risks_medium = informal_risks_medium.rename(
+    columns={"area": "area_medium"})
+informal_risks_long = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_LONG.csv',
+    sep=',')
+informal_risks_long = informal_risks_long.rename(
+    columns={"area": "area_long"})
+
+informal_risks_timing = pd.concat(
+    [informal_risks_short["area_short"],
+     informal_risks_medium["area_medium"],
+     informal_risks_long["area_long"]],
+    axis=1)
+informal_risks_timing["sum"] = (
+    informal_risks_timing["area_short"]
+    + informal_risks_timing["area_medium"]
+    + informal_risks_timing["area_long"])
+informal_risks_timing["argmax"] = np.zeros(24014)
+informal_risks_timing["argmax"] = np.nan
+informal_risks_timing[
+    "argmax"][informal_risks_timing["sum"] > 0] = np.nanargmax(
+        informal_risks_timing[["area_short", "area_medium", "area_long"]], 1)
+informal_risks_timing["color"] = "tab:grey"
+informal_risks_timing.loc[
+    informal_risks_timing["argmax"] == 0, "color"] = "tab:red"
+informal_risks_timing.loc[
+    informal_risks_timing["argmax"] == 1, "color"] = "tab:blue"
+informal_risks_timing.loc[
+    informal_risks_timing["argmax"] == 2, "color"] = "tab:green"
+
+plt.figure(figsize=(10, 7))
+Map = plt.scatter(grid.x, grid.y, s=None,
+                  c=informal_risks_timing["color"],
+                  marker='.')
+custom_lines = [Line2D([0], [0], color="tab:red", lw=4),
+                Line2D([0], [0], color="tab:blue", lw=4),
+                Line2D([0], [0], color="tab:green", lw=4)]
+plt.legend(custom_lines, ['Short', 'Medium', 'Long'],
+           loc='upper right', bbox_to_anchor=(0.925, 0.9))
+plt.axis('off')
+plt.title("Timing of informal settlement expansion risk")
+plt.savefig(path_plots + "informal_settlement_risk_timing")
+plt.close()
+informal_risks_timing.to_csv(path_tables
+                             + 'informal_settlement_risk_timing.csv')
+
+# Then for probability
+
+informal_risks_LOW = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pLOW.csv',
+    sep=',')
+informal_risks_LOW = informal_risks_LOW.rename(
+    columns={"area": "area_LOW"})
+informal_risks_MEDIUM = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pMEDIUM.csv',
+    sep=',')
+informal_risks_MEDIUM = informal_risks_MEDIUM.rename(
+    columns={"area": "area_MEDIUM"})
+informal_risks_HIGH = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pHIGH.csv',
+    sep=',')
+informal_risks_HIGH = informal_risks_HIGH.rename(
+    columns={"area": "area_HIGH"})
+informal_risks_VERYHIGH = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pVERYHIGH.csv',
+    sep=',')
+informal_risks_VERYHIGH = informal_risks_VERYHIGH.rename(
+    columns={"area": "area_VERYHIGH"})
+
+informal_risks_proba = pd.concat(
+    [informal_risks_LOW["area_LOW"],
+     informal_risks_MEDIUM["area_MEDIUM"],
+     informal_risks_HIGH["area_HIGH"],
+     informal_risks_VERYHIGH["area_VERYHIGH"]],
+    axis=1)
+informal_risks_proba["sum"] = (
+    informal_risks_proba["area_LOW"]
+    + informal_risks_proba["area_MEDIUM"]
+    + informal_risks_proba["area_HIGH"]
+    + informal_risks_proba["area_VERYHIGH"])
+informal_risks_proba["argmax"] = np.zeros(24014)
+informal_risks_proba["argmax"] = np.nan
+informal_risks_proba[
+    "argmax"][informal_risks_proba["sum"] > 0] = np.nanargmax(
+        informal_risks_proba[
+            ["area_LOW", "area_MEDIUM", "area_HIGH", "area_VERYHIGH"]
+            ], 1)
+informal_risks_proba["color"] = "tab:grey"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 0, "color"] = "tab:green"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 1, "color"] = "tab:blue"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 2, "color"] = "tab:orange"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 3, "color"] = "tab:red"
+
+plt.figure(figsize=(10, 7))
+Map = plt.scatter(grid.x, grid.y, s=None,
+                  c=informal_risks_proba["color"],
+                  marker='.')
+custom_lines = [Line2D([0], [0], color="tab:green", lw=4),
+                Line2D([0], [0], color="tab:blue", lw=4),
+                Line2D([0], [0], color="tab:orange", lw=4),
+                Line2D([0], [0], color="tab:red", lw=4)]
+plt.legend(custom_lines, ['Low', 'Medium', 'High', "Very high"],
+           loc='upper right', bbox_to_anchor=(0.925, 0.9))
+plt.axis('off')
+plt.title("Probability of informal settlement expansion risk")
+plt.savefig(path_plots + "informal_settlement_risk_proba")
+plt.close()
+informal_risks_proba.to_csv(path_tables
+                            + 'informal_settlement_risk_proba.csv')
