@@ -13,9 +13,11 @@ Welcome to nedum_doc's documentation!
    nedum-2D
    guidelines
    use_case
-   data_desc
-   code_walkthrough
+   data_list
+   technical_doc
+   validation
    api_ref
+   install_help
 
 
 

@@ -700,9 +700,14 @@ def import_housing_limit(grid, param):
 def import_init_floods_data(options, param, path_folder):
     """Import initial floods data and damage functions."""
     # Import floods data
-    fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
-                      'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr',
-                      'FD_1000yr']
+    if options["defended"] == 1:
+        fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
+                          'FD_100yr', 'FD_200yr', 'FD_250yr', 'FD_500yr',
+                          'FD_1000yr']
+    elif options["defended"] == 0:
+        fluvial_floods = ['FU_5yr', 'FU_10yr', 'FU_20yr', 'FU_50yr', 'FU_75yr',
+                          'FU_100yr', 'FU_200yr', 'FU_250yr', 'FU_500yr',
+                          'FU_1000yr']
     pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr',
                       'P_100yr', 'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
 

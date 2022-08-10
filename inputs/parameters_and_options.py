@@ -28,6 +28,8 @@ def import_options():
     options["pluvial"] = 1
     #  Dummy for reducing pluvial risk for (better protected) formal structures
     options["correct_pluvial"] = 1
+    #  Dummy for working with defended (vs. undefended) fluvial flood maps
+    options["defended"] = 0
     #  Dummy for taking coastal floods into account (on top of fluvial floods)
     options["coastal"] = 1
     #  DEM to be used with coastal flood data (MERITDEM or NASADEM)

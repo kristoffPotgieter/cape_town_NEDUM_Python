@@ -77,6 +77,9 @@ options["coastal"] = 1
 #  Digital elevation to be used with coastal flood data (MERITDEM or NASADEM)
 #  NB: MERITDEM is also the DEM used for fluvial and pluvial flood data
 options["dem"] = "MERITDEM"
+#  We consider undefended flood maps as our default because they are more
+#  reliable
+options["defended"] = 0
 #  Dummy for taking sea-level rise into account in coastal flood data
 #  NB: Projections are up to 2050, based upon IPCC AR5 assessment for the
 #  RCP 8.5 scenario

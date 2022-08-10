@@ -29,6 +29,7 @@ author = 'Thomas Monnier'
 # ones.
 extensions = ['sphinxcontrib.bibtex']
 bibtex_bibfiles = ['refs.bib']
+bibtex_reference_style = 'author_year'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
