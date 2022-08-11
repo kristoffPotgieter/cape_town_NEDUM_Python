@@ -47,18 +47,41 @@ In subsequent versions, **NEDUM-2D** has been used within urban contexts as dive
 Overview of the model
 ^^^^^^^^^^^^^^^^^^^^^
 
-In its latest implementation, :footcite:t:`pfeiffer` further refine the model by making it polycentric, and by introducing heterogeneous income groups, as well as informal housing situations that coexist with market and state-driven formal housing. The model is calibrated for the *City of Cape Town* (CoCT) and indeed allows to account for key features of cities in the developing world [#f3]_. 
+In its latest implementation, :footcite:t:`pfeiffer` further refine the model by making it polycentric, and by introducing heterogeneous income groups, as well as informal housing situations that coexist with market and state-driven formal housing. The model is calibrated for the *City of Cape Town* (CoCT) and indeed allows to account for key features of cities in the developing world [#f3]_. *text* 
+
+.. figure:: images/empl_loc.png 
+   :scale: 50% 
+   :align: center
+   :alt: map of employment locations with number of workers per income group
+
+   Employment locations used in the simulation, by income group (*Source*: :footcite:t:`pfeiffer`)
 
 More specifically, it considers two types of land and housing informality: informal settlements in predetermined locations (which is akin to squatting as in :footcite:t:`brueckner`) and a rental market for backyard structures erected by owners of state-driven subsidized housing as modeled by :footcite:t:`brueckner2`. It then integrates these elements within a closed-city model (with exogenous population growth) and simulates developers’ construction decisions as well as the housing and location choices of households from different income groups at a distance from several employment subcenters (while accounting for state-driven subsidized housing programs, natural constraints, amenities, zoning, transport options, and the costs associated with each transport mode).
+
+It has displayed good performance, as shown by the validation plots below.
+
+.. figure:: images/global_valid.png 
+   :scale: 50% 
+   :align: center
+   :alt: line plots comparing population density and housing prices between simulation and data for the year 2011
+
+   Comparison between simulation (green) and data (blue) for the year 2011 (*Source*: :footcite:t:`pfeiffer`)
+
+.. figure:: images/housing_valid.png 
+   :scale: 50% 
+   :align: center
+   :alt: line plots comparing total population pet housing type between simulation and data for the year 2011
+
+   Allocation of households to housing types and spatial distributions (*Source*: :footcite:t:`pfeiffer`)
 
 Ongoing work at the *World Bank* has been focusing on incorporating vulnerability to flood risks in this version of the model, by distinguishing between fluvial, pluvial, and coastal floods. Typically, fluvial floods are one-off, hard-to-predict water overflows from rivers, whereas pluvial floods are rather seasonal surface water floods or flash floods, caused by extreme rainfall independently of an overflowing water body. Coastal floods correspond to hard-to-predict storm surges, with the added uncertainty of sea-level rise. The associated risks that we consider include:
 
 * Structural damages: building depreciation caused by flood damages
 * Contents damages: destruction of part of households’ belongings due to floods
-..
- * Health impacts: modelled through loss of income from not being able to work
 
-We believe that those are the main channels through which flood risks affect the city patterns :footcite:p:`pharoah` [#fQSE]_. As before, the model allows to stimulate how these trade-offs might be affected by future demographic, climate, and policy scenarios.
+We believe that those are the main channels through which flood risks affect the city patterns :footcite:p:`pharoah` [#fQSE]_. Agents internalize those risks by considering the annualized value of those damages (based on probabilistic flood maps) as an added term in the depreciation of their housing capital and of their quantity of goods consumed (assimilated to a composite good) [#fmyopic]_.
+
+As before, the model allows to stimulate how these trade-offs might be affected by future demographic, climate, and policy scenarios.
 
 -------------------
 Policies assessment
@@ -76,7 +99,7 @@ Secondly, the fact that informal settlements and backyarding locations are exoge
 
 Finally, there is an externality associated with the use of land for informal settlements and for publicly subsidized housing as these areas are somehow taken away from developable land that would otherwise be available for private formal development. This affects the supply and demand for formal housing by restricting the set of potential locations available for private formal development, while accommodating a potentially large number of urban residents in the informal sector [#f4]_.
 
-The main added mechanism from flood risks is that the poorest households might trade-off protection from flood risks for cheaper housing and better accessibility. Our preliminary results indeed show a tendency for informal settlements to expand in the near future, thereby increasing the vulnerability of the affected populations in absence of any mitigating investments.
+The main added mechanism from flood risk anticipation is that the poorest households might trade-off protection from flood risks for cheaper housing and better accessibility. Our preliminary results indeed show a tendency for informal settlements to expand in the near future, thereby increasing the vulnerability of the affected populations in absence of any mitigating investments.
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -91,7 +114,7 @@ Indeed, the aim of such a model is to provide simulations for the future, with t
 
 Here, **NEDUM-2D** preserves the main market mechanism from the standard urban economic model, while allowing for sorting across different housing submarkets. If one is interested in the impact of other mechanisms on land use patterns, one should probably consider another (non-economic) model. Also note that in its current version, **NEDUM-2D** does not allow to conduct proper welfare evaluations.
 
-Empirically, :footnotecite:t:`liotta` show that the standard urban economic model has a good predictive power in terms of population density and rent variations, but not so much in terms of housing production. However, they also show that high levels of informality, strong regulations and planning, as well as specific amenities are, as expected by the theory, main factors leading to the discrepancies. As we account for those elements, we believe that our model yields relatively good predictions. Still, as is common approach in the literature, we think that our most significant contribution is not to deliver predictions in absolute terms, but rather comparative statics that relate one scenario to another.
+Empirically, :footcite:t:`liotta` show that the standard urban economic model has a good predictive power in terms of population density and rent variations, but not so much in terms of housing production. However, they also show that high levels of informality, strong regulations and planning, as well as specific amenities are, as expected by the theory, main factors leading to the discrepancies. As we account for those elements, we believe that our model yields relatively good predictions. Still, as is common approach in the literature, we think that our most significant contribution is not to deliver predictions in absolute terms, but rather comparative statics that relate one scenario to another.
 
 
 .. rubric:: Footnotes
@@ -107,5 +130,7 @@ Empirically, :footnotecite:t:`liotta` show that the standard urban economic mode
 .. [#f5] See :doc:`../technical_doc` for more details.
 
 .. [#fQSE] Contrary to the so-called "Quantitative Spatial Economics" literature :footcite:p:`rossi-hansberg`, we do not endogenize employment locations, to the extent that we do not allow firms to compete with households for land. There are two main reasons for that. First, the (relative) numerical simplicity of our model allows us to deal with several dimensions of heterogeneity within an extremely granular setting. Second, survey data and expert advice do not lead us to consider flood risks as a major potential shifter for job center distribution across the city. Since this is the focus of the current version, we therefore keep this distribution as fixed (more on that in :doc:`../technical_doc`) to focus on the housing mechanisms described above.
+
+.. [#fmyopic] We still need to assess empirically to what extent those anticipations vary across flood risks, and how this may contribute to myopia in housing markets.
  
 .. footbibliography::

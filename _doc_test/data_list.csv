@@ -23,7 +23,7 @@ Aggregate statistics on transport modal shares (for calibration),- General House
 Evolution of rents / real estate prices over time (for validation),"- CoCT's housing sales registry (2001, 2006, 2011)",This is used to check the retrospective fit of model outputs.,,
 "Average construction costs per m², as a function of building type (for calibration)",,"This is useful to estimate construction cost function parameters.
 NB: The current version of the model relies on a different approximation procedure.",,
-Dwelling sizes (for calibration),- CoCT,"This allows to pick the minimum quantity of housing in formal private housing (which is assumed in the utility function of households).
+Dwelling sizes (for calibration),CoCT,"This allows to pick the minimum quantity of housing in formal private housing (which is assumed in the utility function of households).
 It is also used to estimate construction cost and utility function parameters.",,
 Cost of private transport (for calibration),"- SA's Energy Department, Energy South Africa report (2016) for fuel prices
 - Merven et al. (2012) for vehicle energy efficiency",This is used to calibrate the expected monetary cost for each transport mode.,,

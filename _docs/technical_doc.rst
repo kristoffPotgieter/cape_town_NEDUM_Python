@@ -33,7 +33,15 @@ Assumptions
 
 Note that, in our model, we consider three endogenous housing markets (whose allocation is computed in equilibrium) - namely, formal private housing, informal backyards (erected in the backyard of subsidized-housing dwelling units), and informal settlements (in predetermined locations) [#f2]_ - one exogenous housing market (whose allocation is directly taken from the data) - the RDP (Reconstruction and Development Programme) formal subsidized housing [#f3]_ - and four income groups.
 
-By default, only agents from the poorest income group have access to RDP housing units. Without loss of generality, we assume that the price of such dwellings is zero, and that they are allocated randomly to the part of poorest agents they can host, the rest being rationed out of the formal subsidized housing market. Then, the two poorest income groups sort across formal private housing, informal backyards, and informal settlements; whereas the two richest only choose to live in the formal private housing units. We believe that this is a good approximation of reality. Also note that, although the two richest income groups are identical in terms of housing options, we distinguish between the two to better account for income heterogeneity and spatial sorting along income lines in our simulations, while keeping the model sufficiently simple to be solved numerically (see table A.1 in :footcite:t:`pfeiffer` for a summary of those key modelling assumptions).
+By default, only agents from the poorest income group have access to RDP housing units. Without loss of generality, we assume that the price of such dwellings is zero, and that they are allocated randomly to the part of poorest agents they can host, the rest being rationed out of the formal subsidized housing market. Then, the two poorest income groups sort across formal private housing, informal backyards, and informal settlements; whereas the two richest only choose to live in the formal private housing units. We believe that this is a good approximation of reality. Also note that, although the two richest income groups are identical in terms of housing options, we distinguish between the two to better account for income heterogeneity and spatial sorting along income lines in our simulations, while keeping the model sufficiently simple to be solved numerically.
+
+.. figure:: images/model_assumpt.png 
+   :scale: 50% 
+   :align: center
+   :alt: summary table of the modeling assumptions regarding housing
+
+   Modeling assumptions regarding housing (*Source*: :footcite:t:`pfeiffer`)
+
 
 ^^^^
 Data
@@ -44,13 +52,22 @@ Then, the code calls on the ``data.py`` module. This allows to import basic geog
 The imported files can be modified directly in the repository, to account for changes in scenarios for instance, as long as the format used remains the same (see :doc:`../api_ref` for more details on each function requirements). Before going to the next step of the code, we would like to give more details on the imports of land use, flood, and transport data, which we think are not as transparent as the rest of the imports.
 
 .. _land_avail_desc:
+
 """""""""""""
 Land use data
 """""""""""""
 
 The ``import_land_use`` and ``import_coeff_land`` functions help define exogenous land availability :math:`L^h(x)` for each housing type :math:`h` and each grid cell :math:`x`. Indeed, we assume that different kinds of housing do not get built in the same places to account for insecure property rights (in the case of informal settlements vs. formal private housing) and housing specificities (in the case of non-market formal subsidized housing, and informal backyards located in the same preccints) [#fmixed]_. Furthermore, :math:`L` varies with :math:`x` to account for both natural, regulatory constraints, infrastructure and other non-residential uses.
 
-As :math:`L^h(x)` is going to vary across time periods, the first part of the ``import_land_use`` function imports lacking data estimates for historical and projected land uses. It then defines linear regression splines over time for a set of variables, the key ones being the share of pixel area available for formal subsidized housing, informal backyards, informal settlements, and unconstrained development. The ``import_coeff_land`` function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter (corresponding to equation (5) in :footcite:t:`pfeiffer`). The outputs are stored in a ``coeff_land`` vector that yield the values of :math:`L^h(x)` for each time period when multiplied by the area of a pixel.
+As :math:`L^h(x)` is going to vary across time periods, the first part of the ``import_land_use`` function imports lacking data estimates for historical and projected land uses. It then defines linear regression splines over time for a set of variables, the key ones being the share of pixel area available for formal subsidized housing, informal backyards, informal settlements, and unconstrained development. The ``import_coeff_land`` function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter (corresponding to equation (5) in :footcite:t:`pfeiffer`). The outputs are stored in a ``coeff_land`` vector that yield the values of :math:`L^h(x)` for each time period when multiplied by the area of a pixel. Results are shown in the figure below.
+
+.. figure:: images/land_avail.png 
+   :scale: 50% 
+   :align: center
+   :alt: map of land availability ratios per housing type
+
+   Share of available land for each housing type (*Source*: :footcite:t:`pfeiffer`)
+
 
 """"""""""
 Flood data
@@ -96,9 +113,19 @@ This part of the main script simply calls on two functions that return the key o
 Initial state
 ^^^^^^^^^^^^^
 
-Let us first dig into the ``compute_equilibrium`` function. Our main input is the total population per income group in the city at baseline year. Since we took the non-employed (earning no income over the year) out to define our four income groups according to table A.1. in :footcite:t:`pfeiffer`, we need to reweight it to account for the overall population. Then, considering that all formal subsidized housing belongs to the poorest income group, we substract the corresponding number of households from this class to keep only the ones whose allocation in the housing market is going to be determined endogenously. We shorten the grid to consider only habitable pixels according to land availability and expected income net of commuting costs to alleviate numeric computations and initialize a few key variables before starting the optimization per se.
+Let us first dig into the ``compute_equilibrium`` function. Our main input is the total population per income group in the city at baseline year. Since we took the non-employed (earning no income over the year) out to define our four income groups, we need to reweight it to account for the overall population. Results are given in the table below.
+
+.. figure:: images/inc_group_distrib.png 
+   :scale: 50% 
+   :align: center
+   :alt: summary table of income groups characteristics
+
+   Income groups used in the simulation (*Source*: :footcite:t:`pfeiffer`)
+
+Then, considering that all formal subsidized housing belongs to the poorest income group, we substract the corresponding number of households from this class to keep only the ones whose allocation in the housing market is going to be determined endogenously. We shorten the grid to consider only habitable pixels according to land availability and expected income net of commuting costs to alleviate numeric computations and initialize a few key variables before starting the optimization per se.
 
 .. _solving_desc:
+
 """""""""""""""""""""""
 Solving for equilibrium
 """""""""""""""""""""""
@@ -185,23 +212,12 @@ Back to the body of the ``main.py`` script, we save the simulation outputs in a 
 Output
 ------
 
-^^^^^^^^^^^^^
-Plots scripts
-^^^^^^^^^^^^^
-
 All the modules of this package are used as part of the plots scripts. Those scripts can be run independently. The ``plots_inputs.py`` script plots input data for descriptive statistics. The ``plots_equil.py`` plots outputs specific to the initial state equilibrium, notably with respect to result validation. The ``plots_simul.py`` plots outputs for all simulation years, and some evolution of variables across time. Only the two latter require to run the main script at least once to save the associated numeric outputs. To call on a specific simulation, one just has to change the path name at the beginning of the scripts to use the dedicated folder. All scripts save the associated plots as images in a dedicated folder.
 
-It should be noted that the resulting visuals are created with the ``matplotlib`` library and are pretty basic. Indeed, we thought of those plots not as a final deliverable, but rather as a way to quickly visualize results for developer use. Therefore, the plots scripts also save tables associated with values plotted, for use as part of a more user-friendly interface. This interface is developed jointly with the CoCT within the ``streamlit`` framework and uses ``plotly`` for graphical representations.
+It should be noted that the resulting visuals are created with the ``matplotlib`` library and are pretty basic. Indeed, we thought of those plots not as a final deliverable, but rather as a way to quickly visualize results for developer use. Therefore, the plots scripts also save tables associated with values plotted, for use as part of a more user-friendly interface. This interface is developed jointly with the CoCT within the ``streamlit`` framework and uses ``plotly`` for graphical representations. It is accessible through this `link <https://kristoffpotgieter-nedumstreamlit-01--help-hozyn1.streamlitapp.com/>`_ or the :doc:`../interface` tab. It notably simplifies the integration of visualization parameters (absolute vs. relative values, etc.) and the comparison between maps or graphs for different scenarios (or validation).
 
-Description?
+We rely on the interface for comments about the interpretation of results. As there exists a multiplicity of ways to visualize data, we do not see the plots scripts as a definite code for what can be plotted, but rather as a quick overview of the most important variables in the model. We believe the code to be self-explaining and redirect you to the :doc:`../api_ref` section for function documentation. Suffices to say here that the ``export_outputs.py`` module is for processing and displaying the standard urban variables of the model (already present in :footcite:t:`pfeiffer`), that the ``flood_outputs.py`` module is for processing values relative to floods, and that the ``export_outputs_floods.py`` module is for displaying them.
 
-
-
-------------
-Ongoing work
-------------
-
-Formal vs. informal backyard, backyards in formal private units, interest rate
 
 
 .. rubric:: Footnotes
@@ -230,8 +246,7 @@ Formal vs. informal backyard, backyards in formal private units, interest rate
 
 .. [#f7] Note that we add an option to discount the most likely / less serious pluvial flood risks for formal private housing, then for formal subsidized and informal backyard structures. This is to account for the fact that such (more or less concrete) structures are better protected from run-offs, which is not an information provided by the flood maps.
 
-.. [#f8] For the purpose of this model, it is therefore equivalent to assume complete market insurance or self-insurance. We may actually have an incomplete combination of the two, which we could simulate by putting weights on our two perfect-anticipations and no-anticipations polar cases.
-..Note however that we do not model endogenous self-protection investments (or even exogenous state-driven localized protection investments), that would require the estimation of new flood maps.
+.. [#f8] For the purpose of this model, it is therefore equivalent to assume complete market insurance or self-insurance. We may actually have an incomplete combination of the two, which we could simulate by putting weights on our two perfect-anticipations and no-anticipations polar cases. Note however that we do not model endogenous self-protection investments.
 
 .. [#f9] We recall that, according to the spatial indifference hypothesis, all similar households share a common (maximum attainable) utility level in equilibrium. In our model, households only differ a priori in their income class, which is why we have a unique utility level for each income class. Intuitively, the richer the household, the bigger the utility level, as a higher income translates into a bigger choice set. If such utility levels can be compared in ordinal terms, no direct welfare assessment can be derived in cardinal terms: utilities must be converted into income equivalents first. A further remark is that income levels are a proxy for household heterogeneity in the housing market. They could themselves be endogenized (including unemployment) to study interactions with the labor market, although we leave that for future work.
 

@@ -1,7 +1,3 @@
-.. nedum_doc documentation master file, created by
-   sphinx-quickstart on Tue Apr 26 11:21:10 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Welcome to nedum_doc's documentation!
 =====================================
@@ -10,14 +6,14 @@ Welcome to nedum_doc's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   nedum-2D
+   nedum-2d
    guidelines
    use_case
-   data_list
    technical_doc
-   validation
+   interface
+   ref_paper
+   bibliography
    api_ref
-   install_help
 
 
 
