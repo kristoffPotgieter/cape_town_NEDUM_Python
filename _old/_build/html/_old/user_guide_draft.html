@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Write guidelines about NEDUM philosophy &mdash; nedum_doc  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> nedum_doc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../nedum-2d.html">NEDUM-2D</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interface.html">Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ref_paper.html">Reference paper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../bibliography.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_ref.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">nedum_doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Write guidelines about NEDUM philosophy</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_old/user_guide_draft.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="write-guidelines-about-nedum-philosophy">
+<h1>Write guidelines about NEDUM philosophy<a class="headerlink" href="#write-guidelines-about-nedum-philosophy" title="Permalink to this heading"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">See</span> <span class="n">Res</span><span class="o">-</span><span class="n">IRF</span> <span class="n">technical</span> <span class="n">documentation</span> <span class="o">+</span> <span class="n">policies</span> <span class="n">assessment</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="write-use-cases-coastal-floods">
+<h1>Write use cases (coastal floods?)<a class="headerlink" href="#write-use-cases-coastal-floods" title="Permalink to this heading"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">See</span> <span class="n">Res</span><span class="o">-</span><span class="n">IRF</span> <span class="n">simulation</span> <span class="ow">and</span> <span class="n">sensitivity</span> <span class="n">analysis</span> <span class="o">+</span> <span class="n">setting</span> <span class="n">up</span> <span class="n">public</span>
+<span class="n">policies</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-data-format-description">
+<h1>Add data (+ format) description<a class="headerlink" href="#add-data-format-description" title="Permalink to this heading"></a></h1>
+<dl class="simple">
+<dt>::</dt><dd><p>See Res-IRF inputs
+Should we do a proper dictionary? Or should the format just be precised as part of docstrings
+(makes sense, especially when variable dimensions to be interpreted)? Maybe we could also change the structure of the repo…</p>
+</dd>
+</dl>
+<hr class="docutils" />
+<p>Where do pre-calculated inputs come from? What about <cite>._</cite> files?
+Else, just matrix form for raw numbers or pixel parameters (24,014), or coord for TAZ (1,787) used in <cite>transportMatrices.mat</cite>?
+<cite>data.mat</cite> is a structure with 54 fields characterizing SPs (1,046 or 1,013?) or pixels (24,014).
+There seems to be 12 income brackets, converted into 4 for the analysis.
+What are the 185 income centers (also used in <cite>Transport_times</cite> matrices)?
+<cite>model_amenity.mat</cite> is a <cite>GeneralizedLinearModel</cite> with 307x18 geographic observations corresponding to SPs. But what is predicted?
+What are the 22 dimensions in <cite>timeCenters.mat</cite>?</p>
+<p>In <cite>data_Cape_Town</cite>:
+-  Let’s not focus on ancient and old files.
+-  <cite>data_maps</cite> contains geographic files treated with R scripts <cite>Map_employment_centers</cite>, <cite>Map_future_projects</cite>, <cite>Map_grid_CT</cite>,
+<cite>script_import_data_maps</cite>. Should we update them?
+- <cite>Scenarios</cite> contains tables for scenarios regarding different sets of variables (read description): what about tables not self-contained
+in description?
+- What about <cite>OD_matrix</cite>? Seems to be a square matrix for TAZ…
+- Need to explain other tables or include format as part of docstrings?</p>
+<p><cite>FATHOM</cite> contains prospective flood probability tables at the pixel level (24,014), for fluvial and pluvial, defended and undefended:
+cf. readme file.</p>
+<p><cite>Flood plains - from Claus</cite> contains a table for informal dwellings (number?) at the pixel level in 2020</p>
+<p><cite>Land occupation</cite> contains tables and maps for informal settlement risk scenarios: explain in more details?</p>
+<p><cite>precalculated_transport</cite> contains numpy arrays for income net of commuting over 20 years? Where does it come from?</p>
+<p>Finally, at the folder root, we have a table of housing types (which unit?) per pixel. We also have no RDP, but a distinction
+between formal and informal backyarding… What does this mean?</p>
+<dl class="simple">
+<dt>::</dt><dd><p>We already have a variable dictionary from Charlotte: reformat it for use?</p>
+</dd>
+</dl>
+</section>
+<section id="code-walk-through">
+<h1>Code walk-through<a class="headerlink" href="#code-walk-through" title="Permalink to this heading"></a></h1>
+<p>Organize files as in <code class="docutils literal notranslate"><span class="pre">README.md</span></code>, open Spyder, define <em>code capetown
+python</em> folder as a project, and run <code class="docutils literal notranslate"><span class="pre">main.py</span></code>:</p>
+<section id="preamble">
+<h2>Preamble<a class="headerlink" href="#preamble" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Load libraries, user packages, define file paths, and set up timing
+for optimization.</p></li>
+</ul>
+</section>
+<section id="import-parameters-and-options">
+<h2>Import parameters and options<a class="headerlink" href="#import-parameters-and-options" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Set baseline in <code class="docutils literal notranslate"><span class="pre">inputs\parameters_and_options.py</span></code> (<strong>choice to be
+made between default and settings</strong>).</p></li>
+<li><p>Calibration needs to be run before (from <code class="docutils literal notranslate"><span class="pre">old_calibration_code.py</span></code>)
+if needed to adjust parameters calibrated to location (please note
+that this may take a full day).</p></li>
+</ul>
+</section>
+<section id="load-data">
+<h2>Load data<a class="headerlink" href="#load-data" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Set data format in <code class="docutils literal notranslate"><span class="pre">inputs\data.py</span></code> (<strong>make this uniform</strong>). The
+question is: <strong>should we make this implicit</strong> (as for the scenario
+import, defined as part of the <code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">simulation</span></code> function) <strong>or make
+all the imports explicit</strong> (including scenarios)?</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">inpdt.import_macro_data</span></code>, where does population figures come from?</p></li>
+<li><p>Get into details of <code class="docutils literal notranslate"><span class="pre">inpdt.import_land_use</span></code></p></li>
+<li><p>Is <code class="docutils literal notranslate"><span class="pre">inpdt.import_coeff_land</span></code> useful?</p></li>
+</ul>
+</section>
+<section id="compute-initial-state">
+<h2>Compute initial state<a class="headerlink" href="#compute-initial-state" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Set equilibrium modelling in <code class="docutils literal notranslate"><span class="pre">equilibrium\compute_equilibrium.py</span></code>
+(<strong>describe more extensively in appendix</strong>).</p></li>
+</ul>
+</section>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Check how modelled initial state fits the data, using plots as
+defined in <code class="docutils literal notranslate"><span class="pre">outputs\export_outputs.py</span></code> and
+<code class="docutils literal notranslate"><span class="pre">outputs\flood_outputs.py</span></code> (<strong>discuss what are the plots we want to
+appear</strong>)</p></li>
+<li><p>Should we add key parameter tables to make the reading of plots more
+self-contained?</p></li>
+</ul>
+</section>
+<section id="scenarios">
+<h2>Scenarios<a class="headerlink" href="#scenarios" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Set the time range of the simulation, then choose counterfactual
+parameters and options: note that those may differ from the ones used
+for setting up the initial state (<strong>shouldn’t we just use other
+parameter names in simulation functions, so that we can choose them
+right from the start?</strong>). Note that the longer the time frame, the
+longer is the code to run: it can take one full day for 30 years.</p></li>
+<li><p>Run simulation from <code class="docutils literal notranslate"><span class="pre">equilibrium\run_simulations.py</span></code>: note that
+this simply consists in iterating the <code class="docutils literal notranslate"><span class="pre">compute_equilibrium</span></code>
+function over several years according to some predefined scenarios
+(<strong>shouldn’t we allow for scenarios to be set as parameters rather
+than imports?</strong>).</p></li>
+<li><p>It should be noted that the code raises some warnings: this should be
+checked in the future. As a matter of fact, the process becomes
+increasingly slow with the number of iterations…</p></li>
+<li><p>Save simulation results: shouldn’t we make the whole process
+implicit, as for validation results?</p></li>
+</ul>
+</section>
+<section id="plot-output-scenarios">
+<h2>Plot output scenarios<a class="headerlink" href="#plot-output-scenarios" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Again, shouldn’t we write this as part of a separate module and just
+call on the functions?</p></li>
+<li><p>Even better, should we make the functions adapt to the selected time
+frame?</p></li>
+<li><p>The code also raises some warnings that should be addressed</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="add-api-reference-index-glossary-for-disambiguation">
+<h1>Add API reference + index (+ glossary for disambiguation)<a class="headerlink" href="#add-api-reference-index-glossary-for-disambiguation" title="Permalink to this heading"></a></h1>
+<section id="libraries">
+<h2>Libraries<a class="headerlink" href="#libraries" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Numpy</p></li>
+<li><p>Pandas</p></li>
+<li><p>Scipy</p></li>
+<li><p>Seaborn</p></li>
+<li><p>Time</p></li>
+</ul>
+</section>
+<section id="user-packages">
+<h2>User packages<a class="headerlink" href="#user-packages" title="Permalink to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calibration</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p></li>
+</ol>
+<p>NB: We need to enter system path C:/ as a parameter for all the pieces
+of code + need to correct errors in SP_to_grid</p>
+<p>NB: take care to circular references (no import statements within
+functions), hidden coupling (not too many assumptions about other
+files), centralize global variables/items (and reduce functions’
+implicit context and side effects), no spaghetti or ravioli code, use
+submodules if needed, replace <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">*</span></code> statements (?), do not assign
+a same variable name several times, think of tuples as immutable
+equivalent of lists, use simple returns in functions (and raise
+exceptions if needed), write docstrings for functions (and use
+<code class="docutils literal notranslate"><span class="pre">doctest</span></code>), take care to variable names referencing the same object,
+use <code class="docutils literal notranslate"><span class="pre">enumerate()</span></code> instead of counters, <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">open</span></code> to read from
+files (to ensure it closes)…</p>
+<p>NB: should I add (empty) <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> files? use classes and methods
+(only if object persistency)? use decorators (for memorization and
+caching)? context managers? use function annotations and <code class="docutils literal notranslate"><span class="pre">isinstance</span></code>?
+Generators instead of iterables (with <code class="docutils literal notranslate"><span class="pre">itertools</span></code>)?</p>
+<p>Use pycodestyle (also autopep8, yapf, black)? Maybe not a good idea for
+backward compatibility… Use <code class="docutils literal notranslate"><span class="pre">.rst</span></code> (with Sphinx, Read the docs)
+instead of <code class="docutils literal notranslate"><span class="pre">.md</span></code>?</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -639,37 +639,46 @@ def simul_damages(damages, path_plots, flood_categ, options):
     plt.close()
 
 
-def simul_damages_time(list_damages, path_plots, flood_categ, options):
+def simul_damages_time(list_damages, path_plots, path_tables,
+                       flood_categ, options):
     """Plot aggregate annualized damages per housing type."""
     list_data = []
     for damages in list_damages:
+        new_damages = {}
+        for key in damages:
+            new_damages[key] = damages[key].sum(axis=0)
+        clean_damages = pd.DataFrame.from_dict(new_damages, orient='index')
         data = [
             [outfld.annualize_damages(
-                damages.formal_structure_damages, flood_categ,
+                clean_damages.formal_structure_damages, flood_categ,
                 'formal', options) / 1000000,
              outfld.annualize_damages(
-                 damages.subsidized_structure_damages, flood_categ,
+                 clean_damages.subsidized_structure_damages, flood_categ,
                  'subsidized', options) / 1000000,
              outfld.annualize_damages(
-                 damages.informal_structure_damages, flood_categ, 'informal',
-                 options) / 1000000,
+                 clean_damages.informal_structure_damages,
+                 flood_categ, 'informal', options) / 1000000,
              outfld.annualize_damages(
-                 damages.backyard_structure_damages, flood_categ, 'backyard',
-                 options) / 1000000],
+                 clean_damages.backyard_structure_damages,
+                 flood_categ, 'backyard', options) / 1000000],
             [outfld.annualize_damages(
-                damages.formal_content_damages, flood_categ, 'formal', options)
-                / 1000000,
+                clean_damages.formal_content_damages,
+                flood_categ, 'formal', options) / 1000000,
              outfld.annualize_damages(
-                 damages.subsidized_content_damages, flood_categ, 'subsidized',
-                 options) / 1000000,
+                 clean_damages.subsidized_content_damages,
+                 flood_categ, 'subsidized', options) / 1000000,
              outfld.annualize_damages(
-                 damages.informal_content_damages, flood_categ, 'informal',
-                 options) / 1000000,
+                 clean_damages.informal_content_damages,
+                 flood_categ, 'informal', options) / 1000000,
              outfld.annualize_damages(
-                 damages.backyard_content_damages, flood_categ, 'backyard',
-                 options) / 1000000]
+                 clean_damages.backyard_content_damages,
+                 flood_categ, 'backyard', options) / 1000000]
             ]
-    list_data.append(data)
+        list_data.append(data)
+
+    list_data = np.array(list_data)
+    np.save(path_tables + flood_categ + 'evol_damages', list_data)
+    print(flood_categ + 'evol_damages table saved')
 
     years_simul = np.arange(2011, 2011 + 30)
     colors = ['#FF9999', '#00BFFF', '#C1FFC1', '#CAE1FF', '#FFDEAD']
@@ -689,6 +698,7 @@ def simul_damages_time(list_damages, path_plots, flood_categ, options):
     plt.ylabel("Million R per year", labelpad=15)
     plt.savefig(path_plots + flood_categ + '_evol_FP_damages.png')
     plt.close()
+    print(flood_categ + '_evol_FP_damages done')
 
     fig, ax = plt.subplots(figsize=(10, 7))
     ax.plot(years_simul, list_data[:, 0, 1],
@@ -703,6 +713,7 @@ def simul_damages_time(list_damages, path_plots, flood_categ, options):
     plt.ylabel("Million R per year)", labelpad=15)
     plt.savefig(path_plots + flood_categ + '_evol_FS_damages.png')
     plt.close()
+    print(flood_categ + '_evol_FS_damages done')
 
     fig, ax = plt.subplots(figsize=(10, 7))
     ax.plot(years_simul, list_data[:, 0, 2],
@@ -715,8 +726,9 @@ def simul_damages_time(list_damages, path_plots, flood_categ, options):
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.ylabel("Million R per year", labelpad=15)
-    plt.savefig(path_plots + flood_categ + 'evol_IS_damages.png')
+    plt.savefig(path_plots + flood_categ + '_evol_IS_damages.png')
     plt.close()
+    print(flood_categ + '_evol_IS_damages done')
 
     fig, ax = plt.subplots(figsize=(10, 7))
     ax.plot(years_simul, list_data[:, 0, 3],
@@ -729,9 +741,9 @@ def simul_damages_time(list_damages, path_plots, flood_categ, options):
     plt.legend()
     plt.tick_params(labelbottom=True)
     plt.ylabel("Million R per year", labelpad=15)
-    plt.savefig(path_plots + flood_categ + 'evol_IB_damages.png')
+    plt.savefig(path_plots + flood_categ + '_evol_IB_damages.png')
     plt.close()
-
+    print(flood_categ + '_evol_IB_damages dones')
 
 # TODO: not used?
 # def compare_damages(damages1, damages2, label1, label2, name, path_outputs):

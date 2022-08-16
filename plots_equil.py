@@ -66,6 +66,9 @@ options["coastal"] = 1
 #  Digital elevation to be used with coastal flood data (MERITDEM or NASADEM)
 #  NB: MERITDEM is also the DEM used for fluvial and pluvial flood data
 options["dem"] = "MERITDEM"
+#  We consider undefended flood maps as our default because they are more
+#  reliable
+options["defended"] = 1
 #  Dummy for taking sea-level rise into account in coastal flood data
 #  NB: Projections are up to 2050, based upon IPCC AR5 assessment for the
 #  RCP 8.5 scenario
@@ -73,7 +76,7 @@ options["slr"] = 1
 
 # More custom options regarding scenarios
 options["inc_ineq_scenario"] = 2
-options["pop_growth_scenario"] = 4
+options["pop_growth_scenario"] = 3
 options["fuel_price_scenario"] = 2
 
 # Processing options for this simulation
@@ -84,8 +87,9 @@ options["convert_sp_data"] = 0
 # (change according to custom parameters to be included)
 
 name = ('floods' + str(options["agents_anticipate_floods"])
-        + str(options["informal_land_constrained"]) + '_P'
-        + str(options["pluvial"]) + str(options["correct_pluvial"])
+        + str(options["informal_land_constrained"])
+        + '_F' + str(options["defended"])
+        + '_P' + str(options["pluvial"]) + str(options["correct_pluvial"])
         + '_C' + str(options["coastal"]) + str(options["slr"])
         + '_scenario' + str(options["inc_ineq_scenario"])
         + str(options["pop_growth_scenario"])

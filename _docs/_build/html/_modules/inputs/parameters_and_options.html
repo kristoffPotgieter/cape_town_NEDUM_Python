@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>inputs.parameters_and_options &mdash; NEDUM-2D for CoCT  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> NEDUM-2D for CoCT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bibliography.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_ref.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install_help.html">Installation help</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">NEDUM-2D for CoCT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>inputs.parameters_and_options</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for inputs.parameters_and_options</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Oct 27 15:50:59 2020.</span>
+
+<span class="sd">@author: Charlotte Liotta</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="c1"># import pandas as pd</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c1"># TODO: set limited choice for parameters and options</span>
+
+
+<div class="viewcode-block" id="import_options"><a class="viewcode-back" href="../../api_ref.html#inputs.parameters_and_options.import_options">[docs]</a><span class="k">def</span> <span class="nf">import_options</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Import default options.&quot;&quot;&quot;</span>
+    <span class="c1"># Useful for coding green belt</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;urban_edge&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="c1"># Used in solver_equil (dummy for housing supply adaptability)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Dummy for agents taking floods into account in their choices</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;agents_anticipate_floods&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># Dummy for using flood data from WBUS2 on top of FATHOM</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;WBUS2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Dummy for considering pluvial floods on top of fluvial floods</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for reducing pluvial risk for (better protected) formal structures</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_pluvial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for working with defended (vs. undefended) fluvial flood maps</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;defended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for taking coastal floods into account (on top of fluvial floods)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  DEM to be used with coastal flood data (MERITDEM or NASADEM)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;dem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;MERITDEM&quot;</span>
+    <span class="c1">#  Dummy for taking sea-level rise into account in coastal flood data</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;slr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># Dummy for forbidding new informal housing construction</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;informal_land_constrained&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Dummy for loading pre-calibrated (from Basile) parameters, as opposed</span>
+    <span class="c1"># to newly calibrated paramaters</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Dummy for fitting informal housing disamenity parameter to grid pixels</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;location_based_calib&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># Re-processing options: default is set at zero to save computing time</span>
+    <span class="c1"># (data is simply loaded in the model)</span>
+    <span class="c1">#  Convert housing type SAL data to grid level</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;convert_sal_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Convert income distribution SP data to grid level</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;convert_sp_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Compute income net of commuting costs for each pixel in each income</span>
+    <span class="c1">#  group based upon calibrated incomes for each job center in each income</span>
+    <span class="c1">#  group (for every period)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;compute_net_income&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Main code correction options</span>
+    <span class="c1">#  Dummy for taking formal backyards into account in backyard land use</span>
+    <span class="c1">#  coefficients and structural damages from floods</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;actual_backyards&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for allocating no-income population to each income group based on</span>
+    <span class="c1">#  their respective unemployment rates (instead of applying same rate)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;unempl_reweight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for correcting the formula for agricultural rent</span>
+    <span class="c1">#  (compared to original version of the code)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_agri_rent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for taking into account capital depreciation as a factor of</span>
+    <span class="c1">#  land price in profit function (impact on agricultural land)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;deprec_land&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Dummy for running calibration again</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;run_calib&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Options for calibration code correction</span>
+    <span class="c1">#  Dummy for defining dominant income group based on number of people</span>
+    <span class="c1">#  instead of median income at SP level</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_dominant_incgrp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for substracting RDP units to nb of formal units at SP level</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;substract_RDP_from_formal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for leaving Mitchell&#39;s Plain out in calibration and ad hoc</span>
+    <span class="c1">#  correction in housing supply</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for including more criteria in sample selection for calibration</span>
+    <span class="c1">#  (compared to working paper)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_selected_density&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for correcting the formula for the construction function scale</span>
+    <span class="c1">#  factor (compared to original code)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_kappa&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for setting inflation base year at 2011</span>
+    <span class="c1">#  (instead of 2012 in original code)</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_infla_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for taking round trips into account in estimated</span>
+    <span class="c1">#  monetary transport costs</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_round_trip&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#  Dummy for taking unemployment into account in the formula for</span>
+    <span class="c1">#  the nb of commuters (equation 3): a priori not needed</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_eq3&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Resolution of the scanning to be used in calibration</span>
+    <span class="c1">#  (for commuting gravity and utility function parameters)</span>
+    <span class="c1">#  NB: should be set to rough, normal, or fine</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;scan_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;fine&quot;</span>
+    <span class="c1">#  Dummy for reversing calibrated capital and land elasticities in</span>
+    <span class="c1">#  construction cost function</span>
+    <span class="c1">#  NB: estimate is not in line with the literature and we might want to</span>
+    <span class="c1">#  check how this affects the model</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;reverse_elasticities&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for using GLM (instead of OLS) for the estimation of exogenous</span>
+    <span class="c1">#  amenity parameters</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;glm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Dummy for using RBFInterpolator instead of interp2d for 2D interpolation</span>
+    <span class="c1">#  of rents based on incomes and utilities</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Number of neighbours to be used if RBFInterpolator is chosen</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;interpol_neighbors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="c1">#  Test for improving rent interpolation in calibration by assuming away</span>
+    <span class="c1">#  basic need in housing from max rent estimation</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;test_maxrent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Option for using scipy solver to refine utility function parameter</span>
+    <span class="c1">#  estimates from scanning</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;param_optim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#  Option for taking log into account in rent interpolation for utility</span>
+    <span class="c1">#  function parameter estimation</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># We also add options for time-moving variables scenarios</span>
+    <span class="c1"># See text description and raw numbers in Scenarios subfolder</span>
+    <span class="c1">#  Code corresponds to low/medium/high</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;inc_ineq_scenario&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="c1">#  Code corresponds to low/medium/high/high_corrected</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pop_growth_scenario&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="c1">#  NB: we do not add and option for interest rate: expected future value</span>
+    <span class="c1">#  can just be plugged direcly into the scenario table.</span>
+    <span class="c1">#  Same goes for inflation.</span>
+    <span class="c1">#  TODO: why is 2010 taken as base year?</span>
+    <span class="c1">#  However, price of fuel should be defined independently to be of interest</span>
+    <span class="c1">#  We define dummy scenarios for the time being...</span>
+    <span class="c1">#  Code corresponds to low/medium/high</span>
+    <span class="n">options</span><span class="p">[</span><span class="s2">&quot;fuel_price_scenario&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">options</span></div>
+
+
+<div class="viewcode-block" id="import_param"><a class="viewcode-back" href="../../api_ref.html#inputs.parameters_and_options.import_param">[docs]</a><span class="k">def</span> <span class="nf">import_param</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_outputs</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Import default parameters.&quot;&quot;&quot;</span>
+    <span class="c1"># Define baseline year</span>
+    <span class="n">param</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">:</span> <span class="mi">2011</span><span class="p">}</span>
+
+    <span class="c1"># Utility function parameters, as calibrated in Pfeiffer et al. (table C7)</span>
+    <span class="c1">#  Surplus housing elasticity</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span>
+        <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedUtility_beta.mat&#39;</span>
+        <span class="p">)[</span><span class="s2">&quot;calibratedUtility_beta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="c1"># if options[&quot;load_precal_param&quot;] == 1:</span>
+    <span class="c1">#     param[&quot;beta&quot;] = scipy.io.loadmat(</span>
+    <span class="c1">#         path_precalc_inp + &#39;calibratedUtility_beta.mat&#39;</span>
+    <span class="c1">#         )[&quot;calibratedUtility_beta&quot;].squeeze()</span>
+    <span class="c1"># elif options[&quot;load_precal_param&quot;] == 0:</span>
+    <span class="c1">#     param[&quot;beta&quot;] = np.load(</span>
+    <span class="c1">#         path_precalc_inp + &#39;calibratedUtility_beta.npy&#39;)</span>
+    <span class="c1">#  Basic need in housing</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span>
+        <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedUtility_q0.mat&#39;</span>
+        <span class="p">)[</span><span class="s2">&quot;calibratedUtility_q0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="c1"># if options[&quot;load_precal_param&quot;] == 1:</span>
+    <span class="c1">#     param[&quot;q0&quot;] = scipy.io.loadmat(</span>
+    <span class="c1">#         path_precalc_inp + &#39;calibratedUtility_q0.mat&#39;</span>
+    <span class="c1">#         )[&quot;calibratedUtility_q0&quot;].squeeze()</span>
+    <span class="c1"># elif options[&quot;load_precal_param&quot;] == 0:</span>
+    <span class="c1">#     param[&quot;q0&quot;] = np.load(path_precalc_inp + &#39;calibratedUtility_q0.npy&#39;)</span>
+    <span class="c1">#  Composite good elasticity</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Housing production function parameters, as calibrated in Pfeiffer et al.</span>
+    <span class="c1"># (table C7)</span>
+    <span class="c1">#  Capital elasticity</span>
+    <span class="c1">#  TODO: is it too small compared to existing literature?</span>
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedHousing_b.mat&#39;</span><span class="p">)[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedHousing_b.npy&#39;</span><span class="p">)</span>
+    <span class="c1"># Land elasticity</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span>
+    <span class="c1">#  Scale parameter</span>
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedHousing_kappa.mat&#39;</span>
+            <span class="p">)[</span><span class="s2">&quot;coeffKappa&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedHousing_kappa.npy&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et</span>
+    <span class="c1"># al.), as calibrated in appendix C3</span>
+    <span class="c1"># TODO: correct typo in paper</span>
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;lambda.mat&#39;</span>
+                                           <span class="p">)[</span><span class="s2">&quot;lambdaKeep&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;lambdaKeep.npy&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Threshold above which we retain TAZ as a job center (for calibration)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;job_center_threshold&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2500</span>
+
+    <span class="c1"># Discount factors</span>
+    <span class="c1"># TODO: correct typo in paper</span>
+    <span class="c1">#  From Viguié et al. (2014)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.025</span>
+    <span class="c1">#  From World Development Indicator database (World Bank, 2016)</span>
+    <span class="c1">#  TODO: Note that this will not be used in practice as we will prefer</span>
+    <span class="c1">#  interpolation from historical interest rates (need to create option to</span>
+    <span class="c1">#  change formulas otherwise)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;interest_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.025</span>
+
+    <span class="c1"># Housing parameters</span>
+    <span class="c1">#  Size of an informal dwelling unit (m^2)</span>
+    <span class="c1">#  TODO: correct value in paper</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;shack_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">14</span>
+    <span class="c1">#  Size of a social housing dwelling unit (m^2), see table C6</span>
+    <span class="c1">#  TODO: does this need to be updated given research note?</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;RDP_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="c1">#  Size of backyard dwelling unit (m^2), see table C6 (not rented fraction)</span>
+    <span class="c1">#  NB: in theory, a backyard can therefore host up to 5 households</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">70</span>
+    <span class="c1">#  Nb of social housing units built per year (cf. Housing Pipeline)</span>
+    <span class="c1">#  TODO :correct value in paper</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;future_rate_public_housing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="c1">#  Cost of inputs for building an informal dwelling unit (in rands)</span>
+    <span class="c1">#  This is used to account for potential destructions from floods</span>
+    <span class="c1">#  TODO: add some references from Claus (why not 3000 as in research note?)</span>
+    <span class="c1">#  TODO: plug flow costs as a fraction of land used to recover values?</span>
+    <span class="c1"># param[&quot;informal_structure_value&quot;] = 4000</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3000</span>
+    <span class="c1">#  Fraction of the composite good that is kept inside the house and that</span>
+    <span class="c1">#  can possibly be destroyed by floods (food, furniture, etc.)</span>
+    <span class="c1">#  Correspond to average share of such goods in total HH budget</span>
+    <span class="c1">#  (excluding rent): comes from Quantec data</span>
+    <span class="c1">#  Import from original data</span>
+    <span class="c1"># quantec_data = pd.read_excel(</span>
+    <span class="c1">#     path_folder + &#39;Aux data/HH Income per DU - CL.xlsx&#39;,</span>
+    <span class="c1">#     sheet_name=&#39;Quantec HH Budgets&#39;, header=6)</span>
+    <span class="c1"># param[&quot;fraction_z_dwellings&quot;] = quantec_data.iloc[77, 11]</span>
+    <span class="c1">#  Equivalent raw number import</span>
+    <span class="c1">#  TODO: discuss the need to adjust non-durable goods taken into account</span>
+    <span class="c1">#  in the budget, as in research note for informal settlements</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.53</span>
+    <span class="c1">#  Value of a social housing dwelling unit (in rands): again needed for</span>
+    <span class="c1">#  flood damage estimation</span>
+    <span class="c1">#  TODO: include references from Claus</span>
+    <span class="c1">#  Old estimate for reference</span>
+    <span class="c1"># param[&quot;subsidized_structure_value&quot;] = 150000</span>
+    <span class="c1">#  New estimate</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;subsidized_structure_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">127000</span>
+
+    <span class="c1"># Max % of land that can be built for housing (to take roads into account),</span>
+    <span class="c1"># by housing type: comes from analogy with Viguié et al., 2014 (table B1)</span>
+    <span class="c1"># More precisely, maximum fraction of ground surface devoted to housing</span>
+    <span class="c1"># where building is possible is 62% in Paris</span>
+    <span class="c1"># TODO: discuss alternative specifications</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.7</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use_backyard&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.45</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use_settlement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.4</span>
+
+    <span class="c1"># Constraints on housing supply (in meters), a priori not binding</span>
+    <span class="c1"># TODO: include references from Claus</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;historic_radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="c1"># Note that we allow for higher construction in the core center, compared</span>
+    <span class="c1"># to previous version</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;limit_height_center&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">80</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;limit_height_out&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="c1"># Agricultural land rents (in rands)</span>
+    <span class="c1">#  Corresponds to the ninth decile in the sales data sets, when</span>
+    <span class="c1">#  selecting only agricultural properties in rural areas</span>
+    <span class="c1">#  NB: corresponds to the price of land, not of real estate</span>
+    <span class="c1">#  TODO: recover original data</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_rent_2011&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">807.2</span>
+    <span class="c1">#  Estimated the same way</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_rent_2001&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">70.7</span>
+
+    <span class="c1"># Year urban edge constraint kicks in</span>
+    <span class="c1"># (only useful if options[&quot;urban_edge&quot;] == 1)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;year_urban_edge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2015</span>
+
+    <span class="c1"># Labor parameters</span>
+    <span class="c1">#  Nb of income classes set to 4 as in Pfeiffer et al. (see table A1)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;nb_of_income_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="c1">#  Equivalence between income classes in the data (12) and in the model</span>
+    <span class="c1">#  (4). Note that we exclude people earning no income from the analysis</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;income_distribution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+    <span class="c1">#  Avg nb of employed workers per household of each income class</span>
+    <span class="c1">#  (see appendix B1: 2*ksi): we need to take into account monetary cost</span>
+    <span class="c1">#  for both members of the household (cf. import_transport_data)</span>
+    <span class="c1">#  NB: looks like employment vs. unemployment rate (no participation rate)</span>
+    <span class="c1">#  TODO: recover original data</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;household_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.14</span><span class="p">,</span> <span class="mf">1.94</span><span class="p">,</span> <span class="mf">1.92</span><span class="p">,</span> <span class="mf">1.94</span><span class="p">]</span>
+
+    <span class="c1"># Transportation cost parameters</span>
+    <span class="c1"># TODO: where does waiting time kick in?</span>
+    <span class="c1"># param[&quot;waiting_time_metro&quot;] = 10  # in minutes</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;walking_speed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># in km/h</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_cost&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># equivalence in monetary terms</span>
+    <span class="c1"># NB: this parameter is estimated in QSE models such as Tsivanidis&#39;</span>
+
+    <span class="c1"># Used in eqcmp.compute_equilibrium: iteration stops when the error in the</span>
+    <span class="c1"># computed nb of households per income bracket falls below some precision</span>
+    <span class="c1"># level, or when the nb of iterations reaches some threshold (to limit</span>
+    <span class="c1"># processing time)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2000</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.02</span>
+
+    <span class="c1"># We also allow for customisation of convergence factor for disamenity</span>
+    <span class="c1"># parameter calibration</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;disamenity_cvfactor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20000</span>
+
+    <span class="c1"># Dynamic parameters (from Viguié et al., 2014, table B1)</span>
+    <span class="c1">#  Lag in housing building</span>
+    <span class="c1">#  NB: this parameter varies through time in models such as Gomtsyan&#39;s</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_invest_housing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="c1">#  Time (in years) for the full depreciation of a housing unit</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_depreciation_buildings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="c1">#  Set the nb of simulations per year</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Size (in m^2) above which we need to switch flood damage functions for</span>
+    <span class="c1"># formal housing: corresponds to existence of a 2nd floor</span>
+    <span class="c1"># TODO: Where from?</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">130</span>
+
+    <span class="c1"># Make copies of parameters that may change (to be used in simulations)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value_ref&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">])</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;subsidized_structure_value_ref&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;subsidized_structure_value&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Disamenity parameters for informal settlements and backyard shacks</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;location_based_calib&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+       <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">disamenity_param</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;calibratedParamAmenities.mat&#39;</span>
+            <span class="p">)[</span><span class="s2">&quot;calibratedParamAmenities&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
+            <span class="n">disamenity_param</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">24014</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
+            <span class="n">disamenity_param</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">24014</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;location_based_calib&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+          <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">param_amenity_settlement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_amenity_settlement.npy&#39;</span><span class="p">)</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
+            <span class="n">param_amenity_settlement</span><span class="p">,</span> <span class="mi">24014</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">param_amenity_backyard</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_amenity_backyard.npy&#39;</span><span class="p">)</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
+            <span class="n">param_amenity_backyard</span><span class="p">,</span> <span class="mi">24014</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;location_based_calib&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_pockets.npy&#39;</span><span class="p">)</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_backyards.npy&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">param</span></div>
+
+
+<div class="viewcode-block" id="import_construction_parameters"><a class="viewcode-back" href="../../api_ref.html#inputs.parameters_and_options.import_construction_parameters">[docs]</a><span class="k">def</span> <span class="nf">import_construction_parameters</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span>
+                                   <span class="n">dwelling_size_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+                                   <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
+                                   <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update parameters with values for construction.&quot;&quot;&quot;</span>
+    <span class="c1"># We define housing supply per unit of land for simulations where</span>
+    <span class="c1"># developers do not adjust</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid_formal_density_HFA</span><span class="p">))</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="c1"># Fill vector with population density in formal housing divided by the</span>
+    <span class="c1"># share of built formal area (times 1.1) for areas with some formal housing</span>
+    <span class="c1"># This gives the density for formal area instead of just the pixel area:</span>
+    <span class="c1"># we therefore consider that developers always provide one surface unit of</span>
+    <span class="c1"># housing per household per unit of land. In practice, this is not used.</span>
+    <span class="c1"># NB: HFA = habitable floor area</span>
+    <span class="n">cond</span> <span class="o">=</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="c1"># TODO: why 1.1?</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">][</span><span class="n">cond</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">grid_formal_density_HFA</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">cond</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.1</span><span class="p">)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Deal with formally non-built or non-inhabited areas</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">][</span>
+        <span class="p">(</span><span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">])</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Put a cap and a floor on values</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">][</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">][</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># In Mitchells Plain, housing supply is given exogenously (planning),</span>
+    <span class="c1"># and only households of group 2 live there (coloured neighborhood).</span>
+    <span class="c1"># We do the same as before: the idea is to have a min housing supply in</span>
+    <span class="c1"># this zone whose formal density might be underestimated by the model</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Original specification from Matlab</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">grid_formal_density_HFA</span><span class="p">[</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]</span>
+             <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]))</span>
+        <span class="c1"># Alternative specification accounting for minimum dwelling size</span>
+        <span class="c1"># param[&quot;minimum_housing_supply&quot;][mitchells_plain_grid_2011] = (</span>
+        <span class="c1">#     (grid_formal_density_HFA[mitchells_plain_grid_2011] * param[&quot;q0&quot;]</span>
+        <span class="c1">#      / coeff_land[0, :][mitchells_plain_grid_2011]))</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span>
+            <span class="p">(</span><span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]))</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># TODO: Discuss better correction than such ad hoc procedure (although</span>
+    <span class="c1"># for Philippi and Khayelitsha)</span>
+
+    <span class="n">minimum_housing_supply</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]</span>
+
+    <span class="c1"># We take minimum dwelling size of built areas where the share of informal</span>
+    <span class="c1"># and backyard is smaller than 10% of the overall number of dwellings</span>
+    <span class="c1"># See WP, p.18 (formal neighborhoods)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;mini_lot_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span>
+        <span class="n">dwelling_size_sp</span><span class="p">[</span><span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">][</span>
+            <span class="p">(</span><span class="n">housing_types_sp</span><span class="o">.</span><span class="n">informal_SP_2011</span><span class="p">[</span>
+                <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">backyard_SP_2011</span><span class="p">[</span>
+                    <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="o">/</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span><span class="p">[</span>
+                <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="o">&lt;</span> <span class="mf">0.1</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Comes from zero profit condition: allows to convert land prices into</span>
+    <span class="c1"># housing prices (cf. also inversion from footnote 16)</span>
+
+    <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">compute_agricultural_rent</span><span class="p">(</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_rent_2011&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">interest_rate</span><span class="p">,</span>
+        <span class="n">param</span><span class="p">,</span> <span class="n">options</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">param</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">agricultural_rent</span></div>
+
+
+<div class="viewcode-block" id="compute_agricultural_rent"><a class="viewcode-back" href="../../api_ref.html#inputs.parameters_and_options.compute_agricultural_rent">[docs]</a><span class="k">def</span> <span class="nf">compute_agricultural_rent</span><span class="p">(</span><span class="n">rent</span><span class="p">,</span> <span class="n">scale_fact</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert land price into real estate price for land.&quot;&quot;&quot;</span>
+    <span class="c1"># TODO: should we include fraction_capital_destroyed? A priori no</span>
+    <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_agri_rent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;deprec_land&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rent</span> <span class="o">**</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">])</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">interest_rate</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">scale_fact</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_agri_rent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;deprec_land&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rent</span> <span class="o">**</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">])</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">interest_rate</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">scale_fact</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_agri_rent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;deprec_land&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rent</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="n">interest_rate</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">interest_rate</span><span class="p">)</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">scale_fact</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_agri_rent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;deprec_land&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rent</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="n">interest_rate</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">interest_rate</span><span class="p">)</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">scale_fact</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">agricultural_rent</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

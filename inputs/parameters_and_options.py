@@ -309,8 +309,8 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     # computed nb of households per income bracket falls below some precision
     # level, or when the nb of iterations reaches some threshold (to limit
     # processing time)
-    param["max_iter"] = 1000
-    param["precision"] = 0.01
+    param["max_iter"] = 2000
+    param["precision"] = 0.02
 
     # We also allow for customisation of convergence factor for disamenity
     # parameter calibration

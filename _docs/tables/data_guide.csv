@@ -1,4 +1,4 @@
-Folder,Data set,Format,Dimension,Observation unit,Description,Type,Use,Source,Date,Theme
+ï»¿Folder,Data set,Format,Dimension,Observation unit,Description,Type,Use,Source,Date,Theme
 0. Precalculated inputs,calibrated_param_amenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
 0. Precalculated inputs,calibratedAmenities,.mat,1x24014,Pixel,Amenity index: follows calibration from Pfeiffer et al. (appendix C4),User,Model,/,/,/
 0. Precalculated inputs,calibratedHousing_b,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity",User,Model,/,/,/
@@ -13,13 +13,13 @@ Folder,Data set,Format,Dimension,Observation unit,Description,Type,Use,Source,Da
 0. Precalculated inputs,coord_TAZ_2013,.mat,4x1787x1,TAZ (2013),"X: centroid x-axis coordinate (in km)
 Y: centroid y-axis coordinate (in km)
 TZ2013: TAZ code
-Area: area in km²",User,Model,/,/,/
+Area: area in kmÂ²",User,Model,/,/,/
 0. Precalculated inputs,data,.mat,1x1 struct with 54 fields,,See nested list,/,/,/,/,/
 0. Precalculated inputs,spCode,/,1046x1,SP (2011),SP code,Raw,Model,National census,2011,Land use map
 0. Precalculated inputs,spX,/,1046x1,SP (2011),Centroid x-coordinate in km,User,Model,National census,2011,Land use map
 0. Precalculated inputs,spY,/,1046x1,SP (2011),Centroid y-coordinate in km,User,Model,National census,2011,Land use map
 0. Precalculated inputs,sp2011Distance,/,1046x1,SP (2011),Centroid distance from grid center in km,User,Model,National census,2011,Land use map
-0. Precalculated inputs,sp2011Area,/,1046x1,SP (2011),Area in km²,User,Model,National census,2011,Land use map
+0. Precalculated inputs,sp2011Area,/,1046x1,SP (2011),Area in kmÂ²,User,Model,National census,2011,Land use map
 0. Precalculated inputs,sp2011CapeTown,/,1046x1,SP (2011),Boolean for SP belonging to CoCT,User,Model,National census,2011,Land use map
 0. Precalculated inputs,sp2011MitchellsPlain,/,1046x1,SP (2011),Boolean for SP belonging to Mitchell's Plain,User,Model,National census,2011,Land use map
 0. Precalculated inputs,gridAverageIncome,/,1x24014,Pixel,Average income in rand/year?,User,Model,/,/,/
@@ -41,7 +41,7 @@ Area: area in km²",User,Model,/,/,/
 0. Precalculated inputs,sp2001Y,/,1013x1,SP (2001),Centroid y-coordinate in km,User,Model,National census,2001,Land use map
 0. Precalculated inputs,sp2001Code,/,1013x1,SP (2001),SP code,Raw,Model,National census,2001,Land use map
 0. Precalculated inputs,sp2001DistanceCenter,/,1013x1,SP (2001),Centroid distance from grid center in km,User,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001Area,/,1013x1,SP (2001),Area in km²,User,Model,National census,2001,Land use map
+0. Precalculated inputs,sp2001Area,/,1013x1,SP (2001),Area in kmÂ²,User,Model,National census,2001,Land use map
 0. Precalculated inputs,sp2001CapeTown,/,1013x1,SP (2001),Boolean for SP belonging to CoCT,User,Model,National census,2001,Land use map
 0. Precalculated inputs,sp2001Distribution12Class,/,1013x12,SP (2001),Number of households per income bracket in data,Raw,Model,National census,2001,Urban area population
 0. Precalculated inputs,sp2001DistributionNClass,/,1013x4,SP (2001),Number of households per income bracket in model,User,Model,/,/,/
@@ -63,7 +63,7 @@ Area: area in km²",User,Model,/,/,/
 0. Precalculated inputs,spDwellingSize,/,1x1046,SP (2011),Avg formal dwelling size (aggregated from TAZ),Raw,Model,CoCT,2011,Dwellings sizes
 0. Precalculated inputs,spFormalDensityHFA,/,1x1046,SP (2011),Avg formal population density,User,Model,/,/,/
 0. Precalculated inputs,SP_is_CT,/,1x1046,SP (2011),Difference with sp2011CapeTown?,User,Model,/,/,/
-0. Precalculated inputs,spUnconstrainedArea,/,1x1046,SP (2011),Constructible land area in km²,Raw,Model,?,?,Land use map
+0. Precalculated inputs,spUnconstrainedArea,/,1x1046,SP (2011),Constructible land area in kmÂ²,Raw,Model,?,?,Land use map
 0. Precalculated inputs,gridFormalDensityHFA,/,1x24014,Pixel,Avg formal population density,User,Model,/,/,/
 0. Precalculated inputs,limitCapeTown,/,1x24014,Pixel,Boolean for pixel belonging to CoCT,User,Model,/,/,/
 0. Precalculated inputs,gridCountRDPfromGV,/,1x24014,Pixel,Number of RDP housing units,Raw,Model,?,2012?,?
@@ -113,7 +113,7 @@ total_jobs: total number of jobs",Raw,Model,CoCT,2015,Data on main employment ce
 data_Cape_Town\data_maps\Data to Map,TAZ_amp_2013_proj_centro2,.csv,1787x26,TAZ (2013),"X: centroid x-coordinate in m
 Y: centroid y-coordinate in m
 TZ2013: TAZ code
-Area: area in m²
+Area: area in mÂ²
 diss: zero?
 Zones: difference with TZ2013?
 BY5Origins: ?
@@ -123,7 +123,7 @@ PTDDestin: ?
 Emploi_TAZ: dummy for what?
 Emploi_T_1-8: ?
 job_total: total number of jobs (rounded value)
-job_dens: jobs density per km²
+job_dens: jobs density per kmÂ²
 lnk1-4: difference with Emploi_T_4-8?
 job_tot: total number of jobs (truncated value)",Raw,Model,CoCT,2015,Data on main employment centers across the city and their specialization
 data_Cape_Town\data_maps\Data to Map,Roads_AICD,.shp,29521x24,Roads,"FID: object identifier
@@ -161,7 +161,7 @@ SHAPE_STLe: ?",Raw,Model,?,?,?
 data_Cape_Town\data_maps\Data to Map,CityGrowth_FINAL,.shp,680x4,?,"FID: object identifier
 Shape: polygon
 Year: ?
-Area: area in m²?",Raw,?,?,?,?
+Area: area in mÂ²?",Raw,?,?,?,?
 data_Cape_Town\data_maps\Data to Map,Housing_LandStream_and_Projects,.shp,763x4,Housing projects,"FID: object identifier
 Shape: polygon
 Status: type of project (+ short or long term)
@@ -169,7 +169,7 @@ Yield_DU: number of units?",Raw,Simulation,CoCT,2015,/
 data_Cape_Town\data_maps\Data to Map,TAZ_ampp_prod_attr_2013_2032,.shp,1787x10,TAZ (2013),"FID: object identifer
 Shape: polygon
 TZ2013: TAZ identifier
-Area: area in m²
+Area: area in mÂ²
 diss: zero?
 Zones: difference with TZ2013?
 BY5Origins: ?
@@ -248,7 +248,7 @@ data_Cape_Town\Scenarios,Scenario_price_fuel_1,.csv,51x2,"Scenario (reference sc
 price_fuel: unit?",Raw,Simulation,Energy South Africa,2016,Cost of private transport
 data_Cape_Town,BASE_2015,.csv,2283x30,TAZ (2015),"TZ2015: TAZ code
 MZ2015: 48?
-TZ_AREA: area in m²
+TZ_AREA: area in mÂ²
 RES_DU: ?
 RES_POP: ?
 RES_HFA: ?
@@ -272,7 +272,7 @@ POW: ?
 SPECIAL: ?
 UTILITY: ?
 Shape_Leng: ?
-Shape_Area: area in m²
+Shape_Area: area in mÂ²
 Xcoord: centroid x-coordinate
 Ycoord: centroid y-coordinate
 AREA: difference with Shape_Area?",Raw,Model,?,2015,Data on main employment centers across the city and their specialization
@@ -294,7 +294,7 @@ Area: area in ares
 Hectares: area in hectares
 X_2001: centroid x-coordinate (unit?)
 Y_2001: centroid y-coordinate (unit?)
-Area_sqm: area in m²
+Area_sqm: area in mÂ²
 Census_2001_inc_MP_Code: MP code
 Census_2001_inc_No_income: number of households per income bracket
 Census_2001_inc_R1_4800: number of households per income bracket
@@ -535,7 +535,7 @@ Data_census_dwelling_: 14 types of dwelling",Raw,Model,National census,2011,Dwel
 data_Cape_Town,TAZ_amp_2013_proj_centro2,.csv,1787x26,TAZ (2013),"X: centroid x-coordinate in m
 Y: centroid y-coordinate in m
 TZ2013: TAZ code
-Area: area in m²
+Area: area in mÂ²
 diss: zero?
 Zones: difference with TZ2013?
 BY5Origins: ?
@@ -545,14 +545,14 @@ PTDDestin: ?
 Emploi_TAZ: dummy for what?
 Emploi_T_1-8: ?
 job_total: total number of jobs (rounded value)
-job_dens: jobs density per km²
+job_dens: jobs density per kmÂ²
 lnk1-4: difference with Emploi_T_4-8?
 job_tot: total number of jobs (truncated value)
 Data_census_dwelling_HHSIZE_1-10
 Data_census_dwelling_HHSIZE_TotalHH
 Data_census_dwelling_HHSIZE_TotalPerson",Raw,Model,CoCT's Transport Survey,2013,Origin-destination statistics about inhabitants residence and workplace
 data_Cape_Town,TAZ_final,.csv,44x1,TAZ (2013),TAZ2013_centre?,Raw,Model,?,?,Land use map
-FATHOM,…,.xlsx,24014x2,Pixel,"Flood depth hazard and share of flood-prone areas for fluvial undefended (FU), fluvial defended (FD), and pluvial (P) floods; over 5, 10, 20, 50, 75, 100, 200, 250, 500, 750, and 1000 years",Raw,Model,World Bank,2019,Land use map
+FATHOM,â€¦,.xlsx,24014x2,Pixel,"Flood depth hazard and share of flood-prone areas for fluvial undefended (FU), fluvial defended (FD), and pluvial (P) floods; over 5, 10, 20, 50, 75, 100, 200, 250, 500, 750, and 1000 years",Raw,Model,World Bank,2019,Land use map
 Flood plains - from Claus,inf_dwellings_2020,.xlsx,24014x2,Pixel,Number of informal dwellings in 2020,Raw,Simulation,?,?,Land use map
 Land occupation,informal_settlements_risk_,.csv,24014x3,Pixel,Area at risk of new informal settlements (9 scenarios),Raw,Simulation,?,?,Land use map
 Land occupation,polygon_medium_timing,.xlsx,151x1,?,Selection of pixels?,User?,Simulation,?,?,Land use map

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'nedum_doc'
+project = 'NEDUM-2D for CoCT'
 copyright = '2022, Thomas Monnier'
 author = 'Thomas Monnier'
 
@@ -28,8 +28,9 @@ author = 'Thomas Monnier'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinxcontrib.bibtex', 'sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon',
-'sphinx.ext.viewcode']
+'sphinx.ext.viewcode', 'myst_parser']
 bibtex_bibfiles = ['refs.bib']
+bibtex_default_style = 'plain'
 bibtex_reference_style = 'author_year'
 
 # Add any paths that contain templates here, relative to this directory.

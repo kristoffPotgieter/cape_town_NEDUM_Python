@@ -8,7 +8,7 @@ Created on Tue Oct 20 10:49:58 2020.
 import numpy as np
 import math
 import scipy
-from numba import jit
+# from numba import jit
 
 import calibration.sub.loglikelihood as callog
 

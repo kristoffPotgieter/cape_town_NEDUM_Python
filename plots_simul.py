@@ -63,10 +63,18 @@ options["coastal"] = 1
 #  Digital elevation to be used with coastal flood data (MERITDEM or NASADEM)
 #  NB: MERITDEM is also the DEM used for fluvial and pluvial flood data
 options["dem"] = "MERITDEM"
+#  We consider undefended flood maps as our default because they are more
+#  reliable
+options["defended"] = 1
 #  Dummy for taking sea-level rise into account in coastal flood data
 #  NB: Projections are up to 2050, based upon IPCC AR5 assessment for the
 #  RCP 8.5 scenario
 options["slr"] = 1
+
+# More custom options regarding scenarios
+options["inc_ineq_scenario"] = 2
+options["pop_growth_scenario"] = 3
+options["fuel_price_scenario"] = 2
 
 # Processing options for this simulation
 options["convert_sp_data"] = 0
@@ -76,10 +84,13 @@ options["convert_sp_data"] = 0
 # (change according to custom parameters to be included)
 
 name = ('floods' + str(options["agents_anticipate_floods"])
-        + str(options["informal_land_constrained"]) + '_P'
-        + str(options["pluvial"]) + str(options["correct_pluvial"])
+        + str(options["informal_land_constrained"])
+        + '_F' + str(options["defended"])
+        + '_P' + str(options["pluvial"]) + str(options["correct_pluvial"])
         + '_C' + str(options["coastal"]) + str(options["slr"])
-        + '_loc')
+        + '_scenario' + str(options["inc_ineq_scenario"])
+        + str(options["pop_growth_scenario"])
+        + str(options["fuel_price_scenario"]))
 
 path_plots = path_outputs + name + '/plots/'
 path_tables = path_outputs + name + '/tables/'
@@ -138,6 +149,19 @@ income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
                            housing_type_data, path_data, path_folder)
 )
 
+#  We correct areas for each housing type at baseline year for the amount of
+#  constructible land in each type
+coeff_land = inpdt.import_coeff_land(
+    spline_land_constraints, spline_land_backyard, spline_land_informal,
+    spline_land_RDP, param, 0)
+
+#  We update parameter vector with construction parameters
+(param, minimum_housing_supply, agricultural_rent
+ ) = inpprm.import_construction_parameters(
+    param, grid, housing_types_sp, data_sp["dwelling_size"],
+    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+    interest_rate, options
+    )
 
 # LOAD EQUILIBRIUM DATA
 
@@ -1233,16 +1257,16 @@ for year_temp in np.arange(0, 30):
 
 
 # %% DYNAMICS: GET OUT OF LOOP AFTER STORING WHAT'S NEEDED
-# TODO: Do aggregate damage graphs!
+# TODO: Do aggregate damage graphs! Does not work yet
 
 outval.simul_damages_time(
-    fluviald_damages_2d_dyn, path_plots, 'fluviald', options)
+    fluviald_damages_2d_dyn, path_plots, path_tables, 'fluviald', options)
 outval.simul_damages_time(
-    fluvialu_damages_2d_dyn, path_plots, 'fluvialu', options)
+    fluvialu_damages_2d_dyn, path_plots, path_tables, 'fluvialu', options)
 outval.simul_damages_time(
-    pluvial_damages_2d_dyn, path_plots, 'pluvial', options)
+    pluvial_damages_2d_dyn, path_plots, path_tables, 'pluvial', options)
 outval.simul_damages_time(
-    coastal_damages_2d_dyn, path_plots, 'coastal', options)
+    coastal_damages_2d_dyn, path_plots, path_tables, 'coastal', options)
 
 # TODO: also do 2D variations from 2011 to 2040 and other comparisons?
 

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>calibration.sub.loglikelihood &mdash; nedum_doc  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> nedum_doc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../nedum-2d.html">NEDUM-2D</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interface.html">Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ref_paper.html">Reference paper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bibliography.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_ref.html">API reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">nedum_doc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>calibration.sub.loglikelihood</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for calibration.sub.loglikelihood</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Oct 20 11:46:13 2020.</span>
+
+<span class="sd">@author: Charlotte Liotta</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp2d</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="c1"># from numba import jit</span>
+
+
+<span class="c1"># @jit</span>
+<div class="viewcode-block" id="LogLikelihoodModel"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.loglikelihood.LogLikelihoodModel">[docs]</a><span class="k">def</span> <span class="nf">LogLikelihoodModel</span><span class="p">(</span><span class="n">X0</span><span class="p">,</span> <span class="n">Uo2</span><span class="p">,</span> <span class="n">net_income</span><span class="p">,</span> <span class="n">groupLivingSpMatrix</span><span class="p">,</span>
+                       <span class="n">dataDwellingSize</span><span class="p">,</span>
+                       <span class="n">selectedDwellingSize</span><span class="p">,</span> <span class="n">dataRent</span><span class="p">,</span> <span class="n">selectedRents</span><span class="p">,</span>
+                       <span class="n">selectedDensity</span><span class="p">,</span> <span class="n">predictorsAmenitiesMatrix</span><span class="p">,</span>
+                       <span class="n">tableRegression</span><span class="p">,</span> <span class="n">variables_regression</span><span class="p">,</span>
+                       <span class="n">CalculateDwellingSize</span><span class="p">,</span> <span class="n">ComputeLogLikelihood</span><span class="p">,</span>
+                       <span class="n">optionRegression</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Estimate the total likelihood of the model given the parameters.&quot;&quot;&quot;</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">X0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">basicQ</span> <span class="o">=</span> <span class="n">X0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Uo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Uo2</span><span class="p">,</span> <span class="n">X0</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">X0</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+
+    <span class="c1"># %% Errors on the amenity</span>
+
+    <span class="c1"># Calculate amenities as a residual: corresponds to ln(A_s), appendix C4</span>
+    <span class="c1"># residualAmenities = (</span>
+    <span class="c1">#     np.log(Uo[:, None])</span>
+    <span class="c1">#     - np.log(</span>
+    <span class="c1">#         (1 - beta) ** (1 - beta) * beta ** beta</span>
+    <span class="c1">#         * (net_income[:, selectedRents]</span>
+    <span class="c1">#            - basicQ * dataRent[None, selectedRents])</span>
+    <span class="c1">#         / (dataRent[None, selectedRents] ** beta))</span>
+    <span class="c1">#     )</span>
+    <span class="n">residualAmenities</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Uo</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">])</span>
+        <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span><span class="p">)</span> <span class="o">*</span> <span class="n">beta</span> <span class="o">**</span> <span class="n">beta</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">net_income</span><span class="p">[:,</span> <span class="n">selectedRents</span><span class="p">]</span>
+               <span class="o">-</span> <span class="n">basicQ</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dataRent</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="n">selectedRents</span><span class="p">])</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dataRent</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="n">selectedRents</span><span class="p">]</span> <span class="o">**</span> <span class="n">beta</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="c1"># We select amenities for dominant income groups and flatten the array</span>
+    <span class="n">residualAmenities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span>
+        <span class="n">residualAmenities</span> <span class="o">*</span> <span class="n">groupLivingSpMatrix</span><span class="p">[:,</span> <span class="n">selectedRents</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">residualAmenities</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residualAmenities</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">residualAmenities</span><span class="p">[</span><span class="n">residualAmenities</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># Residual for the regression of amenities follow a log-normal law</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">optionRegression</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="c1"># Here regression as a matrix division (much faster)</span>
+        <span class="c1"># Note that predictors are dummies, and not log-values as in paper</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">predictorsAmenitiesMatrix</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">),</span> <span class="p">:]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">residualAmenities</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">)])</span><span class="o">.</span><span class="n">real</span>
+        <span class="c1"># parametersAmenities, residuals, rank, s = np.linalg.lstsq(A, y,</span>
+        <span class="c1">#                                                           rcond=None)</span>
+        <span class="c1"># res = scipy.optimize.lsq_linear(A, y)</span>
+        <span class="c1"># parametersAmenities = res.x</span>
+        <span class="c1"># residuals = res.fun</span>
+        <span class="n">modelSpecification</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+        <span class="n">modelAmenities</span> <span class="o">=</span> <span class="n">modelSpecification</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+        <span class="n">parametersAmenities</span> <span class="o">=</span> <span class="n">modelAmenities</span><span class="o">.</span><span class="n">params</span>
+        <span class="n">errorAmenities</span> <span class="o">=</span> <span class="n">modelAmenities</span><span class="o">.</span><span class="n">resid_pearson</span>
+        <span class="c1"># errorAmenities = y - np.nansum(A * parametersAmenities, 1)</span>
+        <span class="c1"># modelAmenities = 0</span>
+
+    <span class="k">elif</span> <span class="p">(</span><span class="n">optionRegression</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Compute regression with fitglm (longer)</span>
+        <span class="c1"># Can only work if length(lists) = 1</span>
+        <span class="n">residu</span> <span class="o">=</span> <span class="n">residualAmenities</span><span class="o">.</span><span class="n">real</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">predictorsAmenitiesMatrix</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">),</span> <span class="p">:]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">residualAmenities</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">)])</span><span class="o">.</span><span class="n">real</span>
+        <span class="n">parametersAmenities</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                                                                  <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">modelSpecification</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">GLM</span><span class="p">(</span>
+            <span class="n">residu</span><span class="p">,</span> <span class="n">tableRegression</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">variables_regression</span><span class="p">])</span>
+        <span class="n">modelAmenities</span> <span class="o">=</span> <span class="n">modelSpecification</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">modelAmenities</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+        <span class="n">errorAmenities</span> <span class="o">=</span> <span class="n">modelAmenities</span><span class="o">.</span><span class="n">resid_pearson</span>
+
+    <span class="n">scoreAmenities</span> <span class="o">=</span> <span class="n">ComputeLogLikelihood</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">errorAmenities</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">errorAmenities</span><span class="p">))),</span>
+        <span class="n">errorAmenities</span><span class="p">)</span>
+
+    <span class="c1"># %% Error on allocation of income groups</span>
+
+    <span class="c1"># Here, we want the likelihood that simulated rent is equal to max bid rent</span>
+    <span class="c1"># to reproduce observed income sorting</span>
+
+    <span class="c1">#  We get a function that predicts ln(rent) based on any given ln(income)</span>
+    <span class="c1">#  and ln(u/A), interpolated from parameter initial values</span>
+    <span class="n">griddedRents</span> <span class="o">=</span> <span class="n">InterpolateRents</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">basicQ</span><span class="p">,</span> <span class="n">net_income</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+    <span class="n">bidRents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">selectedRents</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">selectedRents</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">bidRents</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">griddedRents</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Uo</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">])</span>
+                     <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">net_income</span><span class="p">[:,</span> <span class="n">selectedRents</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+                    <span class="p">))</span>
+            <span class="c1"># elif options[&quot;griddata&quot;] == 0 &amp; options[&quot;log_form&quot;] == 0:</span>
+            <span class="c1">#     bidRents[i, j] = griddedRents(</span>
+            <span class="c1">#         (np.array(Uo)[:, None]</span>
+            <span class="c1">#          / np.exp(np.array(residualAmenities)[None, :])[i, j]),</span>
+            <span class="c1">#         net_income[:, selectedRents][i, j]</span>
+            <span class="c1">#         )</span>
+            <span class="c1"># elif options[&quot;griddata&quot;] == 1 &amp; options[&quot;log_form&quot;] == 1:</span>
+            <span class="c1">#     coord = np.stack([</span>
+            <span class="c1">#         (np.log(np.array(Uo)[:, None])</span>
+            <span class="c1">#          - np.array(residualAmenities)[None, :])[i, j],</span>
+            <span class="c1">#         np.log(net_income[:, selectedRents][i, j])</span>
+            <span class="c1">#         ], -1)</span>
+            <span class="c1">#     coord = np.expand_dims(coord, axis=0)</span>
+            <span class="c1">#     bidRents[i, j] = np.exp(griddedRents(coord))</span>
+
+    <span class="c1"># Estimation of the parameters by maximization of the log-likelihood</span>
+    <span class="c1"># (in overarching function)</span>
+    <span class="n">selectedBidRents</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">bidRents</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">incomeGroupSelectedRents</span> <span class="o">=</span> <span class="n">groupLivingSpMatrix</span><span class="p">[:,</span> <span class="n">selectedRents</span><span class="p">]</span>
+    <span class="c1"># Corresponds to formula in appendix C4</span>
+    <span class="n">likelihoodIncomeSorting</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">scaleParam</span><span class="p">:</span>
+            <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span>
+                <span class="n">bidRents</span><span class="p">[:,</span> <span class="n">selectedBidRents</span><span class="p">]</span> <span class="o">/</span> <span class="n">scaleParam</span>
+                <span class="o">*</span> <span class="n">incomeGroupSelectedRents</span><span class="p">[:,</span> <span class="n">selectedBidRents</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">bidRents</span><span class="p">[:,</span> <span class="n">selectedBidRents</span><span class="p">]</span> <span class="o">/</span> <span class="n">scaleParam</span><span class="p">),</span>
+                <span class="mi">0</span><span class="p">)))</span>
+            <span class="p">)</span>
+
+    <span class="c1"># We then optimize over the scale parameter to be used in score</span>
+    <span class="n">bnds</span> <span class="o">=</span> <span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="o">**</span><span class="mi">10</span><span class="p">)}</span>
+    <span class="n">initScale</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">9</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+        <span class="n">likelihoodIncomeSorting</span><span class="p">,</span> <span class="n">initScale</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bnds</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+    <span class="c1"># scaleParameter = res.x</span>
+    <span class="n">errorIncomeSorting</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">fun</span>
+    <span class="n">exitFlag</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span>
+    <span class="c1"># print(exitFlag)</span>
+    <span class="k">if</span> <span class="n">exitFlag</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">scoreIncomeSorting</span> <span class="o">=</span> <span class="o">-</span> <span class="n">errorIncomeSorting</span>
+    <span class="k">elif</span> <span class="n">exitFlag</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">scoreIncomeSorting</span> <span class="o">=</span> <span class="o">-</span> <span class="n">likelihoodIncomeSorting</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+
+    <span class="c1"># %% Errors on the dwelling sizes</span>
+    <span class="c1"># Simulated rent, real sorting</span>
+    <span class="n">simulatedRents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span>
+        <span class="n">bidRents</span><span class="p">[:,</span> <span class="n">selectedDwellingSize</span><span class="p">[</span><span class="n">selectedRents</span><span class="p">]]</span>
+        <span class="o">*</span> <span class="n">groupLivingSpMatrix</span><span class="p">[:,</span> <span class="n">selectedDwellingSize</span><span class="p">],</span>
+        <span class="mi">0</span><span class="p">)</span>
+    <span class="n">dwellingSize</span> <span class="o">=</span> <span class="n">CalculateDwellingSize</span><span class="p">(</span>
+        <span class="n">beta</span><span class="p">,</span>
+        <span class="n">basicQ</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">net_income</span><span class="p">[:,</span> <span class="n">selectedDwellingSize</span><span class="p">]</span>
+                  <span class="o">*</span> <span class="n">groupLivingSpMatrix</span><span class="p">[:,</span> <span class="n">selectedDwellingSize</span><span class="p">],</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">simulatedRents</span><span class="p">)</span>
+
+    <span class="c1"># Define errors</span>
+    <span class="c1"># Here we call on real data as it is part of the error term definition</span>
+    <span class="n">errorDwellingSize</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">dwellingSize</span><span class="p">)</span>
+        <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">dataDwellingSize</span><span class="p">[</span><span class="n">selectedDwellingSize</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="n">scoreDwellingSize</span> <span class="o">=</span> <span class="n">ComputeLogLikelihood</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">errorDwellingSize</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">errorDwellingSize</span><span class="p">))),</span>
+        <span class="n">errorDwellingSize</span><span class="p">)</span>
+
+    <span class="c1"># %% Total</span>
+
+    <span class="n">scoreTotal</span> <span class="o">=</span> <span class="n">scoreAmenities</span> <span class="o">+</span> <span class="n">scoreDwellingSize</span> <span class="o">+</span> <span class="n">scoreIncomeSorting</span>
+
+    <span class="c1"># We may also include a measure of the fit for household density,</span>
+    <span class="c1"># which has not been retained in this version</span>
+    <span class="c1"># NB: this is because it is already taken into account in other likelihoods</span>
+    <span class="c1"># and we want to avoid overfit</span>
+    <span class="n">scoreHousing</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">parametersHousing</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">scoreTotal</span><span class="p">,</span> <span class="n">scoreAmenities</span><span class="p">,</span> <span class="n">scoreDwellingSize</span><span class="p">,</span> <span class="n">scoreIncomeSorting</span><span class="p">,</span>
+            <span class="n">scoreHousing</span><span class="p">,</span> <span class="n">parametersAmenities</span><span class="p">,</span> <span class="n">modelAmenities</span><span class="p">,</span>
+            <span class="n">parametersHousing</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="utilityFromRents"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.loglikelihood.utilityFromRents">[docs]</a><span class="k">def</span> <span class="nf">utilityFromRents</span><span class="p">(</span><span class="n">Ro</span><span class="p">,</span> <span class="n">income</span><span class="p">,</span> <span class="n">basic_q</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return utility / amenity index ratio.&quot;&quot;&quot;</span>
+    <span class="c1"># Equal to u/A (equation C2)</span>
+    <span class="n">utility</span> <span class="o">=</span> <span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span><span class="p">))</span>
+               <span class="o">*</span> <span class="p">(</span><span class="n">beta</span> <span class="o">**</span> <span class="n">beta</span><span class="p">)</span>
+               <span class="o">*</span> <span class="p">(</span><span class="n">income</span> <span class="o">-</span> <span class="p">(</span><span class="n">basic_q</span> <span class="o">*</span> <span class="n">Ro</span><span class="p">))</span>
+               <span class="o">/</span> <span class="p">(</span><span class="n">Ro</span> <span class="o">**</span> <span class="n">beta</span><span class="p">))</span>
+    <span class="n">utility</span><span class="p">[(</span><span class="n">income</span> <span class="o">-</span> <span class="p">(</span><span class="n">basic_q</span> <span class="o">*</span> <span class="n">Ro</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">utility</span><span class="p">[</span><span class="n">income</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">utility</span></div>
+
+
+<span class="c1"># @jit</span>
+<div class="viewcode-block" id="InterpolateRents"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.loglikelihood.InterpolateRents">[docs]</a><span class="k">def</span> <span class="nf">InterpolateRents</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">basicQ</span><span class="p">,</span> <span class="n">net_income</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interpolate log(rents) as a function of log(beta) and log(q0).&quot;&quot;&quot;</span>
+    <span class="c1"># Decomposition for the interpolation (the more points, the slower)</span>
+    <span class="c1"># TODO: should be changed?</span>
+    <span class="n">decompositionRent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">9</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)]),</span>
+          <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.80</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span>
+          <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)])</span>
+        <span class="p">)</span>
+    <span class="n">decompositionIncome</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">9</span><span class="p">)]),</span>
+         <span class="mi">10</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.03</span><span class="p">]),</span>
+         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.06</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">),</span>
+         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">]))</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="c1"># We scale the income vector accordingly</span>
+        <span class="n">choiceIncome</span> <span class="o">=</span> <span class="mi">100000</span> <span class="o">*</span> <span class="n">decompositionIncome</span>
+        <span class="n">incomeMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
+            <span class="n">choiceIncome</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">decompositionRent</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># We do the same for rent vector by considering that the rent is max</span>
+        <span class="c1"># when utility equals zero</span>
+        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;test_maxrent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">choiceRent</span> <span class="o">=</span> <span class="n">choiceIncome</span> <span class="o">/</span> <span class="n">basicQ</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;test_maxrent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">choiceRent</span> <span class="o">=</span> <span class="n">choiceIncome</span>
+        <span class="n">rentMatrix</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">choiceRent</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+                      <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">decompositionRent</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="c1">#  Yields u/A for all values of decomposition</span>
+        <span class="n">utilityMatrix</span> <span class="o">=</span> <span class="n">utilityFromRents</span><span class="p">(</span>
+            <span class="n">rentMatrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">incomeMatrix</span><span class="p">),</span> <span class="n">basicQ</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+
+        <span class="c1">#  We interpolate ln(rent) as a function of ln(income) and ln(u/A)</span>
+        <span class="c1">#  (calculated upon initial values of parameters)</span>
+        <span class="c1">#  Note that we observe rent but not actual max bid rent</span>
+        <span class="c1">#  for all income groups</span>
+
+        <span class="c1"># We first do it in simple form</span>
+        <span class="n">solusRentTemp</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span>
+                <span class="n">interp2d</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">incomeMatrix</span><span class="p">),</span>
+                    <span class="n">utilityMatrix</span><span class="p">,</span>
+                    <span class="n">rentMatrix</span>  <span class="c1"># ** beta</span>
+                    <span class="p">)(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Then we go to log-form (quickens computations and helps convergence)</span>
+            <span class="n">utilityVectLog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">net_income</span><span class="p">)),</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">incomeLog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">net_income</span><span class="p">))),</span> <span class="mf">0.2</span><span class="p">)</span>
+            <span class="n">rentLog</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">solusRentTemp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">incomeLog</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">utilityVectLog</span><span class="p">)))</span>
+                <span class="p">)</span>  <span class="c1"># * 1/beta</span>
+
+            <span class="n">griddedRents</span> <span class="o">=</span> <span class="n">interp2d</span><span class="p">(</span>
+                <span class="n">utilityVectLog</span><span class="p">,</span> <span class="n">incomeLog</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">rentLog</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">griddedRents</span>
+
+        <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">solusRentTemp</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+        <span class="c1"># We scale the income vector accordingly</span>
+        <span class="n">choiceIncome</span> <span class="o">=</span> <span class="mi">100000</span> <span class="o">*</span> <span class="n">decompositionIncome</span>
+        <span class="n">incomeVector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">choiceIncome</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">decompositionRent</span><span class="p">))</span>
+        <span class="c1"># We do the same for rent vector by considering that the rent is max</span>
+        <span class="c1"># when utility equals zero</span>
+        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;test_maxrent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">choiceRent</span> <span class="o">=</span> <span class="n">choiceIncome</span> <span class="o">/</span> <span class="n">basicQ</span>
+        <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;test_maxrent&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">choiceRent</span> <span class="o">=</span> <span class="n">choiceIncome</span>
+        <span class="n">rentList</span> <span class="o">=</span> <span class="p">[</span><span class="n">rent</span> <span class="o">*</span> <span class="n">decompositionRent</span> <span class="k">for</span> <span class="n">rent</span> <span class="ow">in</span> <span class="n">choiceRent</span><span class="p">]</span>
+        <span class="n">rentVector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">rentList</span><span class="p">)</span>
+
+        <span class="n">logincomeVector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">incomeVector</span><span class="p">)</span>
+        <span class="n">logrentVector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rentVector</span><span class="p">)</span>
+
+        <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">logincomeVector</span><span class="p">,</span> <span class="n">logrentVector</span>
+        <span class="n">ey</span><span class="p">,</span> <span class="n">ez</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">utilityFromRents</span><span class="p">(</span><span class="n">ez</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">basicQ</span><span class="p">,</span> <span class="n">beta</span><span class="p">))</span>
+        <span class="n">ex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># npts = 400</span>
+        <span class="c1"># index_select = np.random.randint(</span>
+        <span class="c1">#     0, len(logincomeVector), size=npts)</span>
+        <span class="c1"># py, pz = logincomeVector[index_select], logrentVector[index_select]</span>
+        <span class="c1"># epy, epz = np.exp(py), np.exp(pz)</span>
+        <span class="c1"># px = np.log(utilityFromRents(epz, epy, basicQ, beta))</span>
+        <span class="c1"># pX, pY = np.meshgrid(px, py)</span>
+        <span class="c1"># X, Y = np.meshgrid(x, y)</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># TODO: play with kernel?</span>
+            <span class="n">griddedRents</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">RBFInterpolator</span><span class="p">(</span>
+                <span class="n">points</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">neighbors</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;interpol_neighbors&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="c1"># griddedRents = interpolate.griddata((x, y), z, (pX, pY))</span>
+
+        <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">ex</span><span class="p">,</span> <span class="n">ey</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">griddedRents</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">RBFInterpolator</span><span class="p">(</span>
+                <span class="n">points</span><span class="p">,</span> <span class="n">ez</span><span class="p">,</span> <span class="n">neighbors</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;interpol_neighbors&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">griddedRents</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

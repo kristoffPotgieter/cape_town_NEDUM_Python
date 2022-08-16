@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API reference &mdash; NEDUM-2D for CoCT  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation help" href="install_help.html" />
+    <link rel="prev" title="Bibliography" href="bibliography.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NEDUM-2D for CoCT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-inputs.parameters_and_options">Set parameters and options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-inputs.data">Import data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#equilibrium">Equilibrium</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-equilibrium.compute_equilibrium">Compute equilibrium</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-equilibrium.run_simulations">Run simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-equilibrium.functions_dynamic">Dynamic functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-equilibrium.sub.compute_outputs">Compute intermediate outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-equilibrium.sub.functions_solver">Define optimality conditions for solver</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#calibration">Calibration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.calib_main_func">Main functions for calibration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.sub.compute_income">Calibrate income net of commuting costs and gravity parameter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.sub.estimate_parameters_by_optimization">Estimate utility function parameters by optimization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.sub.estimate_parameters_by_scanning">Estimate utility function parameters by scanning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.sub.import_amenities">Import exogenous amenities (for amenity index)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.sub.import_employment_data">Import employment data (for income and gravity)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-calibration.sub.loglikelihood">Log-likelihood (for utility function parameters)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-outputs.export_outputs">Process and display general values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-outputs.flood_outputs">Process values related to floods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-outputs.export_outputs_floods">Display values related to floods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install_help.html">Installation help</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NEDUM-2D for CoCT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>API reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api_ref.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="api-reference">
+<h1>API reference<a class="headerlink" href="#api-reference" title="Permalink to this heading"></a></h1>
+<p>The API reference gives an overview of Res-IRF implementation.</p>
+<ul class="simple">
+<li><p>Buildings module details implementation of HousingStock class.</p></li>
+<li><p>Policies module presents implementation of PublicPolicies class.</p></li>
+</ul>
+<div class="section" id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-inputs.parameters_and_options">
+<span id="set-parameters-and-options"></span><h3>Set parameters and options<a class="headerlink" href="#module-inputs.parameters_and_options" title="Permalink to this heading"></a></h3>
+<p>Created on Tue Oct 27 15:50:59 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.parameters_and_options.compute_agricultural_rent">
+<span class="sig-prename descclassname"><span class="pre">inputs.parameters_and_options.</span></span><span class="sig-name descname"><span class="pre">compute_agricultural_rent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_fact</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/parameters_and_options.html#compute_agricultural_rent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.parameters_and_options.compute_agricultural_rent" title="Permalink to this definition"></a></dt>
+<dd><p>Convert land price into real estate price for land.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.parameters_and_options.import_construction_parameters">
+<span class="sig-prename descclassname"><span class="pre">inputs.parameters_and_options.</span></span><span class="sig-name descname"><span class="pre">import_construction_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwelling_size_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mitchells_plain_grid_2011</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_formal_density_HFA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_land</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/parameters_and_options.html#import_construction_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.parameters_and_options.import_construction_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Update parameters with values for construction.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.parameters_and_options.import_options">
+<span class="sig-prename descclassname"><span class="pre">inputs.parameters_and_options.</span></span><span class="sig-name descname"><span class="pre">import_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/parameters_and_options.html#import_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.parameters_and_options.import_options" title="Permalink to this definition"></a></dt>
+<dd><p>Import default options.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.parameters_and_options.import_param">
+<span class="sig-prename descclassname"><span class="pre">inputs.parameters_and_options.</span></span><span class="sig-name descname"><span class="pre">import_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_outputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/parameters_and_options.html#import_param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.parameters_and_options.import_param" title="Permalink to this definition"></a></dt>
+<dd><p>Import default parameters.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-inputs.data">
+<span id="import-data"></span><h3>Import data<a class="headerlink" href="#module-inputs.data" title="Permalink to this heading"></a></h3>
+<p>Created on Tue Oct 27 15:57:41 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.compute_fraction_capital_destroyed">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">compute_fraction_capital_destroyed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_flood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damage_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#compute_fraction_capital_destroyed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.compute_fraction_capital_destroyed" title="Permalink to this definition"></a></dt>
+<dd><p>Define function used to get fraction of capital destroyed by floods.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.convert_income_distribution">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">convert_income_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#convert_income_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.convert_income_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Import SP data for income distribution in grid form.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.gen_small_areas_to_grid">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">gen_small_areas_to_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_intersect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">small_area_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">small_area_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#gen_small_areas_to_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.gen_small_areas_to_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Convert SAL/SP to grid dimensions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_amenities">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_amenities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_amenities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_amenities" title="Permalink to this definition"></a></dt>
+<dd><p>Import amenity index for each pixel.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_coeff_land">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_coeff_land</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spline_land_constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_coeff_land"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_coeff_land" title="Permalink to this definition"></a></dt>
+<dd><p>Return pixel share for housing scenarios, weighted by max building %.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_full_floods_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_full_floods_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_type_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_full_floods_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_full_floods_data" title="Permalink to this definition"></a></dt>
+<dd><p>Add fraction of capital destroyed by floods to initial floods data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_grid">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Import pixel coordinates and distances to center.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_households_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_households_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_households_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_households_data" title="Permalink to this definition"></a></dt>
+<dd><p>Import geographic data with class distributions for households.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_housing_limit">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_housing_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_housing_limit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_housing_limit" title="Permalink to this definition"></a></dt>
+<dd><p>Return height limit within and out of historic city radius.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_hypothesis_housing_type">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_hypothesis_housing_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_hypothesis_housing_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_hypothesis_housing_type" title="Permalink to this definition"></a></dt>
+<dd><p>Import dummies to select income classes into housing types.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_income_classes_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_income_classes_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_income_classes_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_income_classes_data" title="Permalink to this definition"></a></dt>
+<dd><p>Import population and average income per income class in the model.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_init_floods_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_init_floods_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_init_floods_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_init_floods_data" title="Permalink to this definition"></a></dt>
+<dd><p>Import initial floods data and damage functions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_land_use">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_land_use</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_rdp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_type_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_land_use"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_land_use" title="Permalink to this definition"></a></dt>
+<dd><p>Return linear regression spline estimates for housing building paths.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_macro_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_macro_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_scenarios</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_macro_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_macro_data" title="Permalink to this definition"></a></dt>
+<dd><p>Import interest rate and population per housing type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_sal_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_sal_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_type_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_sal_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_sal_data" title="Permalink to this definition"></a></dt>
+<dd><p>Import SAL data for population density by housing type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.import_transport_data">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">import_transport_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yearTraffic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_fuel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_transp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#import_transport_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.import_transport_data" title="Permalink to this definition"></a></dt>
+<dd><p>Compute job center distribution, commuting and net income.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="inputs.data.infer_WBUS2_depth">
+<span class="sig-prename descclassname"><span class="pre">inputs.data.</span></span><span class="sig-name descname"><span class="pre">infer_WBUS2_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_floods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/data.html#infer_WBUS2_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.data.infer_WBUS2_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Update CoCT flood data with FATHOM flood depth (deprecated).</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="equilibrium">
+<h2>Equilibrium<a class="headerlink" href="#equilibrium" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-equilibrium.compute_equilibrium">
+<span id="compute-equilibrium"></span><h3>Compute equilibrium<a class="headerlink" href="#module-equilibrium.compute_equilibrium" title="Permalink to this heading"></a></h3>
+<p>Created on Mon Nov  2 11:21:21 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.compute_equilibrium.compute_equilibrium">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.compute_equilibrium.</span></span><span class="sig-name descname"><span class="pre">compute_equilibrium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_land</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_properties_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construction_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_2011</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/compute_equilibrium.html#compute_equilibrium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.compute_equilibrium.compute_equilibrium" title="Permalink to this definition"></a></dt>
+<dd><p>Determine static equilibrium allocation from iterative algorithm.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-equilibrium.run_simulations">
+<span id="run-simulations"></span><h3>Run simulations<a class="headerlink" href="#module-equilibrium.run_simulations" title="Permalink to this heading"></a></h3>
+<p>Created on Fri Nov  6 16:23:16 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.run_simulations.run_simulation">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.run_simulations.</span></span><span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_household_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_estimate_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precalculated_transport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_fuel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_2011</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/run_simulations.html#run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.run_simulations.run_simulation" title="Permalink to this definition"></a></dt>
+<dd><p>Run simulations over several years according to scenarios.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-equilibrium.functions_dynamic">
+<span id="dynamic-functions"></span><h3>Dynamic functions<a class="headerlink" href="#module-equilibrium.functions_dynamic" title="Permalink to this heading"></a></h3>
+<p>Created on Tue Nov  3 14:16:26 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.functions_dynamic.compute_average_income">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.functions_dynamic.</span></span><span class="sig-name descname"><span class="pre">compute_average_income</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/functions_dynamic.html#compute_average_income"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.functions_dynamic.compute_average_income" title="Permalink to this definition"></a></dt>
+<dd><p>Compute average income from scenario data (includes RDP).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.functions_dynamic.evolution_housing_supply">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.functions_dynamic.</span></span><span class="sig-name descname"><span class="pre">evolution_housing_supply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_supply_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_supply_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/functions_dynamic.html#evolution_housing_supply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.functions_dynamic.evolution_housing_supply" title="Permalink to this definition"></a></dt>
+<dd><p>Yield dynamic housing supply with time inertia and depreciation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.functions_dynamic.import_scenarios">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.functions_dynamic.</span></span><span class="sig-name descname"><span class="pre">import_scenarios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">income_2011</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_scenarios</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/functions_dynamic.html#import_scenarios"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.functions_dynamic.import_scenarios" title="Permalink to this definition"></a></dt>
+<dd><p>Return linear regression splines for various scenarios.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.functions_dynamic.interpolate_interest_rate">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.functions_dynamic.</span></span><span class="sig-name descname"><span class="pre">interpolate_interest_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spline_interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/functions_dynamic.html#interpolate_interest_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.functions_dynamic.interpolate_interest_rate" title="Permalink to this definition"></a></dt>
+<dd><p>Return an average interest rate over some period of interest.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-equilibrium.sub.compute_outputs">
+<span id="compute-intermediate-outputs"></span><h3>Compute intermediate outputs<a class="headerlink" href="#module-equilibrium.sub.compute_outputs" title="Permalink to this heading"></a></h3>
+<p>Created on Wed Oct 28 16:01:05 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.sub.compute_outputs.compute_outputs">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.sub.compute_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_land</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construction_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_pockets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_backyards_pockets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/sub/compute_outputs.html#compute_outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.sub.compute_outputs.compute_outputs" title="Permalink to this definition"></a></dt>
+<dd><p>Compute equilibrium outputs from theoretical formulas.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-equilibrium.sub.functions_solver">
+<span id="define-optimality-conditions-for-solver"></span><h3>Define optimality conditions for solver<a class="headerlink" href="#module-equilibrium.sub.functions_solver" title="Permalink to this heading"></a></h3>
+<p>Created on Fri Oct 30 14:13:50 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.sub.functions_solver.compute_dwelling_size_formal">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.sub.functions_solver.</span></span><span class="sig-name descname"><span class="pre">compute_dwelling_size_formal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/sub/functions_solver.html#compute_dwelling_size_formal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.sub.functions_solver.compute_dwelling_size_formal" title="Permalink to this definition"></a></dt>
+<dd><p>Return optimal dwelling size per income group for formal housing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.sub.functions_solver.compute_housing_supply_backyard">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.sub.functions_solver.</span></span><span class="sig-name descname"><span class="pre">compute_housing_supply_backyard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/sub/functions_solver.html#compute_housing_supply_backyard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.sub.functions_solver.compute_housing_supply_backyard" title="Permalink to this definition"></a></dt>
+<dd><p>Compute backyard housing supply as a function of rents.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.sub.functions_solver.compute_housing_supply_formal">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.sub.functions_solver.</span></span><span class="sig-name descname"><span class="pre">compute_housing_supply_formal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construction_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwelling_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/sub/functions_solver.html#compute_housing_supply_formal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.sub.functions_solver.compute_housing_supply_formal" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the formal housing supply as a function of rents.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="equilibrium.sub.functions_solver.implicit_qfunc">
+<span class="sig-prename descclassname"><span class="pre">equilibrium.sub.functions_solver.</span></span><span class="sig-name descname"><span class="pre">implicit_qfunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/sub/functions_solver.html#implicit_qfunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.sub.functions_solver.implicit_qfunc" title="Permalink to this definition"></a></dt>
+<dd><p>Implicitely define optimal dwelling size.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="calibration">
+<h2>Calibration<a class="headerlink" href="#calibration" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-calibration.calib_main_func">
+<span id="main-functions-for-calibration"></span><h3>Main functions for calibration<a class="headerlink" href="#module-calibration.calib_main_func" title="Permalink to this heading"></a></h3>
+<p>Created on Mon May 23 16:26:37 2022.</p>
+<p>&#64;author: monni</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.calib_main_func.estim_construct_func_param">
+<span class="sig-prename descclassname"><span class="pre">calibration.calib_main_func.</span></span><span class="sig-name descname"><span class="pre">estim_construct_func_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_rdp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_number_formal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_income_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_density</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_folder</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/calib_main_func.html#estim_construct_func_param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.calib_main_func.estim_construct_func_param" title="Permalink to this definition"></a></dt>
+<dd><p>Estimate coefficients of construction function (Cobb-Douglas).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.calib_main_func.estim_incomes_and_gravity">
+<span class="sig-prename descclassname"><span class="pre">calibration.calib_main_func.</span></span><span class="sig-name descname"><span class="pre">estim_incomes_and_gravity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_lambda</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_fuel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_transp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/calib_main_func.html#estim_incomes_and_gravity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.calib_main_func.estim_incomes_and_gravity" title="Permalink to this definition"></a></dt>
+<dd><p>Estimate incomes per job center and group and commuting parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.calib_main_func.estim_util_func_param">
+<span class="sig-prename descclassname"><span class="pre">calibration.calib_main_func.</span></span><span class="sig-name descname"><span class="pre">estim_util_func_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_number_formal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_income_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffKappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incomeNetOfCommuting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_density</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/calib_main_func.html#estim_util_func_param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.calib_main_func.estim_util_func_param" title="Permalink to this definition"></a></dt>
+<dd><p>Calibrate utility function parameters.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-calibration.sub.compute_income">
+<span id="calibrate-income-net-of-commuting-costs-and-gravity-parameter"></span><h3>Calibrate income net of commuting costs and gravity parameter<a class="headerlink" href="#module-calibration.sub.compute_income" title="Permalink to this heading"></a></h3>
+<p>Created on Fri Apr  1 16:20:51 2022.</p>
+<p>&#64;author: monni</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.compute_income.EstimateIncome">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.compute_income.</span></span><span class="sig-name descname"><span class="pre">EstimateIncome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeOutput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distanceOutput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monetaryCost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">costTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_lambda</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/compute_income.html#EstimateIncome"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.compute_income.EstimateIncome" title="Permalink to this definition"></a></dt>
+<dd><p>Solve for income per employment center for some values of lambda.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.compute_income.compute_ODflows">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.compute_income.</span></span><span class="sig-name descname"><span class="pre">compute_ODflows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">householdSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monetaryCost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">costTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incomeCentersFull</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whichCenters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_lambda</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/compute_income.html#compute_ODflows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.compute_income.compute_ODflows" title="Permalink to this definition"></a></dt>
+<dd><p>Apply commuting formulas from working paper.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.compute_income.funSolve">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.compute_income.</span></span><span class="sig-name descname"><span class="pre">funSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incomeCentersTemp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">averageIncomeGroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">popCenters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">popResidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monetaryCost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">costTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_lambda</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">householdSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whichCenters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bracketsDistance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distanceOutput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/compute_income.html#funSolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.compute_income.funSolve" title="Permalink to this definition"></a></dt>
+<dd><p>Compute error in employment allocation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.compute_income.import_transport_costs">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.compute_income.</span></span><span class="sig-name descname"><span class="pre">import_transport_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yearTraffic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_fuel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_transp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/compute_income.html#import_transport_costs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.compute_income.import_transport_costs" title="Permalink to this definition"></a></dt>
+<dd><p>Compute job center distribution, commuting and net income.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-calibration.sub.estimate_parameters_by_optimization">
+<span id="estimate-utility-function-parameters-by-optimization"></span><h3>Estimate utility function parameters by optimization<a class="headerlink" href="#module-calibration.sub.estimate_parameters_by_optimization" title="Permalink to this heading"></a></h3>
+<p>Created on Tue Oct 20 10:49:58 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.estimate_parameters_by_optimization.EstimateParametersByOptimization">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.estimate_parameters_by_optimization.</span></span><span class="sig-name descname"><span class="pre">EstimateParametersByOptimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incomeNetOfCommuting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataRent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataDwellingSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataIncomeGroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataHouseholdDensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedDensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedSP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tableAmenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variablesRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initRho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initBeta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initBasicQ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initUti2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initUti3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initUti4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/estimate_parameters_by_optimization.html#EstimateParametersByOptimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.estimate_parameters_by_optimization.EstimateParametersByOptimization" title="Permalink to this definition"></a></dt>
+<dd><p>Automatically estimate parameters by maximizing log likelihood.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-calibration.sub.estimate_parameters_by_scanning">
+<span id="estimate-utility-function-parameters-by-scanning"></span><h3>Estimate utility function parameters by scanning<a class="headerlink" href="#module-calibration.sub.estimate_parameters_by_scanning" title="Permalink to this heading"></a></h3>
+<p>Created on Tue Oct 20 10:50:37 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.estimate_parameters_by_scanning.EstimateParametersByScanning">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.estimate_parameters_by_scanning.</span></span><span class="sig-name descname"><span class="pre">EstimateParametersByScanning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incomeNetOfCommuting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataRent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataDwellingSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataIncomeGroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataHouseholdDensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedDensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedSP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tableAmenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variablesRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initRho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listBeta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listBasicQ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initUti2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listUti3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listUti4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/estimate_parameters_by_scanning.html#EstimateParametersByScanning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.estimate_parameters_by_scanning.EstimateParametersByScanning" title="Permalink to this definition"></a></dt>
+<dd><p>Estimate parameters by maximizing log likelihood.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-calibration.sub.import_amenities">
+<span id="import-exogenous-amenities-for-amenity-index"></span><h3>Import exogenous amenities (for amenity index)<a class="headerlink" href="#module-calibration.sub.import_amenities" title="Permalink to this heading"></a></h3>
+<p>Created on Wed Apr  6 16:55:17 2022.</p>
+<p>&#64;author: monni</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.import_amenities.import_amenities">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.import_amenities.</span></span><span class="sig-name descname"><span class="pre">import_amenities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_precalc_inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/import_amenities.html#import_amenities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.import_amenities.import_amenities" title="Permalink to this definition"></a></dt>
+<dd><p>Import relevant amenity data at SP level.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-calibration.sub.import_employment_data">
+<span id="import-employment-data-for-income-and-gravity"></span><h3>Import employment data (for income and gravity)<a class="headerlink" href="#module-calibration.sub.import_employment_data" title="Permalink to this heading"></a></h3>
+<p>Created on Mon Oct 19 12:22:55 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.import_employment_data.import_employment_data">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.import_employment_data.</span></span><span class="sig-name descname"><span class="pre">import_employment_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/import_employment_data.html#import_employment_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.import_employment_data.import_employment_data" title="Permalink to this definition"></a></dt>
+<dd><p>Import number of jobs per selected employment center.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-calibration.sub.loglikelihood">
+<span id="log-likelihood-for-utility-function-parameters"></span><h3>Log-likelihood (for utility function parameters)<a class="headerlink" href="#module-calibration.sub.loglikelihood" title="Permalink to this heading"></a></h3>
+<p>Created on Tue Oct 20 11:46:13 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.loglikelihood.InterpolateRents">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.loglikelihood.</span></span><span class="sig-name descname"><span class="pre">InterpolateRents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basicQ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/loglikelihood.html#InterpolateRents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.loglikelihood.InterpolateRents" title="Permalink to this definition"></a></dt>
+<dd><p>Interpolate log(rents) as a function of log(beta) and log(q0).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.loglikelihood.LogLikelihoodModel">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.loglikelihood.</span></span><span class="sig-name descname"><span class="pre">LogLikelihoodModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Uo2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groupLivingSpMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataDwellingSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedDwellingSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataRent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedRents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectedDensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictorsAmenitiesMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tableRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables_regression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CalculateDwellingSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ComputeLogLikelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optionRegression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/loglikelihood.html#LogLikelihoodModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.loglikelihood.LogLikelihoodModel" title="Permalink to this definition"></a></dt>
+<dd><p>Estimate the total likelihood of the model given the parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calibration.sub.loglikelihood.utilityFromRents">
+<span class="sig-prename descclassname"><span class="pre">calibration.sub.loglikelihood.</span></span><span class="sig-name descname"><span class="pre">utilityFromRents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Ro</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basic_q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calibration/sub/loglikelihood.html#utilityFromRents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calibration.sub.loglikelihood.utilityFromRents" title="Permalink to this definition"></a></dt>
+<dd><p>Return utility / amenity index ratio.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading"></a></h2>
+<div class="section" id="module-outputs.export_outputs">
+<span id="process-and-display-general-values"></span><h3>Process and display general values<a class="headerlink" href="#module-outputs.export_outputs" title="Permalink to this heading"></a></h3>
+<p>Created on Mon Nov  2 11:32:48 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.export_households">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">export_households</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state_households</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_and_housing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#export_households"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.export_households" title="Permalink to this definition"></a></dt>
+<dd><p>Bar plot for equilibrium output across housing and income groups.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.export_housing_types">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">export_housing_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">housing_type_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_type_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#export_housing_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.export_housing_types" title="Permalink to this definition"></a></dt>
+<dd><p>Bar plot for equilibrium output across housing types.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.export_map">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">export_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geo_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ubnd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lbnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Reds'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#export_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.export_map" title="Permalink to this definition"></a></dt>
+<dd><p>Generate 2D heat maps of any spatial input.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.from_df_to_gdf">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">from_df_to_gdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geo_grid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#from_df_to_gdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.from_df_to_gdf" title="Permalink to this definition"></a></dt>
+<dd><p>Convert map array/series inputs into grid-level GeoDataFrames.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.import_employment_geodata">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">import_employment_geodata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#import_employment_geodata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.import_employment_geodata" title="Permalink to this definition"></a></dt>
+<dd><p>Import number of jobs per selected employment center.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.plot_average_income">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">plot_average_income</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#plot_average_income"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.plot_average_income" title="Permalink to this definition"></a></dt>
+<dd><p>Plot average income across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.plot_housing_demand">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">plot_housing_demand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#plot_housing_demand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.plot_housing_demand" title="Permalink to this definition"></a></dt>
+<dd><p>Plot average dwelling size in private formal across space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.plot_housing_supply">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">plot_housing_supply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#plot_housing_supply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.plot_housing_supply" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot of avg housing supply per type and unit of available land.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.plot_housing_supply_noland">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">plot_housing_supply_noland</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#plot_housing_supply_noland"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.plot_housing_supply_noland" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot of total housing supply per type across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.plot_income_net_of_commuting_costs">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">plot_income_net_of_commuting_costs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#plot_income_net_of_commuting_costs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.plot_income_net_of_commuting_costs" title="Permalink to this definition"></a></dt>
+<dd><p>Plot avg income net of commuting costs across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.retrieve_name">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">retrieve_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#retrieve_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.retrieve_name" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve name of a variable.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.simul_housing_demand">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">simul_housing_demand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#simul_housing_demand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.simul_housing_demand" title="Permalink to this definition"></a></dt>
+<dd><p>Plot average dwelling size in private formal across space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.simulation_density_housing_types">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">simulation_density_housing_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#simulation_density_housing_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.simulation_density_housing_types" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot for number of households per housing type across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.simulation_density_income_groups">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">simulation_density_income_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_household_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#simulation_density_income_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.simulation_density_income_groups" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot for number of households per income group across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.simulation_housing_price">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">simulation_housing_price</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land_price</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#simulation_housing_price"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.simulation_housing_price" title="Permalink to this definition"></a></dt>
+<dd><p>Plot land price per housing type across space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validate_average_income">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validate_average_income</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overall_avg_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_avg_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validate_average_income"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validate_average_income" title="Permalink to this definition"></a></dt>
+<dd><p>Validate overall average income across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validation_density">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validation_density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validation_density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validation_density" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot for household density across space in 1D.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validation_density_housing_and_income_groups">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validation_density_housing_and_income_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validation_density_housing_and_income_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validation_density_housing_and_income_groups" title="Permalink to this definition"></a></dt>
+<dd><p>Plot number of HHs per housing and income group across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validation_density_housing_types">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validation_density_housing_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validation_density_housing_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validation_density_housing_types" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot for number of households per housing type across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validation_density_income_groups">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validation_density_income_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_household_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_distribution_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validation_density_income_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validation_density_income_groups" title="Permalink to this definition"></a></dt>
+<dd><p>Line plot for number of households per income group across 1D-space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validation_housing_price">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validation_housing_price</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land_price</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validation_housing_price"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validation_housing_price" title="Permalink to this definition"></a></dt>
+<dd><p>Plot land price per housing type across space.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs.validation_housing_price_test">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs.</span></span><span class="sig-name descname"><span class="pre">validation_housing_price_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_types_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_sp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">land_price</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs.html#validation_housing_price_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs.validation_housing_price_test" title="Permalink to this definition"></a></dt>
+<dd><p>Plot land price per housing type across space.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-outputs.flood_outputs">
+<span id="process-values-related-to-floods"></span><h3>Process values related to floods<a class="headerlink" href="#module-outputs.flood_outputs" title="Permalink to this heading"></a></h3>
+<p>Created on Fri Nov  6 17:00:06 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.annualize_damages">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">annualize_damages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_flood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#annualize_damages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.annualize_damages" title="Permalink to this definition"></a></dt>
+<dd><p>Annualize damages from floods.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.compute_content_cost">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_content_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state_household_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#compute_content_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.compute_content_cost" title="Permalink to this definition"></a></dt>
+<dd><p>Compute value of damaged composite good.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.compute_damages">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_damages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_formal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_subsidized</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal_structure_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_damages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type4b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type4a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type3a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#compute_damages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.compute_damages" title="Permalink to this definition"></a></dt>
+<dd><p>Summarize flood damages per housing and flood type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.compute_damages_2d">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_damages_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_formal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_subsidized</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formal_structure_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_damages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type4b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type4a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structural_damages_type3a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#compute_damages_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.compute_damages_2d" title="Permalink to this definition"></a></dt>
+<dd><p>Compute full flood damages per housing and flood type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.compute_formal_structure_cost_method2">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_formal_structure_cost_method2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_land</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construction_coeff</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#compute_formal_structure_cost_method2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.compute_formal_structure_cost_method2" title="Permalink to this definition"></a></dt>
+<dd><p>Compute value of damaged formal structure capital.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.compute_stats_per_housing_type">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_stats_per_housing_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_formal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_subsidized</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#compute_stats_per_housing_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.compute_stats_per_housing_type" title="Permalink to this definition"></a></dt>
+<dd><p>Summarize flood-risk area and flood depth per housing and flood type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.compute_stats_per_income_group">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">compute_stats_per_income_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_rich</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_midrich</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_midpoor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_households_poor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#compute_stats_per_income_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.compute_stats_per_income_group" title="Permalink to this definition"></a></dt>
+<dd><p>Summarize flood-risk area and flood depth per income and flood type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.flood_outputs.create_flood_dict">
+<span class="sig-prename descclassname"><span class="pre">outputs.flood_outputs.</span></span><span class="sig-name descname"><span class="pre">create_flood_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flood_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_floods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_nb_households_poor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_nb_households_midpoor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_nb_households_midrich</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_nb_households_rich</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/flood_outputs.html#create_flood_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.flood_outputs.create_flood_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Create dictionary for household distribution in each flood maps.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-outputs.export_outputs_floods">
+<span id="display-values-related-to-floods"></span><h3>Display values related to floods<a class="headerlink" href="#module-outputs.export_outputs_floods" title="Permalink to this heading"></a></h3>
+<p>Created on Fri Nov  6 17:38:21 2020.</p>
+<p>&#64;author: Charlotte Liotta</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.plot_damages">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">plot_damages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">damages1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damages2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#plot_damages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.plot_damages" title="Permalink to this definition"></a></dt>
+<dd><p>Plot aggregate annualized damages per housing type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.plot_flood_severity_distrib">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">plot_flood_severity_distrib</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">barWidth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transparency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#plot_flood_severity_distrib"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.plot_flood_severity_distrib" title="Permalink to this definition"></a></dt>
+<dd><p>Plot distribution of flood severity across income groups for some RP.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.round_nearest">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">round_nearest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#round_nearest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.round_nearest" title="Permalink to this definition"></a></dt>
+<dd><p>Round to nearest decimal number.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.simul_damages">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">simul_damages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">damages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#simul_damages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.simul_damages" title="Permalink to this definition"></a></dt>
+<dd><p>Plot aggregate annualized damages per housing type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.simul_damages_time">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">simul_damages_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_damages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flood_categ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#simul_damages_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.simul_damages_time" title="Permalink to this definition"></a></dt>
+<dd><p>Plot aggregate annualized damages per housing type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.validation_flood">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">validation_flood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stats1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_flood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#validation_flood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.validation_flood" title="Permalink to this definition"></a></dt>
+<dd><p>Bar plot flood depth and area across some RPs per housing types.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="outputs.export_outputs_floods.validation_flood_coastal">
+<span class="sig-prename descclassname"><span class="pre">outputs.export_outputs_floods.</span></span><span class="sig-name descname"><span class="pre">validation_flood_coastal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stats1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_flood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_plots</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/outputs/export_outputs_floods.html#validation_flood_coastal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#outputs.export_outputs_floods.validation_flood_coastal" title="Permalink to this definition"></a></dt>
+<dd><p>Bar plot flood depth and area across some RPs per housing types.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bibliography.html" class="btn btn-neutral float-left" title="Bibliography" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="install_help.html" class="btn btn-neutral float-right" title="Installation help" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
