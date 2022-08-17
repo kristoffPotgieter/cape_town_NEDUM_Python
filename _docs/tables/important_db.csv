@@ -1,0 +1,14 @@
+﻿Type,Database,Use
+Data on main employment centres,CoCT’s EMME/2 model (2013) for number of jobs per income group,Calibration
+Data on (average) household size,National censuses (2001 & 2011),Equilibrium
+Data on (average) household income,National censuses (2001 & 2011),Equilibrium
+Data on (average) household income,CoCT’s Medium Term Infrastructure Investment Framework (2017) ,Scenarios
+Transport times for each transport mode and job location,CoCT’s EMME/2 model (2013) for times (and distances),Calibration
+Transport times for each transport mode and job location,"General Household Transport Survey (2013), on-board surveys and cordon counts ",Calibration
+Rents/real estate prices,CoCT’s housing sales registry,Calibration and validation
+Origin-Destination statistics about inhabitants’ residence and workplace,CoCT’s EMME/2 model (2013),Calibration
+Global flood maps,Fathom for fluvial (defended and undefended) and pluvial flood risks,Equilibrium
+Global flood maps,Deltares for coastal flood risks (with and without sea-level rise),Equilibrium
+Flood depth-damage estimates,Englhardt et al. (2019) for high building structure estimates,Equilibrium
+Flood depth-damage estimates,Hallegatte et al. (2013) for low building structure estimates,Equilibrium
+Flood depth-damage estimates,de Villiers et al. (2007) for building content estimates,Equilibrium

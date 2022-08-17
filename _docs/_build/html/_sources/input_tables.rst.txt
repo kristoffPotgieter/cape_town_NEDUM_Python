@@ -3,7 +3,7 @@ Input tables
 ============
 
 ..
-   Need to modifiy the code accordingly
+   Need to modifiy the code accordingly + ask Claus and Basile to fill a reference column
 
 ----------------------
 Key default parameters

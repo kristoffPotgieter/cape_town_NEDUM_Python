@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Bibliography" href="bibliography.html" />
+    <link rel="next" title="Data bases" href="data_bases.html" />
     <link rel="prev" title="Technical documentation" href="technical_doc.html" /> 
 </head>
 
@@ -49,6 +49,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#key-default-options">Key default options</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="data_bases.html">Data bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_sets.html">Data sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_ref.html">API reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install_help.html">Installation help</a></li>
@@ -89,6 +91,8 @@
 <th class="head"><p>Type</p></th>
 <th class="head"><p>Value</p></th>
 <th class="head"><p>Description</p></th>
+<th class="head"></th>
+<th class="head"><p>Reference</p></th>
 </tr>
 </thead>
 <tbody>
@@ -96,236 +100,323 @@
 <td><p>user</p></td>
 <td><p>2011</p></td>
 <td><p>Baseline year to be used in the simulations</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-odd"><td><p>beta</p></td>
 <td><p>calib</p></td>
 <td><p>0.25</p></td>
 <td><p>Surplus housing elasticity in utility function</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-even"><td><p>q0</p></td>
 <td><p>calib</p></td>
 <td><p>3.97</p></td>
 <td><p>Basic need in housing (in m²) in utility function</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-odd"><td><p>alpha</p></td>
 <td><p>calib</p></td>
 <td><p>0.75</p></td>
 <td><p>Composite good elasticity in utility function</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-even"><td><p>coeff_b</p></td>
 <td><p>calib</p></td>
 <td><p>0.24</p></td>
 <td><p>Capital elasticity in housing production function</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-odd"><td><p>coeff_a</p></td>
 <td><p>calib</p></td>
 <td><p>0.76</p></td>
 <td><p>Land elasticity in housing production function</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-even"><td><p>coeff_A</p></td>
 <td><p>calib</p></td>
 <td><p>0.03</p></td>
 <td><p>Scale parameter in housing production function</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-odd"><td><p>lambda</p></td>
 <td><p>calib</p></td>
 <td><p>2.68</p></td>
 <td><p>Gravity parameter in expected income (net of commuting costs) calculation</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-even"><td><p>job_center_threshold</p></td>
 <td><p>user</p></td>
 <td><p>2500</p></td>
 <td><p>Number of jobs above wich we retain a transport zone (TAZ) as an employment centre</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 <tr class="row-odd"><td><p>depreciation_rate</p></td>
 <td><p>user</p></td>
 <td><p>0.025</p></td>
 <td><p>Depreciation rate of housing capital</p></td>
+<td></td>
+<td><p>Viguié et al. (2014)</p></td>
 </tr>
 <tr class="row-even"><td><p>shack_size</p></td>
 <td><p>user</p></td>
 <td><p>14</p></td>
 <td><p>Size (in m²) of an informal settlement dwelling unit</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>RDP_size</p></td>
 <td><p>user</p></td>
 <td><p>40</p></td>
 <td><p>Size (in m²) of the dwelling part in a RDP housing unit</p></td>
+<td></td>
+<td><p>Pfeiffer et al. (2019)</p></td>
 </tr>
 <tr class="row-even"><td><p>backyard_size</p></td>
 <td><p>user</p></td>
 <td><p>70</p></td>
 <td><p>Size (in m²) of the backyard part in a RDP housing unit</p></td>
+<td></td>
+<td><p>Pfeiffer et al. (2019)</p></td>
 </tr>
 <tr class="row-odd"><td><p>future_rate_public_housing</p></td>
 <td><p>user</p></td>
 <td><p>1000</p></td>
 <td><p>Number of formal subsidized housing units built per year in future simulations</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-even"><td><p>informal_structure_value</p></td>
 <td><p>user</p></td>
 <td><p>3000</p></td>
 <td><p>Cost of inputs (in rands) for building an informal dwelling unit</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>fraction_z_dwellings</p></td>
 <td><p>user</p></td>
 <td><p>0.53</p></td>
 <td><p>Fraction of the composite good that is kept inside the house and that can possibly be destroyed by floods (food, furniture, etc.)</p></td>
+<td></td>
+<td><p>Quantec, RIES 2011</p></td>
 </tr>
 <tr class="row-even"><td><p>subsidized_structure_value</p></td>
 <td><p>user</p></td>
 <td><p>127000</p></td>
 <td><p>Cost of inputs (in rands) for building a formal subsidized dwelling unit</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>max_land_use</p></td>
 <td><p>user</p></td>
 <td><p>0.7</p></td>
 <td><p>Maximum share of a grid cell land area available for formal private housing that can actually be built</p></td>
+<td></td>
+<td><p>Viguié et al. (2014)</p></td>
 </tr>
 <tr class="row-even"><td><p>max_land_use_backyard</p></td>
 <td><p>user</p></td>
 <td><p>0.45</p></td>
 <td><p>Maximum share of a grid cell land area available for informal backyard housing that can actually be built</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>max_land_use_settlement</p></td>
 <td><p>user</p></td>
 <td><p>0.4</p></td>
 <td><p>Maximum share of a grid cell land area available for informal settlement housing that can actually be built</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-even"><td><p>historic_radius</p></td>
 <td><p>user</p></td>
 <td><p>6</p></td>
 <td><p>Length (in km) of the radius defining the historic town from the city centre</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>limit_height_center</p></td>
 <td><p>user</p></td>
 <td><p>80</p></td>
 <td><p>Maximum legal height (in m) for buildings in the historic town</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-even"><td><p>limit_height_out</p></td>
 <td><p>user</p></td>
 <td><p>10</p></td>
 <td><p>Maximum legal height (in m) for buildings out of the historic town</p></td>
+<td></td>
+<td><p>Expert estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>agricultural_rent_2011</p></td>
 <td><p>user</p></td>
 <td><p>807.2</p></td>
 <td><p>Value (in rands) of the agricultural land price in 2011</p></td>
+<td></td>
+<td><p>Pfeiffer et al. (2019)</p></td>
 </tr>
-<tr class="row-even"><td><p>agricultural_rent_2001</p></td>
-<td><p>user</p></td>
-<td><p>70.7</p></td>
-<td><p>Value (in rands) of the agricultural land price in 2001</p></td>
-</tr>
-<tr class="row-odd"><td><p>nb_of_income_classes</p></td>
+<tr class="row-even"><td><p>nb_of_income_classes</p></td>
 <td><p>user</p></td>
 <td><p>4</p></td>
 <td><p>Number of income groups used in the model</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-even"><td><p>income_distribution</p></td>
+<tr class="row-odd"><td><p>income_distribution</p></td>
 <td><p>user</p></td>
 <td><p>/</p></td>
 <td><p>List allocating each income group in the data (12) to one income group in the model (4)</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-odd"><td><p>household_size</p></td>
+<tr class="row-even"><td><p>household_size</p></td>
 <td><p>user</p></td>
 <td><p>/</p></td>
 <td><p>List associating the average number of workers in a household (comprised of two individuals after taking unemployment into account) to each income group (from poorest to richest)</p></td>
+<td></td>
+<td><p>Pfeiffer et al. (2019)</p></td>
 </tr>
-<tr class="row-even"><td><p>walking_speed</p></td>
+<tr class="row-odd"><td><p>walking_speed</p></td>
 <td><p>user</p></td>
 <td><p>4</p></td>
 <td><p>Speed (in km/h) at which representative households walk to work</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-odd"><td><p>time_cost</p></td>
+<tr class="row-even"><td><p>time_cost</p></td>
 <td><p>user</p></td>
 <td><p>1</p></td>
 <td><p>Multiplier associating the value of time lost in commuting to foregone revenues</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-even"><td><p>time_invest_housing</p></td>
+<tr class="row-odd"><td><p>time_invest_housing</p></td>
 <td><p>user</p></td>
 <td><p>3</p></td>
 <td><p>Lag (in years) for formal private housing building in simulations</p></td>
+<td></td>
+<td><p>Viguié et al. (2014)</p></td>
 </tr>
-<tr class="row-odd"><td><p>time_depreciation_buildings</p></td>
+<tr class="row-even"><td><p>time_depreciation_buildings</p></td>
 <td><p>user</p></td>
 <td><p>100</p></td>
 <td><p>Time (in years) for the full depreciation of a formal private housing unit</p></td>
+<td></td>
+<td><p>Viguié et al. (2014)</p></td>
 </tr>
-<tr class="row-even"><td><p>mini_lot_size</p></td>
+<tr class="row-odd"><td><p>mini_lot_size</p></td>
 <td><p>user</p></td>
 <td><p>31.64</p></td>
 <td><p>Minimum size (in m²) constraint for formal private housing units</p></td>
+<td></td>
+<td><p>Pfeiffer et al. (2019)</p></td>
 </tr>
-<tr class="row-odd"><td><p>precalculated_amenities</p></td>
+<tr class="row-even"><td><p>precalculated_amenities</p></td>
 <td><p>calib</p></td>
 <td><p>/</p></td>
 <td><p>Amenity index (real value from 0 to 1) in each grid cell</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-even"><td><p>income_class_by_housing_type</p></td>
+<tr class="row-odd"><td><p>income_class_by_housing_type</p></td>
 <td><p>user</p></td>
 <td><p>/</p></td>
 <td><p>Multidimensional array of dummies setting income group eligibility to each housing type</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-odd"><td><p>income_centers_init</p></td>
+<tr class="row-even"><td><p>income_centers_init</p></td>
 <td><p>calib</p></td>
 <td><p>/</p></td>
 <td><p>Value (in rands) of annual household income per income group and employment centre</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-even"><td><p>pockets</p></td>
+<tr class="row-odd"><td><p>pockets</p></td>
 <td><p>calib</p></td>
 <td><p>/</p></td>
 <td><p>Disamenity index (real value from 0 to 1) for informal backyards in each grid cell</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-odd"><td><p>backyard_pockets</p></td>
+<tr class="row-even"><td><p>backyard_pockets</p></td>
 <td><p>calib</p></td>
 <td><p>/</p></td>
 <td><p>Disamenity index (real value from 0 to 1) for informal settlements in each grid cell</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-even"><td><p>priceTrainPerKM</p></td>
+<tr class="row-odd"><td><p>priceTrainPerKM</p></td>
 <td><p>user</p></td>
 <td><p>0.164</p></td>
 <td><p>Variable cost (in rands) for 1km of train commuting</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-odd"><td><p>priceTrainFixed</p></td>
+<tr class="row-even"><td><p>priceTrainFixed</p></td>
 <td><p>user</p></td>
 <td><p>4.48</p></td>
 <td><p>Fixed cost (in rands) for a one-way train trip</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-even"><td><p>priceBusPerKM</p></td>
+<tr class="row-odd"><td><p>priceBusPerKM</p></td>
 <td><p>user</p></td>
 <td><p>0.785</p></td>
 <td><p>Variable cost (in rands) for 1km of bus commuting</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-odd"><td><p>priceBusFixed</p></td>
+<tr class="row-even"><td><p>priceBusFixed</p></td>
 <td><p>user</p></td>
 <td><p>4.32</p></td>
 <td><p>Fixed cost (in rands) for a one-way bus trip</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-even"><td><p>priceTaxiPerKM</p></td>
+<tr class="row-odd"><td><p>priceTaxiPerKM</p></td>
 <td><p>user</p></td>
 <td><p>0.522</p></td>
 <td><p>Variable cost (in rands) for 1km of minibus/taxi commuting</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-odd"><td><p>priceTaxiFixed</p></td>
+<tr class="row-even"><td><p>priceTaxiFixed</p></td>
 <td><p>user</p></td>
 <td><p>6.24</p></td>
 <td><p>Fixed cost (in rands) for a one-way minibus/taxi trip</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-even"><td><p>priceFixedVehiculeMonth</p></td>
+<tr class="row-odd"><td><p>priceFixedVehiculeMonth</p></td>
 <td><p>user</p></td>
 <td><p>400</p></td>
 <td><p>Fixed cost (in rands) for one month of private car commuting</p></td>
+<td></td>
+<td><p>Roux (2013)</p></td>
 </tr>
-<tr class="row-odd"><td><p>max_iter</p></td>
+<tr class="row-even"><td><p>max_iter</p></td>
 <td><p>user</p></td>
 <td><p>2000</p></td>
 <td><p>Maximum number of iterations for equilibrium solver algorithm</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
-<tr class="row-even"><td><p>precision</p></td>
+<tr class="row-odd"><td><p>precision</p></td>
 <td><p>user</p></td>
 <td><p>0.02</p></td>
 <td><p>Maximum error allowed for simulated number of households per income group (in %)</p></td>
+<td></td>
+<td><p>/</p></td>
 </tr>
 </tbody>
 </table>
@@ -405,7 +496,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="technical_doc.html" class="btn btn-neutral float-left" title="Technical documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="bibliography.html" class="btn btn-neutral float-right" title="Bibliography" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="data_bases.html" class="btn btn-neutral float-right" title="Data bases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

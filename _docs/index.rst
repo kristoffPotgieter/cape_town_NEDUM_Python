@@ -12,6 +12,8 @@ Welcome to NEDUM-2D's documentation!
    use_case
    technical_doc
    input_tables
+   data_bases
+   data_sets
    bibliography
    api_ref
    install_help

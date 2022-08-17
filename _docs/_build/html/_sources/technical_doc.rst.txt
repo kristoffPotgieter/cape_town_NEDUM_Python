@@ -7,14 +7,14 @@ Technical documentation
 Code walk-through
 -----------------
 
-The project repository is composed of a main script and plots scripts, calling on several secondary scripts and user-defined packages. Those packages in turn include modules that are used at different steps of the code:
+The project repository is composed of a ``main`` script and ``plots`` scripts, calling on several secondary scripts and user-defined packages. Those packages in turn include modules that are used at different steps of the code:
 
-* Inputs: contains the modules used to import default parameters and options, as well as pre-treated data
-* Equilibrium: contain the modules used to compute the static equilibrium allocation, as well as the dynamic simulations
-* Outputs: contain the modules used to visualize results and data.
-* Calibration: contains the modules used to re-run the calibration of parameters if necessary
+* ``inputs``: contains the modules used to import default parameters and options, as well as pre-treated data
+* ``equilibrium``: contain the modules used to compute the static equilibrium allocation, as well as the dynamic simulations
+* ``outputs``: contain the modules used to visualize results and data.
+* ``calibration``: contains the modules used to re-run the calibration of parameters if necessary
 
-As for the main script and plots scripts, they start with a preamble that imports (python and user-defined) packages to be used, and defines the file paths that integrate the repository to the local system of the user. They then go on calling the packages described above. Let us start with the main script.
+As for the ``main`` script and ``plots`` scripts, they start with a preamble that imports (python and user-defined) packages to be used, and defines the file paths that integrate the repository to the local system of the user. They then go on calling the packages described above. Let us start with the ``main`` script.
 
 |
 
@@ -26,21 +26,23 @@ Inputs
 Parameters and options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-In this part, the code calls on the ``parameters_and_options.py`` module that imports the default parameters and options, then sets the timeline for the simulations, and overwrites the default parameters and options according to the specific scenario one is interested in [#f1]_. Typically, one may set options allowing or not agents to anticipate floods, or new informal settlements to be built. To store the output in a dedicated folder, we create a name associated to the parameters and options used:
+In this part, the code calls on the ``parameters_and_options.py`` module that imports the default parameters and options, then sets the timeline for the simulations, and overwrites the default parameters and options according to the specific scenario one is interested in. The detail of key parameters and options is given in :doc:`../input_tables` [#f1]_. Typically, one may set options allowing or not agents to anticipate floods, or new informal settlements to be built. To store the output in a dedicated folder, we create a name associated to the parameters and options used:
 
 .. literalinclude:: ../main.py
    :language: python
    :lines: 111-118
-   :linenos:
+   :lineno-start: 111
+
+This name is a code associated to the options, parameters, and scenarios that we changed across our main simulation runs. They can safely be updated by the end user.
 
 
 ^^^^^^^^^^^
 Assumptions
 ^^^^^^^^^^^
 
-Note that, in our model, we consider three endogenous housing markets (whose allocation is computed in equilibrium) - namely, formal private housing, informal backyards (erected in the backyard of subsidized-housing dwelling units), and informal settlements (in predetermined locations) [#f2]_ - one exogenous housing market (whose allocation is directly taken from the data) - the RDP (Reconstruction and Development Programme) formal subsidized housing [#f3]_ - and four income groups.
+Note that, in our model, we consider three endogenous housing markets (whose allocation is computed in equilibrium) - namely, formal private housing, informal backyards (erected in the backyard of subsidized housing dwelling units), and informal settlements (in predetermined locations) [#f2]_ - one exogenous housing market (whose allocation is directly taken from the data) - the RDP (Reconstruction and Development Programme) formal subsidized housing [#f3]_ - and four income groups.
 
-By default, only agents from the poorest income group have access to RDP housing units. Without loss of generality, we assume that the price of such dwellings is zero, and that they are allocated randomly to the part of poorest agents they can host, the rest being rationed out of the formal subsidized housing market. Then, the two poorest income groups sort across formal private housing, informal backyards, and informal settlements; whereas the two richest only choose to live in the formal private housing units. We believe that this is a good approximation of reality. Also note that, although the two richest income groups are identical in terms of housing options, we distinguish between the two to better account for income heterogeneity and spatial sorting along income lines in our simulations, while keeping the model sufficiently simple to be solved numerically.
+By default, only agents from the poorest income group have access to RDP housing units. Without loss of generality, we assume that the price of such dwellings is zero, and that they are allocated randomly to the part of poorest agents they can host, the rest being rationed out of the formal subsidized housing market. Then, the two poorest income groups sort across formal private housing, informal backyards, and informal settlements; whereas the two richest only choose to live in the formal private housing units. Those assumptions are passed into the code through the ``income_class_by_housing_type`` parameter. We believe that this is a good approximation of reality. Also note that, although the two richest income groups are identical in terms of housing options, we distinguish between them to better account for income heterogeneity and spatial sorting along income lines in our simulations, while keeping the model sufficiently simple to be solved numerically.
 
 .. figure:: images/model_assumpt.png 
    :scale: 60% 
@@ -54,10 +56,7 @@ By default, only agents from the poorest income group have access to RDP housing
 Data
 ^^^^
 
-Then, the code calls on the ``data.py`` module. This allows to import basic geographic data, macro data, households and income data, land use projections, flood data, scenarios for time-dependent variables, and transport data.
-
-..
-   (see data_list? for more details on the sources and uses of those data sets)
+Then, the code calls on the ``data.py`` module. This allows to import basic geographic data, macro data, households and income data, land use projections, flood data, scenarios for time-dependent variables, and transport data. The databases used are presented in :doc:`../data_bases`. A more detailed view on the specific data sets called in the code, and their position in the folder architecture, is given in :doc:`../data_sets` [#fdata]_.
 
 It should be noted that, by default, housing type data has already been converted from the SAL (Small Area Level) dimension to the grid dimension (500x500m pixels), and that income net of commuting costs for each income group and each grid cell (from transport data) has already been computed from the calibrated incomes for each income group and each job center. If one wants to run the process again, one needs to overwrite the associated default options (please note that this may take some time to run). The import of flood data is also a little time-consuming when agents are set to anticipate floods.
 
@@ -71,7 +70,30 @@ Land use data
 
 The ``import_land_use`` and ``import_coeff_land`` functions help define exogenous land availability :math:`L^h(x)` for each housing type :math:`h` and each grid cell :math:`x`. Indeed, we assume that different kinds of housing do not get built in the same places to account for insecure property rights (in the case of informal settlements vs. formal private housing) and housing specificities (in the case of non-market formal subsidized housing, and informal backyards located in the same preccints) [#fmixed]_. Furthermore, :math:`L` varies with :math:`x` to account for both natural, regulatory constraints, infrastructure and other non-residential uses.
 
-As :math:`L^h(x)` is going to vary across time periods, the first part of the ``import_land_use`` function imports lacking data estimates for historical and projected land uses. It then defines linear regression splines over time for a set of variables, the key ones being the share of pixel area available for formal subsidized housing, informal backyards, informal settlements, and unconstrained development. The ``import_coeff_land`` function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter (corresponding to equation (5) in :cite:t:`pfeiffer`). The outputs are stored in a ``coeff_land`` vector that yield the values of :math:`L^h(x)` for each time period when multiplied by the area of a pixel. Results are shown in the figure below.
+As :math:`L^h(x)` is going to vary across time periods, the first part of the ``import_land_use`` function imports lacking data estimates for historical and projected land uses. It then defines linear regression splines over time for a set of variables, the key ones being the share of pixel area available for formal subsidized housing, informal backyards, informal settlements, and unconstrained development. Note that, in our benchmark, land availability for informal settlements is defined over time by the intersection between the timing map below and the high and very high probability areas (also defined below).
+
+.. figure:: images/WBUS2_Land_occupation_timing.png 
+   :scale: 15% 
+   :align: center
+   :alt: map for estimated timing of future informal settlements
+
+   Estimated timing of future new informal settlements
+
+.. figure:: images/WBUS2_Land_occupation_probability.png 
+   :scale: 15% 
+   :align: center
+   :alt: map for estimated probability of future informal settlements
+
+   Estimated probability of future new informal settlements
+
+The ``import_coeff_land`` function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter:
+
+.. literalinclude:: ../inputs/data.py
+   :language: python
+   :lines: 670-681
+   :lineno-start: 670
+
+The outputs are stored in a ``coeff_land`` vector that yields the values of :math:`L^h(x)` for each time period when multiplied by the area of a pixel. Results are shown in the figure below.
 
 .. figure:: images/land_avail.png 
    :scale: 90% 
@@ -87,17 +109,38 @@ Flood data
 
 Flood data is processed through the ``import_init_floods_data``, ``compute_fraction_capital_destroyed``, and ``import_full_floods_data`` functions.
 
-The ``import_init_floods_data`` imports the pre-processed flood maps from FATHOM (fluvial and pluvial), and DELTARES (coastal). Those maps yield for each grid cell an estimate of the pixel share that is exposed to a flood of some maximum depth level, reached in a given year with a probability equal to the inverse of their return period. For instance, a flood map corresponding to a return period of 100 years considers events that have a 1/100 chance of ocurring in a given year. Note that the considered return periods are not the same for FATHOM and DELTARES data, and that different flood maps are available depending on the digital elevation model (DEM) considered, whether we account for sea-level rise, and whether we account for defensive infrastructure with respect to fluvial floods [#f4]_. The function then imports depth-damage functions from the existing literature. Those functions, used in the insurance market, link a level of maximum flood depth to a fraction of capital destroyed, depending on the materials affected by floods [#f5]_. More specifically, we use estimates from :cite:t:`englhardt` for damages to housing structures (depending on housing type), and from :cite:t:`villiers` for damages to housing contents.
+The ``import_init_floods_data`` function imports the pre-processed flood maps from FATHOM (fluvial and pluvial), and DELTARES (coastal). Those maps yield for each grid cell an estimate of the pixel share that is exposed to a flood of some maximum depth level, reached in a given year with a probability equal to the inverse of their return period. For instance, a flood map corresponding to a return period of 100 years considers events that have a 1/100 chance of ocurring in a given year.
+
+.. figure:: ../../4.\ Sorties/input_plots/P_100yr_map_depth.png
+   :scale: 70% 
+   :align: center
+   :alt: map of land availability ratios per housing type
+
+   Maximum pluvial flood depth (in meters) for a 100-year return period (*Source*: FATHOM)
+
+Note that the considered return periods are not the same for FATHOM and DELTARES data, and that different flood maps are available depending on the digital elevation model (DEM) considered, whether we account for sea-level rise, and whether we account for defensive infrastructure with respect to fluvial floods [#f4]_. 
+
+The function then imports depth-damage functions from the existing literature. Those functions, used in the insurance market, link a level of maximum flood depth to a fraction of capital destroyed, depending on the materials affected by floods [#f5]_. More specifically, we use estimates from :cite:t:`englhardt` and :cite:t:`hallegatte` for damages to housing structures (depending on housing type), and from :cite:t:`villiers` for damages to housing contents.
 
 On this basis, the ``compute_fraction_capital_destroyed`` function integrates flood damages over the full range of return periods possible, for each flood type and damage function [#f6]_. This yields an annualized fraction of capital destroyed, corresponding to its expected value in a given year [#f7]_.
 
-Finally, the ``import_full_floods_data`` uses those outputs to define the depreciation term :math:`\rho_{h}^{d}(x)` that is specific to housing type :math:`h`, damage type (structures or contents) :math:`d`, and location :math:`x`, by taking the maximum of fractions of capital destroyed for all flood types considered. When multiplied by some capital value, this term yields the expected economic cost from flood risks that is considered by anticipating agents when solving for equilibrium. It is also equal to the risk premium in the case of a perfect insurance market (yielding full insurance with actuarially fair prices) [#f8]_.
+Finally, the ``import_full_floods_data`` function uses those outputs to define the depreciation term :math:`\rho_{h}^{d}(x)` that is specific to housing type :math:`h`, damage type (structures or contents) :math:`d`, and location :math:`x`, by taking the maximum of fractions of capital destroyed for all flood types considered. When multiplied by some capital value, this term yields the expected economic cost from flood risks that is considered by anticipating agents when solving for equilibrium. It is also equal to the risk premium in the case of a perfect insurance market (leading to full insurance with actuarially fair prices) [#f8]_.
+
+.. figure:: ../../4.\ Sorties/input_plots/structure_informal_settlements_fract_K_destroyed.png
+   :scale: 70% 
+   :align: center
+   :alt: map of annualized fraction of capital destroyed in informal settlements
+
+   Annualized fraction of capital destroyed in informal settlements
 
 """"""""""""""
 Transport data
 """"""""""""""
 
-Transport data is processed through the ``import_transport_data`` function. It imports monetary and time transport costs and pre-calibrated incomes per income group and job center (more on that in :ref:`calibration_process`). From there, it computes several outputs, of which the key variable is the expected income net of commuting costs :math:`\tilde{y}_i(x)`, earned by a household of income group :math:`i` choosing to live in :math:`x`. It is obtained by recursively solving for the optimal transport mode choice and job center choice of households characterized by :math:`i` and :math:`x`, following equations (1) and (2) from :cite:t:`pfeiffer`.
+Transport data is processed through the ``import_transport_data`` function. It imports monetary and time transport costs and pre-calibrated incomes per income group and job center (more on that in :ref:`calibration_process`). From there, it computes several outputs, of which the key variable is the expected income net of commuting costs :math:`\tilde{y}_i(x)`, earned by a household of income group :math:`i` choosing to live in :math:`x`. It is obtained by recursively solving for the optimal transport mode choice and job center choice of households characterized by :math:`i` and :math:`x`. 
+
+.. math::
+
 
 
 .. _calibration_process:
@@ -237,11 +280,13 @@ We rely on the interface for comments about the interpretation of results. As th
 
 .. rubric:: Footnotes
 
-.. [#f1] Detailed tables of key parameters and options, along with their value and description are given in :doc:`../input_tables`. The type of a parameter indicates whether it is plugged as a raw value or is the outcome of a calibration process. In theory, all "user" defined parameters can be overwritten by the end user. In practice, we cannot guarantee that the model runs seamlessly for all possible changes in values. We therefore encourage you to ask for guidance if you would like to change a parameter that was not included in main simulation runs.
+.. [#f1] The type of a parameter indicates whether it is plugged as a raw value or is the outcome of a calibration process. In theory, all "user" defined parameters can be overwritten by the end user. In practice, we cannot guarantee that the model runs seamlessly for all possible changes in values. We therefore encourage you to ask for guidance if you would like to change a parameter that was not included in main simulation runs.
 
 .. [#f2] We are aware of the existence of formal (concrete) backyard structures but disregard their existence for the sake of model tractability and as they only represent a minority of all backyard settlements.
 
 .. [#f3] Note that there is no consensus on how to enumerate RDP dwelling units, as they are counted as formal dwelling units in census data. We follow a general validation procedure that draws on several data sources to estimate this number (including council housing), and then allocate the units across the grid using the CoCT's cadastre.
+
+.. [#fdata] Not all the "raw" data sets (as opposed to "user" data sets that result from a calibration process and can be updated by the end user) used are actually raw data. Some of them have been pre-processed, and this explains why there are more files (used as intermediary inputs) in the projet repository than described in :doc:`../data_sets`. Some other files may be related to older versions of the model, or may have been imported in group with other data sets. They are kept as reference and may serve for later implementations.
 
 .. [#fmixed] To some extent, this precludes mixed land use, which we do not see as a major issue given that the granularity of our setting allows us to approximate it finely.
 
