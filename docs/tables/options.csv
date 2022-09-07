@@ -1,0 +1,14 @@
+﻿Options,Value,Description
+agents_anticipate_floods,1,Dummy for having agents perfectly anticipate flood risks
+coastal,1,Dummy for taking coastal floods into account (on top of fluvial floods)
+correct_pluvial,1,Dummy for reducing pluvial risk for (better protected) formal structures
+defended,0,Dummy variable for considering defended (vs. undefended) fluvial flood maps from FATHOM
+dem,/,Digital elevation model (DEM) to be used with coastal flood data (MERITDEM or NASADEM)
+fuel_price_scenario,2,Categorical variable to select scenario for fuel price (should be set to 1/2/3 for low/medium/high price growth)
+inc_ineq_scenario,2,Categorical variable to select scenario for income distribution (should be set to 1/2/3 for low/medium/high income inequality)
+inflation_scenario,2,Categorical variable to select scenario for inflation rate (should be set to 1/2/3 for low/medium/high growth rate)
+informal_land_constrained,0,Dummy for forbidding new informal housing construction
+interest_rate_scenario,2,Categorical variable to select scenario for interest rate (should be set to 1/2/3 for low/medium/high growth rate)
+pluvial,1,Dummy for considering pluvial floods on top of fluvial
+pop_growth_scenario,3,Categorical variable to select scenario for total population (should be set to 1/2/3 for low/medium/high population growth)
+slr,1,Dummy for taking sea-level rise into account in coastal flood data

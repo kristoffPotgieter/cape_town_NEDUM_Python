@@ -1010,6 +1010,8 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
     elif options["defended"] == 0:
         fluvialtype = 'FU'
 
+    # TODO: Define as maximum!
+
     if options["pluvial"] == 0 and options["coastal"] == 0:
         print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
