@@ -8,6 +8,7 @@ Welcome to NEDUM-2D's documentation!
 
    Introducing NEDUM-2D <readme_link>
    License <license_rst>
+   Notebook <notebook_link>
    guidelines
    use_case
    technical_doc

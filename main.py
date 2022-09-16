@@ -1,11 +1,29 @@
 # -*- coding: utf-8 -*-
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: title,-all
+#     formats: ipynb,py
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.14.0
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
 """
 Created on Tue Oct 27 15:33:37 2020.
 
 @author: Charlotte Liotta
 """
 
-# %% Preamble
+# !conda install nbsphinx
+
+# + Preamble
 
 # IMPORT PACKAGES
 
@@ -47,7 +65,7 @@ path_floods = path_folder + "FATHOM/"
 start = time.process_time()
 
 
-# %% Import parameters and options
+# + Import parameters and options
 
 print("Import default parameters and options, define custom ones")
 
@@ -121,7 +139,7 @@ path_plots = path_outputs + name + '/plots/'
 
 # TODO: need to talk about numeric parameters
 
-# %% Load data
+# + Load data
 
 print("Load and pre-process data to be used in model (may take some time"
       + " when agents anticipate floods and we re-process some data)")
@@ -260,7 +278,7 @@ income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 
 
-# %% Re-run calibration (takes time, only if needed)
+# + Re-run calibration (takes time, only if needed)
 
 # NB: use np.linspace instead of np.arange?
 
@@ -480,7 +498,7 @@ if options["run_calib"] == 1:
     # param["q0"] = calibratedUtility_q0
 
 
-# %% Reload calibrated data
+# + Reload calibrated data
 
 if options["run_calib"] == 1:
 
@@ -501,7 +519,7 @@ if options["run_calib"] == 1:
     amenities = inpdt.import_amenities(path_precalc_inp, options)
 
 
-# %% End calibration by fitting disamenity parameter for backyard
+# + End calibration by fitting disamenity parameter for backyard
 # and informal housing to the model
 
 # Unemployment reweighting does not work fine: results should be shown for
@@ -786,7 +804,7 @@ if options["run_calib"] == 1:
     print("Calibration process - end")
 
 
-# %% Compute initial state
+# + Compute initial state
 
 print("Compute initial state")
 
@@ -895,7 +913,7 @@ np.save(path_outputs + name + '/initial_state_average_income.npy',
 np.save(path_outputs + name + '/initial_state_limit_city.npy',
         initial_state_limit_city)
 
-# %% Scenarios
+# + Scenarios
 
 print("Compute simulations")
 
