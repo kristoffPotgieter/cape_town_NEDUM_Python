@@ -15,6 +15,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -40,6 +41,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_doc.html">Technical documentation</a></li>
@@ -76,7 +79,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="welcome-to-nedum-2d-s-documentation">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="welcome-to-nedum-2d-s-documentation">
 <h1>Welcome to NEDUM-2D’s documentation!<a class="headerlink" href="#welcome-to-nedum-2d-s-documentation" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
@@ -92,6 +119,26 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main_nb.html#Preamble">Preamble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_nb.html#Import-parameters-and-options">Import parameters and options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_nb.html#Give-name-to-simulation-to-export-the-results">Give name to simulation to export the results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_nb.html#Load-data">Load data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_nb.html#Compute-initial-state-equilibrium">Compute initial state equilibrium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main_nb.html#Run-simulations-for-subsequent-periods-(time-depends-on-timeline-length)">Run simulations for subsequent periods (time depends on timeline length)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="calib_nb.html">Notebook: run calibration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Preamble">Preamble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Import-parameters-and-options">Import parameters and options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Load-data">Load data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Prepare-data">Prepare data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Calibrate-construction-function-parameters">Calibrate construction function parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Calibrate-incomes-and-gravity-parameter">Calibrate incomes and gravity parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Calibrate-utility-function-parameters">Calibrate utility function parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calib_nb.html#Calibrate-disamenity-index-for-informal-backyards-+-settlements">Calibrate disamenity index for informal backyards + settlements</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="guidelines.html#elements-of-context">Elements of context</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guidelines.html#policies-assessment">Policies assessment</a></li>

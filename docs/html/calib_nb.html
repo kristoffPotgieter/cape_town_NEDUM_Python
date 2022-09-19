@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notebook: run calibration &mdash; NEDUM-2D for CoCT  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User guidelines" href="guidelines.html" />
+    <link rel="prev" title="Notebook: run model" href="main_nb.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NEDUM-2D for CoCT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme_link.html">Introducing NEDUM-2D</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Notebook: run calibration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Preamble">Preamble</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Import-packages">Import packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Define-file-paths">Define file paths</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-parameters-and-options">Import parameters and options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#We-import-default-parameter-and-options">We import default parameter and options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#We-also-set-custom-options-for-this-simulation">We also set custom options for this simulation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#We-first-set-options-regarding-structural-assumptions-used-in-the-model">We first set options regarding structural assumptions used in the model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Then-we-set-options-regarding-flood-data-used">Then we set options regarding flood data used</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#We-also-set-options-for-scenarios-on-time-moving-exogenous-variables">We also set options for scenarios on time-moving exogenous variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Finally,-we-set-options-regarding-data-processing">Finally, we set options regarding data processing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Load-data">Load data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Basic-geographic-data">Basic geographic data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Macro-data">Macro data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Households-and-income-data">Households and income data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Land-use-projections">Land use projections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Import-flood-data-(takes-some-time-when-agents-anticipate-floods)">Import flood data (takes some time when agents anticipate floods)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Import-scenarios-(for-time-moving-variables)">Import scenarios (for time-moving variables)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Import-income-net-of-commuting-costs-(for-all-time-periods)">Import income net of commuting costs (for all time periods)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Prepare-data">Prepare data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Define-dominant-income-group-in-each-census-block-(SP)">Define dominant income group in each census block (SP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Obtain-number-of-formal-private-housing-units-per-SP">Obtain number of formal private housing units per SP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Sample-selection">Sample selection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Calibrate-construction-function-parameters">Calibrate construction function parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Calibrate-incomes-and-gravity-parameter">Calibrate incomes and gravity parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Calibrate-utility-function-parameters">Calibrate utility function parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Calibrate-disamenity-index-for-informal-backyards-+-settlements">Calibrate disamenity index for informal backyards + settlements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#We-start-with-a-general-(not-location-specific)-calibration">We start with a general (not location-specific) calibration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Calibrate-location-specific-disamenity-index">Calibrate location-specific disamenity index</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_tables.html">Input tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_bases.html">Data bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_sets.html">Data sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math_appendix.html">Math appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ref.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install_help.html">Installation help</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NEDUM-2D for CoCT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Notebook: run calibration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/calib_nb.nblink.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="Notebook:-run-calibration">
+<h1>Notebook: run calibration<a class="headerlink" href="#Notebook:-run-calibration" title="Permalink to this heading"></a></h1>
+<div class="section" id="Preamble">
+<h2>Preamble<a class="headerlink" href="#Preamble" title="Permalink to this heading"></a></h2>
+<div class="section" id="Import-packages">
+<h3>Import packages<a class="headerlink" href="#Import-packages" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We import standard Python libraries</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># We also import our own packages</span>
+<span class="kn">import</span> <span class="nn">inputs.data</span> <span class="k">as</span> <span class="nn">inpdt</span>
+<span class="kn">import</span> <span class="nn">inputs.parameters_and_options</span> <span class="k">as</span> <span class="nn">inpprm</span>
+<span class="kn">import</span> <span class="nn">equilibrium.compute_equilibrium</span> <span class="k">as</span> <span class="nn">eqcmp</span>
+<span class="kn">import</span> <span class="nn">equilibrium.functions_dynamic</span> <span class="k">as</span> <span class="nn">eqdyn</span>
+<span class="kn">import</span> <span class="nn">calibration.calib_main_func</span> <span class="k">as</span> <span class="nn">calmain</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Define-file-paths">
+<h3>Define file paths<a class="headerlink" href="#Define-file-paths" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">path_code</span> <span class="o">=</span> <span class="s1">&#39;..&#39;</span>
+<span class="n">path_folder</span> <span class="o">=</span> <span class="n">path_code</span> <span class="o">+</span> <span class="s1">&#39;/2. Data/&#39;</span>
+<span class="n">path_precalc_inp</span> <span class="o">=</span> <span class="n">path_folder</span> <span class="o">+</span> <span class="s1">&#39;0. Precalculated inputs/&#39;</span>
+<span class="n">path_data</span> <span class="o">=</span> <span class="n">path_folder</span> <span class="o">+</span> <span class="s1">&#39;data_Cape_Town/&#39;</span>
+<span class="n">path_precalc_transp</span> <span class="o">=</span> <span class="n">path_folder</span> <span class="o">+</span> <span class="s1">&#39;precalculated_transport/&#39;</span>
+<span class="n">path_scenarios</span> <span class="o">=</span> <span class="n">path_folder</span> <span class="o">+</span> <span class="s1">&#39;data_Cape_Town/Scenarios/&#39;</span>
+<span class="n">path_outputs</span> <span class="o">=</span> <span class="n">path_code</span> <span class="o">+</span> <span class="s1">&#39;/4. Sorties/&#39;</span>
+<span class="n">path_floods</span> <span class="o">=</span> <span class="n">path_folder</span> <span class="o">+</span> <span class="s2">&quot;FATHOM/&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Import-parameters-and-options">
+<h2>Import parameters and options<a class="headerlink" href="#Import-parameters-and-options" title="Permalink to this heading"></a></h2>
+<div class="section" id="We-import-default-parameter-and-options">
+<h3>We import default parameter and options<a class="headerlink" href="#We-import-default-parameter-and-options" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_options</span><span class="p">()</span>
+<span class="n">param</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_param</span><span class="p">(</span>
+    <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_outputs</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="We-also-set-custom-options-for-this-simulation">
+<h3>We also set custom options for this simulation<a class="headerlink" href="#We-also-set-custom-options-for-this-simulation" title="Permalink to this heading"></a></h3>
+<div class="section" id="We-first-set-options-regarding-structural-assumptions-used-in-the-model">
+<h4>We first set options regarding structural assumptions used in the model<a class="headerlink" href="#We-first-set-options-regarding-structural-assumptions-used-in-the-model" title="Permalink to this heading"></a></h4>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dummy for taking floods into account in agents&#39; choices</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;agents_anticipate_floods&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Dummy for preventing new informal settlement development</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;informal_land_constrained&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Then-we-set-options-regarding-flood-data-used">
+<h4>Then we set options regarding flood data used<a class="headerlink" href="#Then-we-set-options-regarding-flood-data-used" title="Permalink to this heading"></a></h4>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dummy for taking pluvial floods into account (on top of fluvial floods)</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Dummy for reducing pluvial risk for (better protected) formal structures</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_pluvial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Dummy for taking coastal floods into account (on top of fluvial floods)</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Digital elevation model to be used with coastal floods (MERITDEM or NASADEM)</span>
+<span class="c1"># NB: MERITDEM is also the DEM used for fluvial and pluvial flood data</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;dem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;MERITDEM&quot;</span>
+<span class="c1"># Dummy for taking defended (vs. undefended) fluvial flood maps</span>
+<span class="c1"># NB: FATHOM recommends to use undefended maps due to the high uncertainty</span>
+<span class="c1"># in infrastructure modelling</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;defended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Dummy for taking sea-level rise into account in coastal flood data</span>
+<span class="c1"># NB: Projections are up to 2050, based upon IPCC AR5 assessment for the</span>
+<span class="c1"># RCP 8.5 scenario</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;slr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="We-also-set-options-for-scenarios-on-time-moving-exogenous-variables">
+<h4>We also set options for scenarios on time-moving exogenous variables<a class="headerlink" href="#We-also-set-options-for-scenarios-on-time-moving-exogenous-variables" title="Permalink to this heading"></a></h4>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NB: Must be set to 1/2/3 for low/medium/high growth scenario</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;inc_ineq_scenario&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;pop_growth_scenario&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;fuel_price_scenario&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Finally,-we-set-options-regarding-data-processing">
+<h4>Finally, we set options regarding data processing<a class="headerlink" href="#Finally,-we-set-options-regarding-data-processing" title="Permalink to this heading"></a></h4>
+<p>Default is set at zero to save computing time (data is simply loaded in the model)</p>
+<p>NB: this is only needed to create the data for the first time, or when the source is changed, so that pre-processed data is updated</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dummy for converting small-area-level (SAL) data into grid-level data</span>
+<span class="c1"># (used for result validation)</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;convert_sal_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Dummy for computing expected income net of commuting costs on the basis</span>
+<span class="c1"># of calibrated wages</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;compute_net_income&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Load-data">
+<h2>Load data<a class="headerlink" href="#Load-data" title="Permalink to this heading"></a></h2>
+<div class="section" id="Basic-geographic-data">
+<h3>Basic geographic data<a class="headerlink" href="#Basic-geographic-data" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">grid</span><span class="p">,</span> <span class="n">center</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_grid</span><span class="p">(</span><span class="n">path_data</span><span class="p">)</span>
+<span class="n">amenities</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_amenities</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Macro-data">
+<h3>Macro data<a class="headerlink" href="#Macro-data" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">interest_rate</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">housing_type_data</span><span class="p">,</span> <span class="n">total_RDP</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_macro_data</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Households-and-income-data">
+<h3>Households and income data<a class="headerlink" href="#Households-and-income-data" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">income_class_by_housing_type</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_hypothesis_housing_type</span><span class="p">()</span>
+
+<span class="p">(</span><span class="n">mean_income</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span> <span class="n">income_mult</span><span class="p">,</span>
+ <span class="n">income_2011</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_income_classes_data</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">path_data</span><span class="p">)</span>
+
+<span class="c1"># NB: we create this parameter to maintain money illusion in simulations</span>
+<span class="c1"># (see eqsim.run_simulation function)</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;income_year_reference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_income</span>
+
+<span class="c1"># Other data at SP (small place) level used for calibration and validation</span>
+<span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+ <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">threshold_income_distribution</span><span class="p">,</span> <span class="n">income_distribution</span><span class="p">,</span>
+ <span class="n">cape_town_limits</span><span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_households_data</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">)</span>
+
+<span class="c1"># Import nb of households per pixel, by housing type (from SAL data)</span>
+<span class="c1"># NB: RDP housing is included in formal, and there are both formal and informal</span>
+<span class="c1"># backyards</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;convert_sal_data&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">housing_types</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_sal_data</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">,</span> <span class="n">path_data</span><span class="p">,</span>
+                                          <span class="n">housing_type_data</span><span class="p">)</span>
+<span class="n">housing_types</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">path_folder</span> <span class="o">+</span> <span class="s1">&#39;housing_types_grid_sal.xlsx&#39;</span><span class="p">)</span>
+<span class="n">housing_types</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">housing_types</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Land-use-projections">
+<h3>Land use projections<a class="headerlink" href="#Land-use-projections" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We import basic projections</span>
+<span class="p">(</span><span class="n">spline_RDP</span><span class="p">,</span> <span class="n">spline_estimate_RDP</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span>
+ <span class="n">spline_land_backyard</span><span class="p">,</span> <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_constraints</span><span class="p">,</span>
+ <span class="n">number_properties_RDP</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span>
+     <span class="n">inpdt</span><span class="o">.</span><span class="n">import_land_use</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types</span><span class="p">,</span>
+                           <span class="n">housing_type_data</span><span class="p">,</span> <span class="n">path_data</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">)</span>
+     <span class="p">)</span>
+
+<span class="c1"># We correct areas for each housing type at baseline year for the amount of</span>
+<span class="c1"># constructible land in each type</span>
+<span class="n">coeff_land</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_coeff_land</span><span class="p">(</span>
+    <span class="n">spline_land_constraints</span><span class="p">,</span> <span class="n">spline_land_backyard</span><span class="p">,</span> <span class="n">spline_land_informal</span><span class="p">,</span>
+    <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># We import housing heigth limits</span>
+<span class="n">housing_limit</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_housing_limit</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+
+<span class="c1"># We update parameter vector with construction parameters</span>
+<span class="c1"># (relies on loaded data) and compute other variables</span>
+<span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">agricultural_rent</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_construction_parameters</span><span class="p">(</span>
+    <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;dwelling_size&quot;</span><span class="p">],</span>
+    <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span> <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
+    <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Import-flood-data-(takes-some-time-when-agents-anticipate-floods)">
+<h3>Import flood data (takes some time when agents anticipate floods)<a class="headerlink" href="#Import-flood-data-(takes-some-time-when-agents-anticipate-floods)" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># If agents anticipate floods, we return output from damage functions</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;agents_anticipate_floods&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">,</span> <span class="n">structural_damages_small_houses</span><span class="p">,</span>
+     <span class="n">structural_damages_medium_houses</span><span class="p">,</span> <span class="n">structural_damages_large_houses</span><span class="p">,</span>
+     <span class="n">content_damages</span><span class="p">,</span> <span class="n">structural_damages_type1</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span>
+     <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span>
+     <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="n">structural_damages_type4b</span>
+     <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_full_floods_data</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">,</span>
+                                       <span class="n">housing_type_data</span><span class="p">)</span>
+
+<span class="c1"># Else, we set those outputs as zero</span>
+<span class="c1"># NB: 24014 is the number of grid pixels</span>
+<span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;agents_anticipate_floods&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">fraction_capital_destroyed</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_formal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_informal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_subsidized&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_backyard&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_backyards&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_backyards&quot;</span>
+                               <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+    <span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_settlements&quot;</span>
+                               <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Import-scenarios-(for-time-moving-variables)">
+<h3>Import scenarios (for time-moving variables)<a class="headerlink" href="#Import-scenarios-(for-time-moving-variables)" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">spline_agricultural_rent</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
+ <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
+ <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
+ <span class="n">spline_income</span><span class="p">,</span> <span class="n">spline_minimum_housing_supply</span><span class="p">,</span> <span class="n">spline_fuel</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">import_scenarios</span><span class="p">(</span><span class="n">income_2011</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
+                            <span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Import-income-net-of-commuting-costs-(for-all-time-periods)">
+<h3>Import income net of commuting costs (for all time periods)<a class="headerlink" href="#Import-income-net-of-commuting-costs-(for-all-time-periods)" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;compute_net_income&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="p">(</span><span class="n">incomeNetOfCommuting</span><span class="p">,</span> <span class="n">modalShares</span><span class="p">,</span> <span class="n">ODflows</span><span class="p">,</span> <span class="n">averageIncome</span>
+     <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_transport_data</span><span class="p">(</span>
+         <span class="n">grid</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span>
+         <span class="n">spline_inflation</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span>
+         <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_income_distribution</span><span class="p">,</span>
+         <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_precalc_transp</span><span class="p">,</span> <span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+<span class="n">income_net_of_commuting_costs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">path_precalc_transp</span> <span class="o">+</span> <span class="s1">&#39;GRID_incomeNetOfCommuting_0.npy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Prepare-data">
+<h2>Prepare data<a class="headerlink" href="#Prepare-data" title="Permalink to this heading"></a></h2>
+<div class="section" id="Define-dominant-income-group-in-each-census-block-(SP)">
+<h3>Define dominant income group in each census block (SP)<a class="headerlink" href="#Define-dominant-income-group-in-each-census-block-(SP)" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># In one case, we base our definition on the median income at the SP-level:</span>
+<span class="c1"># we consider as dominant the group corresponding to the highest income</span>
+<span class="c1"># threshold is crossed</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_dominant_incgrp&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">data_income_group</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;income&quot;</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;nb_of_income_classes&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">data_income_group</span><span class="p">[</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;income&quot;</span><span class="p">]</span> <span class="o">&gt;</span>
+                          <span class="n">threshold_income_distribution</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span>
+
+<span class="c1"># In the other case, we just consider the most numerous income group in each</span>
+<span class="c1"># census block</span>
+<span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_dominant_incgrp&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">data_income_group</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">income_distribution</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">income_distribution</span><span class="p">)):</span>
+        <span class="n">data_income_group</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">income_distribution</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<p>Although the second option seems more logical, we take the first one as default since we are going to consider median SP prices, and we want associated net income to be in line with those values to avoid a sample selection bias in our regressions.</p>
+</div>
+<div class="section" id="Obtain-number-of-formal-private-housing-units-per-SP">
+<h3>Obtain number of formal private housing units per SP<a class="headerlink" href="#Obtain-number-of-formal-private-housing-units-per-SP" title="Permalink to this heading"></a></h3>
+<p>NB: it is not clear whether RDP are included in SP formal count, and if they should be taken out based on imperfect cadastral estimations. For reference, we include the two options.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;substract_RDP_from_formal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="c1"># We retrieve number of RDP units per SP from grid-level data</span>
+    <span class="n">grid_intersect</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_data</span> <span class="o">+</span> <span class="s1">&#39;grid_SP_intersect.csv&#39;</span><span class="p">,</span>
+                                 <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    <span class="c1"># When pixels are associated to several SPs, we allocate them to the</span>
+    <span class="c1"># one with the biggest intersection area.</span>
+    <span class="c1"># NB: it would be more rigorous to split the number of RDP across</span>
+    <span class="c1"># SPs according to their respective intersection areas, but this is</span>
+    <span class="c1"># unlikely to change much</span>
+    <span class="n">grid_intersect</span> <span class="o">=</span> <span class="n">grid_intersect</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;ID_grille&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s1">&#39;Area&#39;</span><span class="p">)</span>
+    <span class="n">data_rdp</span><span class="p">[</span><span class="s2">&quot;ID_grille&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_rdp</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">data_rdp</span><span class="p">[</span><span class="s2">&quot;ID_grille&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_rdp</span><span class="p">[</span><span class="s2">&quot;ID_grille&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">rdp_grid</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">grid_intersect</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;ID_grille&quot;</span><span class="p">,</span>
+                        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+    <span class="n">rdp_sp</span> <span class="o">=</span> <span class="n">rdp_grid</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;SP_CODE&#39;</span><span class="p">)[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">rdp_sp</span> <span class="o">=</span> <span class="n">rdp_sp</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">rdp_sp</span> <span class="o">=</span> <span class="n">rdp_sp</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;SP_CODE&#39;</span><span class="p">:</span> <span class="s1">&#39;sp_code&#39;</span><span class="p">})</span>
+    <span class="c1"># We just fill the list with unmatched SPs to get the full SP vector</span>
+    <span class="n">rdp_sp_fill</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">rdp_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">[</span><span class="s1">&#39;sp_code&#39;</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;sp_code&quot;</span><span class="p">,</span>
+                           <span class="n">how</span><span class="o">=</span><span class="s2">&quot;outer&quot;</span><span class="p">)</span>
+    <span class="n">rdp_sp_fill</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdp_sp_fill</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">rdp_sp_fill</span> <span class="o">=</span> <span class="n">rdp_sp_fill</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;sp_code&#39;</span><span class="p">)</span>
+
+    <span class="n">data_number_formal</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span>
+        <span class="o">-</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">backyard_SP_2011</span>
+        <span class="o">-</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">informal_SP_2011</span>
+        <span class="o">-</span> <span class="n">rdp_sp_fill</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">])</span>
+
+<span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;substract_RDP_from_formal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">data_number_formal</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span>
+        <span class="o">-</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">backyard_SP_2011</span>
+        <span class="o">-</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">informal_SP_2011</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Given the uncertainty surrounding RDP counts, we take the second option as default and prefer to rely on sample selection (see below) to exclude the SPs where RDP housing is likely to drive most of our results</p>
+</div>
+<div class="section" id="Sample-selection">
+<h3>Sample selection<a class="headerlink" href="#Sample-selection" title="Permalink to this heading"></a></h3>
+<p>As the relations we are going to estimate are only true for the formal private sector, we exclude SPs in the bottom quintile of property prices and for which more than 5% of households are reported to live in informal housing (settlements + backyards). We also exclude “rural” SPs (i.e., those that are large, with a small share than can be urbanized).</p>
+<p>We also add options to consider other criteria, namely we offer to exclude poorest income group (which is in effect crowded out from the formal sector), as well as Mitchell’s Plain (as its housing market is very specific) and far-away land (for which we have few observations)</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_selected_density&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">selected_density</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">))</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_number_formal</span>
+           <span class="o">&gt;</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">]</span>
+            <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">],</span> <span class="mf">0.8</span><span class="p">))</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">*</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;area&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
+
+<span class="k">elif</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_selected_density&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+      <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="n">selected_density</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">))</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_number_formal</span>
+           <span class="o">&gt;</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">]</span>
+            <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">],</span> <span class="mf">0.8</span><span class="p">))</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">*</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;area&quot;</span><span class="p">])</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_income_group</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;distance&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">40</span><span class="p">)</span>
+        <span class="p">)</span>
+
+<span class="k">elif</span> <span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_selected_density&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+      <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">selected_density</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">))</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_number_formal</span>
+           <span class="o">&gt;</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">]</span>
+            <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">],</span> <span class="mf">0.8</span><span class="p">))</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">*</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;area&quot;</span><span class="p">])</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_income_group</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;distance&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">40</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We pick the second choice as our default since it is more conservative than the first, and less ad hoc than the third one.</p>
+</div>
+</div>
+<div class="section" id="Calibrate-construction-function-parameters">
+<h2>Calibrate construction function parameters<a class="headerlink" href="#Calibrate-construction-function-parameters" title="Permalink to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We estimate construction function parameters based on a log-linearization</span>
+<span class="c1"># of the housing market clearing condition</span>
+<span class="n">coeff_b</span><span class="p">,</span> <span class="n">coeff_a</span><span class="p">,</span> <span class="n">coeffKappa</span> <span class="o">=</span> <span class="n">calmain</span><span class="o">.</span><span class="n">estim_construct_func_param</span><span class="p">(</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">threshold_income_distribution</span><span class="p">,</span>
+    <span class="n">income_distribution</span><span class="p">,</span> <span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span>
+    <span class="n">data_number_formal</span><span class="p">,</span> <span class="n">data_income_group</span><span class="p">,</span> <span class="n">selected_density</span><span class="p">,</span>
+    <span class="n">path_data</span><span class="p">,</span> <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>NB: The results are automatically saved for later use in simulations</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We update parameter vector</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeff_a</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeff_b</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffKappa</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Calibrate-incomes-and-gravity-parameter">
+<h2>Calibrate incomes and gravity parameter<a class="headerlink" href="#Calibrate-incomes-and-gravity-parameter" title="Permalink to this heading"></a></h2>
+<p>We scan values for the gravity parameter to estimate incomes as a function of it. The value range is set by trial and error: the wider the range you want to test, the longer. In principle, we should find a value within a coarse interval before going to the finer level: this may require several iterations if the underlying data changes. NB: we do that as it is too long and complex to run a solver directly</p>
+<p>Then, we select the income-gravity pair that best fits the distribution of commuters over distance from the CBD. NB: we need to proceed in twos steps as there is no separate identification of the gravity parameter and the net incomes</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We start by selecting the range over which we want to scan</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;scan_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;rough&quot;</span><span class="p">:</span>
+    <span class="n">list_lambda</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.40</span><span class="p">,</span> <span class="mf">0.51</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;scan_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">:</span>
+    <span class="n">list_lambda</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.42</span><span class="p">,</span> <span class="mf">0.441</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;scan_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;fine&quot;</span><span class="p">:</span>
+    <span class="n">list_lambda</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.427</span><span class="p">,</span> <span class="mf">0.4291</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We then run the function that returns the calibrated outputs</span>
+<span class="p">(</span><span class="n">incomeCentersKeep</span><span class="p">,</span> <span class="n">lambdaKeep</span><span class="p">,</span> <span class="n">cal_avg_income</span><span class="p">,</span> <span class="n">scoreKeep</span><span class="p">,</span>
+ <span class="n">bhattacharyyaDistances</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">calmain</span><span class="o">.</span><span class="n">estim_incomes_and_gravity</span><span class="p">(</span>
+        <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">list_lambda</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span>
+        <span class="n">average_income</span><span class="p">,</span> <span class="n">income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span>
+        <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_income_distribution</span><span class="p">,</span>
+        <span class="n">path_data</span><span class="p">,</span> <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_precalc_transp</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We update the parameter vector</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lambdaKeep</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Calibrate-utility-function-parameters">
+<h2>Calibrate utility function parameters<a class="headerlink" href="#Calibrate-utility-function-parameters" title="Permalink to this heading"></a></h2>
+<p>We compute local incomes net of commuting costs at the SP (not grid) level that is used in calibration.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Note that lambda and calibrated incomes have an impact here: from now on,</span>
+<span class="c1"># we will stop loading precalibrated parameters to rely on the newly</span>
+<span class="c1"># calibrated parameters that we just saved</span>
+<span class="n">options</span><span class="p">[</span><span class="s2">&quot;load_precal_param&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="p">(</span><span class="n">incomeNetOfCommuting</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_transport_data</span><span class="p">(</span>
+     <span class="n">grid</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span>
+     <span class="n">spline_inflation</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span>
+     <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_income_distribution</span><span class="p">,</span>
+     <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_precalc_transp</span><span class="p">,</span> <span class="s1">&#39;SP&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Then we calibrate utility function parameters based on the maximization of a composite likelihood that reproduces the fit on exogenous amenities, dwelling sizes, and income sorting</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NB: Here, we also have an impact from construction parameters and sample</span>
+<span class="c1"># selection (+ number of formal units)</span>
+<span class="p">(</span><span class="n">calibratedUtility_beta</span><span class="p">,</span> <span class="n">calibratedUtility_q0</span><span class="p">,</span> <span class="n">cal_amenities</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">calmain</span><span class="o">.</span><span class="n">estim_util_func_param</span><span class="p">(</span>
+     <span class="n">data_number_formal</span><span class="p">,</span> <span class="n">data_income_group</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span>
+     <span class="n">coeff_a</span><span class="p">,</span> <span class="n">coeff_b</span><span class="p">,</span> <span class="n">coeffKappa</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span>
+     <span class="n">incomeNetOfCommuting</span><span class="p">,</span> <span class="n">selected_density</span><span class="p">,</span> <span class="n">path_data</span><span class="p">,</span> <span class="n">path_precalc_inp</span><span class="p">,</span>
+     <span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We update parameter vector</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calibratedUtility_beta</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calibratedUtility_q0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Calibrate-disamenity-index-for-informal-backyards-+-settlements">
+<h2>Calibrate disamenity index for informal backyards + settlements<a class="headerlink" href="#Calibrate-disamenity-index-for-informal-backyards-+-settlements" title="Permalink to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We first need to recompute income net of commuting costs at baseline</span>
+<span class="c1"># year since calibrated income has changed</span>
+<span class="p">(</span><span class="n">incomeNetOfCommuting</span><span class="p">,</span> <span class="n">modalShares</span><span class="p">,</span> <span class="n">ODflows</span><span class="p">,</span> <span class="n">averageIncome</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_transport_data</span><span class="p">(</span>
+     <span class="n">grid</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span>
+     <span class="n">spline_inflation</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span>
+     <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_income_distribution</span><span class="p">,</span>
+     <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_precalc_transp</span><span class="p">,</span> <span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+<span class="n">income_net_of_commuting_costs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">path_precalc_transp</span> <span class="o">+</span> <span class="s1">&#39;GRID_incomeNetOfCommuting_0.npy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Then, we do the same for the amenity index</span>
+<span class="n">amenities</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_amenities</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>NB: Since disamenity index calibration relies on the model fit and is not computed a priori (contrary to other parameters), the options set in the preamble should be the same as the ones used in the main script, so that the calibrated values are in line with the structural assumptions used</p>
+<div class="section" id="We-start-with-a-general-(not-location-specific)-calibration">
+<h3>We start with a general (not location-specific) calibration<a class="headerlink" href="#We-start-with-a-general-(not-location-specific)-calibration" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We define a range of disamenity values which we would like to scan,</span>
+<span class="c1"># and arrange them in a grid</span>
+<span class="n">list_amenity_backyard</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.681</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="n">list_amenity_settlement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.641</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="n">housing_type_total</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+    <span class="n">list_amenity_backyard</span><span class="p">,</span> <span class="n">list_amenity_settlement</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">housing_type_total</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;param_backyard&quot;</span><span class="p">,</span> <span class="s2">&quot;param_settlement&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We initialize output vector</span>
+<span class="n">housing_type_total</span><span class="p">[</span><span class="s2">&quot;formal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">housing_type_total</span><span class="o">.</span><span class="n">param_backyard</span><span class="p">))</span>
+<span class="n">housing_type_total</span><span class="p">[</span><span class="s2">&quot;backyard&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">housing_type_total</span><span class="o">.</span><span class="n">param_backyard</span><span class="p">))</span>
+<span class="n">housing_type_total</span><span class="p">[</span><span class="s2">&quot;informal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">housing_type_total</span><span class="o">.</span><span class="n">param_backyard</span><span class="p">))</span>
+<span class="n">housing_type_total</span><span class="p">[</span><span class="s2">&quot;subsidized&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">housing_type_total</span><span class="o">.</span><span class="n">param_backyard</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We print the number of total iterations (to have an intuition of how long</span>
+<span class="c1"># the process will take)</span>
+<span class="n">number_total_iterations</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">list_amenity_backyard</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_amenity_settlement</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;** Calibration: </span><span class="si">{</span><span class="n">number_total_iterations</span><span class="si">}</span><span class="s2"> iterations **&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We are going to compute the initial state equilibrium for each pair of parameters, and retain the one that best fits the observed number of households in informal settlements + backyards</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_amenity_backyard</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_amenity_settlement</span><span class="p">)):</span>
+
+        <span class="c1"># We set input values</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_backyard&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">list_amenity_backyard</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_settlement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">list_amenity_settlement</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_settlement&quot;</span><span class="p">]</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+                                     <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_backyard&quot;</span><span class="p">])</span>
+
+        <span class="c1"># We run the algorithm</span>
+        <span class="p">(</span><span class="n">initial_state_utility</span><span class="p">,</span>
+         <span class="n">initial_state_error</span><span class="p">,</span>
+         <span class="n">initial_state_simulated_jobs</span><span class="p">,</span>
+         <span class="n">initial_state_households_housing_types</span><span class="p">,</span>
+         <span class="n">initial_state_household_centers</span><span class="p">,</span>
+         <span class="n">initial_state_households</span><span class="p">,</span>
+         <span class="n">initial_state_dwelling_size</span><span class="p">,</span>
+         <span class="n">initial_state_housing_supply</span><span class="p">,</span>
+         <span class="n">initial_state_rent</span><span class="p">,</span>
+         <span class="n">initial_state_rent_matrix</span><span class="p">,</span>
+         <span class="n">initial_state_capital_land</span><span class="p">,</span>
+         <span class="n">initial_state_average_income</span><span class="p">,</span>
+         <span class="n">initial_state_limit_city</span><span class="p">)</span> <span class="o">=</span> <span class="n">eqcmp</span><span class="o">.</span><span class="n">compute_equilibrium</span><span class="p">(</span>
+             <span class="n">fraction_capital_destroyed</span><span class="p">,</span>
+             <span class="n">amenities</span><span class="p">,</span>
+             <span class="n">param</span><span class="p">,</span>
+             <span class="n">housing_limit</span><span class="p">,</span>
+             <span class="n">population</span><span class="p">,</span>
+             <span class="n">households_per_income_class</span><span class="p">,</span>
+             <span class="n">total_RDP</span><span class="p">,</span>
+             <span class="n">coeff_land</span><span class="p">,</span>
+             <span class="n">income_net_of_commuting_costs</span><span class="p">,</span>
+             <span class="n">grid</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">,</span>
+             <span class="n">agricultural_rent</span><span class="p">,</span>
+             <span class="n">interest_rate</span><span class="p">,</span>
+             <span class="n">number_properties_RDP</span><span class="p">,</span>
+             <span class="n">average_income</span><span class="p">,</span>
+             <span class="n">mean_income</span><span class="p">,</span>
+             <span class="n">income_class_by_housing_type</span><span class="p">,</span>
+             <span class="n">minimum_housing_supply</span><span class="p">,</span>
+             <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span>
+             <span class="n">income_2011</span><span class="p">)</span>
+
+        <span class="c1"># We fill output matrix with the total number of HHs per housing</span>
+        <span class="c1"># type for given values of backyard and informal amenity parameters</span>
+        <span class="n">housing_type_total</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">housing_type_total</span><span class="o">.</span><span class="n">param_backyard</span>
+             <span class="o">==</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_backyard&quot;</span><span class="p">])</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="n">housing_type_total</span><span class="o">.</span><span class="n">param_settlement</span>
+               <span class="o">==</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_settlement&quot;</span><span class="p">]),</span>
+            <span class="mi">2</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">initial_state_households_housing_types</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># We update the iteration count and print progress made</span>
+        <span class="n">iteration_number</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_amenity_settlement</span><span class="p">)</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;iteration </span><span class="si">{</span><span class="n">iteration_number</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">number_total_iterations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We compute the error between simulated and observed number of households</span>
+<span class="c1"># in each housing type (without RDP, which is exogenously set equal to data)</span>
+<span class="n">distance_share</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+    <span class="n">housing_type_total</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">-</span> <span class="n">housing_type_data</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="c1"># We define the score that we want to minimize as the sum of the errors for</span>
+<span class="c1"># informal backyards and informal settlements</span>
+<span class="n">distance_share_score</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">distance_share</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">distance_share</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="c1"># We select the arguments associated with the minimum</span>
+<span class="n">which</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distance_share_score</span><span class="p">)</span>
+<span class="n">min_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">distance_share_score</span><span class="p">)</span>
+<span class="n">calibrated_amenities</span> <span class="o">=</span> <span class="n">housing_type_total</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">which</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We update parameter vector</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_backyard&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calibrated_amenities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_settlement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calibrated_amenities</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We create the output directory and save the values</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_amenity_backyard.npy&#39;</span><span class="p">,</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_backyard&quot;</span><span class="p">])</span>
+<span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_amenity_settlement.npy&#39;</span><span class="p">,</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_settlement&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Calibrate-location-specific-disamenity-index">
+<h3>Calibrate location-specific disamenity index<a class="headerlink" href="#Calibrate-location-specific-disamenity-index" title="Permalink to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Default is set to 1 but can be changed if we fear overfit of the model</span>
+<span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;location_based_calib&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+    <span class="c1"># We start from where we left (to gain time) and compute the</span>
+    <span class="c1"># equilibrium again</span>
+
+    <span class="c1"># We first initialize input values</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">index_max</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">index_max</span><span class="p">)</span>
+
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_settlement&quot;</span><span class="p">]</span>
+    <span class="n">save_param_informal_settlements</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">index_max</span><span class="p">,</span> <span class="mi">24014</span><span class="p">))</span>
+    <span class="n">metrics_is</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">index_max</span><span class="p">)</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;amenity_backyard&quot;</span><span class="p">]</span>
+    <span class="n">save_param_backyards</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">index_max</span><span class="p">,</span> <span class="mi">24014</span><span class="p">))</span>
+    <span class="n">metrics_ib</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">index_max</span><span class="p">)</span>
+
+    <span class="c1"># We run the algorithm</span>
+    <span class="p">(</span><span class="n">initial_state_utility</span><span class="p">,</span>
+     <span class="n">initial_state_error</span><span class="p">,</span>
+     <span class="n">initial_state_simulated_jobs</span><span class="p">,</span>
+     <span class="n">initial_state_households_housing_types</span><span class="p">,</span>
+     <span class="n">initial_state_household_centers</span><span class="p">,</span>
+     <span class="n">initial_state_households</span><span class="p">,</span>
+     <span class="n">initial_state_dwelling_size</span><span class="p">,</span>
+     <span class="n">initial_state_housing_supply</span><span class="p">,</span>
+     <span class="n">initial_state_rent</span><span class="p">,</span>
+     <span class="n">initial_state_rent_matrix</span><span class="p">,</span>
+     <span class="n">initial_state_capital_land</span><span class="p">,</span>
+     <span class="n">initial_state_average_income</span><span class="p">,</span>
+     <span class="n">initial_state_limit_city</span>
+     <span class="p">)</span> <span class="o">=</span> <span class="n">eqcmp</span><span class="o">.</span><span class="n">compute_equilibrium</span><span class="p">(</span>
+         <span class="n">fraction_capital_destroyed</span><span class="p">,</span>
+         <span class="n">amenities</span><span class="p">,</span>
+         <span class="n">param</span><span class="p">,</span>
+         <span class="n">housing_limit</span><span class="p">,</span>
+         <span class="n">population</span><span class="p">,</span>
+         <span class="n">households_per_income_class</span><span class="p">,</span>
+         <span class="n">total_RDP</span><span class="p">,</span>
+         <span class="n">coeff_land</span><span class="p">,</span>
+         <span class="n">income_net_of_commuting_costs</span><span class="p">,</span>
+         <span class="n">grid</span><span class="p">,</span>
+         <span class="n">options</span><span class="p">,</span>
+         <span class="n">agricultural_rent</span><span class="p">,</span>
+         <span class="n">interest_rate</span><span class="p">,</span>
+         <span class="n">number_properties_RDP</span><span class="p">,</span>
+         <span class="n">average_income</span><span class="p">,</span>
+         <span class="n">mean_income</span><span class="p">,</span>
+         <span class="n">income_class_by_housing_type</span><span class="p">,</span>
+         <span class="n">minimum_housing_supply</span><span class="p">,</span>
+         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span>
+         <span class="n">income_2011</span><span class="p">)</span>
+
+    <span class="c1"># We set the maximum number of iterations</span>
+    <span class="n">number_total_iterations</span> <span class="o">=</span> <span class="n">index_max</span>
+
+    <span class="c1"># Then we optimize over the number of households per housing type</span>
+    <span class="c1"># PER PIXEL, and not just on the aggregate number (to acccount for</span>
+    <span class="c1"># differing disamenities per location, e.g. eviction probability,</span>
+    <span class="c1"># infrastructure networks, etc.)</span>
+
+    <span class="c1"># To do so, we use granular housing_types variable (from SAL data) instead</span>
+    <span class="c1"># of aggregate housing_types variable</span>
+
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">index_max</span><span class="p">):</span>
+
+        <span class="c1"># INFORMAL SETTLEMENTS</span>
+
+        <span class="c1"># We initialize output vector</span>
+        <span class="n">diff_is</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24014</span><span class="p">):</span>
+            <span class="c1"># We store the error term</span>
+            <span class="n">diff_is</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">housing_types</span><span class="o">.</span><span class="n">informal_grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                          <span class="o">-</span> <span class="n">initial_state_households_housing_types</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:][</span><span class="n">i</span><span class="p">]</span>
+                          <span class="p">)</span>
+            <span class="c1"># We apply an empirical reweighting that helps convergence</span>
+            <span class="n">adj</span> <span class="o">=</span> <span class="p">(</span><span class="n">diff_is</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">150000</span><span class="p">)</span>
+            <span class="c1"># We increase the amenity score when we underestimate the nb of</span>
+            <span class="c1"># households</span>
+            <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">adj</span>
+        <span class="c1"># We store iteration outcome and prevent extreme sorting from</span>
+        <span class="c1"># happening due to the amenity score</span>
+        <span class="n">metrics_is</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff_is</span><span class="p">))</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">][</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.05</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">][</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.99</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.99</span>
+        <span class="n">save_param_informal_settlements</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span>
+
+        <span class="c1"># INFORMAL BACKYARDS</span>
+
+        <span class="c1"># We initialize output vector</span>
+        <span class="n">diff_ib</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">24014</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24014</span><span class="p">):</span>
+            <span class="c1"># Note that we add an option depending on whether we restrict</span>
+            <span class="c1"># ourselves to informal backyards (default) or all kinds of</span>
+            <span class="c1"># backyards (not warranted given the standardized structure</span>
+            <span class="c1"># assumed in the model)</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;actual_backyards&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">diff_ib</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_informal_grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_formal_grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="n">initial_state_households_housing_types</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:][</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;actual_backyards&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">diff_ib</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_informal_grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="n">initial_state_households_housing_types</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:][</span><span class="n">i</span><span class="p">])</span>
+            <span class="c1"># We help convergence and update parameter</span>
+            <span class="n">adj</span> <span class="o">=</span> <span class="p">(</span><span class="n">diff_ib</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mi">75000</span><span class="p">)</span>
+            <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">adj</span><span class="p">)</span>
+        <span class="c1"># We store iteration output and prevent extreme sorting</span>
+        <span class="n">metrics_ib</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff_ib</span><span class="p">))</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">][</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.05</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">][</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.99</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.99</span>
+        <span class="n">save_param_backyards</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span>
+
+        <span class="c1"># We retain the sum of the errors as our minimization objective</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics_is</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">+</span> <span class="n">metrics_ib</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="c1"># We run the equilibrium again with updated values of</span>
+        <span class="c1"># informal/backyard housing disamenity indices, then go to the next</span>
+        <span class="c1"># iteration</span>
+
+        <span class="p">(</span><span class="n">initial_state_utility</span><span class="p">,</span> <span class="n">initial_state_error</span><span class="p">,</span>
+         <span class="n">initial_state_simulated_jobs</span><span class="p">,</span>
+         <span class="n">initial_state_households_housing_types</span><span class="p">,</span>
+         <span class="n">initial_state_household_centers</span><span class="p">,</span>
+         <span class="n">initial_state_households</span><span class="p">,</span> <span class="n">initial_state_dwelling_size</span><span class="p">,</span>
+         <span class="n">initial_state_housing_supply</span><span class="p">,</span> <span class="n">initial_state_rent</span><span class="p">,</span>
+         <span class="n">initial_state_rent_matrix</span><span class="p">,</span> <span class="n">initial_state_capital_land</span><span class="p">,</span>
+         <span class="n">initial_state_average_income</span><span class="p">,</span> <span class="n">initial_state_limit_city</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">eqcmp</span><span class="o">.</span><span class="n">compute_equilibrium</span><span class="p">(</span>
+             <span class="n">fraction_capital_destroyed</span><span class="p">,</span> <span class="n">amenities</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">housing_limit</span><span class="p">,</span>
+             <span class="n">population</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">total_RDP</span><span class="p">,</span>
+             <span class="n">coeff_land</span><span class="p">,</span> <span class="n">income_net_of_commuting_costs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span>
+             <span class="n">agricultural_rent</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span> <span class="n">number_properties_RDP</span><span class="p">,</span>
+             <span class="n">average_income</span><span class="p">,</span> <span class="n">mean_income</span><span class="p">,</span> <span class="n">income_class_by_housing_type</span><span class="p">,</span>
+             <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">income_2011</span><span class="p">)</span>
+
+        <span class="n">iteration_number</span> <span class="o">=</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;iteration </span><span class="si">{</span><span class="n">iteration_number</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">number_total_iterations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># We pick the set of parameters that minimize the sum of absolute diffs</span>
+    <span class="c1"># between data and simulation</span>
+    <span class="n">score_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+    <span class="n">index_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+
+    <span class="c1"># We update the parameter vector</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_param_informal_settlements</span><span class="p">[</span><span class="n">index_min</span><span class="p">]</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_param_backyards</span><span class="p">[</span><span class="n">index_min</span><span class="p">]</span>
+
+    <span class="c1"># We print the basic distribution of the calibrated parameters</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">]))</span>
+
+    <span class="c1"># We create the output directory and save values</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_pockets.npy&#39;</span><span class="p">,</span>
+            <span class="n">param</span><span class="p">[</span><span class="s2">&quot;pockets&quot;</span><span class="p">])</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path_precalc_inp</span> <span class="o">+</span> <span class="s1">&#39;param_backyards.npy&#39;</span><span class="p">,</span>
+            <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="main_nb.html" class="btn btn-neutral float-left" title="Notebook: run model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="guidelines.html" class="btn btn-neutral float-right" title="User guidelines" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

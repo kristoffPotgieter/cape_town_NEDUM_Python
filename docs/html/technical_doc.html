@@ -15,7 +15,9 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -42,6 +44,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Technical documentation</a><ul>
@@ -57,7 +61,15 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#calibration">Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#calibration">Calibration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#construction-function-parameters">Construction function parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#estimations-of-incomes-and-gravity-parameter">Estimations of incomes and gravity parameter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#transport-costs">Transport costs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#income-calculation">Income calculation</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#equilibrium">Equilibrium</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#initial-state">Initial state</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#solving-for-equilibrium">Solving for equilibrium</a></li>
@@ -108,7 +120,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="technical-documentation">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="technical-documentation">
 <h1>Technical documentation<a class="headerlink" href="#technical-documentation" title="Permalink to this heading"></a></h1>
 <div class="section" id="code-walk-through">
 <h2>Code walk-through<a class="headerlink" href="#code-walk-through" title="Permalink to this heading"></a></h2>
@@ -130,12 +166,12 @@
 <h3>Parameters and options<a class="headerlink" href="#parameters-and-options" title="Permalink to this heading"></a></h3>
 <p>In this part, the code calls on the <code class="docutils literal notranslate"><span class="pre">parameters_and_options.py</span></code> module that imports the default parameters and options, then sets the timeline for the simulations, and overwrites the default parameters and options according to the specific scenario one is interested in. The detail of key parameters and options is given in <a class="reference internal" href="input_tables.html"><span class="doc">Input tables</span></a> (there are other technical parameters and options that should be of no interest for the end user) <a class="footnote-reference brackets" href="#f1" id="id1">1</a>. Typically, one may set options allowing or not agents to anticipate floods, or new informal settlements to be built.</p>
 <p>Note that, on top of the <code class="docutils literal notranslate"><span class="pre">import_options</span></code> and <code class="docutils literal notranslate"><span class="pre">import_param</span></code> functions, the code later calls on a <code class="docutils literal notranslate"><span class="pre">import_construction_parameters</span></code> function that makes use of imported data to define additional parameter variables:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">193</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">agricultural_rent</span>
-<span class="linenos">194</span> <span class="p">)</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_construction_parameters</span><span class="p">(</span>
-<span class="linenos">195</span>    <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;dwelling_size&quot;</span><span class="p">],</span>
-<span class="linenos">196</span>    <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span> <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
-<span class="linenos">197</span>    <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span>
-<span class="linenos">198</span>    <span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">193</span>
+<span class="linenos">194</span><span class="p">(</span><span class="n">spline_RDP</span><span class="p">,</span> <span class="n">spline_estimate_RDP</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span>
+<span class="linenos">195</span> <span class="n">spline_land_backyard</span><span class="p">,</span> <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_constraints</span><span class="p">,</span>
+<span class="linenos">196</span> <span class="n">number_properties_RDP</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span>
+<span class="linenos">197</span>     <span class="n">inpdt</span><span class="o">.</span><span class="n">import_land_use</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types</span><span class="p">,</span>
+<span class="linenos">198</span>                           <span class="n">housing_type_data</span><span class="p">,</span> <span class="n">path_data</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The key ones are the <code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter and the <code class="docutils literal notranslate"><span class="pre">agricultural_rent</span></code> variable (defined through <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords’ outside options / opportunity cost, here <code class="docutils literal notranslate"><span class="pre">agricultural_rent_2011</span></code> parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized <a class="footnote-reference brackets" href="#fagri" id="id2">2</a>:</p>
@@ -153,14 +189,14 @@
 </div>
 <p>Below this rent, it is therefore never profitable to build housing. Agricultural rent defines a floor on equilibrium rent values as well as an endogenous city edge.</p>
 <p>To store the output in a dedicated folder, we create a name associated to the parameters and options used:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">111</span><span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;floods&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;agents_anticipate_floods&quot;</span><span class="p">])</span>
-<span class="linenos">112</span>        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;informal_land_constrained&quot;</span><span class="p">])</span>
-<span class="linenos">113</span>        <span class="o">+</span> <span class="s1">&#39;_F&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;defended&quot;</span><span class="p">])</span>
-<span class="linenos">114</span>        <span class="o">+</span> <span class="s1">&#39;_P&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_pluvial&quot;</span><span class="p">])</span>
-<span class="linenos">115</span>        <span class="o">+</span> <span class="s1">&#39;_C&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;slr&quot;</span><span class="p">])</span>
-<span class="linenos">116</span>        <span class="o">+</span> <span class="s1">&#39;_scenario&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;inc_ineq_scenario&quot;</span><span class="p">])</span>
-<span class="linenos">117</span>        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;pop_growth_scenario&quot;</span><span class="p">])</span>
-<span class="linenos">118</span>        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;fuel_price_scenario&quot;</span><span class="p">]))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">111</span>
+<span class="linenos">112</span><span class="c1"># Re-processing options: default is set at zero to save computing time (data</span>
+<span class="linenos">113</span><span class="c1"># is simply loaded in the model)</span>
+<span class="linenos">114</span><span class="c1"># NB: this is only needed to create the data for the first time, or when the</span>
+<span class="linenos">115</span><span class="c1"># source is changed, so that pre-processed data is updated</span>
+<span class="linenos">116</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;convert_sal_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">117</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;compute_net_income&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">118</span>
 </pre></div>
 </div>
 <p>This name is a code associated to the options, parameters, and scenarios that we changed across our main simulation runs. They can safely be updated by the end user.</p>
@@ -169,9 +205,9 @@
 <h3>Assumptions<a class="headerlink" href="#assumptions" title="Permalink to this heading"></a></h3>
 <p>Note that, in our model, we consider three endogenous housing markets (whose allocation is computed in equilibrium) - namely, formal private housing, informal backyards (erected in the backyard of subsidized housing dwelling units), and informal settlements (in predetermined locations) <a class="footnote-reference brackets" href="#f2" id="id3">3</a> - one exogenous housing market (whose allocation is directly taken from the data) - the RDP (Reconstruction and Development Programme) formal subsidized housing <a class="footnote-reference brackets" href="#f3" id="id4">4</a> - and four income groups.</p>
 <p>By default, only agents from the poorest income group have access to RDP housing units. Without loss of generality, we assume that the price of such dwellings is zero, and that they are allocated randomly to the part of poorest agents they can host, the rest being rationed out of the formal subsidized housing market. Then, the two poorest income groups sort across formal private housing, informal backyards, and informal settlements; whereas the two richest only choose to live in the formal private housing units. Those assumptions are passed into the code through the <code class="docutils literal notranslate"><span class="pre">income_class_by_housing_type</span></code> parameter. We believe that this is a good approximation of reality. Also note that, although the two richest income groups are identical in terms of housing options, we distinguish between them to better account for income heterogeneity and spatial sorting along income lines in our simulations, while keeping the model sufficiently simple to be solved numerically.</p>
-<div class="figure align-center" id="id36">
+<div class="figure align-center" id="id37">
 <a class="reference internal image-reference" href="_images/model_assumpt.png"><img alt="summary table of the modeling assumptions regarding housing" src="_images/model_assumpt.png" style="width: 585.6px; height: 327.59999999999997px;" /></a>
-<p class="caption"><span class="caption-text">Modeling assumptions regarding housing (<em>Source</em>: <span id="id5">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id36" title="Permalink to this image"></a></p>
+<p class="caption"><span class="caption-text">Modeling assumptions regarding housing (<em>Source</em>: <span id="id5">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id37" title="Permalink to this image"></a></p>
 </div>
 </div>
 <div class="section" id="data">
@@ -211,13 +247,13 @@
 <span id="land-avail-desc"></span><h4>Land use data<a class="headerlink" href="#land-use-data" title="Permalink to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">import_land_use</span></code> and <code class="docutils literal notranslate"><span class="pre">import_coeff_land</span></code> functions help define exogenous land availability <span class="math notranslate nohighlight">\(L^h(x)\)</span> for each housing type <span class="math notranslate nohighlight">\(h\)</span> and each grid cell <span class="math notranslate nohighlight">\(x\)</span>. Indeed, we assume that different kinds of housing do not get built in the same places to account for insecure property rights (in the case of informal settlements vs. formal private housing) and housing specificities (in the case of non-market formal subsidized housing, and informal backyards located in the same preccints) <a class="footnote-reference brackets" href="#fmixed" id="id7">6</a>. Furthermore, <span class="math notranslate nohighlight">\(L\)</span> varies with <span class="math notranslate nohighlight">\(x\)</span> to account for both natural, regulatory constraints, infrastructure and other non-residential uses.</p>
 <p>As <span class="math notranslate nohighlight">\(L^h(x)\)</span> is going to vary across time periods, the first part of the <code class="docutils literal notranslate"><span class="pre">import_land_use</span></code> function imports lacking data estimates for historical and projected land uses. It then defines linear regression splines over time for a set of variables, the key ones being the share of pixel area available for formal subsidized housing, informal backyards, informal settlements, and unconstrained development. Note that, in our benchmark (allowing for informal settlement expansion), land availability for informal settlements is defined over time by the intersection between the timing map below and the high and very high probability areas (also defined below).</p>
-<div class="figure align-center" id="id37">
-<a class="reference internal image-reference" href="_images/WBUS2_Land_occupation_timing.png"><img alt="map for estimated timing of future informal settlements" src="_images/WBUS2_Land_occupation_timing.png" style="width: 495.0px; height: 382.5px;" /></a>
-<p class="caption"><span class="caption-text">Estimated timing of future new informal settlements</span><a class="headerlink" href="#id37" title="Permalink to this image"></a></p>
-</div>
 <div class="figure align-center" id="id38">
+<a class="reference internal image-reference" href="_images/WBUS2_Land_occupation_timing.png"><img alt="map for estimated timing of future informal settlements" src="_images/WBUS2_Land_occupation_timing.png" style="width: 495.0px; height: 382.5px;" /></a>
+<p class="caption"><span class="caption-text">Estimated timing of future new informal settlements</span><a class="headerlink" href="#id38" title="Permalink to this image"></a></p>
+</div>
+<div class="figure align-center" id="id39">
 <a class="reference internal image-reference" href="_images/WBUS2_Land_occupation_probability.png"><img alt="map for estimated probability of future informal settlements" src="_images/WBUS2_Land_occupation_probability.png" style="width: 495.0px; height: 382.5px;" /></a>
-<p class="caption"><span class="caption-text">Estimated probability of future new informal settlements</span><a class="headerlink" href="#id38" title="Permalink to this image"></a></p>
+<p class="caption"><span class="caption-text">Estimated probability of future new informal settlements</span><a class="headerlink" href="#id39" title="Permalink to this image"></a></p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">import_coeff_land</span></code> function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">670</span>    <span class="n">coeff_land_private</span> <span class="o">=</span> <span class="p">(</span><span class="n">spline_land_constraints</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
@@ -235,26 +271,26 @@
 </pre></div>
 </div>
 <p>The outputs are stored in a <code class="docutils literal notranslate"><span class="pre">coeff_land</span></code> matrix that yields the values of <span class="math notranslate nohighlight">\(L^h(x)\)</span> for each time period when multiplied by the area of a pixel. Results are shown in the figure below.</p>
-<div class="figure align-center" id="id39">
+<div class="figure align-center" id="id40">
 <a class="reference internal image-reference" href="_images/land_avail.png"><img alt="map of land availability ratios per housing type" src="_images/land_avail.png" style="width: 886.5px; height: 297.90000000000003px;" /></a>
-<p class="caption"><span class="caption-text">Share of available land for each housing type (<em>Source</em>: <span id="id8">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id39" title="Permalink to this image"></a></p>
+<p class="caption"><span class="caption-text">Share of available land for each housing type (<em>Source</em>: <span id="id8">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id40" title="Permalink to this image"></a></p>
 </div>
 </div>
 <div class="section" id="flood-data">
 <h4>Flood data<a class="headerlink" href="#flood-data" title="Permalink to this heading"></a></h4>
 <p>Flood data is processed through the <code class="docutils literal notranslate"><span class="pre">import_init_floods_data</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_fraction_capital_destroyed</span></code>, and <code class="docutils literal notranslate"><span class="pre">import_full_floods_data</span></code> functions.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">import_init_floods_data</span></code> function imports the pre-processed flood maps from FATHOM (fluvial and pluvial), and DELTARES (coastal). Those maps yield for each grid cell an estimate of the pixel share that is exposed to a flood of some maximum depth level, reached in a given year with a probability equal to the inverse of their return period. For instance, a flood map corresponding to a return period of 100 years considers events that have a 1/100 chance of ocurring in a given year.</p>
-<div class="figure align-center" id="id40">
+<div class="figure align-center" id="id41">
 <a class="reference internal image-reference" href="_images/P_100yr_map_depth.png"><img alt="map of land availability ratios per housing type" src="_images/P_100yr_map_depth.png" style="width: 503.99999999999994px; height: 352.79999999999995px;" /></a>
-<p class="caption"><span class="caption-text">Maximum pluvial flood depth (in meters) for a 100-year return period (<em>Source</em>: FATHOM)</span><a class="headerlink" href="#id40" title="Permalink to this image"></a></p>
+<p class="caption"><span class="caption-text">Maximum pluvial flood depth (in meters) for a 100-year return period (<em>Source</em>: FATHOM)</span><a class="headerlink" href="#id41" title="Permalink to this image"></a></p>
 </div>
 <p>Note that the considered return periods are not the same for FATHOM and DELTARES data, and that different flood maps are available depending on the digital elevation model (DEM) considered, whether we account for sea-level rise, and whether we account for defensive infrastructure with respect to fluvial floods <a class="footnote-reference brackets" href="#f4" id="id9">7</a>.</p>
 <p>The function then imports depth-damage functions from the existing literature. Those functions, used in the insurance market, link a level of maximum flood depth to a fraction of capital destroyed, depending on the materials affected by floods <a class="footnote-reference brackets" href="#f5" id="id10">8</a>. More specifically, we use estimates from <span id="id11">Englhardt <em>et al.</em> [<a class="reference internal" href="bibliography.html#id16" title="J. Englhardt, H. de Moel, C.K. Huyck, M.C. de Ruiter, J.C.J.H. Aerts, and P.J. Ward. Enhancement of large-scale flood risk assessments using building-material-based vulnerability curves for an object-based approach in urban and rural areas. Natural Hazards and Earth System Sciences, 19:1703-22, 2019.">2019</a>]</span> and <span id="id12">Hallegatte <em>et al.</em> [<a class="reference internal" href="bibliography.html#id24" title="S. Hallegatte, C. Green, R.J. Nicholls, and J. Corfee-Morlot. Future flood losses in major coastal cities. Nature Climate Change, 3:802-6, 2013.">2013</a>]</span> for damages to housing structures (depending on housing type), and from <span id="id13">de Villiers <em>et al.</em> [<a class="reference internal" href="bibliography.html#id17" title="G. du T. de Villiers, M.F. Viljoen, and H.J. Booysen. Standard residential flood damage functions for south african conditions. Suid-Afrikaanse Tydskrif vir Natuurwetenskap en Tegnologie, 26:26-36, 2007.">2007</a>]</span> for damages to housing contents.</p>
 <p>On this basis, the <code class="docutils literal notranslate"><span class="pre">compute_fraction_capital_destroyed</span></code> function integrates flood damages over the full range of return periods possible, for each flood type and damage function <a class="footnote-reference brackets" href="#f6" id="id14">9</a>. This yields an annualized fraction of capital destroyed, corresponding to its expected value in a given year <a class="footnote-reference brackets" href="#f7" id="id15">10</a>.</p>
 <p>Finally, the <code class="docutils literal notranslate"><span class="pre">import_full_floods_data</span></code> function uses those outputs to define the depreciation term <span class="math notranslate nohighlight">\(\rho_{h}^{d}(x)\)</span> that is specific to housing type <span class="math notranslate nohighlight">\(h\)</span>, damage type (structures or contents) <span class="math notranslate nohighlight">\(d\)</span>, and location <span class="math notranslate nohighlight">\(x\)</span> (stored in the <code class="docutils literal notranslate"><span class="pre">fraction_capital_destroyed</span></code> matrix), by taking the maximum of fractions of capital destroyed for all flood types considered. When multiplied by some capital value, this term yields the expected economic cost from flood risks that is considered by anticipating agents when solving for equilibrium. It is also equal to the risk premium in the case of a perfect insurance market (leading to full insurance with actuarially fair prices) <a class="footnote-reference brackets" href="#f8" id="id16">11</a>.</p>
-<div class="figure align-center" id="id41">
+<div class="figure align-center" id="id42">
 <a class="reference internal image-reference" href="_images/structure_informal_settlements_fract_K_destroyed.png"><img alt="map of annualized fraction of capital destroyed for structures in informal settlements" src="_images/structure_informal_settlements_fract_K_destroyed.png" style="width: 503.99999999999994px; height: 352.79999999999995px;" /></a>
-<p class="caption"><span class="caption-text">Annualized fraction of capital destroyed for structures in informal settlements</span><a class="headerlink" href="#id41" title="Permalink to this image"></a></p>
+<p class="caption"><span class="caption-text">Annualized fraction of capital destroyed for structures in informal settlements</span><a class="headerlink" href="#id42" title="Permalink to this image"></a></p>
 </div>
 </div>
 <div class="section" id="transport-data">
@@ -296,9 +332,192 @@
 <span id="calibration-process"></span><h2>Calibration<a class="headerlink" href="#calibration" title="Permalink to this heading"></a></h2>
 <p>This whole part is optional. The reason is that all necessary parameters have been pre-calibrated, and it is only useful to run this part again if the underlying data used for calibration has changed. Also note that it takes time to run. If needed, it has to be run before solving the equilibrium, which is why it was included at this stage of the script. However, it relies on the estimation of partial relations derived from the general equilibrium itself <a class="footnote-reference brackets" href="#fcalib" id="id17">12</a>. For better understanding, we therefore advise you to get back to this section after reading the <a class="reference internal" href="#equilibrium-desc"><span class="std std-ref">Equilibrium</span></a> section.</p>
 <p>The preamble imports more useful data, under some technical options. Note that, whereas the same data might be used for calibration of parameters and validation of results, it is never an input of the model per se. Typically, this is data at the SAL (Small Area Level) or SP (Small Place) level, less granular than our counterfactual grid-level estimates.</p>
-<p>Then, we calibrate construction function parameters using the <code class="docutils literal notranslate"><span class="pre">estim_construct_func_param</span></code> function.</p>
+<div class="section" id="construction-function-parameters">
+<h3>Construction function parameters<a class="headerlink" href="#construction-function-parameters" title="Permalink to this heading"></a></h3>
+<p>Then, we calibrate construction function parameters using the <code class="docutils literal notranslate"><span class="pre">estim_construct_func_param</span></code> function from the <code class="docutils literal notranslate"><span class="pre">calib_main_func.py</span></code> module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">390</span>          <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+<span class="linenos">391</span>        <span class="n">selected_density</span> <span class="o">=</span> <span class="p">(</span>
+<span class="linenos">392</span>            <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">))</span>
+<span class="linenos">393</span>            <span class="o">&amp;</span> <span class="p">(</span><span class="n">data_number_formal</span>
+<span class="linenos">394</span>               <span class="o">&gt;</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">housing_types_sp</span><span class="o">.</span><span class="n">total_dwellings_SP_2011</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>From the equilibrium formulas for housing supply and number of households, we obtain the following relation:</p>
+<div class="math notranslate nohighlight">
+\[\frac{N^{FP}(x)Q_{FP}(x)}{L_{FP}(x)} = \kappa^{\frac{1}{a}} (\frac{(1-a)R_{FP}(x)}{\rho + \textcolor{green}{\rho_{FP}^{struct}(x)} + \delta})^{\frac{1-a}{a}}\]</div>
+<p>Log-linearizing it (and using the relation between price and rent that we already used to define agricultural rent) allows us to identify the following linear regression, which we estimate with data at the SP level <span class="math notranslate nohighlight">\(s\)</span> (instead of the grid-cell level <span class="math notranslate nohighlight">\(x\)</span>, due to data availability constraints):</p>
+<div class="math notranslate nohighlight">
+\[log(N_s^{FP}) = \gamma_1 + \gamma_2 log(P_s) + \gamma_3 log(Q_s) + \gamma_4 log(L_s^{FP}) + \epsilon_s\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\gamma_1 = log(\kappa \frac{1-a}{a}^{1-a})\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma_2 = 1-a\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma_3 = -1\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma_4 = 1\)</span></p></li>
+</ul>
+<p>We therefore have <span class="math notranslate nohighlight">\(a = 1 - _gamma_2\)</span> and <span class="math notranslate nohighlight">\(\kappa = \frac{a}{1-a}^{1-a} exp(\gamma_1)\)</span>.</p>
+<p>In the code, this translates into:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">43</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_number_formal</span><span class="p">[</span><span class="n">selected_density</span><span class="p">])</span>
+<span class="linenos">44</span>    <span class="c1"># Note that we use data_sp[&quot;unconstrained_area&quot;] (which is accurate data at</span>
+<span class="linenos">45</span>    <span class="c1"># SP level) rather than coeff_land (which is an estimate at grid level)</span>
+<span class="linenos">46</span>    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+<span class="linenos">47</span>        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">])),</span>
+<span class="linenos">48</span>                  <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">]),</span>
+<span class="linenos">49</span>                  <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;dwelling_size&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">]),</span>
+<span class="linenos">50</span>                  <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use&quot;</span><span class="p">]</span>
+<span class="linenos">51</span>                         <span class="o">*</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">])])</span>
+<span class="linenos">52</span>        <span class="p">)</span>
+<span class="linenos">53</span>    <span class="c1"># NB: Our data set for dwelling sizes only provides the average (not</span>
+<span class="linenos">54</span>    <span class="c1"># median) dwelling size at the Sub-Place level, aggregating formal and</span>
+<span class="linenos">55</span>    <span class="c1"># informal housing</span>
+<span class="linenos">56</span>
+<span class="linenos">57</span>    <span class="c1"># model_construction = LinearRegression().fit(X, y)</span>
+<span class="linenos">58</span>
+<span class="linenos">59</span>    <span class="n">modelSpecification</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s1">&#39;drop&#39;</span><span class="p">)</span>
+<span class="linenos">60</span>    <span class="n">model_construction</span> <span class="o">=</span> <span class="n">modelSpecification</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="linenos">61</span>    <span class="nb">print</span><span class="p">(</span><span class="n">model_construction</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+<span class="linenos">62</span>    <span class="n">parametersConstruction</span> <span class="o">=</span> <span class="n">model_construction</span><span class="o">.</span><span class="n">params</span>
+<span class="linenos">63</span>
+<span class="linenos">64</span>    <span class="c1"># We export outputs of the model</span>
+<span class="linenos">65</span>    <span class="c1"># coeff_b = model_construction.coef_[0]</span>
+<span class="linenos">66</span>    <span class="n">coeff_b</span> <span class="o">=</span> <span class="n">parametersConstruction</span><span class="p">[</span><span class="s2">&quot;x1&quot;</span><span class="p">]</span>
+<span class="linenos">67</span>    <span class="n">coeff_a</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">coeff_b</span>
+<span class="linenos">68</span>    <span class="c1"># Comes from zero profit condition combined with footnote 16 from</span>
+<span class="linenos">69</span>    <span class="c1"># optimization</span>
+<span class="linenos">70</span>    <span class="c1"># TODO: correct typo in paper</span>
+<span class="linenos">71</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_kappa&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<span class="linenos">72</span>        <span class="c1"># coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)</span>
+<span class="linenos">73</span>        <span class="c1">#               * np.exp(model_construction.intercept_))</span>
+<span class="linenos">74</span>        <span class="n">coeffKappa</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">coeff_b</span> <span class="o">/</span> <span class="n">coeff_a</span><span class="p">)</span> <span class="o">**</span> <span class="n">coeff_b</span><span class="p">)</span>
+<span class="linenos">75</span>                      <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parametersConstruction</span><span class="p">[</span><span class="s2">&quot;const&quot;</span><span class="p">]))</span>
+<span class="linenos">76</span>    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_kappa&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">77</span>        <span class="c1"># coeffKappa = ((1 / (coeff_b) ** coeff_b)</span>
+<span class="linenos">78</span>        <span class="c1">#               * np.exp(model_construction.intercept_))</span>
+<span class="linenos">79</span>        <span class="n">coeffKappa</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">coeff_b</span><span class="p">)</span> <span class="o">**</span> <span class="n">coeff_b</span><span class="p">)</span>
+<span class="linenos">80</span>                      <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parametersConstruction</span><span class="p">[</span><span class="s2">&quot;const&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Note that we run our regression on a restricted sample defined by the <code class="docutils literal notranslate"><span class="pre">selected_density</span></code> variable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">361</span>    <span class="c1"># share than can be urbanized).</span>
+<span class="linenos">362</span>
+<span class="linenos">363</span>    <span class="c1"># NB: we also add other criteria compared to the working paper, namely we</span>
+<span class="linenos">364</span>    <span class="c1"># exclude poorest income group (which is in effect crowded out from the</span>
+<span class="linenos">365</span>    <span class="c1"># formal sector), as well as Mitchell&#39;s Plain (as its housing market is</span>
+<span class="linenos">366</span>    <span class="c1"># very specific) and far-away land (for which we have few observations)</span>
+<span class="linenos">367</span>
+<span class="linenos">368</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_selected_density&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">369</span>        <span class="n">selected_density</span> <span class="o">=</span> <span class="p">(</span>
+<span class="linenos">370</span>            <span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>As the relation only holds in the formal private sector, we exclude SPs in the bottom quintile of property prices and for which more than 5% of households are reported to live in informal housing. We also exclude rural SPs (i.e., those that are large, with a small share that can effectively be urbanized), the poorest income group (which in effect is crowded out of the formal private sector), as well as Mitchell’s Plain neighbourhood (whose housing market is very specific), and far-away land (where SPs are too large to produce any representative values).</p>
+</div>
+<div class="section" id="estimations-of-incomes-and-gravity-parameter">
+<h3>Estimations of incomes and gravity parameter<a class="headerlink" href="#estimations-of-incomes-and-gravity-parameter" title="Permalink to this heading"></a></h3>
+<p>We update the parameter vector with the newly calculated values and go on with the calibration of incomes <span class="math notranslate nohighlight">\(y_{ic}\)</span> and the gravity parameter <span class="math notranslate nohighlight">\(\lambda\)</span> (see <a class="reference internal" href="math_appendix.html"><span class="doc">Math appendix</span></a> for more details and definitions).</p>
+<p>In practice, we scan a set of predefined values for the parameter <span class="math notranslate nohighlight">\(\lambda\)</span> over which we determine the value of <span class="math notranslate nohighlight">\(y_{ic}\)</span>. We then aggregate the total distribution of residence-workplace distances, and compare it with the data aggregated from Cape Town’s Transport Survey 2013. We select the value of <span class="math notranslate nohighlight">\(\lambda\)</span>, and the associated <span class="math notranslate nohighlight">\(y_{ic}\)</span>, that minimizes the total distance between the calculated distribution of commuting distances and aggregates from the data.</p>
+<p>In the <code class="docutils literal notranslate"><span class="pre">main.py</span></code> script, this translates into:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">410</span>        <span class="n">income_distribution</span><span class="p">,</span> <span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span>
+<span class="linenos">411</span>        <span class="n">data_number_formal</span><span class="p">,</span> <span class="n">data_income_group</span><span class="p">,</span> <span class="n">selected_density</span><span class="p">,</span>
+<span class="linenos">412</span>        <span class="n">path_data</span><span class="p">,</span> <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">)</span>
+<span class="linenos">413</span>
+<span class="linenos">414</span>    <span class="c1"># NB: relation between invested capital and building density to back up</span>
+<span class="linenos">415</span>    <span class="c1"># values of empirical estimates?</span>
+<span class="linenos">416</span>
+<span class="linenos">417</span>    <span class="c1"># We update parameter vector</span>
+<span class="linenos">418</span>    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeff_a</span>
+<span class="linenos">419</span>    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeff_b</span>
+<span class="linenos">420</span>    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffKappa</span>
+<span class="linenos">421</span>
+<span class="linenos">422</span>    <span class="c1"># INCOMES AND GRAVITY PARAMETER</span>
+<span class="linenos">423</span>
+<span class="linenos">424</span>    <span class="c1"># We scan values for the gravity parameter to estimate incomes as a</span>
+<span class="linenos">425</span>    <span class="c1"># function of it.</span>
+<span class="linenos">426</span>    <span class="c1"># The value range is set by trial and error: the wider the range you want</span>
+<span class="linenos">427</span>    <span class="c1"># to test, the longer.</span>
+<span class="linenos">428</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;scan_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;rough&quot;</span><span class="p">:</span>
+<span class="linenos">429</span>        <span class="n">list_lambda</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.40</span><span class="p">,</span> <span class="mf">0.51</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="linenos">430</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;scan_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">estim_incomes_and_gravity</span></code> function (from the <code class="docutils literal notranslate"><span class="pre">calib_main_func.py</span></code> module) proceeds as follows. It first imports the number of workers per income group in each selected job center (at the TAZ level) through the <code class="docutils literal notranslate"><span class="pre">import_employment_data</span></code> function (from the module of the same name).</p>
+<div class="section" id="transport-costs">
+<h4>Transport costs<a class="headerlink" href="#transport-costs" title="Permalink to this heading"></a></h4>
+<p>It then imports transport costs through the <code class="docutils literal notranslate"><span class="pre">import_transport_costs</span></code> function (from the <code class="docutils literal notranslate"><span class="pre">compute_income.py</span></code> module).</p>
+<p>The first part of this function imports the data on transportation times and distances, and estimates of public transportation fixed (over one month) and variable costs, based upon linear regressions using data from <span id="id18">Roux [<a class="reference internal" href="bibliography.html#id26" title="Y. Roux. A comparative study of public transport systems in developing countries. University of Cape Town, Masters Dissertation Series, 2013.">2013</a>]</span> (table 4.15). It also imports fuel prices for the variable component of private transportation costs, and 400 rands as the monthly depreciation cost of a vehicle for its fixed component.</p>
+<p>In a second part, it computes the total yearly monetary cost of commuting for one household over round trips:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">109</span>    <span class="c1"># Length (in km) using each mode</span>
+<span class="linenos">110</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_round_trip&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<span class="linenos">111</span>        <span class="n">multiplierPrice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">112</span>        <span class="n">multiplierPrice</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">113</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">timeOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">114</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="linenos">115</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="linenos">116</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="linenos">117</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="linenos">118</span>    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_round_trip&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">119</span>        <span class="n">multiplierPrice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">120</span>        <span class="n">multiplierPrice</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">121</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">timeOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">122</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">123</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">124</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">125</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">126</span>
+<span class="linenos">127</span>    <span class="c1"># Multiplying by 235 (nb of working days per year)</span>
+<span class="linenos">128</span>    <span class="n">pricePerKM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="linenos">129</span>    <span class="n">pricePerKM</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">130</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">131</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceTrainPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">132</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceFuelPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">133</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceTaxiPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">134</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceBusPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">145</span>    <span class="c1"># Monetary price per year (for each employment center)</span>
+<span class="linenos">146</span>    <span class="n">monetaryCost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">185</span><span class="p">,</span> <span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">))</span>
+<span class="linenos">147</span>    <span class="c1"># trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))</span>
+<span class="linenos">148</span>    <span class="k">for</span> <span class="n">index2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+<span class="linenos">149</span>        <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pricePerKM</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span>
+<span class="linenos">150</span>                                      <span class="o">*</span> <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index2</span><span class="p">])</span>
+<span class="linenos">151</span>
+<span class="linenos">152</span>    <span class="c1">#  Train (monthly fare)</span>
+<span class="linenos">153</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceTrainFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+<span class="linenos">154</span>    <span class="c1">#  Private car</span>
+<span class="linenos">155</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceFixedVehiculeMonth</span>
+<span class="linenos">156</span>                             <span class="o">*</span> <span class="mi">12</span><span class="p">)</span>
+<span class="linenos">157</span>    <span class="c1">#  Minibus/taxi</span>
+<span class="linenos">158</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceTaxiFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+<span class="linenos">159</span>    <span class="c1">#  Bus</span>
+<span class="linenos">160</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceBusFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+</pre></div>
+</div>
+<p>In a third and last part, it computes the time opportunity cost parameter (i.e., the fraction of working time spent commuting). Here, the values are given in minutes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">173</span>    <span class="n">costTime</span> <span class="o">=</span> <span class="p">(</span><span class="n">timeOutput</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_cost&quot;</span><span class="p">]</span>
+<span class="linenos">174</span>                <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">numberHourWorkedPerDay</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="income-calculation">
+<h4>Income calculation<a class="headerlink" href="#income-calculation" title="Permalink to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">estim_incomes_and_gravity</span></code> function then goes on with the calibration of incomes per se. To do so, it calls on the <code class="docutils literal notranslate"><span class="pre">EstimateIncome</span></code> function (also from the <code class="docutils literal notranslate"><span class="pre">compute_income.py</span></code> module):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">133</span>    <span class="p">(</span><span class="n">incomeCenters</span><span class="p">,</span> <span class="n">distanceDistribution</span><span class="p">,</span> <span class="n">scoreMatrix</span>
+<span class="linenos">134</span>     <span class="p">)</span> <span class="o">=</span> <span class="n">calcmp</span><span class="o">.</span><span class="n">EstimateIncome</span><span class="p">(</span>
+<span class="linenos">135</span>        <span class="n">param</span><span class="p">,</span> <span class="n">timeOutput</span><span class="p">,</span> <span class="n">distanceOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">monetaryCost</span><span class="p">,</span> <span class="n">costTime</span><span class="p">,</span>
+<span class="linenos">136</span>        <span class="n">job_centers</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span> <span class="n">income_distribution</span><span class="p">,</span> <span class="n">list_lambda</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Essentially, this function relies on the following equation (that can be solved from <a class="reference internal" href="math_appendix.html"><span class="doc">Math appendix</span></a>):</p>
+<div class="math notranslate nohighlight">
+\[W_{ic} = \chi_i \sum_{s} \pi_{c|is} N_{is}\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(W_{ic}\)</span> is the number of households of income group <span class="math notranslate nohighlight">\(i\)</span> who work in job center <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
+</ul>
+<p>…</p>
+<p>Finally</p>
 <div class="line-block">
 <div class="line"><br /></div>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="equilibrium">
@@ -314,9 +533,9 @@
 </pre></div>
 </div>
 <p>Results are given in the table below.</p>
-<div class="figure align-center" id="id42">
+<div class="figure align-center" id="id43">
 <a class="reference internal image-reference" href="_images/inc_group_distrib.png"><img alt="summary table of income groups characteristics" src="_images/inc_group_distrib.png" style="width: 601.8px; height: 228.6px;" /></a>
-<p class="caption"><span class="caption-text">Income groups used in the simulation (<em>Source</em>: <span id="id18">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id42" title="Permalink to this image"></a></p>
+<p class="caption"><span class="caption-text">Income groups used in the simulation (<em>Source</em>: <span id="id19">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id43" title="Permalink to this image"></a></p>
 </div>
 <p>Then, considering that all formal subsidized housing belongs to the poorest income group, we substract the corresponding number of households from this class to keep only the ones whose allocation in the housing market is going to be determined endogenously:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">51</span>    <span class="n">households_per_income_class</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
@@ -342,7 +561,7 @@
 <span class="linenos">106</span>    <span class="n">utility</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1501</span><span class="p">,</span> <span class="mi">4819</span><span class="p">,</span> <span class="mi">16947</span><span class="p">,</span> <span class="mi">79809</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>This relates to the way this class of models is solved: as a closed-city equilibrium model, <strong>NEDUM-2D</strong> takes total population (across income groups) as exogenous, and utility levels (across income groups) as endogenous <a class="footnote-reference brackets" href="#f9" id="id19">13</a>.</p>
+<p>This relates to the way this class of models is solved: as a closed-city equilibrium model, <strong>NEDUM-2D</strong> takes total population (across income groups) as exogenous, and utility levels (across income groups) as endogenous <a class="footnote-reference brackets" href="#f9" id="id20">13</a>.</p>
 <p>It is then solved iteratively in four steps:</p>
 <ul class="simple">
 <li><p>We first derive housing demand for each housing type</p></li>
@@ -350,21 +569,21 @@
 <li><p>We then compute housing supply for each housing type</p></li>
 <li><p>From there, we obtain population in all locations for all housing types.</p></li>
 </ul>
-<p>We update initial utility levels depending on the gap between the objective and simulated population, and re-iterate the process until we reach a satisfying error level <a class="footnote-reference brackets" href="#f10" id="id20">14</a>, according to the values of the parameters <code class="docutils literal notranslate"><span class="pre">precision</span></code> and <code class="docutils literal notranslate"><span class="pre">max_iter</span></code>. Of course, the closer the initial guess is to the final values, the quicker the algorithm converges. We will see below how each of the intermediate steps is computed.</p>
+<p>We update initial utility levels depending on the gap between the objective and simulated population, and re-iterate the process until we reach a satisfying error level <a class="footnote-reference brackets" href="#f10" id="id21">14</a>, according to the values of the parameters <code class="docutils literal notranslate"><span class="pre">precision</span></code> and <code class="docutils literal notranslate"><span class="pre">max_iter</span></code>. Of course, the closer the initial guess is to the final values, the quicker the algorithm converges. We will see below how each of the intermediate steps is computed.</p>
 <p>A last word on the choice of a closed vs. open-city model: within a static framework, it is generally considered that closed-city models are a better representation of short-term outcomes and open-city models of long-term outcomes, as population takes time to adjust through migration. Here, we rely on scenarios from the CoCT (informed by more macro parameters than open-city models usually are) to adjust total population across time periods. Sticking to the closed-city model in those circumstances allows us to make welfare assessments based on utility changes without renouncing to the possibility that migrations occur.</p>
 </div>
 <div class="section" id="functional-assumptions">
 <span id="functional-assumpt"></span><h4>Functional assumptions<a class="headerlink" href="#functional-assumptions" title="Permalink to this heading"></a></h4>
-<p>Then, the <code class="docutils literal notranslate"><span class="pre">compute_equilibrium</span></code> function calls on the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function for each endogenous housing type, which in turn calls on functions defined as part of the <code class="docutils literal notranslate"><span class="pre">functions_solver.py</span></code> module. This module applies formulas derived from the optimization process described in <span id="id21">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>.</p>
-<p>Let us just recall the main assumptions here (refer to the paper for a discussion on those assumptions <a class="footnote-reference brackets" href="#fcd" id="id22">15</a>). The parameters highlighted in green are specific to a model with agents that perfectly anticipate flood risks.</p>
+<p>Then, the <code class="docutils literal notranslate"><span class="pre">compute_equilibrium</span></code> function calls on the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function for each endogenous housing type, which in turn calls on functions defined as part of the <code class="docutils literal notranslate"><span class="pre">functions_solver.py</span></code> module. This module applies formulas derived from the optimization process described in <span id="id22">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>.</p>
+<p>Let us just recall the main assumptions here (refer to the paper for a discussion on those assumptions <a class="footnote-reference brackets" href="#fcd" id="id23">15</a>). The parameters highlighted in green are specific to a model with agents that perfectly anticipate flood risks.</p>
 <p>One the one hand, households maximize Stone-Geary preferences:</p>
 <div class="math notranslate nohighlight">
 \[U(z,q,x,h) = z^\alpha (q-q_0)^{1-\alpha}A(x)B^h(x)\]</div>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(z\)</span> is the quantity of composite good consumed (in monetary terms) and <span class="math notranslate nohighlight">\(q\)</span> is the quantity of housing consumed (in m²). They are the choice variables <a class="footnote-reference brackets" href="#fchoice" id="id23">16</a>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(z\)</span> is the quantity of composite good consumed (in monetary terms) and <span class="math notranslate nohighlight">\(q\)</span> is the quantity of housing consumed (in m²). They are the choice variables <a class="footnote-reference brackets" href="#fchoice" id="id24">16</a>.</p></li>
 <li><p><span class="math notranslate nohighlight">\(x\)</span> is the location where the household lives and <span class="math notranslate nohighlight">\(h\)</span> is the housing type considered. They are the state variables.</p></li>
 <li><p><span class="math notranslate nohighlight">\(\alpha\)</span> is the composite good elasticity (<code class="docutils literal notranslate"><span class="pre">alpha</span></code> parameter), <span class="math notranslate nohighlight">\(1 - \alpha\)</span> is the surplus housing elasticity, and <span class="math notranslate nohighlight">\(q_0\)</span> (<code class="docutils literal notranslate"><span class="pre">q0</span></code> parameter) is the basic need in housing.</p></li>
-<li><p><span class="math notranslate nohighlight">\(A(x)\)</span> is a (centered around one) location-specific amenity index (<code class="docutils literal notranslate"><span class="pre">precalculated_amenities</span></code> parameter) and <span class="math notranslate nohighlight">\(B^h(x)\)</span> is a (positive) location-specific disamenity index equal to one in formal sectors and smaller than one in informal sectors (<code class="docutils literal notranslate"><span class="pre">pockets</span></code> and <code class="docutils literal notranslate"><span class="pre">backyard_pockets</span></code> parameters), to account for the negative externalities associated with living in such housing (such as eviction probability, etc.) <a class="footnote-reference brackets" href="#fb" id="id24">17</a>. They are (calibrated) parameters.</p></li>
+<li><p><span class="math notranslate nohighlight">\(A(x)\)</span> is a (centered around one) location-specific amenity index (<code class="docutils literal notranslate"><span class="pre">precalculated_amenities</span></code> parameter) and <span class="math notranslate nohighlight">\(B^h(x)\)</span> is a (positive) location-specific disamenity index equal to one in formal sectors and smaller than one in informal sectors (<code class="docutils literal notranslate"><span class="pre">pockets</span></code> and <code class="docutils literal notranslate"><span class="pre">backyard_pockets</span></code> parameters), to account for the negative externalities associated with living in such housing (such as eviction probability, etc.) <a class="footnote-reference brackets" href="#fb" id="id25">17</a>. They are (calibrated) parameters.</p></li>
 </ul>
 <p>They are facing the following the following budget constraint (optimization under constraint):</p>
 <div class="math notranslate nohighlight">
@@ -396,7 +615,7 @@
 </ul>
 <p>Underlying those functional forms are structural assumptions about the maximization objective of agents in each housing submarket:</p>
 <ul class="simple">
-<li><p>In the formal private sector, developers buy land from absentee landlords and buy capital to build housing on this land <a class="footnote-reference brackets" href="#fabsentee" id="id25">18</a>. They then rent out the housing at the equilibrium rent over an infinite horizon <a class="footnote-reference brackets" href="#fconstant" id="id26">19</a>. They therefore internalize the costs associated with capital depreciation (both general and from structural flood damages) and interest rate (at which future flows of money are discounted). Households just have to pay for damages done to the content of their home <a class="footnote-reference brackets" href="#fequiv" id="id27">20</a>.</p></li>
+<li><p>In the formal private sector, developers buy land from absentee landlords and buy capital to build housing on this land <a class="footnote-reference brackets" href="#fabsentee" id="id26">18</a>. They then rent out the housing at the equilibrium rent over an infinite horizon <a class="footnote-reference brackets" href="#fconstant" id="id27">19</a>. They therefore internalize the costs associated with capital depreciation (both general and from structural flood damages) and interest rate (at which future flows of money are discounted). Households just have to pay for damages done to the content of their home <a class="footnote-reference brackets" href="#fequiv" id="id28">20</a>.</p></li>
 <li><p>In the formal subsidized sector, (poor) households rent housing for free from the state (same as buying). They only pay for overall capital depreciation (general and from structural and content damages), and may rent out a fraction of their backyard.</p></li>
 <li><p>In the informal backyard sector, household rent a fraction of backyard (not housing) owned by formal subsidized housing residents and are responsible for building their own “shack” (owner-occupiers). Then, they pay for overall capital depreciation (general and from structural and content damages) and interest over construction costs too.</p></li>
 <li><p>In the informal settlement sector, households rent land from absentee landlords (not housing) and are responsible for building their own “shack” (owner-occupiers). Then, they pay for overall capital depreciation (general and from structural and content damages) and interest over construction costs too.</p></li>
@@ -502,7 +721,7 @@
 <span class="linenos">134</span>            <span class="p">)</span>
 </pre></div>
 </div>
-<p>Bid rents <span class="math notranslate nohighlight">\(\psi^i_h(x,u)\)</span> correspond to the maximum amount households of type <span class="math notranslate nohighlight">\(i\)</span> are willing to pay for a unit (1 m²) of housing of type <span class="math notranslate nohighlight">\(h\)</span> in a certain location <span class="math notranslate nohighlight">\(x\)</span> for a given utility level <span class="math notranslate nohighlight">\(u\)</span> (over one year). Assuming that households bid their true valuation and that there are no strategic interactions, housing / land <a class="footnote-reference brackets" href="#fhland" id="id28">21</a> is allocated to the highest bidder. This is why we retain the bid rents from the highest bidding income groups, and the associated dwelling sizes, as the equilibrium output values for rents and dwelling sizes. In the code, this corresponds to:</p>
+<p>Bid rents <span class="math notranslate nohighlight">\(\psi^i_h(x,u)\)</span> correspond to the maximum amount households of type <span class="math notranslate nohighlight">\(i\)</span> are willing to pay for a unit (1 m²) of housing of type <span class="math notranslate nohighlight">\(h\)</span> in a certain location <span class="math notranslate nohighlight">\(x\)</span> for a given utility level <span class="math notranslate nohighlight">\(u\)</span> (over one year). Assuming that households bid their true valuation and that there are no strategic interactions, housing / land <a class="footnote-reference brackets" href="#fhland" id="id29">21</a> is allocated to the highest bidder. This is why we retain the bid rents from the highest bidding income groups, and the associated dwelling sizes, as the equilibrium output values for rents and dwelling sizes. In the code, this corresponds to:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">142</span>    <span class="c1"># We select highest bidder (income group) in each location</span>
 <span class="linenos">143</span>    <span class="n">proba</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_mat</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">R_mat</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 <span class="linenos">144</span>    <span class="c1"># We correct the matrix if binding budget constraint</span>
@@ -567,7 +786,10 @@
 </div>
 <div class="section" id="equilibrium-number-of-households">
 <h4>Equilibrium number of households<a class="headerlink" href="#equilibrium-number-of-households" title="Permalink to this heading"></a></h4>
-<p>At the end of the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function, we just divide the housing supply per unit of available land by the dwelling size, and multiply it by the amount of available land to obtain the number of households by housing type in each grid cell. Then, we associate people in each selected pixel to the highest bidding income group. From there, we are able to recover the total number of households in each income group for a given housing type:</p>
+<p>At the end of the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function, we just divide the housing supply per unit of available land by the dwelling size, and multiply it by the amount of available land to obtain the number of households by housing type in each grid cell. Then, we associate people in each selected pixel to the highest bidding income group (here denoted <span class="math notranslate nohighlight">\(i\)</span>):</p>
+<div class="math notranslate nohighlight">
+\[N_i^h(x) = \frac{s_h(x)L_h(x)}{Q_h(x,i,u)}\]</div>
+<p>From there, we are able to recover the total number of households in each income group for a given housing type:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>    <span class="c1"># Yields population density in each selected pixel</span>
 <span class="linenos">190</span>    <span class="n">people_init</span> <span class="o">=</span> <span class="n">housing_supply</span> <span class="o">/</span> <span class="n">dwelling_size</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
 <span class="linenos">191</span>    <span class="n">people_init</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">people_init</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -693,7 +915,7 @@
 </div>
 </div>
 <div class="section" id="subsequent-periods">
-<span id="id29"></span><h3>Subsequent periods<a class="headerlink" href="#subsequent-periods" title="Permalink to this heading"></a></h3>
+<span id="id30"></span><h3>Subsequent periods<a class="headerlink" href="#subsequent-periods" title="Permalink to this heading"></a></h3>
 <p>Back to the body of the <code class="docutils literal notranslate"><span class="pre">main.py</span></code> script, we save the outputs for the initial state equilibrium in a dedicated folder. Then, we launch the <code class="docutils literal notranslate"><span class="pre">run_simulation</span></code> function that take them as an argument, and calls on the same modules as before, plus the <code class="docutils literal notranslate"><span class="pre">functions_dynamic.py</span></code> module.</p>
 <p>After initializing a few key variables, the function starts a loop over predefined simulation years. The first part of the loop consists in updating the value of all time-moving variables. This is based on exogenous scenarios previously imported as inputs (through the <code class="docutils literal notranslate"><span class="pre">import_scenarios</span></code> function) and taken as an argument of the function. Provided by the CoCT, they provide trajectories for the following set of variables:</p>
 <ul class="simple">
@@ -720,7 +942,7 @@
 <span class="linenos">95</span>                  <span class="o">*</span> <span class="p">(</span><span class="n">spline_inflation</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span> <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>Note that we also update the scale factor of the Cobb-Douglas housing production function so as to neutralize the impact that the inflation of incomes would have on housing supply through the rent <a class="footnote-reference brackets" href="#fmoney-illus" id="id30">22</a>:</p>
+<p>Note that we also update the scale factor of the Cobb-Douglas housing production function so as to neutralize the impact that the inflation of incomes would have on housing supply through the rent <a class="footnote-reference brackets" href="#fmoney-illus" id="id31">22</a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">108</span>            <span class="n">construction_param</span> <span class="o">=</span> <span class="p">(</span>
 <span class="linenos">109</span>                <span class="p">(</span><span class="n">mean_income</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;income_year_reference&quot;</span><span class="p">])</span>
 <span class="linenos">110</span>                <span class="o">**</span> <span class="p">(</span><span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span>
@@ -745,7 +967,7 @@
 <span class="linenos">138</span>                <span class="n">stat_temp_housing_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
 </pre></div>
 </div>
-<p>This law of motion reflects the fact that formal private housing stock (only) depreciates with time and that developers respond to price incentives with delay as in <span id="id31">Viguié and Hallegatte [<a class="reference internal" href="bibliography.html#id23" title="V. Viguié and S. Hallegatte. Trade-offs and synergies in urban climate policies. Nature Climate Change, 2:334-7, 2012.">2012</a>]</span>, hence might differ from the one computed as an unconstrained equilibrium. Formally, this corresponds to:</p>
+<p>This law of motion reflects the fact that formal private housing stock (only) depreciates with time and that developers respond to price incentives with delay as in <span id="id32">Viguié and Hallegatte [<a class="reference internal" href="bibliography.html#id23" title="V. Viguié and S. Hallegatte. Trade-offs and synergies in urban climate policies. Nature Climate Change, 2:334-7, 2012.">2012</a>]</span>, hence might differ from the one computed as an unconstrained equilibrium. Formally, this corresponds to:</p>
 <div class="math notranslate nohighlight">
 \[s_{FP}(x|t+1) - s_{FP}(x|t)\]</div>
 <div class="math notranslate nohighlight">
@@ -774,7 +996,7 @@
 <h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading"></a></h2>
 <p>All the modules of this package are used as part of the plots scripts. Those scripts can be run independently. The <code class="docutils literal notranslate"><span class="pre">plots_inputs.py</span></code> script plots input data for descriptive statistics. The <code class="docutils literal notranslate"><span class="pre">plots_equil.py</span></code> plots outputs specific to the initial state equilibrium, notably with respect to result validation. The <code class="docutils literal notranslate"><span class="pre">plots_simul.py</span></code> plots outputs for all simulation years, and some evolution of variables across time. Only the two latter require to run the main script at least once to save the associated numeric outputs. To call on a specific simulation, one just has to change the path name at the beginning of the scripts to use the dedicated folder. All scripts save the associated plots as images in a dedicated folder.</p>
 <p>It should be noted that the resulting visuals are created with the <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> library and are pretty basic. Indeed, we thought of those plots not as a final deliverable, but rather as a way to quickly visualize results for developer use. Therefore, the plots scripts also save tables associated with values plotted, for use as part of a more user-friendly interface. This interface is developed jointly with the CoCT within the <code class="docutils literal notranslate"><span class="pre">streamlit</span></code> framework and uses <code class="docutils literal notranslate"><span class="pre">plotly</span></code> for graphical representations. It is accessible through this <a class="reference external" href="https://kristoffpotgieter-nedumstreamlit-01--help-hozyn1.streamlitapp.com/">link</a>. It notably simplifies the integration of visualization parameters (absolute vs. relative values, etc.) and the comparison between maps or graphs for different scenarios (or validation).</p>
-<p>We rely on the interface for comments about the interpretation of results. As there exists a multiplicity of ways to visualize data, we do not see the plots scripts as a definite code for what can be plotted, but rather as a quick overview of the most important variables in the model. We believe the code to be self-explaining and redirect you to the <a class="reference internal" href="api_ref.html"><span class="doc">API reference</span></a> section for function documentation. Suffices to say here that the <code class="docutils literal notranslate"><span class="pre">export_outputs.py</span></code> module is for processing and displaying the standard urban variables of the model (already present in <span id="id32">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>), that the <code class="docutils literal notranslate"><span class="pre">flood_outputs.py</span></code> module is for processing values relative to floods, and that the <code class="docutils literal notranslate"><span class="pre">export_outputs_floods.py</span></code> module is for displaying them.</p>
+<p>We rely on the interface for comments about the interpretation of results. As there exists a multiplicity of ways to visualize data, we do not see the plots scripts as a definite code for what can be plotted, but rather as a quick overview of the most important variables in the model. We believe the code to be self-explaining and redirect you to the <a class="reference internal" href="api_ref.html"><span class="doc">API reference</span></a> section for function documentation. Suffices to say here that the <code class="docutils literal notranslate"><span class="pre">export_outputs.py</span></code> module is for processing and displaying the standard urban variables of the model (already present in <span id="id33">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>), that the <code class="docutils literal notranslate"><span class="pre">flood_outputs.py</span></code> module is for processing values relative to floods, and that the <code class="docutils literal notranslate"><span class="pre">export_outputs_floods.py</span></code> module is for displaying them.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -816,34 +1038,34 @@
 <dt class="label" id="fcalib"><span class="brackets"><a class="fn-backref" href="#id17">12</a></span></dt>
 <dd><p>In the absence of quasi-natural experiments, for such estimated parameters to be properly identified in our simulations, we need to assume that the variables used in the calibration are close to a long-term equilibrium at the baseline year we study (no deviations due to the durability of housing, etc.). A good robustness check would be to see how our estimates would change when running the calibration over previous periods.</p>
 </dd>
-<dt class="label" id="f9"><span class="brackets"><a class="fn-backref" href="#id19">13</a></span></dt>
+<dt class="label" id="f9"><span class="brackets"><a class="fn-backref" href="#id20">13</a></span></dt>
 <dd><p>We recall that, according to the spatial indifference hypothesis, all similar households share a common (maximum attainable) utility level in equilibrium. In our model, households only differ a priori in their income class, which is why we have a unique utility level for each income class. Intuitively, the richer the household, the bigger the utility level, as a higher income translates into a bigger choice set. If such utility levels can be compared in ordinal terms, no direct welfare assessment can be derived in cardinal terms: utilities must be converted into income equivalents first. A further remark is that income levels are a proxy for household heterogeneity in the housing market. They could themselves be endogenized (including unemployment) to study interactions with the labor market, although we leave that for future work.</p>
 </dd>
-<dt class="label" id="f10"><span class="brackets"><a class="fn-backref" href="#id20">14</a></span></dt>
+<dt class="label" id="f10"><span class="brackets"><a class="fn-backref" href="#id21">14</a></span></dt>
 <dd><p>When we overestimate the population, we increase the utility level, and conversely. Indeed, a higher utility translates into a higher land consumption (all other things equal) for the same land available, hence a lower accommodable number of people.</p>
 </dd>
-<dt class="label" id="fcd"><span class="brackets"><a class="fn-backref" href="#id22">15</a></span></dt>
+<dt class="label" id="fcd"><span class="brackets"><a class="fn-backref" href="#id23">15</a></span></dt>
 <dd><p>In a few words, the Cobb-Douglas function used for housing production is a simple analytical form that allows to model inputs that are neither perfect substitutes or perfect complements (constant elasticity of substitution equal to one) and that enter production flexibly through calibrated total factor productivity and output elasticities. As a reminder, total factor productivity is defined as the ratio of aggregate output over aggregate inputs; and output elasticities are defined as the percentage change of output divided by the percentage change of on input. The Stone-Geary form used for households’ utility rely on the same assumptions, with the added feature that the introduction of a basic need in housing allows to model non-homothetic preferences for housing: this corresponds to a declining share of budget dedicated to housing when income increases, which is a robust empirical finding.</p>
 </dd>
-<dt class="label" id="fchoice"><span class="brackets"><a class="fn-backref" href="#id23">16</a></span></dt>
+<dt class="label" id="fchoice"><span class="brackets"><a class="fn-backref" href="#id24">16</a></span></dt>
 <dd><p>Note however that the size of informal backyards and informal settlements is fixed according to the value of the <code class="docutils literal notranslate"><span class="pre">shack_size</span></code> parameter. The size of formal subsidized dwellings (excluding backyard) is also fixed by the <code class="docutils literal notranslate"><span class="pre">RDP_size</span></code> parameter.</p>
 </dd>
-<dt class="label" id="fb"><span class="brackets"><a class="fn-backref" href="#id24">17</a></span></dt>
-<dd><p>See <span id="id33">Galiani <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="S. Galiani, P. Gertler, R. Cooper, S. Martinez, A. Ross, and R. Undurraga. Shelter from the storm: upgrading housing infrastructure in latin american slums. Journal of Urban Economics, 98:187-213, 2017.">2017</a>]</span> for more details.</p>
+<dt class="label" id="fb"><span class="brackets"><a class="fn-backref" href="#id25">17</a></span></dt>
+<dd><p>See <span id="id34">Galiani <em>et al.</em> [<a class="reference internal" href="bibliography.html#id25" title="S. Galiani, P. Gertler, R. Cooper, S. Martinez, A. Ross, and R. Undurraga. Shelter from the storm: upgrading housing infrastructure in latin american slums. Journal of Urban Economics, 98:187-213, 2017.">2017</a>]</span> for more details.</p>
 </dd>
-<dt class="label" id="fabsentee"><span class="brackets"><a class="fn-backref" href="#id25">18</a></span></dt>
-<dd><p>The alternative to the absentee landlord assumption is the public ownership assumption: in that case, all housing revenues are equally shared among residents of the city. The choice is supposed to reflect the ownership structure of the city, but in practice it has little impact on its spatial structure <span id="id34">[<a class="reference internal" href="bibliography.html#id21" title="P. Avner, V. Viguié, B. Arga Jafino, and S. Hallegatte. Flood protection and land value creation. not all resilience investments are created equal. World Bank Policy Research Working Paper Series, 2021.">Avner <em>et al.</em>, 2021</a>]</span>. The main difference is that we do not consider the same notions of welfare in each case.</p>
+<dt class="label" id="fabsentee"><span class="brackets"><a class="fn-backref" href="#id26">18</a></span></dt>
+<dd><p>The alternative to the absentee landlord assumption is the public ownership assumption: in that case, all housing revenues are equally shared among residents of the city. The choice is supposed to reflect the ownership structure of the city, but in practice it has little impact on its spatial structure <span id="id35">[<a class="reference internal" href="bibliography.html#id21" title="P. Avner, V. Viguié, B. Arga Jafino, and S. Hallegatte. Flood protection and land value creation. not all resilience investments are created equal. World Bank Policy Research Working Paper Series, 2021.">Avner <em>et al.</em>, 2021</a>]</span>. The main difference is that we do not consider the same notions of welfare in each case.</p>
 </dd>
-<dt class="label" id="fconstant"><span class="brackets"><a class="fn-backref" href="#id26">19</a></span></dt>
+<dt class="label" id="fconstant"><span class="brackets"><a class="fn-backref" href="#id27">19</a></span></dt>
 <dd><p>Note that, in this kind of static models where prices and rents are constant over time, it is equivalent to consider choices to buy or to rent, as price is just the capitalized value of all future rent flows. We will therefore focus on housing rents only, as is standard in the literature.</p>
 </dd>
-<dt class="label" id="fequiv"><span class="brackets"><a class="fn-backref" href="#id27">20</a></span></dt>
-<dd><p>Note that in the benchmark case with no market failure, tax equivalence results hold that the burden of added maintenance costs (that we assimilate to a tax) is shared across supply and demand, not on the basis of which side the tax applies to, but depending on their relative elasticities <span id="id35">[<a class="reference internal" href="bibliography.html#id22" title="A.J. Auerbach. Tax equivalences and their implications. Tax Policy and The Economy, 2019.">Auerbach, 2019</a>]</span>. Therefore, the structural assumptions made on the distribution of those costs should not have an impact on overall welfare.</p>
+<dt class="label" id="fequiv"><span class="brackets"><a class="fn-backref" href="#id28">20</a></span></dt>
+<dd><p>Note that in the benchmark case with no market failure, tax equivalence results hold that the burden of added maintenance costs (that we assimilate to a tax) is shared across supply and demand, not on the basis of which side the tax applies to, but depending on their relative elasticities <span id="id36">[<a class="reference internal" href="bibliography.html#id22" title="A.J. Auerbach. Tax equivalences and their implications. Tax Policy and The Economy, 2019.">Auerbach, 2019</a>]</span>. Therefore, the structural assumptions made on the distribution of those costs should not have an impact on overall welfare.</p>
 </dd>
-<dt class="label" id="fhland"><span class="brackets"><a class="fn-backref" href="#id28">21</a></span></dt>
+<dt class="label" id="fhland"><span class="brackets"><a class="fn-backref" href="#id29">21</a></span></dt>
 <dd><p>Remember that households rent housing in the formal private and subsidized sectors, but direcly rent land in the informal backyard and settlement sectors.</p>
 </dd>
-<dt class="label" id="fmoney-illus"><span class="brackets"><a class="fn-backref" href="#id30">22</a></span></dt>
+<dt class="label" id="fmoney-illus"><span class="brackets"><a class="fn-backref" href="#id31">22</a></span></dt>
 <dd><p>This is based on the formula in <a class="reference internal" href="#equil-hsupply"><span class="std std-ref">Equilibrium housing supply</span></a>: the value of <span class="math notranslate nohighlight">\(\kappa\)</span> is updated to offset the impact on <span class="math notranslate nohighlight">\(s_{FP}(x)\)</span> of any artifical increase in <span class="math notranslate nohighlight">\(R_{FP}(x)\)</span> due to inflation.</p>
 </dd>
 </dl>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math appendix &mdash; NEDUM-2D for CoCT  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliography" href="bibliography.html" />
+    <link rel="prev" title="Data sets" href="data_sets.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NEDUM-2D for CoCT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme_link.html">Introducing NEDUM-2D</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_tables.html">Input tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_bases.html">Data bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_sets.html">Data sets</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Math appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#commuting-choice-and-net-income-calculation">Commuting choice and net income calculation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ref.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install_help.html">Installation help</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NEDUM-2D for CoCT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Math appendix</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/math_appendix.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="math-appendix">
+<h1>Math appendix<a class="headerlink" href="#math-appendix" title="Permalink to this heading"></a></h1>
+<div class="section" id="commuting-choice-and-net-income-calculation">
+<h2>Commuting choice and net income calculation<a class="headerlink" href="#commuting-choice-and-net-income-calculation" title="Permalink to this heading"></a></h2>
+<p>The terms highlighted in orange relate to functional assumptions needed to solve the model. For each mode <span class="math notranslate nohighlight">\(m\)</span>, residential location <span class="math notranslate nohighlight">\(x\)</span>, job center <span class="math notranslate nohighlight">\(c\)</span>, income group <span class="math notranslate nohighlight">\(i\)</span>, and worker <span class="math notranslate nohighlight">\(j\)</span>, <strong>expected commuting cost</strong> is:</p>
+<div class="math notranslate nohighlight">
+\[t_{mj}(x,c,w_{ic}) = \chi_i(\tau_m(x,c) + \delta_m(x,c)w_{ic}) + \textcolor{orange}{\epsilon_{mxcij}}\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(w_{ic}\)</span> is the (calibrated) wage earned.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\chi_i\)</span> is the employment rate of the household, composed of two agents (<code class="docutils literal notranslate"><span class="pre">household_size</span></code> parameter).</p></li>
+<li><p><span class="math notranslate nohighlight">\(\tau_m(x,c)\)</span> is the monetary transport cost.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta_m(x,c)\)</span> is a time opportunity cost parameter (the fraction of working time spent commuting).</p></li>
+<li><p><span class="math notranslate nohighlight">\(\textcolor{orange}{\epsilon_{mxcij}}\)</span> follows a Gumbel minimum distribution of mean <span class="math notranslate nohighlight">\(0\)</span> and (estimated) parameter <span class="math notranslate nohighlight">\(\frac{1}{\lambda}\)</span>.</p></li>
+</ul>
+<p>Then, commuters choose the mode that <strong>minimizes their transport cost</strong> (according to the properties of the Gumbel distribution):</p>
+<div class="math notranslate nohighlight">
+\[min_m t_{mj}(x,c,w_{ic}) = -\frac{1}{\lambda}log(\sum_{m=1}^{M}exp[-\lambda\chi_i(\tau_m(x,c) + \delta_m(x,c)w_{ic})]) + \textcolor{orange}{\eta_{xcij}}\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\textcolor{orange}{\eta_{xcij}}\)</span> also follows a Gumbel minimum distribution of mean <span class="math notranslate nohighlight">\(0\)</span> and scale parameter <span class="math notranslate nohighlight">\(\frac{1}{\lambda}\)</span>.</p></li>
+</ul>
+<p>In <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, this is imported with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1475</span>        <span class="p">(</span><span class="n">transportCostModes</span><span class="p">,</span> <span class="n">transportCost</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">valueMax</span><span class="p">,</span> <span class="n">minIncome</span>
+<span class="linenos">1476</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">calcmp</span><span class="o">.</span><span class="n">compute_ODflows</span><span class="p">(</span>
+<span class="linenos">1477</span>            <span class="n">householdSize</span><span class="p">,</span> <span class="n">monetaryCost</span><span class="p">,</span> <span class="n">costTime</span><span class="p">,</span> <span class="n">incomeCentersGroup</span><span class="p">,</span>
+<span class="linenos">1478</span>            <span class="n">whichCenters</span><span class="p">,</span> <span class="n">param_lambda</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Given their residential location <span class="math notranslate nohighlight">\(x\)</span>, workers choose the workplace location <span class="math notranslate nohighlight">\(c\)</span> that <strong>maximizes their income net of commuting costs</strong>:</p>
+<div class="math notranslate nohighlight">
+\[max_c [y_{ic} - min_m t_{mj}(x,c,w_{ic})]\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(y_{ic} = \chi_i w_{ic}\)</span> (<code class="docutils literal notranslate"><span class="pre">income_centers_init</span></code> parameter)</p></li>
+</ul>
+<p>This yields the <strong>probability to choose to work</strong> in location <span class="math notranslate nohighlight">\(c\)</span> given residential location <span class="math notranslate nohighlight">\(x\)</span> (logit discrete choice model):</p>
+<div class="math notranslate nohighlight">
+\[\pi_{c|ix} = \frac{exp[\lambda y_{ic} + log(\sum_{m=1}^{M}exp[-\lambda\chi_i(\tau_m(x,c) + \delta_m(x,c)w_{ic})])]}{\sum_{k=1}^{C} exp[\lambda y_{ik} + log(\sum_{m=1}^{M}exp[-\lambda\chi_i(\tau_m(x,k) + \delta_m(x,k)w_{ik})])]}\]</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, this corresponds to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1494</span>        <span class="n">ODflows</span><span class="p">[</span><span class="n">whichCenters</span><span class="p">,</span> <span class="p">:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="linenos">1495</span>            <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">param_lambda</span> <span class="o">*</span> <span class="p">(</span><span class="n">incomeCentersGroup</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">transportCost</span><span class="p">)</span>
+<span class="linenos">1496</span>                   <span class="o">-</span> <span class="n">minIncome</span><span class="p">)</span>
+<span class="linenos">1497</span>            <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">param_lambda</span> <span class="o">*</span> <span class="p">(</span><span class="n">incomeCentersGroup</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="linenos">1498</span>                                               <span class="o">-</span> <span class="n">transportCost</span><span class="p">)</span> <span class="o">-</span> <span class="n">minIncome</span><span class="p">),</span>
+<span class="linenos">1499</span>                        <span class="mi">0</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="linenos">1500</span>            <span class="p">)</span>
+</pre></div>
+</div>
+<p>From there, we calculate the <strong>expected income net of commuting costs</strong> for residents of group <span class="math notranslate nohighlight">\(i\)</span> living in location <span class="math notranslate nohighlight">\(x\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\tilde{y}_i(x) = E[y_{ic} - min_m(t_m(x,c,w_{ic}))|x]\]</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, this corresponds to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1505</span>        <span class="n">incomeNetOfCommuting</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="linenos">1506</span>            <span class="mi">1</span><span class="o">/</span><span class="n">param_lambda</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+<span class="linenos">1507</span>                <span class="n">param_lambda</span> <span class="o">*</span> <span class="p">(</span><span class="n">incomeCentersGroup</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">transportCost</span><span class="p">)</span>
+<span class="linenos">1508</span>                <span class="o">-</span> <span class="n">minIncome</span><span class="p">),</span>
+<span class="linenos">1509</span>                <span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="n">minIncome</span><span class="p">)</span>
+<span class="linenos">1510</span>            <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_sets.html" class="btn btn-neutral float-left" title="Data sets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bibliography.html" class="btn btn-neutral float-right" title="Bibliography" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

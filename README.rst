@@ -18,10 +18,7 @@ Overview
 Resources
 ---------
 
-..
-	Include working links
-
-Documentation is freely available `here <https://domain.invalid/>`__.
+Documentation is freely available `here <https://cired.github.io/cape_town_NEDUM_Python/html/index.html>`__.
 
 A simple user interface is available `here <https://kristoffpotgieter-nedumapp-app-f2rto5.streamlitapp.com/>`__.
 
@@ -72,9 +69,10 @@ Installation
 
 **Step 5**: Launch **NEDUM-2D**
 
-* Launch from **NEDUM-2D** root folder: ``python code capetown python/main.py``
-* Use plots scripts for exporting tables and figures in dedicated subfolders under the ``4. Sorties`` folder: ``python code capetown python/plots_inputs.py``, ``python code capetown python/plots_equil.py``, ``python code capetown python/plots_simul.py``
-* Name of output subfolders vary according to the options selected in the preamble of the ``main.py`` script: see :doc:`../technical_doc` for more details on running custom simulations 
+* From **NEDUM-2D** root folder, execute the ``main_nb`` notebook (either in .py or .ipynb format) to run the simulations and obtain a preview of results. A non-interactive copy is shown in the documentation for illustrative purposes
+* Run one of the plots scripts to export tables and figures in dedicated subfolders under the ``4. Sorties`` folder
+* If needed, run the calibration script to calibrate parameters again if undelrying data has changed
+* See :doc:`../technical_doc` for more details on running custom simulations / calibration
 
 ----------
 Versioning
@@ -83,11 +81,12 @@ Versioning
 ..
 	Set as default branch
 
-* The ``new_benchmark`` branch contains the latest update of the code and is set as default (ongoing). If you want to modify the code, please fork the repository and start from this branch, as this is the one used in this documentation.
+* The ``gh_pages`` branch contains the latest update of the code and is set as default. If you want to modify the code, please fork the repository and start from this branch, as this is the one used in this documentation.
 * The ``main`` branch contains the original code (with some extra features) from our last paper (ported from Matlab to Python)
 * The ``TLM-edits`` branch contains some code and folder reorganization without rewriting anything
 * The ``TLM-write`` branch contains some rewriting and commenting
 * The branches ending in ``_specif`` are tests for several specifications of the code
+* The ``new_benchmark`` branch contains the latest specification before adding the documentation
 * All other branches are deprecated
 
 -----------------

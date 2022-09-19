@@ -15,6 +15,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -50,6 +51,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical_doc.html">Technical documentation</a></li>
@@ -86,7 +89,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="introducing-nedum-2d">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="introducing-nedum-2d">
 <h1>Introducing NEDUM-2D<a class="headerlink" href="#introducing-nedum-2d" title="Permalink to this heading"></a></h1>
 <div class="section" id="disclaimer">
 <h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Permalink to this heading"></a></h2>
@@ -98,7 +125,7 @@
 </div>
 <div class="section" id="resources">
 <h2>Resources<a class="headerlink" href="#resources" title="Permalink to this heading"></a></h2>
-<p>Documentation is freely available <a class="reference external" href="https://domain.invalid/">here</a>.</p>
+<p>Documentation is freely available <a class="reference external" href="https://cired.github.io/cape_town_NEDUM_Python/html/index.html">here</a>.</p>
 <p>A simple user interface is available <a class="reference external" href="https://kristoffpotgieter-nedumapp-app-f2rto5.streamlitapp.com/">here</a>.</p>
 <p>The reference paper used along the documentation is available <a class="reference external" href="https://openknowledge.worldbank.org/handle/10986/31987?locale-attribute=fr">here</a>.</p>
 </div>
@@ -141,19 +168,21 @@
 </ul>
 <p><strong>Step 5</strong>: Launch <strong>NEDUM-2D</strong></p>
 <ul class="simple">
-<li><p>Launch from <strong>NEDUM-2D</strong> root folder: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">code</span> <span class="pre">capetown</span> <span class="pre">python/main.py</span></code></p></li>
-<li><p>Use plots scripts for exporting tables and figures in dedicated subfolders under the <code class="docutils literal notranslate"><span class="pre">4.</span> <span class="pre">Sorties</span></code> folder: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">code</span> <span class="pre">capetown</span> <span class="pre">python/plots_inputs.py</span></code>, <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">code</span> <span class="pre">capetown</span> <span class="pre">python/plots_equil.py</span></code>, <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">code</span> <span class="pre">capetown</span> <span class="pre">python/plots_simul.py</span></code></p></li>
-<li><p>Name of output subfolders vary according to the options selected in the preamble of the <code class="docutils literal notranslate"><span class="pre">main.py</span></code> script: see <a class="reference internal" href="technical_doc.html"><span class="doc">Technical documentation</span></a> for more details on running custom simulations</p></li>
+<li><p>From <strong>NEDUM-2D</strong> root folder, execute the <code class="docutils literal notranslate"><span class="pre">main_nb</span></code> notebook (either in .py or .ipynb format) to run the simulations and obtain a preview of results. A non-interactive copy is shown in the documentation for illustrative purposes</p></li>
+<li><p>Run one of the plots scripts to export tables and figures in dedicated subfolders under the <code class="docutils literal notranslate"><span class="pre">4.</span> <span class="pre">Sorties</span></code> folder</p></li>
+<li><p>If needed, run the calibration script to calibrate parameters again if undelrying data has changed</p></li>
+<li><p>See <a class="reference internal" href="technical_doc.html"><span class="doc">Technical documentation</span></a> for more details on running custom simulations / calibration</p></li>
 </ul>
 </div>
 <div class="section" id="versioning">
 <h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p>The <code class="docutils literal notranslate"><span class="pre">new_benchmark</span></code> branch contains the latest update of the code and is set as default (ongoing). If you want to modify the code, please fork the repository and start from this branch, as this is the one used in this documentation.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">gh_pages</span></code> branch contains the latest update of the code and is set as default. If you want to modify the code, please fork the repository and start from this branch, as this is the one used in this documentation.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">main</span></code> branch contains the original code (with some extra features) from our last paper (ported from Matlab to Python)</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">TLM-edits</span></code> branch contains some code and folder reorganization without rewriting anything</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">TLM-write</span></code> branch contains some rewriting and commenting</p></li>
 <li><p>The branches ending in <code class="docutils literal notranslate"><span class="pre">_specif</span></code> are tests for several specifications of the code</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">new_benchmark</span></code> branch contains the latest specification before adding the documentation</p></li>
 <li><p>All other branches are deprecated</p></li>
 </ul>
 </div>

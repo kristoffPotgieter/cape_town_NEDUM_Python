@@ -15,11 +15,12 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Use case" href="use_case.html" />
-    <link rel="prev" title="License" href="license_rst.html" /> 
+    <link rel="prev" title="Notebook: run calibration" href="calib_nb.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,6 +42,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User guidelines</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#elements-of-context">Elements of context</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#introduction-to-urban-economic-theory">Introduction to urban economic theory</a></li>
@@ -90,7 +93,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="user-guidelines">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="user-guidelines">
 <h1>User guidelines<a class="headerlink" href="#user-guidelines" title="Permalink to this heading"></a></h1>
 <div class="section" id="elements-of-context">
 <h2>Elements of context<a class="headerlink" href="#elements-of-context" title="Permalink to this heading"></a></h2>
@@ -126,7 +153,7 @@
 <h3>Overview of the model<a class="headerlink" href="#overview-of-the-model" title="Permalink to this heading"></a></h3>
 <p>In its latest implementation, <span id="id11">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span> further refine the model by making it polycentric, and by introducing heterogeneous income groups, as well as informal housing situations that coexist with market and state-driven formal housing. The model is calibrated for the <em>City of Cape Town</em> (CoCT) and indeed allows to account for key features of cities in the developing world <a class="footnote-reference brackets" href="#f3" id="id12">3</a>.</p>
 <div class="figure align-center" id="id28">
-<a class="reference internal image-reference" href="images/empl_loc.png"><img alt="map of employment locations with number of workers per income group" src="images/empl_loc.png" style="width: 689.5px; height: 540.4px;" /></a>
+<a class="reference internal image-reference" href="_images/empl_loc.png"><img alt="map of employment locations with number of workers per income group" src="_images/empl_loc.png" style="width: 689.5px; height: 540.4px;" /></a>
 <p class="caption"><span class="caption-text">Employment locations used in the simulation, by income group (<em>Source</em>: <span id="id13">Pfeiffer <em>et al.</em> [<a class="reference internal" href="bibliography.html#id6" title="B. Pfeiffer, C. Rabe, H. Selod, and V. Viguié. Assessing urban policies using a simulation model with formal and informal housing. World Bank Policy Research Working Paper Series, 2019.">2019</a>]</span>)</span><a class="headerlink" href="#id28" title="Permalink to this image"></a></p>
 </div>
 <p>More specifically, it considers two types of land and housing informality: informal settlements in predetermined locations (which is akin to squatting as in <span id="id14">Brueckner and H. [<a class="reference internal" href="bibliography.html#id8" title="J. Brueckner and Selod H. A theory of urban squatting and land-tenure formalization in developing countries. American Economic Journal: Economic Policy, 1:28-51, 2009.">2009</a>]</span>) and a rental market for backyard structures erected by owners of state-driven subsidized housing as modeled by <span id="id15">Brueckner <em>et al.</em> [<a class="reference internal" href="bibliography.html#id7" title="J. Brueckner, K. Rabe, and Selod H. Backyarding: theory and evidence for south africa. World Bank Policy Research Working Paper Series, 2018.">2018</a>]</span>. It then integrates these elements within a closed-city model (with exogenous population growth) and simulates developers’ construction decisions as well as the housing and location choices of households from different income groups at a distance from several employment subcenters (while accounting for state-driven subsidized housing programs, natural constraints, amenities, zoning, transport options, and the costs associated with each transport mode).</p>
@@ -144,7 +171,7 @@
 <li><p>Structural damages: building depreciation caused by flood damages</p></li>
 <li><p>Contents damages: destruction of part of households’ belongings due to floods</p></li>
 </ul>
-<p>We believe that those are the main channels through which flood risks affect the city patterns <span id="id18">[<a class="reference internal" href="bibliography.html#id18" title="R. Pharoah. Examining flood risk in subsidised housing areas in cape town. preprint on webpage at \url https://open.uct.ac.za/handle/11427/4794, 2013.">Pharoah, 2013</a>]</span> <a class="footnote-reference brackets" href="#fqse" id="id19">4</a>. Agents internalize those risks by considering the annualized value of those damages (based on probabilistic flood maps) as an added term in the depreciation of their housing capital and of their quantity of goods consumed (assimilated to a composite good) <a class="footnote-reference brackets" href="#fmyopic" id="id20">5</a>.</p>
+<p>We believe that those are the main channels through which flood risks affect the city patterns <span id="id18">[<a class="reference internal" href="bibliography.html#id18" title="R. Pharoah. Examining flood risk in subsidised housing areas in cape town. preprint on webpage at https://open.uct.ac.za/handle/11427/4794, 2013.">Pharoah, 2013</a>]</span> <a class="footnote-reference brackets" href="#fqse" id="id19">4</a>. Agents internalize those risks by considering the annualized value of those damages (based on probabilistic flood maps) as an added term in the depreciation of their housing capital and of their quantity of goods consumed (assimilated to a composite good) <a class="footnote-reference brackets" href="#fmyopic" id="id20">5</a>.</p>
 <p>As before, the model allows to simulate how these trade-offs might be affected by future demographic, climate, and policy scenarios.</p>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -167,7 +194,7 @@
 <p>As such, <strong>NEDUM-2D</strong> only makes predictions with respect to some simplifying assumptions (exogenous land availability and subsidized housing, etc.) and some economic mechanisms (housing supply and demand) described above <a class="footnote-reference brackets" href="#f5" id="id22">7</a>. Although it is calibrated to stick closely to reality at present time for validation purposes, the number of parameters fed into the model is restricted to avoid overfitting and extreme sensitivity of the outputs to initial conditions.</p>
 <p>Indeed, the aim of such a model is to provide simulations for the future, with the largest external validity possible in the absence of observable counterfactuals. For them to be informative, they need to display complex direct and indirect effects while keeping tractable the mechanisms that cause them, hence the need to restrict the number of such mechanisms that are interacting in equilibrium.</p>
 <p>Here, <strong>NEDUM-2D</strong> preserves the main market mechanism from the standard urban economic model, while allowing for sorting across different housing submarkets. If one is interested in the impact of other mechanisms on land use patterns, one should probably consider another (non-economic) model. Also note that in its current version, <strong>NEDUM-2D</strong> does not allow to conduct proper welfare evaluations.</p>
-<p>Empirically, <span id="id23">Liotta <em>et al.</em> [<a class="reference internal" href="bibliography.html#id20" title="C. Liotta, V. Viguié, and Q. Lepetit. Is the monocentric urban economic model still empirically relevant? assessing urban econometric predictions in 192 cities on five continents. preprint on webpage at \url https://arxiv.org/abs/2111.02112, 2021.">2021</a>]</span> show that the standard urban economic model has a good predictive power in terms of population density and rent variations, but not so much in terms of housing production. However, they also show that high levels of informality, strong regulations and planning, as well as specific amenities are, as expected by the theory, main factors leading to the discrepancies. As we account for those elements, we believe that our model yields relatively good predictions. Still, as is common approach in the literature, we think that our most significant contribution is not to deliver predictions in absolute terms, but rather comparative statics that relate one scenario to another.</p>
+<p>Empirically, <span id="id23">Liotta <em>et al.</em> [<a class="reference internal" href="bibliography.html#id20" title="C. Liotta, V. Viguié, and Q. Lepetit. Is the monocentric urban economic model still empirically relevant? assessing urban econometric predictions in 192 cities on five continents. preprint on webpage at https://arxiv.org/abs/2111.02112, 2021.">2021</a>]</span> show that the standard urban economic model has a good predictive power in terms of population density and rent variations, but not so much in terms of housing production. However, they also show that high levels of informality, strong regulations and planning, as well as specific amenities are, as expected by the theory, main factors leading to the discrepancies. As we account for those elements, we believe that our model yields relatively good predictions. Still, as is common approach in the literature, we think that our most significant contribution is not to deliver predictions in absolute terms, but rather comparative statics that relate one scenario to another.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
@@ -203,7 +230,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="license_rst.html" class="btn btn-neutral float-left" title="License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="calib_nb.html" class="btn btn-neutral float-left" title="Notebook: run calibration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="use_case.html" class="btn btn-neutral float-right" title="Use case" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
