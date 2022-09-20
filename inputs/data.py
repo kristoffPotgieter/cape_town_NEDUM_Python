@@ -66,7 +66,6 @@ def import_income_classes_data(param, path_data):
     """Import population and average income per income class in the model."""
     # Import population distribution according to housing type and income class
     # Note that RDP is included in formal
-    # TODO: is formal backyard lacking or just included in formal housing?
     income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
 
     # Compute overall median income
@@ -151,7 +150,6 @@ def import_households_data(path_precalc_inp):
     housing_types_sp["informal_SP_2011"] = data[
         'spInformalSettlement'][0][0].squeeze()
     #  Number of dwellings
-    #  TODO: check if this includes formal backyards
     housing_types_sp["total_dwellings_SP_2011"] = data[
         'spTotalDwellings'][0][0].squeeze()
     #  Coordinates
@@ -267,10 +265,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  We take total population in RDP at baseline year
     RDP_2011 = housing_type_data[3]
     #  Also comes from general validation for 2001
-    #  TODO: ask Claus for references
     RDP_2001 = 1.1718e+05
 
-    # Land cover for informal settlements (see R code for details)
+    # Land cover for informal settlements
 
     # Set the area of a pixel in m²
     area_pixel = (0.5 ** 2) * 1000000
@@ -591,7 +588,6 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     informal_2020 = np.fmax(informal_risks_2020 / area_pixel, informal_2011)
 
     #  We also get area for high risk scenario retained in projections
-    #  TODO: add option to take into account less likely developments?
     high_proba = informal_risks_VERYHIGH.area + informal_risks_HIGH.area
 
     #  We consider some scenario for 2023 and correct for RDP construction
@@ -665,8 +661,8 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
     """Return pixel share for housing scenarios, weighted by max building %."""
-    # TODO: do we consider area actually used for commercial purposes
-    # as "available" for residential construction?
+    # NB: we consider area actually used for commercial purposes
+    # as "available" for residential construction
     coeff_land_private = (spline_land_constraints(t)
                           - spline_land_backyard(t)
                           - spline_land_informal(t)
@@ -863,8 +859,6 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
         # flood-prone area (yields pixel share of destructed area), so as to
         # define damage intervals to be used in final computation
 
-        # TODO: should we take zero value at t = 0?
-        # TODO: is continuous time risk the right framework?
         damages0 = (d[type_flood + '_5yr'].prop_flood_prone
                     * damage_function(d[type_flood + '_5yr'].flood_depth))
         # damages0 = (
@@ -1010,7 +1004,8 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
     elif options["defended"] == 0:
         fluvialtype = 'FU'
 
-    # TODO: Define as maximum!
+    # When two flood types overlap (can happen with pluvial and fluvial),
+    # we keep the maximum among the flood depths to avoid double counting
 
     if options["pluvial"] == 0 and options["coastal"] == 0:
         print("Contents in private formal")
@@ -1032,301 +1027,335 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
         print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'formal', options)
+             d_fluvial, fluvialtype, structural_damages_type4a, 'formal',
+             options)
         print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'formal', options)
+             d_fluvial, fluvialtype, structural_damages_type4b, 'formal',
+             options)
         print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized', options)
+             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized',
+             options)
         print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized', options)
+             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized',
+             options)
         print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'informal', options)
+             d_fluvial, fluvialtype, structural_damages_type2, 'informal',
+             options)
         print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'backyard', options)
+             d_fluvial, fluvialtype, structural_damages_type2, 'backyard',
+             options)
         print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard', options)
+             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard',
+             options)
         print("Formal backyard structures (two floors)")
         (fraction_capital_destroyed["structure_formal_backyards"]
          ) = compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard', options)
+             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard',
+             options)
 
     elif options["pluvial"] == 1 and options["coastal"] == 0:
         print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'formal', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'formal', options))
         print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'informal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'informal', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'informal', options))
         print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'backyard', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'backyard', options))
         print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'subsidized', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'subsidized', options))
         print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4a, 'formal',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4a, 'formal', options))
         print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4b, 'formal',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4b, 'formal', options))
         print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4a, 'subsidized',
                  options))
         print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4b, 'subsidized',
                  options))
         print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'informal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type2, 'informal',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type2, 'informal',
                  options))
         print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type2, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type2, 'backyard',
                  options))
         print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type3a, 'backyard',
                  options))
         print("Formal backyard structures (two floors)")
         (fraction_capital_destroyed["structure_formal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type3b, 'backyard',
                  options))
 
     elif options["pluvial"] == 0 and options["coastal"] == 1:
         print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'formal', options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'formal', options))
         print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'informal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'informal', options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'informal', options))
         print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'backyard', options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'backyard', options))
         print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'subsidized', options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', content_damages, 'subsidized', options))
         print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4a, 'formal',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type4a, 'formal', options))
         print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4b, 'formal',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'P', structural_damages_type4b, 'formal', options))
         print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type4a, 'subsidized',
                  options))
         print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type4b, 'subsidized',
                  options))
         print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'informal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type2, 'informal',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type2, 'informal',
                  options))
         print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type2, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type2, 'backyard',
                  options))
         print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type3a, 'backyard',
                  options))
         print("Formal backyard structures (two floors)")
         (fraction_capital_destroyed["structure_formal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type3b, 'backyard',
                  options))
 
     elif options["pluvial"] == 1 and options["coastal"] == 1:
         print("Contents in private formal")
         (fraction_capital_destroyed["contents_formal"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'formal', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', content_damages, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'formal', options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'formal', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'formal', options))
         print("Contents in informal settlements")
         (fraction_capital_destroyed["contents_informal"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'informal', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', content_damages, 'informal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'informal', options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'informal', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'informal', options))
         print("Contents in (any) backyard")
         (fraction_capital_destroyed["contents_backyard"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'backyard', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', content_damages, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'backyard', options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'backyard', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'backyard', options))
         print("Contents in formal subsidized")
         (fraction_capital_destroyed["contents_subsidized"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, content_damages, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', content_damages, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, content_damages, 'subsidized', options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', content_damages, 'subsidized', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', content_damages, 'subsidized', options))
         print("Private formal structures (one floor)")
         (fraction_capital_destroyed["structure_formal_1"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'formal', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type4a, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4a, 'formal',
+             options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4a, 'formal', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4a, 'formal', options))
         print("Private formal structures (two floors)")
         (fraction_capital_destroyed["structure_formal_2"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'formal', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type4b, 'formal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4b, 'formal',
+             options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type4b, 'formal', options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4b, 'formal', options))
         print("Formal subsidized structures (one floor)")
         (fraction_capital_destroyed["structure_subsidized_1"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4a, 'subsidized',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type4a, 'subsidized',
-                 options)
-             + compute_fraction_capital_destroyed(
+                 options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4a, 'subsidized',
                  options))
         print("Formal subsidized structures (two floors)")
         (fraction_capital_destroyed["structure_subsidized_2"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type4b, 'subsidized',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type4b, 'subsidized',
-                 options)
-             + compute_fraction_capital_destroyed(
+                 options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type4b, 'subsidized',
                  options))
         print("Informal settlement structures")
         (fraction_capital_destroyed["structure_informal_settlements"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'informal', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type2, 'informal', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type2, 'informal',
+             options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type2, 'informal',
+                 options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type2, 'informal',
                  options))
         print("Informal backyard structures")
         (fraction_capital_destroyed["structure_informal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type2, 'backyard', options)
-             + compute_fraction_capital_destroyed(
-                 d_coastal, 'C', structural_damages_type2, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type2, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
+                 d_coastal, 'C', structural_damages_type2, 'backyard',
+                 options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type2, 'backyard',
                  options))
         print("Formal backyard structures (one floor)")
         (fraction_capital_destroyed["structure_formal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type3a, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type3a, 'backyard',
-                 options)
-             + compute_fraction_capital_destroyed(
+                 options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type3a, 'backyard',
                  options))
         print("Formal backyard structures (two floors)")
         (fraction_capital_destroyed["structure_formal_backyards"]
-         ) = (compute_fraction_capital_destroyed(
-             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard', options)
-             + compute_fraction_capital_destroyed(
+         ) = np.maximum(compute_fraction_capital_destroyed(
+             d_fluvial, fluvialtype, structural_damages_type3b, 'backyard',
+             options),
+             compute_fraction_capital_destroyed(
                  d_coastal, 'C', structural_damages_type3b, 'backyard',
-                 options)
-             + compute_fraction_capital_destroyed(
+                 options),
+             compute_fraction_capital_destroyed(
                  d_pluvial, 'P', structural_damages_type3b, 'backyard',
                  options))
 

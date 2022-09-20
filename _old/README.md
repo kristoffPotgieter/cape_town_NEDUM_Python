@@ -9,8 +9,8 @@
 
 ```shell
 .
-├── 2. Data
-│   ├── 0. Precalculated inputs
+├── Data
+│   ├── Precalculated inputs
 │   ├── Aux data
 │   ├── data_Cape_Town
 │   ├── Flood plains - from Claus
@@ -18,7 +18,7 @@
 │   ├── precalculated_transport
 │   ├── CT Dwelling type data validation workbook 20201204 v2.xlsx
 │   └── housing_types_grid_sal.xlsx
-├── 4. Sorties
+├── Output
 └── code capetown python
     ├── _docs
     ├── _old

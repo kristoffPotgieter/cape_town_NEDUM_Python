@@ -1,14 +1,14 @@
 ﻿Folder,Data set,Format,Dimension,Observation unit,Description,Type
-0. Precalculated inputs,calibratedAmenities,.npy,1x24014,Pixel,Amenity index: follows calibration from Pfeiffer et al. (appendix C4),User
-0. Precalculated inputs,calibratedHousing_b,.npy,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity",User
-0. Precalculated inputs,calibratedHousing_kappa,.npy,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter",User
-0. Precalculated inputs,calibratedUtility_beta,.npy,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity",User
-0. Precalculated inputs,calibratedUtility_q0,.npy,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing",User
-0. Precalculated inputs,data,.mat,/,/,"Matlab structure containing various household data, essentially at the SP level",/
-0. Precalculated inputs,incomeCentersKeep,.npy,185x4,TAZ (2013),"Calibrated incomes per income group and job center (see Pfeiffer et al., appendix C3)",User
-0. Precalculated inputs,lambdaKeep,.npy,1x1,Parameter,"Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3",User
-0. Precalculated inputs,Transport_times_GRID,.mat,5x185x24014,Pixel,Transport times for a round trip with several transportation modes between all grid cells,Raw
-0. Precalculated inputs,Transport_times_SP,.mat,5x185x1046,SP (2011),Transport times for a round trip with several transportation modes between all census blocks,Raw
+Precalculated inputs,calibratedAmenities,.npy,1x24014,Pixel,Amenity index: follows calibration from Pfeiffer et al. (appendix C4),User
+Precalculated inputs,calibratedHousing_b,.npy,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity",User
+Precalculated inputs,calibratedHousing_kappa,.npy,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter",User
+Precalculated inputs,calibratedUtility_beta,.npy,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity",User
+Precalculated inputs,calibratedUtility_q0,.npy,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing",User
+Precalculated inputs,data,.mat,/,/,"Matlab structure containing various household data, essentially at the SP level",/
+Precalculated inputs,incomeCentersKeep,.npy,185x4,TAZ (2013),"Calibrated incomes per income group and job center (see Pfeiffer et al., appendix C3)",User
+Precalculated inputs,lambdaKeep,.npy,1x1,Parameter,"Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3",User
+Precalculated inputs,Transport_times_GRID,.mat,5x185x24014,Pixel,Transport times for a round trip with several transportation modes between all grid cells,Raw
+Precalculated inputs,Transport_times_SP,.mat,5x185x1046,SP (2011),Transport times for a round trip with several transportation modes between all census blocks,Raw
 data_Cape_Town,TAZ_ampp_prod_attr_2013_2032,.shp,1787x10,TAZ (2013),"Geographic data at the transport zone level, used to map employment data",Raw
 data_Cape_Town,grid_reference_500,.shp,24014x7,Pixel,"Geographic data at the grid cell level, used to map model outputs",Raw
 data_Cape_Town\Scenarios,Scenario_inc_distrib_1,.csv,12x3,Scenario,Lower inequality: income of groups 3 and 4 decrease by 10% relatively to groups 1 and 2,Raw

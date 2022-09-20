@@ -26,6 +26,11 @@
 import numpy as np
 import pandas as pd
 import os
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.lines import Line2D
+from IPython.display import Image
 
 # We also import our own packages
 import inputs.data as inpdt
@@ -33,18 +38,41 @@ import inputs.parameters_and_options as inpprm
 import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.run_simulations as eqsim
 import equilibrium.functions_dynamic as eqdyn
+import outputs.export_outputs as outexp
+import outputs.flood_outputs as outfld
 # endregion
 
 # ### Define file paths
 
+# This corresponds to the architecture described in the README file
+# (introduction tab of the documentation): the data folder is not hosted
+# on the Github repository and should be placed in the root folder enclosing
+# the repo
+
 path_code = '..'
-path_folder = path_code + '/2. Data/'
-path_precalc_inp = path_folder + '0. Precalculated inputs/'
+path_folder = path_code + '/Data/'
+path_precalc_inp = path_folder + 'Precalculated inputs/'
 path_data = path_folder + 'data_Cape_Town/'
 path_precalc_transp = path_folder + 'precalculated_transport/'
-path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
-path_outputs = path_code + '/4. Sorties/'
+path_scenarios = path_data + 'Scenarios/'
+path_outputs = path_code + '/Output/'
 path_floods = path_folder + "FATHOM/"
+path_input_plots = path_outputs + '/input_plots/'
+path_input_tables = path_outputs + '/input_tables/'
+
+# ### Create associated directories if needed
+
+# region
+try:
+    os.mkdir(path_input_plots)
+except OSError as error:
+    print(error)
+
+try:
+    os.mkdir(path_input_tables)
+except OSError as error:
+    print(error)
+# endregion
 
 # ### Set timeline for simulations
 
@@ -55,6 +83,7 @@ t = np.arange(0, 30)
 
 # ### We import default parameter and options
 
+import inputs.parameters_and_options as inpprm
 options = inpprm.import_options()
 param = inpprm.import_param(
     path_precalc_inp, path_outputs, path_folder, options)
@@ -82,7 +111,7 @@ options["dem"] = "MERITDEM"
 # Dummy for taking defended (vs. undefended) fluvial flood maps
 # NB: FATHOM recommends to use undefended maps due to the high uncertainty
 # in infrastructure modelling
-options["defended"] = 1
+options["defended"] = 0
 # Dummy for taking sea-level rise into account in coastal flood data
 # NB: Projections are up to 2050, based upon IPCC AR5 assessment for the
 # RCP 8.5 scenario
@@ -123,17 +152,34 @@ name = ('floods' + str(options["agents_anticipate_floods"])
         + str(options["pop_growth_scenario"])
         + str(options["fuel_price_scenario"]))
 
+# region
+# We also create the associated paths and directories to store outputs
+path_output_plots = path_outputs + name + '/plots/'
+path_output_tables = path_outputs + name + '/tables/'
+
+try:
+    os.mkdir(path_output_plots)
+except OSError as error:
+    print(error)
+
+try:
+    os.mkdir(path_output_tables)
+except OSError as error:
+    print(error)
+# endregion
 
 # ## Load data
 
 # ### Basic geographic data
 
+import inputs.data as inpdt
 grid, center = inpdt.import_grid(path_data)
 amenities = inpdt.import_amenities(path_precalc_inp, options)
-
+geo_grid = gpd.read_file(path_data + "grid_reference_500.shp")
 
 # ### Macro data
 
+import inputs.data as inpdt
 (interest_rate, population, housing_type_data, total_RDP
  ) = inpdt.import_macro_data(param, path_scenarios, path_folder)
 
@@ -141,6 +187,7 @@ amenities = inpdt.import_amenities(path_precalc_inp, options)
 # ### Households and income data
 
 # region
+import inputs.data as inpdt
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
@@ -170,6 +217,7 @@ housing_types[np.isnan(housing_types)] = 0
 
 # region
 # We import basic projections
+import inputs.data as inpdt
 (spline_RDP, spline_estimate_RDP, spline_land_RDP,
  spline_land_backyard, spline_land_informal, spline_land_constraints,
  number_properties_RDP) = (
@@ -177,17 +225,203 @@ housing_types[np.isnan(housing_types)] = 0
                            housing_type_data, path_data, path_folder)
      )
 
+# #### For reference, let us visualize the informal settlement risks considered
+
+# region
+# First for timing
+informal_risks_short = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_SHORT.csv',
+    sep=',')
+informal_risks_short = informal_risks_short.rename(
+    columns={"area": "area_short"})
+informal_risks_medium = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_MEDIUM.csv',
+    sep=',')
+informal_risks_medium = informal_risks_medium.rename(
+    columns={"area": "area_medium"})
+informal_risks_long = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_LONG.csv',
+    sep=',')
+informal_risks_long = informal_risks_long.rename(
+    columns={"area": "area_long"})
+
+informal_risks_timing = pd.concat(
+    [informal_risks_short["area_short"],
+     informal_risks_medium["area_medium"],
+     informal_risks_long["area_long"]],
+    axis=1)
+informal_risks_timing["sum"] = (
+    informal_risks_timing["area_short"]
+    + informal_risks_timing["area_medium"]
+    + informal_risks_timing["area_long"])
+informal_risks_timing["argmax"] = np.zeros(24014)
+informal_risks_timing["argmax"] = np.nan
+informal_risks_timing[
+    "argmax"][informal_risks_timing["sum"] > 0] = np.nanargmax(
+        informal_risks_timing[["area_short", "area_medium", "area_long"]], 1)
+informal_risks_timing["color"] = "tab:grey"
+informal_risks_timing.loc[
+    informal_risks_timing["argmax"] == 0, "color"] = "tab:red"
+informal_risks_timing.loc[
+    informal_risks_timing["argmax"] == 1, "color"] = "tab:blue"
+informal_risks_timing.loc[
+    informal_risks_timing["argmax"] == 2, "color"] = "tab:green"
+
+plt.figure(figsize=(10, 7))
+Map = plt.scatter(grid.x, grid.y, s=None,
+                  c=informal_risks_timing["color"],
+                  marker='.')
+custom_lines = [Line2D([0], [0], color="tab:red", lw=4),
+                Line2D([0], [0], color="tab:blue", lw=4),
+                Line2D([0], [0], color="tab:green", lw=4)]
+plt.legend(custom_lines, ['Short', 'Medium', 'Long'],
+           loc='upper right', bbox_to_anchor=(0.925, 0.9))
+plt.axis('off')
+plt.title("Timing of informal settlement expansion risk")
+plt.savefig(path_input_plots + "informal_settlement_risk_timing")
+plt.close()
+informal_risks_timing.to_csv(path_input_tables
+                             + 'informal_settlement_risk_timing.csv')
+
+Image(path_input_plots + "informal_settlement_risk_timing.png")
+# endregion
+
+# region
+# Then for probability
+
+informal_risks_LOW = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pLOW.csv',
+    sep=',')
+informal_risks_LOW = informal_risks_LOW.rename(
+    columns={"area": "area_LOW"})
+informal_risks_MEDIUM = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pMEDIUM.csv',
+    sep=',')
+informal_risks_MEDIUM = informal_risks_MEDIUM.rename(
+    columns={"area": "area_MEDIUM"})
+informal_risks_HIGH = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pHIGH.csv',
+    sep=',')
+informal_risks_HIGH = informal_risks_HIGH.rename(
+    columns={"area": "area_HIGH"})
+informal_risks_VERYHIGH = pd.read_csv(
+    path_folder + 'Land occupation/informal_settlements_risk_pVERYHIGH.csv',
+    sep=',')
+informal_risks_VERYHIGH = informal_risks_VERYHIGH.rename(
+    columns={"area": "area_VERYHIGH"})
+
+informal_risks_proba = pd.concat(
+    [informal_risks_LOW["area_LOW"],
+     informal_risks_MEDIUM["area_MEDIUM"],
+     informal_risks_HIGH["area_HIGH"],
+     informal_risks_VERYHIGH["area_VERYHIGH"]],
+    axis=1)
+informal_risks_proba["sum"] = (
+    informal_risks_proba["area_LOW"]
+    + informal_risks_proba["area_MEDIUM"]
+    + informal_risks_proba["area_HIGH"]
+    + informal_risks_proba["area_VERYHIGH"])
+informal_risks_proba["argmax"] = np.zeros(24014)
+informal_risks_proba["argmax"] = np.nan
+informal_risks_proba[
+    "argmax"][informal_risks_proba["sum"] > 0] = np.nanargmax(
+        informal_risks_proba[
+            ["area_LOW", "area_MEDIUM", "area_HIGH", "area_VERYHIGH"]
+            ], 1)
+informal_risks_proba["color"] = "tab:grey"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 0, "color"] = "tab:green"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 1, "color"] = "tab:blue"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 2, "color"] = "tab:orange"
+informal_risks_proba.loc[
+    informal_risks_proba["argmax"] == 3, "color"] = "tab:red"
+
+plt.figure(figsize=(10, 7))
+Map = plt.scatter(grid.x, grid.y, s=None,
+                  c=informal_risks_proba["color"],
+                  marker='.')
+custom_lines = [Line2D([0], [0], color="tab:green", lw=4),
+                Line2D([0], [0], color="tab:blue", lw=4),
+                Line2D([0], [0], color="tab:orange", lw=4),
+                Line2D([0], [0], color="tab:red", lw=4)]
+plt.legend(custom_lines, ['Low', 'Medium', 'High', "Very high"],
+           loc='upper right', bbox_to_anchor=(0.925, 0.9))
+plt.axis('off')
+plt.title("Probability of informal settlement expansion risk")
+plt.savefig(path_input_plots + "informal_settlement_risk_proba")
+plt.close()
+informal_risks_proba.to_csv(path_input_tables
+                            + 'informal_settlement_risk_proba.csv')
+
+Image(path_input_plots + "informal_settlement_risk_proba.png")
+# endregion
+
 # We correct areas for each housing type at baseline year for the amount of
 # constructible land in each type
+import inputs.data as inpdt
 coeff_land = inpdt.import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal,
     spline_land_RDP, param, 0)
 
-# We import housing heigth limits
+# #### Let us visualize land availaibility ay baseline year
+
+# region
+# For formal private housing
+import outputs.export_outputs as outexp
+coeff_land_FP_map = outexp.export_map(
+    coeff_land[0], grid, geo_grid, path_input_plots, 'coeff_land_formal',
+    "Land availability (in %) for formal private housing",
+    path_input_tables,
+    ubnd=1, lbnd=0)
+
+Image(path_input_plots + "coeff_land_formal.png")
+# endregion
+
+# region
+# For informal backyards
+import outputs.export_outputs as outexp
+coeff_land_IB_map = outexp.export_map(
+    coeff_land[1], grid, geo_grid, path_input_plots, 'coeff_land_backyard',
+    "Land availability (in %) for informal backyard housing",
+    path_input_tables,
+    ubnd=1, lbnd=0)
+
+Image(path_input_plots + "coeff_land_backyard.png")
+# endregion
+
+# region
+# For informal settlements
+import outputs.export_outputs as outexp
+coeff_land_IS_map = outexp.export_map(
+    coeff_land[2], grid, geo_grid, path_input_plots, 'coeff_land_informal',
+    "Land availability (in %) for informal settlement housing",
+    path_input_tables,
+    ubnd=1, lbnd=0)
+
+Image(path_input_plots + "coeff_land_informal.png")
+# endregion
+
+# region
+# For formal subsidized housing
+import outputs.export_outputs as outexp
+coeff_land_FS_map = outexp.export_map(
+    coeff_land[3], grid, geo_grid, path_input_plots, 'coeff_land_subsidized',
+    "Land availability (in %) for formal subsidized housing",
+    path_input_tables,
+    ubnd=1, lbnd=0)
+
+Image(path_input_plots + "coeff_land_subsidized.png")
+# endregion
+
+# We also import housing heigth limits
+import inputs.data as inpdt
 housing_limit = inpdt.import_housing_limit(grid, param)
 
 # We update parameter vector with construction parameters
 # (relies on loaded data) and compute other variables
+import inputs.parameters_and_options as inpprm
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -199,6 +433,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 # ### Import flood data (takes some time when agents anticipate floods)
 
 # region
+import inputs.data as inpdt
 # If agents anticipate floods, we return output from damage functions
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
@@ -229,8 +464,91 @@ elif options["agents_anticipate_floods"] == 0:
                                ] = np.zeros(24014)
 # endregion
 
+# #### Let us visualize flood data
+
+# We will first show some flood maps for visual reference, then the associated
+# fractions of capital destroyed computed through damage functions
+# (final damages depend on spatial sorting)
+#
+# NB: all maps are undefended (do not take protective infrastructure into
+# account), and a return period of 100 years corresponds to a 1% chance of
+# occurrence in a given year
+
+# region
+# Fluvial undefended maximum flood depth (in m) for a 100-year return period
+ref_flood = np.squeeze(pd.read_excel(path_floods + "FU_100yr" + ".xlsx"))
+ref_flood_depth = ref_flood["flood_depth"]
+import outputs.export_outputs as outexp
+ref_flood_map_depth = outexp.export_map(
+    ref_flood_depth, grid, geo_grid,
+    path_input_plots, 'FU_100yr' + '_map_depth',
+    "",
+    path_input_tables,
+    ubnd=4)
+
+Image(path_input_plots + 'FU_100yr' + '_map_depth.png')
+# endregion
+
+# region
+# Pluvial maximum flood depth (in m) for a 100-year return period
+ref_flood = np.squeeze(pd.read_excel(path_floods + "P_100yr" + ".xlsx"))
+ref_flood_depth = ref_flood["flood_depth"]
+import outputs.export_outputs as outexp
+ref_flood_map_depth = outexp.export_map(
+    ref_flood_depth, grid, geo_grid,
+    path_input_plots, 'P_100yr' + '_map_depth',
+    "",
+    path_input_tables,
+    ubnd=4)
+
+Image(path_input_plots + 'P_100yr' + '_map_depth.png')
+# endregion
+
+# region
+# Coastal maximum flood depth (in m) for a 100-year return period
+ref_flood = np.squeeze(pd.read_excel(
+    path_floods + "C_MERITDEM_1_0100" + ".xlsx"))
+ref_flood_depth = ref_flood["flood_depth"]
+import outputs.export_outputs as outexp
+ref_flood_map_depth = outexp.export_map(
+    ref_flood_depth, grid, geo_grid,
+    path_input_plots, 'C_MERITDEM_1_0100' + '_map_depth',
+    "",
+    path_input_tables,
+    ubnd=4)
+
+Image(path_input_plots + 'C_MERITDEM_1_0100' + '_map_depth.png')
+# endregion
+
+# We create the maps for fraction of capital destroyed before plotting them
+import outputs.export_outputs as outexp
+for col in fraction_capital_destroyed.columns:
+    value = fraction_capital_destroyed[col]
+    outexp.export_map(value, grid, geo_grid,
+                      path_input_plots, col + '_fract_K_destroyed', "",
+                      path_input_tables,
+                      ubnd=1)
+
+# For formal private housing structures
+Image(path_input_plots + 'structure_formal_1' + '_fract_K_destroyed.png')
+
+# For informal backyard structures
+Image(path_input_plots + 'structure_informal_backyards'
+      + '_fract_K_destroyed.png')
+
+# For informal settlement structures
+Image(path_input_plots + 'informal_settlements' + '_fract_K_destroyed.png')
+
+# For formal subsidized structures
+Image(path_input_plots + 'structure_subsidized_1' + '_fract_K_destroyed.png')
+
+# For contents across all housing types
+Image(path_input_plots + 'contents_formal' + '_fract_K_destroyed.png')
+
+
 # ### Import scenarios (for time-moving variables)
 
+import equilibrium.functions_dynamic as eqdyn
 (spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
@@ -238,9 +556,10 @@ elif options["agents_anticipate_floods"] == 0:
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
                             options)
 
-# ### Import income net of commuting costs (for all time periods)
+# ### Import (theoretical) income net of commuting costs (for all time periods)
 
 # region
+import inputs.data as inpdt
 if options["compute_net_income"] == 1:
     for t_temp in t:
         print(t_temp)
@@ -255,10 +574,69 @@ income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 # endregion
 
+# #### Let us visualize income net of commuting costs at baseline year
+
+# Note that this variable is computed through our commuting choice model,
+# based on calibrated incomes per income group and job center
+
+# region
+# For income group 1
+netincome_poor = income_net_of_commuting_costs[0, :]
+import outputs.export_outputs as outexp
+netincome_poor_2d_sim = outexp.export_map(
+    netincome_poor, grid, geo_grid, path_output_plots, 'netincome_poor_2d_sim',
+    "Estimated income net of commuting costs (poor)",
+    path_output_tables,
+    ubnd=25000, lbnd=-15000, cmap='bwr')
+
+Image(path_output_plots + 'netincome_poor_2d_sim.png')
+# endregion
+
+# region
+# For income group 2
+netincome_midpoor = income_net_of_commuting_costs[1, :]
+import outputs.export_outputs as outexp
+netincome_midpoor_2d_sim = outexp.export_map(
+    netincome_midpoor, grid, geo_grid, path_output_plots,
+    'netincome_midpoor_2d_sim',
+    "Estimated income net of commuting costs (mid-poor)",
+    path_output_tables,
+    ubnd=70000, lbnd=-20000, cmap='bwr')
+
+Image(path_output_plots + 'netincome_midpoor_2d_sim.png')
+# endregion
+
+# region
+# For income group 3
+netincome_midrich = income_net_of_commuting_costs[2, :]
+import outputs.export_outputs as outexp
+netincome_midrich_2d_sim = outexp.export_map(
+    netincome_midrich, grid, geo_grid, path_output_plots,
+    'netincome_midrich_2d_sim',
+    "Estimated income net of commuting costs (mid-rich)",
+    path_output_tables,
+    ubnd=200000, lbnd=25000)
+
+Image(path_output_plots + 'netincome_midrich_2d_sim.png')
+# endregion
+
+# region
+# For income group 4
+netincome_rich = income_net_of_commuting_costs[3, :]
+import outputs.export_outputs as outexp
+netincome_rich_2d_sim = outexp.export_map(
+    netincome_rich, grid, geo_grid, path_output_plots, 'netincome_rich_2d_sim',
+    "Estimated income net of commuting costs (rich)",
+    path_output_tables,
+    ubnd=850000, lbnd=250000)
+
+Image(path_output_plots + 'netincome_rich_2d_sim.png')
+# endregion
 
 # ## Compute initial state equilibrium
 
 # We run the algorithm
+import equilibrium.compute_equilibrium as eqcmp
 (initial_state_utility,
  initial_state_error,
  initial_state_simulated_jobs,
@@ -371,10 +749,382 @@ np.save(path_outputs + name + '/initial_state_average_income.npy',
 np.save(path_outputs + name + '/initial_state_limit_city.npy',
         initial_state_limit_city)
 
+# ### Let us visualize key equilibrium outputs
+
+# #### Let us start with population distribution
+
+# We first look at sorting across housing types
+
+# region
+# For formal private housing
+sim_nb_households_formal = initial_state_households_housing_types[0, :]
+import outputs.export_outputs as outexp
+formal_sim = outexp.export_map(
+    sim_nb_households_formal, grid, geo_grid, path_output_plots, 'formal_sim',
+    "Number of households in formal private (simulation)",
+    path_output_tables,
+    ubnd=1000)
+
+Image(path_output_plots + 'formal_sim.png')
+# endregion
+
+# region
+# For informal backyards
+sim_nb_households_backyard = initial_state_households_housing_types[1, :]
+import outputs.export_outputs as outexp
+backyard_sim = outexp.export_map(
+    sim_nb_households_backyard, grid, geo_grid, path_output_plots,
+    'backyard_sim', "Number of households in informal backyard (simulation)",
+    path_output_tables,
+    ubnd=1000)
+
+Image(path_output_plots + 'backyard_sim.png')
+# endregion
+
+# region
+# For informal settlements
+sim_nb_households_informal = initial_state_households_housing_types[2, :]
+import outputs.export_outputs as outexp
+informal_sim = outexp.export_map(
+    sim_nb_households_informal, grid, geo_grid, path_output_plots,
+    'informal_sim',
+    "Number of households in informal settlements (simulation)",
+    path_output_tables,
+    ubnd=3000)
+
+Image(path_output_plots + 'informal_sim.png')
+# endregion
+
+# region
+# For formal subsidized housing
+data_nb_households_rdp = initial_state_households_housing_types[3, :]
+import outputs.export_outputs as outexp
+rdp_sim = outexp.export_map(
+    data_nb_households_rdp, grid, geo_grid, path_output_plots, 'rdp_sim',
+    "Number of households in formal subsidized (data)",
+    path_output_tables,
+    ubnd=1800)
+
+Image(path_output_plots + 'rdp_sim.png')
+# endregion
+
+# We then look at sorting across income groups
+
+# region
+# For income group 1
+sim_nb_households_poor = initial_state_household_centers[0, :]
+import outputs.export_outputs as outexp
+poor_sim = outexp.export_map(
+    sim_nb_households_poor, grid, geo_grid, path_output_plots, 'poor_sim',
+    "Number of poor households (simulation)",
+    path_output_tables,
+    ubnd=5000)
+
+Image(path_output_plots + 'poor_sim.png')
+# endregion
+
+# region
+# For income group 2
+sim_nb_households_midpoor = initial_state_household_centers[1, :]
+import outputs.export_outputs as outexp
+midpoor_sim = outexp.export_map(
+    sim_nb_households_midpoor, grid, geo_grid, path_output_plots,
+    'midpoor_sim', "Number of mid-poor households (simulation)",
+    path_output_tables,
+    ubnd=2000)
+
+Image(path_output_plots + 'midpoor_sim.png')
+# endregion
+
+# region
+# For income group 3
+sim_nb_households_midrich = initial_state_household_centers[2, :]
+import outputs.export_outputs as outexp
+midrich_sim = outexp.export_map(
+    sim_nb_households_midrich, grid, geo_grid, path_output_plots,
+    'midrich_sim', "Number of mid-rich households (simulation)",
+    path_output_tables,
+    ubnd=1000)
+
+Image(path_output_plots + 'midrich_sim.png')
+# endregion
+
+# region
+# For income group 4
+sim_nb_households_rich = initial_state_household_centers[3, :]
+import outputs.export_outputs as outexp
+rich_sim = outexp.export_map(
+    sim_nb_households_rich, grid, geo_grid, path_output_plots, 'rich_sim',
+    "Number of rich households (simulation)",
+    path_output_tables,
+    ubnd=500)
+
+Image(path_output_plots + 'rich_sim.png')
+# endregion
+
+# #### We may also look at housing supply (in m²)
+
+# We multiply housing supply per unit of available land by the total area
+# of a grid cell to recover absolute values of housing supply in each cell
+housing_supply = initial_state_housing_supply * coeff_land * 0.25
+
+# region
+# For formal private housing
+hsupply_formal = housing_supply[0, :]
+import outputs.export_outputs as outexp
+hsupply_formal_2d_sim = outexp.export_map(
+    hsupply_formal, grid, geo_grid, path_output_plots, 'hsupply_formal_2d_sim',
+    "Total housing supply in private formal (in m²)",
+    path_output_tables,
+    ubnd=35000)
+
+Image(path_output_plots + 'hsupply_formal_2d_sim.png')
+# endregion
+
+# region
+# For informal backyards
+hsupply_backyard = housing_supply[1, :]
+import outputs.export_outputs as outexp
+hsupply_backyard_2d_sim = outexp.export_map(
+    hsupply_backyard, grid, geo_grid, path_output_plots,
+    'hsupply_backyard_2d_sim',
+    "Total housing supply in informal backyards (in m²)",
+    path_output_tables,
+    ubnd=30000)
+
+Image(path_output_plots + 'hsupply_backyard_2d_sim.png')
+# endregion
+
+# region
+# For informal settlements
+hsupply_informal = housing_supply[2, :]
+import outputs.export_outputs as outexp
+hsupply_informal_2d_sim = outexp.export_map(
+    hsupply_informal, grid, geo_grid, path_output_plots,
+    'hsupply_informal_2d_sim',
+    "Total housing supply in informal settlements (in m²)",
+    path_output_tables,
+    ubnd=70000)
+
+Image(path_output_plots + 'hsupply_informal_2d_sim.png')
+# endregion
+
+# region
+# For formal subsidized housing
+hsupply_rdp = housing_supply[3, :]
+import outputs.export_outputs as outexp
+hsupply_rdp_2d_sim = outexp.export_map(
+    hsupply_rdp, grid, geo_grid, path_output_plots, 'hsupply_rdp_2d_sim',
+    "Total housing supply in formal subsidized (in m²)",
+    path_output_tables,
+    ubnd=25000)
+
+Image(path_output_plots + 'hsupply_rdp_2d_sim.png')
+# endregion
+
+# #### Now, let us look at land prices (in rands / m²)
+
+# We first convert our estimates for the average monthly rents into land prices
+# based on the zero profit condition for developers
+land_rent = (
+    (initial_state_rent[0:3, :] * param["coeff_A"])
+    ** (1 / param["coeff_a"])
+    * param["coeff_a"]
+    * (param["coeff_b"] / (interest_rate + param["depreciation_rate"]))
+    ** (param["coeff_b"] / param["coeff_a"])
+    / interest_rate
+    )
+
+# region
+# For formal private housing
+landrent_formal_simul = land_rent[0, :].copy()
+import outputs.export_outputs as outexp
+land_price_formal_2d_sim = outexp.export_map(
+    landrent_formal_simul, grid, geo_grid,
+    path_output_plots, 'landrent_formal_2d_sim',
+    "Simulated average land rents per location (private formal)",
+    path_output_tables,
+    ubnd=15000)
+
+Image(path_output_plots + 'landrent_formal_2d_sim.png')
+# endregion
+
+# region
+# For informal backyards
+landrent_backyard_simul = land_rent[1, :].copy()
+import outputs.export_outputs as outexp
+land_price_backyard_2d_sim = outexp.export_map(
+    landrent_backyard_simul, grid, geo_grid,
+    path_output_plots, 'landrent_backyard_2d_sim',
+    "Simulated average land rents per location (informal backyards)",
+    path_output_tables,
+    ubnd=10000)
+
+Image(path_output_plots + 'landrent_backyard_2d_sim.png')
+# endregion
+
+# region
+# For informal settlements
+landrent_informal_simul = land_rent[2, :].copy()
+import outputs.export_outputs as outexp
+land_price_informal_2d_sim = outexp.export_map(
+    landrent_informal_simul, grid, geo_grid,
+    path_output_plots, 'landrent_informal_2d_sim',
+    "Simulated average land rents per location (informal settlements)",
+    path_output_tables,
+    ubnd=10000)
+
+Image(path_output_plots + 'landrent_informal_2d_sim.png')
+# endregion
+
+# Note that we cannot estimate land rents for formal subsidized parcels since
+# such housing is exogenous in our model
+
+# #### Finally, let us look at flood damages (in rands)
+
+# In the interest of space and for illustrative purposes, we only show results
+# for the formal private sector structures (which are also the biggest in
+# absolute terms).
+#
+# We redirect the reader to the interface for a more detailed view on other
+# housing submarkets or content damages, with results given as a share of
+# income, for instance
+
+# We first list the flood map labels to be used
+fluvialu_floods = ['FU_5yr', 'FU_10yr', 'FU_20yr', 'FU_50yr', 'FU_75yr',
+                   'FU_100yr', 'FU_200yr', 'FU_250yr', 'FU_500yr', 'FU_1000yr']
+pluvial_floods = ['P_5yr', 'P_10yr', 'P_20yr', 'P_50yr', 'P_75yr', 'P_100yr',
+                  'P_200yr', 'P_250yr', 'P_500yr', 'P_1000yr']
+coastal_floods = ['C_MERITDEM_1_0000', 'C_MERITDEM_1_0002',
+                  'C_MERITDEM_1_0005', 'C_MERITDEM_1_0010',
+                  'C_MERITDEM_1_0025', 'C_MERITDEM_1_0050',
+                  'C_MERITDEM_1_0100', 'C_MERITDEM_1_0250']
+
+# region
+# We compute the full values of damaged formal private structures and contents,
+# for each housing type and a representative household
+import outputs.flood_outputs as outfld
+
+content_cost = outfld.compute_content_cost(
+    initial_state_household_centers, initial_state_housing_supply,
+    income_net_of_commuting_costs, param,
+    fraction_capital_destroyed, initial_state_rent,
+    initial_state_dwelling_size, interest_rate)
+
+formal_structure_cost = outfld.compute_formal_structure_cost_method2(
+        initial_state_rent, param, interest_rate, coeff_land,
+        initial_state_households_housing_types, param["coeff_A"])
+# endregion
+
+# region
+# From there, we recover aggregate damages associated to each flood type
+# per return period
+import outputs.flood_outputs as outfld
+
+fluvialu_damages_2d_sim = outfld.compute_damages_2d(
+    fluvialu_floods, path_floods, param, content_cost,
+    sim_nb_households_formal, data_nb_households_rdp,
+    sim_nb_households_informal, sim_nb_households_backyard,
+    initial_state_dwelling_size, formal_structure_cost, content_damages,
+    structural_damages_type4b, structural_damages_type4a,
+    structural_damages_type2, structural_damages_type3a, options,
+    spline_inflation, 0, path_output_tables, 'fluvialu_sim')
+
+pluvial_damages_2d_sim = outfld.compute_damages_2d(
+    pluvial_floods, path_floods, param, content_cost,
+    sim_nb_households_formal, data_nb_households_rdp,
+    sim_nb_households_informal, sim_nb_households_backyard,
+    initial_state_dwelling_size, formal_structure_cost, content_damages,
+    structural_damages_type4b, structural_damages_type4a,
+    structural_damages_type2, structural_damages_type3a, options,
+    spline_inflation, 0, path_output_tables, 'pluvial_sim')
+
+coastal_damages_2d_sim = outfld.compute_damages_2d(
+    coastal_floods, path_floods, param, content_cost,
+    sim_nb_households_formal, data_nb_households_rdp,
+    sim_nb_households_informal, sim_nb_households_backyard,
+    initial_state_dwelling_size, formal_structure_cost, content_damages,
+    structural_damages_type4b, structural_damages_type4a,
+    structural_damages_type2, structural_damages_type3a, options,
+    spline_inflation, 0, path_output_tables, 'coastal_sim')
+# endregion
+
+# Then, we get to plot the annualized value of some of those damages
+
+# region
+# For structures damaged by fluvial floods
+fluvialu_damages_2d_sim_stacked = np.stack(
+    [df for df in fluvialu_damages_2d_sim.values()])
+fluvialu_formal_structure_2d_sim = np.zeros(24014)
+
+import outputs.flood_outputs as outfld
+for j in np.arange(24014):
+    fluvialu_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        fluvialu_damages_2d_sim_stacked[:, j, 0],
+        'fluvialu', 'formal', options)
+
+temp = fluvialu_formal_structure_2d_sim
+import outputs.export_outputs as outexp
+outexp.export_map(temp, grid, geo_grid,
+                  path_output_plots,
+                  outexp.retrieve_name(temp, -1),
+                  "", path_output_tables,
+                  ubnd=np.quantile(temp[temp > 0], 0.9),
+                  lbnd=np.min(temp[temp > 0]))
+
+Image(path_output_plots + "fluvialu_formal_structure_2d_sim.png")
+# endregion
+
+# region
+# For structures damaged by pluvial floods
+pluvial_damages_2d_sim_stacked = np.stack(
+    [df for df in pluvial_damages_2d_sim.values()])
+pluvial_formal_structure_2d_sim = np.zeros(24014)
+
+import outputs.flood_outputs as outfld
+for j in np.arange(24014):
+    pluvial_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        pluvial_damages_2d_sim_stacked[:, j, 0],
+        'pluvial', 'formal', options)
+
+temp = pluvial_formal_structure_2d_sim
+import outputs.export_outputs as outexp
+outexp.export_map(temp, grid, geo_grid,
+                  path_output_plots,
+                  outexp.retrieve_name(temp, -1),
+                  "", path_output_tables,
+                  ubnd=np.quantile(temp[temp > 0], 0.9),
+                  lbnd=np.min(temp[temp > 0]))
+
+Image(path_output_plots + "pluvial_formal_structure_2d_sim.png")
+# endregion
+
+# region
+# For structures damaged by coastal floods
+coastal_damages_2d_sim_stacked = np.stack(
+    [df for df in coastal_damages_2d_sim.values()])
+coastal_formal_structure_2d_sim = np.zeros(24014)
+for j in np.arange(24014):
+    coastal_formal_structure_2d_sim[j] = outfld.annualize_damages(
+        coastal_damages_2d_sim_stacked[:, j, 0],
+        'coastal', 'formal', options)
+
+temp = coastal_formal_structure_2d_sim
+import outputs.export_outputs as outexp
+outexp.export_map(temp, grid, geo_grid,
+                  path_output_plots,
+                  outexp.retrieve_name(temp, -1),
+                  "", path_output_tables,
+                  ubnd=np.quantile(temp[temp > 0], 0.9),
+                  lbnd=np.min(temp[temp > 0]))
+
+Image(path_output_plots + "coastal_formal_structure_2d_sim.png")
+# endregion
 
 # ## Run simulations for subsequent periods (time depends on timeline length)
 
 # We run the algorithm
+import equilibrium.run_simulations as eqsim
 (simulation_households_center,
  simulation_households_housing_type,
  simulation_dwelling_size,
@@ -448,3 +1198,64 @@ np.save(path_outputs + name + '/simulation_deriv_housing.npy',
         simulation_deriv_housing)
 np.save(path_outputs + name + '/simulation_T.npy',
         simulation_T)
+
+# ### Output visualization
+
+# All the above outputs are available at each period.
+# For reference, we include here some aggregates that evolve over time.
+#
+# We redirect the reader to the interface for a more detailed view of other
+# aggregates, of which the evolution of flood damages for instance.
+# Note that since flood risks do not evolve through time, the evolution in
+# flood damages is just a function of population growth and spatial sorting
+
+# We set the x-axis of our plots
+years_simul = np.arange(2011, 2011 + 30)
+
+# #### Evolution of utility levels over the years
+
+# region
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(years_simul, simulation_utility[:, 0],
+        color="maroon", label="Poor")
+ax.plot(years_simul, simulation_utility[:, 1],
+        color="red", label="Mid-poor")
+ax.plot(years_simul, simulation_utility[:, 2],
+        color="darkorange", label="Mid-rich")
+ax.plot(years_simul, simulation_utility[:, 3],
+        color="gold", label="Rich")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Utility levels", labelpad=15)
+plt.savefig(path_output_plots + 'evol_util_levels.png')
+plt.close()
+
+Image(path_output_plots + "evol_util_levels.png")
+# endregion
+
+# #### Evolution of population sorting across housing types
+
+# region
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 0],
+        color="gold", label="Formal")
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 1],
+        color="darkorange", label="Backyard")
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 2],
+        color="red", label="Informal")
+ax.plot(years_simul, np.nansum(simulation_households_housing_type, 2)[:, 3],
+        color="maroon", label="Subsidized")
+ax.set_ylim(0)
+ax.yaxis.set_major_formatter(
+    mpl.ticker.StrMethodFormatter('{x:,.0f}'))
+plt.legend()
+plt.tick_params(labelbottom=True)
+plt.ylabel("Total number of households per housing type", labelpad=15)
+plt.savefig(path_output_plots + 'evol_nb_households_htype.png')
+plt.close()
+
+Image(path_output_plots + "evol_nb_households_htype.png")
+# endregion

@@ -27,12 +27,12 @@ from equilibrium.run_simulations import *
 from inputs.WBUS2_depth import *
 
 path_code = '..'
-path_folder = path_code + '/2. Data/'
-precalculated_inputs = path_folder + "0. Precalculated inputs/"
+path_folder = path_code + '/Data/'
+precalculated_inputs = path_folder + "Precalculated inputs/"
 path_data = path_folder + "data_Cape_Town/"
 precalculated_transport = path_folder + "precalculated_transport/"
-path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
-path_outputs = path_code+'/4. Sorties/'
+path_scenarios = path_data + 'Scenarios/'
+path_outputs = path_code+'/Output/'
 
 start = time.process_time()
 

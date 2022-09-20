@@ -10,8 +10,6 @@ import numpy as np
 import scipy.io
 import copy
 
-# TODO: set limited choice for parameters and options
-
 
 def import_options():
     """Import default options."""
@@ -70,7 +68,7 @@ def import_options():
     options["deprec_land"] = 0
 
     # Dummy for running calibration again
-    options["run_calib"] = 0
+    # options["run_calib"] = 0
 
     # Options for calibration code correction
     #  Dummy for defining dominant income group based on number of people
@@ -106,7 +104,7 @@ def import_options():
     #  check how this affects the model
     options["reverse_elasticities"] = 0
     #  Dummy for using GLM (instead of OLS) for the estimation of exogenous
-    #  amenity parameters
+    #  amenity parameters (not used in practice)
     options["glm"] = 0
     #  Dummy for using RBFInterpolator instead of interp2d for 2D interpolation
     #  of rents based on incomes and utilities
@@ -114,11 +112,11 @@ def import_options():
     #  Number of neighbours to be used if RBFInterpolator is chosen
     options["interpol_neighbors"] = 50
     #  Test for improving rent interpolation in calibration by assuming away
-    #  basic need in housing from max rent estimation
+    #  basic need in housing from max rent estimation (not used in practice)
     options["test_maxrent"] = 0
     #  Option for using scipy solver to refine utility function parameter
     #  estimates from scanning
-    options["param_optim"] = 0
+    options["param_optim"] = 1
     #  Option for taking log into account in rent interpolation for utility
     #  function parameter estimation
     options["log_form"] = 1
@@ -132,7 +130,6 @@ def import_options():
     #  NB: we do not add and option for interest rate: expected future value
     #  can just be plugged direcly into the scenario table.
     #  Same goes for inflation.
-    #  TODO: why is 2010 taken as base year?
     #  However, price of fuel should be defined independently to be of interest
     #  We define dummy scenarios for the time being...
     #  Code corresponds to low/medium/high
@@ -148,33 +145,26 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
 
     # Utility function parameters, as calibrated in Pfeiffer et al. (table C7)
     #  Surplus housing elasticity
-    param["beta"] = scipy.io.loadmat(
-        path_precalc_inp + 'calibratedUtility_beta.mat'
-        )["calibratedUtility_beta"].squeeze()
-    # if options["load_precal_param"] == 1:
-    #     param["beta"] = scipy.io.loadmat(
-    #         path_precalc_inp + 'calibratedUtility_beta.mat'
-    #         )["calibratedUtility_beta"].squeeze()
-    # elif options["load_precal_param"] == 0:
-    #     param["beta"] = np.load(
-    #         path_precalc_inp + 'calibratedUtility_beta.npy')
+    if options["load_precal_param"] == 1:
+        param["beta"] = scipy.io.loadmat(
+            path_precalc_inp + 'calibratedUtility_beta.mat'
+            )["calibratedUtility_beta"].squeeze()
+    elif options["load_precal_param"] == 0:
+        param["beta"] = np.load(
+            path_precalc_inp + 'calibratedUtility_beta.npy')
     #  Basic need in housing
+    #  NB: we take this value as given by Pfeiffer et al., since it is not
+    #  possible to run a stable optimization along with utility levels and
+    #  utility function parameters
     param["q0"] = scipy.io.loadmat(
         path_precalc_inp + 'calibratedUtility_q0.mat'
         )["calibratedUtility_q0"].squeeze()
-    # if options["load_precal_param"] == 1:
-    #     param["q0"] = scipy.io.loadmat(
-    #         path_precalc_inp + 'calibratedUtility_q0.mat'
-    #         )["calibratedUtility_q0"].squeeze()
-    # elif options["load_precal_param"] == 0:
-    #     param["q0"] = np.load(path_precalc_inp + 'calibratedUtility_q0.npy')
     #  Composite good elasticity
     param["alpha"] = 1 - param["beta"]
 
     # Housing production function parameters, as calibrated in Pfeiffer et al.
     # (table C7)
     #  Capital elasticity
-    #  TODO: is it too small compared to existing literature?
     if options["load_precal_param"] == 1:
         param["coeff_b"] = scipy.io.loadmat(
             path_precalc_inp + 'calibratedHousing_b.mat')["coeff_b"].squeeze()
@@ -193,8 +183,7 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
             path_precalc_inp + 'calibratedHousing_kappa.npy')
 
     # Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et
-    # al.), as calibrated in appendix C3
-    # TODO: correct typo in paper
+    # al.), as calibrated in appendix C3 (typo in original paper)
     if options["load_precal_param"] == 1:
         param["lambda"] = scipy.io.loadmat(path_precalc_inp + 'lambda.mat'
                                            )["lambdaKeep"].squeeze()
@@ -204,34 +193,27 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     # Threshold above which we retain TAZ as a job center (for calibration)
     param["job_center_threshold"] = 2500
 
-    # Discount factors
-    # TODO: correct typo in paper
+    # Discount factors (typo in original paper)
     #  From Viguié et al. (2014)
     param["depreciation_rate"] = 0.025
     #  From World Development Indicator database (World Bank, 2016)
-    #  TODO: Note that this will not be used in practice as we will prefer
-    #  interpolation from historical interest rates (need to create option to
-    #  change formulas otherwise)
-    param["interest_rate"] = 0.025
+    #  NB: Note that this will not be used in practice as we will prefer
+    #  interpolation from historical interest rates
+    # param["interest_rate"] = 0.025
 
     # Housing parameters
-    #  Size of an informal dwelling unit (m^2)
-    #  TODO: correct value in paper
+    #  Size of an informal dwelling unit in m^2 (wrong value in original paper)
     param["shack_size"] = 14
     #  Size of a social housing dwelling unit (m^2), see table C6
-    #  TODO: does this need to be updated given research note?
     param["RDP_size"] = 40
     #  Size of backyard dwelling unit (m^2), see table C6 (not rented fraction)
     #  NB: in theory, a backyard can therefore host up to 5 households
+    #  TODO: does this need to be updated given Claus' research note?
     param["backyard_size"] = 70
     #  Nb of social housing units built per year (cf. Housing Pipeline)
-    #  TODO :correct value in paper
     param["future_rate_public_housing"] = 1000
     #  Cost of inputs for building an informal dwelling unit (in rands)
     #  This is used to account for potential destructions from floods
-    #  TODO: add some references from Claus (why not 3000 as in research note?)
-    #  TODO: plug flow costs as a fraction of land used to recover values?
-    # param["informal_structure_value"] = 4000
     param["informal_structure_value"] = 3000
     #  Fraction of the composite good that is kept inside the house and that
     #  can possibly be destroyed by floods (food, furniture, etc.)
@@ -248,10 +230,6 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     param["fraction_z_dwellings"] = 0.53
     #  Value of a social housing dwelling unit (in rands): again needed for
     #  flood damage estimation
-    #  TODO: include references from Claus
-    #  Old estimate for reference
-    # param["subsidized_structure_value"] = 150000
-    #  New estimate
     param["subsidized_structure_value"] = 127000
 
     # Max % of land that can be built for housing (to take roads into account),
@@ -264,7 +242,6 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     param["max_land_use_settlement"] = 0.4
 
     # Constraints on housing supply (in meters), a priori not binding
-    # TODO: include references from Claus
     param["historic_radius"] = 6
     # Note that we allow for higher construction in the core center, compared
     # to previous version
@@ -275,7 +252,6 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     #  Corresponds to the ninth decile in the sales data sets, when
     #  selecting only agricultural properties in rural areas
     #  NB: corresponds to the price of land, not of real estate
-    #  TODO: recover original data
     param["agricultural_rent_2011"] = 807.2
     #  Estimated the same way
     param["agricultural_rent_2001"] = 70.7
@@ -295,12 +271,9 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     #  (see appendix B1: 2*ksi): we need to take into account monetary cost
     #  for both members of the household (cf. import_transport_data)
     #  NB: looks like employment vs. unemployment rate (no participation rate)
-    #  TODO: recover original data
     param["household_size"] = [1.14, 1.94, 1.92, 1.94]
 
     # Transportation cost parameters
-    # TODO: where does waiting time kick in?
-    # param["waiting_time_metro"] = 10  # in minutes
     param["walking_speed"] = 4  # in km/h
     param["time_cost"] = 1  # equivalence in monetary terms
     # NB: this parameter is estimated in QSE models such as Tsivanidis'
@@ -321,9 +294,10 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     #  NB: this parameter varies through time in models such as Gomtsyan's
     param["time_invest_housing"] = 3
     #  Time (in years) for the full depreciation of a housing unit
-    param["time_depreciation_buildings"] = 100
-    #  Set the nb of simulations per year
-    param["iter_calc_lite"] = 1
+    #  In practice, we rather use the inverse value of capital depreciation
+    # param["time_depreciation_buildings"] = 100
+    #  Set the nb of simulations per year (not used in practice)
+    # param["iter_calc_lite"] = 1
 
     # Size (in m^2) above which we need to switch flood damage functions for
     # formal housing: corresponds to existence of a 2nd floor
@@ -384,7 +358,6 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # housing per household per unit of land. In practice, this is not used.
     # NB: HFA = habitable floor area
     cond = coeff_land[0, :] != 0
-    # TODO: why 1.1?
     param["housing_in"][cond] = (
         grid_formal_density_HFA[cond] / coeff_land[0, :][cond] * 1.1)
     param["housing_in"][~np.isfinite(param["housing_in"])] = 0
@@ -417,9 +390,6 @@ def import_construction_parameters(param, grid, housing_types_sp,
             | (np.isnan(param["minimum_housing_supply"]))
             ] = 0
 
-    # TODO: Discuss better correction than such ad hoc procedure (although
-    # for Philippi and Khayelitsha)
-
     minimum_housing_supply = param["minimum_housing_supply"]
 
     # We take minimum dwelling size of built areas where the share of informal
@@ -450,7 +420,6 @@ def import_construction_parameters(param, grid, housing_types_sp,
 
 def compute_agricultural_rent(rent, scale_fact, interest_rate, param, options):
     """Convert land price into real estate price for land."""
-    # TODO: should we include fraction_capital_destroyed? A priori no
     agricultural_rent = 0
     if options["correct_agri_rent"] == 1 & options["deprec_land"] == 1:
         agricultural_rent = (

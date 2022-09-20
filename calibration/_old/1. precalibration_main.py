@@ -36,12 +36,12 @@ import outputs.export_outputs as outexp
 # DEFINE FILE PATHS
 
 path_code = '..'
-path_folder = path_code + '/2. Data/'
-path_precalc_inp = path_folder + '0. Precalculated inputs/'
+path_folder = path_code + '/Data/'
+path_precalc_inp = path_folder + 'Precalculated inputs/'
 path_data = path_folder + 'data_Cape_Town/'
 path_precalc_transp = path_folder + 'precalculated_transport/'
-path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
-path_outputs = path_code + '/4. Sorties/'
+path_scenarios = path_data + 'Scenarios/'
+path_outputs = path_code + '/Output/'
 path_floods = path_folder + "FATHOM/"
 
 

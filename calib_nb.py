@@ -22,6 +22,9 @@
 import numpy as np
 import pandas as pd
 import os
+import geopandas as gpd
+import matplotlib.pyplot as plt
+from IPython.display import Image
 
 # We also import our own packages
 import inputs.data as inpdt
@@ -29,24 +32,46 @@ import inputs.parameters_and_options as inpprm
 import equilibrium.compute_equilibrium as eqcmp
 import equilibrium.functions_dynamic as eqdyn
 import calibration.calib_main_func as calmain
+import outputs.export_outputs as outexp
 # endregion
 
 # ### Define file paths
 
+# This corresponds to the architecture described in the README file
+# (introduction tab of the documentation): the data folder is not hosted
+# on the Github repository and should be placed in the root folder enclosing
+# the repo
+
 path_code = '..'
-path_folder = path_code + '/2. Data/'
-path_precalc_inp = path_folder + '0. Precalculated inputs/'
+path_folder = path_code + '/Data/'
+path_precalc_inp = path_folder + 'Precalculated inputs/'
 path_data = path_folder + 'data_Cape_Town/'
 path_precalc_transp = path_folder + 'precalculated_transport/'
-path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
-path_outputs = path_code + '/4. Sorties/'
+path_scenarios = path_data + 'Scenarios/'
+path_outputs = path_code + '/Output/'
 path_floods = path_folder + "FATHOM/"
+path_input_plots = path_outputs + '/input_plots/'
+path_input_tables = path_outputs + '/input_tables/'
 
+# ### Create associated directories if needed
+
+# region
+try:
+    os.mkdir(path_input_plots)
+except OSError as error:
+    print(error)
+
+try:
+    os.mkdir(path_input_tables)
+except OSError as error:
+    print(error)
+# endregion
 
 # ## Import parameters and options
 
 # ### We import default parameter and options
 
+import inputs.parameters_and_options as inpprm
 options = inpprm.import_options()
 param = inpprm.import_param(
     path_precalc_inp, path_outputs, path_folder, options)
@@ -74,7 +99,7 @@ options["dem"] = "MERITDEM"
 # Dummy for taking defended (vs. undefended) fluvial flood maps
 # NB: FATHOM recommends to use undefended maps due to the high uncertainty
 # in infrastructure modelling
-options["defended"] = 1
+options["defended"] = 0
 # Dummy for taking sea-level rise into account in coastal flood data
 # NB: Projections are up to 2050, based upon IPCC AR5 assessment for the
 # RCP 8.5 scenario
@@ -107,12 +132,16 @@ options["compute_net_income"] = 0
 
 # ### Basic geographic data
 
+import inputs.data as inpdt
 grid, center = inpdt.import_grid(path_data)
 amenities = inpdt.import_amenities(path_precalc_inp, options)
+geo_grid = gpd.read_file(path_data + "grid_reference_500.shp")
+geo_TAZ = gpd.read_file(path_data + "TAZ_ampp_prod_attr_2013_2032.shp")
 
 
 # ### Macro data
 
+import inputs.data as inpdt
 (interest_rate, population, housing_type_data, total_RDP
  ) = inpdt.import_macro_data(param, path_scenarios, path_folder)
 
@@ -120,6 +149,8 @@ amenities = inpdt.import_amenities(path_precalc_inp, options)
 # ### Households and income data
 
 # region
+import inputs.data as inpdt
+
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
@@ -149,6 +180,7 @@ housing_types[np.isnan(housing_types)] = 0
 
 # region
 # We import basic projections
+import inputs.data as inpdt
 (spline_RDP, spline_estimate_RDP, spline_land_RDP,
  spline_land_backyard, spline_land_informal, spline_land_constraints,
  number_properties_RDP) = (
@@ -158,15 +190,18 @@ housing_types[np.isnan(housing_types)] = 0
 
 # We correct areas for each housing type at baseline year for the amount of
 # constructible land in each type
+import inputs.data as inpdt
 coeff_land = inpdt.import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal,
     spline_land_RDP, param, 0)
 
 # We import housing heigth limits
+import inputs.data as inpdt
 housing_limit = inpdt.import_housing_limit(grid, param)
 
 # We update parameter vector with construction parameters
 # (relies on loaded data) and compute other variables
+import inputs.parameters_and_options as inpprm
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
@@ -179,6 +214,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 
 # region
 # If agents anticipate floods, we return output from damage functions
+import inputs.data as inpdt
 if options["agents_anticipate_floods"] == 1:
     (fraction_capital_destroyed, structural_damages_small_houses,
      structural_damages_medium_houses, structural_damages_large_houses,
@@ -210,6 +246,7 @@ elif options["agents_anticipate_floods"] == 0:
 
 # ### Import scenarios (for time-moving variables)
 
+import equilibrium.functions_dynamic as eqdyn
 (spline_agricultural_rent, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
@@ -220,6 +257,7 @@ elif options["agents_anticipate_floods"] == 0:
 # ### Import income net of commuting costs (for all time periods)
 
 # region
+import inputs.data as inpdt
 if options["compute_net_income"] == 1:
     (incomeNetOfCommuting, modalShares, ODflows, averageIncome
      ) = inpdt.import_transport_data(
@@ -369,6 +407,7 @@ elif (options["correct_selected_density"] == 1
 
 # We estimate construction function parameters based on a log-linearization
 # of the housing market clearing condition
+import calibration.calib_main_func as calmain
 coeff_b, coeff_a, coeffKappa = calmain.estim_construct_func_param(
     options, param, data_sp, threshold_income_distribution,
     income_distribution, data_rdp, housing_types_sp,
@@ -406,6 +445,7 @@ if options["scan_type"] == "fine":
     list_lambda = 10 ** np.arange(0.427, 0.4291, 0.001)
 
 # We then run the function that returns the calibrated outputs
+import calibration.calib_main_func as calmain
 (incomeCentersKeep, lambdaKeep, cal_avg_income, scoreKeep,
  bhattacharyyaDistances) = (
     calmain.estim_incomes_and_gravity(
@@ -417,6 +457,213 @@ if options["scan_type"] == "fine":
 
 # We update the parameter vector
 param["lambda"] = np.array(lambdaKeep)
+
+# Note that incomes are fitted to reproduce the observed distribution of jobs
+# across income groups (in selected job centers), based on commuting choice
+# model
+
+# ### Let us first visualize inputs
+
+# We import the employment data at the TAZ (transport zone) level
+import outputs.export_outputs as outexp
+jobsTable, selected_centers = outexp.import_employment_geodata(
+    households_per_income_class, param, path_data)
+
+# region
+# Then, we visualize number of jobs for income group 1
+jobs_poor_2d = pd.merge(geo_TAZ, jobsTable["poor_jobs"],
+                        left_index=True, right_index=True)
+jobs_poor_2d = pd.merge(jobs_poor_2d, selected_centers,
+                        left_index=True, right_index=True)
+jobs_poor_2d.drop('geometry', axis=1).to_csv(
+    path_input_tables + 'jobs_poor' + '.csv')
+jobs_poor_2d_select = jobs_poor_2d[
+    (jobs_poor_2d.geometry.bounds.maxy < -3740000)
+    & (jobs_poor_2d.geometry.bounds.maxx < -10000)].copy()
+jobs_poor_2d_select.loc[
+    jobs_poor_2d_select["selected_centers"] == 0, 'jobs_poor'
+    ] = 0
+
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Number of poor jobs in selected job centers (data)")
+jobs_poor_2d_select.plot(column='poor_jobs', ax=ax,
+                         cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'jobs_poor_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "jobs_poor_in_selected_centers.png")
+# endregion
+
+# region
+# Then for income group 2
+jobs_midpoor_2d = pd.merge(geo_TAZ, jobsTable["midpoor_jobs"],
+                           left_index=True, right_index=True)
+jobs_midpoor_2d = pd.merge(jobs_midpoor_2d, selected_centers,
+                           left_index=True, right_index=True)
+# jobs_midpoor_2d.to_file(path_tables + 'jobs_midpoor' + '.shp')
+jobs_midpoor_2d.drop('geometry', axis=1).to_csv(
+    path_input_tables + 'jobs_midpoor' + '.csv')
+jobs_midpoor_2d_select = jobs_midpoor_2d[
+    (jobs_midpoor_2d.geometry.bounds.maxy < -3740000)
+    & (jobs_midpoor_2d.geometry.bounds.maxx < -10000)].copy()
+jobs_midpoor_2d_select.loc[
+    jobs_midpoor_2d_select["selected_centers"] == 0, 'jobs_midpoor'
+    ] = 0
+
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Number of midpoor jobs in selected job centers (data)")
+jobs_midpoor_2d_select.plot(column='midpoor_jobs', ax=ax,
+                            cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'jobs_midpoor_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "jobs_midpoor_in_selected_centers.png")
+# endregion
+
+# region
+# For income group 3
+jobs_midrich_2d = pd.merge(geo_TAZ, jobsTable["midrich_jobs"],
+                           left_index=True, right_index=True)
+jobs_midrich_2d = pd.merge(jobs_midrich_2d, selected_centers,
+                           left_index=True, right_index=True)
+# jobs_midrich_2d.to_file(path_tables + 'jobs_midrich' + '.shp')
+jobs_midrich_2d.drop('geometry', axis=1).to_csv(
+    path_input_tables + 'jobs_midrich' + '.csv')
+jobs_midrich_2d_select = jobs_midrich_2d[
+    (jobs_midrich_2d.geometry.bounds.maxy < -3740000)
+    & (jobs_midrich_2d.geometry.bounds.maxx < -10000)].copy()
+jobs_midrich_2d_select.loc[
+    jobs_midrich_2d_select["selected_centers"] == 0, 'jobs_midrich'
+    ] = 0
+
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Number of midrich jobs in selected job centers (data)")
+jobs_midrich_2d_select.plot(column='midrich_jobs', ax=ax,
+                            cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'jobs_midrich_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "jobs_midrich_in_selected_centers.png")
+# endregion
+
+# region
+# For income group 4
+jobs_rich_2d = pd.merge(geo_TAZ, jobsTable["rich_jobs"],
+                        left_index=True, right_index=True)
+jobs_rich_2d = pd.merge(jobs_rich_2d, selected_centers,
+                        left_index=True, right_index=True)
+# jobs_rich_2d.to_file(path_tables + 'jobs_rich' + '.shp')
+jobs_rich_2d.drop('geometry', axis=1).to_csv(
+    path_input_tables + 'jobs_rich' + '.csv')
+jobs_rich_2d_select = jobs_rich_2d[
+    (jobs_rich_2d.geometry.bounds.maxy < -3740000)
+    & (jobs_rich_2d.geometry.bounds.maxx < -10000)].copy()
+jobs_rich_2d_select.loc[
+    jobs_rich_2d_select["selected_centers"] == 0, 'jobs_rich'
+    ] = 0
+
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Number of rich jobs in selected job centers (data)")
+jobs_rich_2d_select.plot(column='rich_jobs', ax=ax,
+                         cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'jobs_rich_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "jobs_rich_in_selected_centers.png")
+# endregion
+
+# ### We visualize the associated calibrated outputs
+
+# We first load and rearrange the data that we just computed
+income_centers_init = np.load(
+    path_precalc_inp + 'incomeCentersKeep.npy')
+income_centers_init[income_centers_init < 0] = 0
+income_centers_init_merge = pd.DataFrame(income_centers_init)
+income_centers_init_merge = income_centers_init_merge.rename(
+    columns={income_centers_init_merge.columns[0]: 'poor_income',
+             income_centers_init_merge.columns[1]: 'midpoor_income',
+             income_centers_init_merge.columns[2]: 'midrich_income',
+             income_centers_init_merge.columns[3]: 'rich_income'})
+income_centers_init_merge["count"] = income_centers_init_merge.index + 1
+
+# region
+# We prepare, execute, and clean the merge with geographic grid
+selected_centers_merge = selected_centers.copy()
+(selected_centers_merge["count"]
+ ) = selected_centers_merge.selected_centers.cumsum()
+selected_centers_merge.loc[
+    selected_centers_merge.selected_centers == 0, "count"] = 0
+
+income_centers_TAZ = pd.merge(income_centers_init_merge,
+                              selected_centers_merge,
+                              how='right', on='count')
+income_centers_TAZ = income_centers_TAZ.fillna(value=0)
+
+income_centers_2d = pd.merge(geo_TAZ, income_centers_TAZ,
+                             left_index=True, right_index=True)
+income_centers_2d.drop('geometry', axis=1).to_csv(
+    path_input_tables + 'income_centers_2d' + '.csv')
+
+income_centers_2d_select = income_centers_2d[
+    (income_centers_2d.geometry.bounds.maxy < -3740000)
+    & (income_centers_2d.geometry.bounds.maxx < -10000)].copy()
+# endregion
+
+# region
+# We then visualize calibrated incomes for income group 1
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for poor households")
+income_centers_2d_select.plot(column='poor_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'poor_income_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "poor_income_in_selected_centers.png")
+# endregion
+
+# region
+# For income group 2
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for mid-poor households")
+income_centers_2d_select.plot(column='midpoor_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'midpoor_income_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "midpoor_income_in_selected_centers.png")
+# endregion
+
+# region
+# For income group 3
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for mid-rich households")
+income_centers_2d_select.plot(column='midrich_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'midrich_income_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "midrich_income_in_selected_centers.png")
+# endregion
+
+# region
+# For income group 4
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_axis_off()
+plt.title("Average calibrated incomes per job center for rich households")
+income_centers_2d_select.plot(column='rich_income', ax=ax,
+                              cmap='Reds', legend=True)
+plt.savefig(path_input_plots + 'rich_income_in_selected_centers')
+plt.close()
+
+Image(path_input_plots + "rich_income_in_selected_centers.png")
+# endregion
 
 
 # ## Calibrate utility function parameters
@@ -430,6 +677,7 @@ param["lambda"] = np.array(lambdaKeep)
 # calibrated parameters that we just saved
 options["load_precal_param"] = 0
 
+import inputs.data as inpdt
 (incomeNetOfCommuting, *_
  ) = inpdt.import_transport_data(
      grid, param, 0, households_per_income_class, average_income,
@@ -444,6 +692,7 @@ options["load_precal_param"] = 0
 
 # NB: Here, we also have an impact from construction parameters and sample
 # selection (+ number of formal units)
+import calibration.calib_main_func as calmain
 (calibratedUtility_beta, calibratedUtility_q0, cal_amenities
  ) = calmain.estim_util_func_param(
      data_number_formal, data_income_group, housing_types_sp, data_sp,
@@ -455,12 +704,13 @@ options["load_precal_param"] = 0
 param["beta"] = calibratedUtility_beta
 param["q0"] = calibratedUtility_q0
 
-
 # ## Calibrate disamenity index for informal backyards + settlements
 
 # region
 # We first need to recompute income net of commuting costs at baseline
 # year since calibrated income has changed
+
+import inputs.data as inpdt
 (incomeNetOfCommuting, modalShares, ODflows, averageIncome
  ) = inpdt.import_transport_data(
      grid, param, 0, households_per_income_class, average_income,
@@ -473,7 +723,20 @@ income_net_of_commuting_costs = np.load(
 # endregion
 
 # Then, we do the same for the amenity index
+import inputs.data as inpdt
 amenities = inpdt.import_amenities(path_precalc_inp, options)
+
+# region
+# Let us visualize the calibrated amenity index
+import outputs.export_outputs as outexp
+amenity_map = outexp.export_map(
+    amenities, grid, geo_grid, path_input_plots, 'amenity_map',
+    "Map of average amenity index per location",
+    path_input_tables,
+    ubnd=1.3, lbnd=0.8)
+
+Image(path_input_plots + "amenity_map.png")
+# endregion
 
 # NB: Since disamenity index calibration relies on the model fit and is not
 # computed a priori (contrary to other parameters), the options set in the
@@ -510,6 +773,7 @@ print(f"** Calibration: {number_total_iterations} iterations **")
 # parameters, and retain the one that best fits the observed number of
 # households in informal settlements + backyards
 
+import equilibrium.compute_equilibrium as eqcmp
 for i in range(0, len(list_amenity_backyard)):
     for j in range(0, len(list_amenity_settlement)):
 
@@ -605,6 +869,7 @@ np.save(path_precalc_inp + 'param_amenity_settlement.npy',
 # ### Calibrate location-specific disamenity index
 
 # Default is set to 1 but can be changed if we fear overfit of the model
+import equilibrium.compute_equilibrium as eqcmp
 if options["location_based_calib"] == 1:
 
     # We start from where we left (to gain time) and compute the

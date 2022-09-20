@@ -1,96 +1,96 @@
 ﻿Folder,Data set,Format,Dimension,Observation unit,Description,Type,Use,Source,Date,Theme
-0. Precalculated inputs,calibrated_param_amenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
-0. Precalculated inputs,calibratedAmenities,.mat,1x24014,Pixel,Amenity index: follows calibration from Pfeiffer et al. (appendix C4),User,Model,/,/,/
-0. Precalculated inputs,calibratedHousing_b,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity",User,Model,/,/,/
-0. Precalculated inputs,calibratedHousing_b_CES,.mat,1x1,Parameter,Same for a CES (vs. CD) housing production function,User,Model,/,/,/
-0. Precalculated inputs,calibratedHousing_kappa,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter",User,Model,/,/,/
-0. Precalculated inputs,calibratedHousing_kappa_CES,.mat,1x1,Parameter,Same for a CES (vs. CD) housing production function,User,Model,/,/,/
-0. Precalculated inputs,calibratedHousing_sigma_CES,.mat,1x1,Parameter,Elasticity of substitution for CES housing production function,User,Model,/,/,/
-0. Precalculated inputs,calibratedParamAmenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
-0. Precalculated inputs,calibratedUtilities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
-0. Precalculated inputs,calibratedUtility_beta,.mat,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity",User,Model,/,/,/
-0. Precalculated inputs,calibratedUtility_q0,.mat,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing",User,Model,/,/,/
-0. Precalculated inputs,coord_TAZ_2013,.mat,4x1787x1,TAZ (2013),"X: centroid x-axis coordinate (in km)
+Precalculated inputs,calibrated_param_amenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
+Precalculated inputs,calibratedAmenities,.mat,1x24014,Pixel,Amenity index: follows calibration from Pfeiffer et al. (appendix C4),User,Model,/,/,/
+Precalculated inputs,calibratedHousing_b,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity",User,Model,/,/,/
+Precalculated inputs,calibratedHousing_b_CES,.mat,1x1,Parameter,Same for a CES (vs. CD) housing production function,User,Model,/,/,/
+Precalculated inputs,calibratedHousing_kappa,.mat,1x1,Parameter,"Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter",User,Model,/,/,/
+Precalculated inputs,calibratedHousing_kappa_CES,.mat,1x1,Parameter,Same for a CES (vs. CD) housing production function,User,Model,/,/,/
+Precalculated inputs,calibratedHousing_sigma_CES,.mat,1x1,Parameter,Elasticity of substitution for CES housing production function,User,Model,/,/,/
+Precalculated inputs,calibratedParamAmenities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
+Precalculated inputs,calibratedUtilities,.mat,2x1,Parameter,For 2001 and 2011?,User,Model,/,/,/
+Precalculated inputs,calibratedUtility_beta,.mat,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity",User,Model,/,/,/
+Precalculated inputs,calibratedUtility_q0,.mat,1x1,Parameter,"Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing",User,Model,/,/,/
+Precalculated inputs,coord_TAZ_2013,.mat,4x1787x1,TAZ (2013),"X: centroid x-axis coordinate (in km)
 Y: centroid y-axis coordinate (in km)
 TZ2013: TAZ code
 Area: area in km²",User,Model,/,/,/
-0. Precalculated inputs,data,.mat,1x1 struct with 54 fields,,See nested list,/,/,/,/,/
-0. Precalculated inputs,spCode,/,1046x1,SP (2011),SP code,Raw,Model,National census,2011,Land use map
-0. Precalculated inputs,spX,/,1046x1,SP (2011),Centroid x-coordinate in km,User,Model,National census,2011,Land use map
-0. Precalculated inputs,spY,/,1046x1,SP (2011),Centroid y-coordinate in km,User,Model,National census,2011,Land use map
-0. Precalculated inputs,sp2011Distance,/,1046x1,SP (2011),Centroid distance from grid center in km,User,Model,National census,2011,Land use map
-0. Precalculated inputs,sp2011Area,/,1046x1,SP (2011),Area in km²,User,Model,National census,2011,Land use map
-0. Precalculated inputs,sp2011CapeTown,/,1046x1,SP (2011),Boolean for SP belonging to CoCT,User,Model,National census,2011,Land use map
-0. Precalculated inputs,sp2011MitchellsPlain,/,1046x1,SP (2011),Boolean for SP belonging to Mitchell's Plain,User,Model,National census,2011,Land use map
-0. Precalculated inputs,gridAverageIncome,/,1x24014,Pixel,Average income in rand/year?,User,Model,/,/,/
-0. Precalculated inputs,sp2011AverageIncome,/,1046x1,SP (2011),Average income in rand/year?,Raw,Model,National census,2011,Data on households income
-0. Precalculated inputs,sp2011IncomeDistribution12Class,/,1046x12,SP (2011),Number of households per income bracket in data,Raw,Model,National census,2011,Urban area population
-0. Precalculated inputs,sp2011IncomeDistributionNClass,/,1046x4,SP (2011),Number of households per income bracket in model,User,Model,/,/,/
-0. Precalculated inputs,gridNumberPoor,/,1x24014,Pixel,Number of poor households,User,Model,/,/,/
-0. Precalculated inputs,gridNumberRich,/,1x24014,Pixel,Number of rich households,User,Model,/,/,/
-0. Precalculated inputs,MitchellsPlain,/,1x24014,Pixel,Boolean for pixel belonging to Mitchell's Plain,User,Model,/,/,/
-0. Precalculated inputs,medianIncome,/,12x1,Parameter,Median incomes for income brackets from data,User,Model,/,/,/
-0. Precalculated inputs,thresholdIncomeDistribution,/,1x4,Parameter,Lower thresholds for income brackets from model,User,Model,/,/,/
-0. Precalculated inputs,spTotalDwellings,/,1046x1,SP (2011),Number of dwellings,Raw,Model,National census,2011,Urban area population
-0. Precalculated inputs,spInformalBackyard,/,1046x1,SP (2011),Number of backyard settlements,Raw,Model,National census,2011,Urban area population
-0. Precalculated inputs,spInformalSettlement,/,1046x1,SP (2011),Number of informal settlements,Raw,Model,National census?,2011,Urban area population
-0. Precalculated inputs,gridInformalBackyard,/,1x24014,Pixel,Number of backyard settlements,User,Model,/,/,/
-0. Precalculated inputs,gridInformalSettlement,/,1x24014,Pixel,Number of informal settlements,User,Model,/,/,/
-0. Precalculated inputs,gridFormal,/,1x24014,Pixel,Number of formal housing units,User,Model,/,/,/
-0. Precalculated inputs,sp2001X,/,1013x1,SP (2001),Centroid x-coordinate in km,User,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001Y,/,1013x1,SP (2001),Centroid y-coordinate in km,User,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001Code,/,1013x1,SP (2001),SP code,Raw,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001DistanceCenter,/,1013x1,SP (2001),Centroid distance from grid center in km,User,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001Area,/,1013x1,SP (2001),Area in km²,User,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001CapeTown,/,1013x1,SP (2001),Boolean for SP belonging to CoCT,User,Model,National census,2001,Land use map
-0. Precalculated inputs,sp2001Distribution12Class,/,1013x12,SP (2001),Number of households per income bracket in data,Raw,Model,National census,2001,Urban area population
-0. Precalculated inputs,sp2001DistributionNClass,/,1013x4,SP (2001),Number of households per income bracket in model,User,Model,/,/,/
-0. Precalculated inputs,sp2001NumberPoor,/,1013x1,SP (2001),Number of poor households,User,Model,National census,2001,Urban area population
-0. Precalculated inputs,sp2001NumberRich,/,1013x1,SP (2001),Number of rich households,User,Model,National census,2001,Urban area population
-0. Precalculated inputs,sp2001Formal,/,1x1013,SP (2001),Number of formal housing units,User,Model,National census,2001,Urban area population
-0. Precalculated inputs,sp2001Backyard,/,1x1013,SP (2001),Number of backyard settlements,User,Model,National census,2001,Urban area population
-0. Precalculated inputs,sp2001Settlement,/,1x1013,SP (2001),Number of informal settlements,User,Model,National census,2001,Urban area population
-0. Precalculated inputs,grid2001Formal,/,1x24014,Pixel (2001),Number of formal housing units,User,Model,/,/,/
-0. Precalculated inputs,grid2001Backyard,/,1x24014,Pixel (2001),Number of backyard settlements,User,Model,/,/,/
-0. Precalculated inputs,grid2001Settlement,/,1x24014,Pixel (2001),Number of informal settlements,User,Model,/,/,/
-0. Precalculated inputs,totalNumberPerIncomeGroup,/,2x4,Parameter,Number of households per income brackets in model (for 2001 and 2011?),User,Model,/,/,/
-0. Precalculated inputs,totalNumberPerIncomeBracket,/,2x12,Parameter,Number of households per income brackets in data (for 2001 and 2011?),Raw,Model,National census,2001 & 2011,Urban area population
-0. Precalculated inputs,spPrice,/,3x1046,SP (2011),"Avg price of  real estate for 2001, 2006, 2011",Raw,Model,CoCT's housing sales registry,2011,Data on rents/real estate prices
-0. Precalculated inputs,yearPrice,/,1x3,Parameter,"Years for price data (2001, 2006, 2011)",User,Model,/,/,/
-0. Precalculated inputs,xPrice,/,1x1046,SP (2011),?,User,Model,/,/,/
-0. Precalculated inputs,yPrice,/,1x1046,SP (2011),?,User,Model,/,/,/
-0. Precalculated inputs,distancePrice,/,1x1046,SP (2011),?,User,Model,/,/,/
-0. Precalculated inputs,spDwellingSize,/,1x1046,SP (2011),Avg formal dwelling size (aggregated from TAZ),Raw,Model,CoCT,2011,Dwellings sizes
-0. Precalculated inputs,spFormalDensityHFA,/,1x1046,SP (2011),Avg formal population density,User,Model,/,/,/
-0. Precalculated inputs,SP_is_CT,/,1x1046,SP (2011),Difference with sp2011CapeTown?,User,Model,/,/,/
-0. Precalculated inputs,spUnconstrainedArea,/,1x1046,SP (2011),Constructible land area in km²,Raw,Model,?,?,Land use map
-0. Precalculated inputs,gridFormalDensityHFA,/,1x24014,Pixel,Avg formal population density,User,Model,/,/,/
-0. Precalculated inputs,limitCapeTown,/,1x24014,Pixel,Boolean for pixel belonging to CoCT,User,Model,/,/,/
-0. Precalculated inputs,gridCountRDPfromGV,/,1x24014,Pixel,Number of RDP housing units,Raw,Model,?,2012?,?
-0. Precalculated inputs,gridAreaRDPfromGV,/,1x24014,Pixel,Area of RDP housing,Raw,Model,CoCT's cadastre (Single Residential 2 - Incremental Housing),?,Land use map
-0. Precalculated inputs,householdSizeIncomeGroup,/,1x4,Parameter,Nb of households in each model income bracket,User,Model,/,/,/
-0. Precalculated inputs,gridDistanceRDP,.mat,24014x1,Pixel,Boolean for what?,User,Model,/,/,/
-0. Precalculated inputs,incomeCentersKeep,.mat,185x4,"Income centers (TAZ with more than 2,500 jobs)",What for each income bracket in model?,User,Model,/,/,/
-0. Precalculated inputs,lambda,.mat,1x1,Parameter,"Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3",User,Model,/,/,/
-0. Precalculated inputs,modelAmenity,.mat,1x1 GeneralizedLinearModel,Parameter,Fits a log-linear regression of residual utility on 9 predictors (amenities) among 16 distance variables for 307 SP (?) centroids (to get local amenity indices),User,Model,/,/,/
-0. Precalculated inputs,SPDistanceRDP,.mat,1046x1,SP (2011),Boolean for what?,User,Model,/,/,/
-0. Precalculated inputs,timeCenters,.mat,6x22x24014,Pixel,"distanceTrain: to what?
+Precalculated inputs,data,.mat,1x1 struct with 54 fields,,See nested list,/,/,/,/,/
+Precalculated inputs,spCode,/,1046x1,SP (2011),SP code,Raw,Model,National census,2011,Land use map
+Precalculated inputs,spX,/,1046x1,SP (2011),Centroid x-coordinate in km,User,Model,National census,2011,Land use map
+Precalculated inputs,spY,/,1046x1,SP (2011),Centroid y-coordinate in km,User,Model,National census,2011,Land use map
+Precalculated inputs,sp2011Distance,/,1046x1,SP (2011),Centroid distance from grid center in km,User,Model,National census,2011,Land use map
+Precalculated inputs,sp2011Area,/,1046x1,SP (2011),Area in km²,User,Model,National census,2011,Land use map
+Precalculated inputs,sp2011CapeTown,/,1046x1,SP (2011),Boolean for SP belonging to CoCT,User,Model,National census,2011,Land use map
+Precalculated inputs,sp2011MitchellsPlain,/,1046x1,SP (2011),Boolean for SP belonging to Mitchell's Plain,User,Model,National census,2011,Land use map
+Precalculated inputs,gridAverageIncome,/,1x24014,Pixel,Average income in rand/year?,User,Model,/,/,/
+Precalculated inputs,sp2011AverageIncome,/,1046x1,SP (2011),Average income in rand/year?,Raw,Model,National census,2011,Data on households income
+Precalculated inputs,sp2011IncomeDistribution12Class,/,1046x12,SP (2011),Number of households per income bracket in data,Raw,Model,National census,2011,Urban area population
+Precalculated inputs,sp2011IncomeDistributionNClass,/,1046x4,SP (2011),Number of households per income bracket in model,User,Model,/,/,/
+Precalculated inputs,gridNumberPoor,/,1x24014,Pixel,Number of poor households,User,Model,/,/,/
+Precalculated inputs,gridNumberRich,/,1x24014,Pixel,Number of rich households,User,Model,/,/,/
+Precalculated inputs,MitchellsPlain,/,1x24014,Pixel,Boolean for pixel belonging to Mitchell's Plain,User,Model,/,/,/
+Precalculated inputs,medianIncome,/,12x1,Parameter,Median incomes for income brackets from data,User,Model,/,/,/
+Precalculated inputs,thresholdIncomeDistribution,/,1x4,Parameter,Lower thresholds for income brackets from model,User,Model,/,/,/
+Precalculated inputs,spTotalDwellings,/,1046x1,SP (2011),Number of dwellings,Raw,Model,National census,2011,Urban area population
+Precalculated inputs,spInformalBackyard,/,1046x1,SP (2011),Number of backyard settlements,Raw,Model,National census,2011,Urban area population
+Precalculated inputs,spInformalSettlement,/,1046x1,SP (2011),Number of informal settlements,Raw,Model,National census?,2011,Urban area population
+Precalculated inputs,gridInformalBackyard,/,1x24014,Pixel,Number of backyard settlements,User,Model,/,/,/
+Precalculated inputs,gridInformalSettlement,/,1x24014,Pixel,Number of informal settlements,User,Model,/,/,/
+Precalculated inputs,gridFormal,/,1x24014,Pixel,Number of formal housing units,User,Model,/,/,/
+Precalculated inputs,sp2001X,/,1013x1,SP (2001),Centroid x-coordinate in km,User,Model,National census,2001,Land use map
+Precalculated inputs,sp2001Y,/,1013x1,SP (2001),Centroid y-coordinate in km,User,Model,National census,2001,Land use map
+Precalculated inputs,sp2001Code,/,1013x1,SP (2001),SP code,Raw,Model,National census,2001,Land use map
+Precalculated inputs,sp2001DistanceCenter,/,1013x1,SP (2001),Centroid distance from grid center in km,User,Model,National census,2001,Land use map
+Precalculated inputs,sp2001Area,/,1013x1,SP (2001),Area in km²,User,Model,National census,2001,Land use map
+Precalculated inputs,sp2001CapeTown,/,1013x1,SP (2001),Boolean for SP belonging to CoCT,User,Model,National census,2001,Land use map
+Precalculated inputs,sp2001Distribution12Class,/,1013x12,SP (2001),Number of households per income bracket in data,Raw,Model,National census,2001,Urban area population
+Precalculated inputs,sp2001DistributionNClass,/,1013x4,SP (2001),Number of households per income bracket in model,User,Model,/,/,/
+Precalculated inputs,sp2001NumberPoor,/,1013x1,SP (2001),Number of poor households,User,Model,National census,2001,Urban area population
+Precalculated inputs,sp2001NumberRich,/,1013x1,SP (2001),Number of rich households,User,Model,National census,2001,Urban area population
+Precalculated inputs,sp2001Formal,/,1x1013,SP (2001),Number of formal housing units,User,Model,National census,2001,Urban area population
+Precalculated inputs,sp2001Backyard,/,1x1013,SP (2001),Number of backyard settlements,User,Model,National census,2001,Urban area population
+Precalculated inputs,sp2001Settlement,/,1x1013,SP (2001),Number of informal settlements,User,Model,National census,2001,Urban area population
+Precalculated inputs,grid2001Formal,/,1x24014,Pixel (2001),Number of formal housing units,User,Model,/,/,/
+Precalculated inputs,grid2001Backyard,/,1x24014,Pixel (2001),Number of backyard settlements,User,Model,/,/,/
+Precalculated inputs,grid2001Settlement,/,1x24014,Pixel (2001),Number of informal settlements,User,Model,/,/,/
+Precalculated inputs,totalNumberPerIncomeGroup,/,2x4,Parameter,Number of households per income brackets in model (for 2001 and 2011?),User,Model,/,/,/
+Precalculated inputs,totalNumberPerIncomeBracket,/,2x12,Parameter,Number of households per income brackets in data (for 2001 and 2011?),Raw,Model,National census,2001 & 2011,Urban area population
+Precalculated inputs,spPrice,/,3x1046,SP (2011),"Avg price of  real estate for 2001, 2006, 2011",Raw,Model,CoCT's housing sales registry,2011,Data on rents/real estate prices
+Precalculated inputs,yearPrice,/,1x3,Parameter,"Years for price data (2001, 2006, 2011)",User,Model,/,/,/
+Precalculated inputs,xPrice,/,1x1046,SP (2011),?,User,Model,/,/,/
+Precalculated inputs,yPrice,/,1x1046,SP (2011),?,User,Model,/,/,/
+Precalculated inputs,distancePrice,/,1x1046,SP (2011),?,User,Model,/,/,/
+Precalculated inputs,spDwellingSize,/,1x1046,SP (2011),Avg formal dwelling size (aggregated from TAZ),Raw,Model,CoCT,2011,Dwellings sizes
+Precalculated inputs,spFormalDensityHFA,/,1x1046,SP (2011),Avg formal population density,User,Model,/,/,/
+Precalculated inputs,SP_is_CT,/,1x1046,SP (2011),Difference with sp2011CapeTown?,User,Model,/,/,/
+Precalculated inputs,spUnconstrainedArea,/,1x1046,SP (2011),Constructible land area in km²,Raw,Model,?,?,Land use map
+Precalculated inputs,gridFormalDensityHFA,/,1x24014,Pixel,Avg formal population density,User,Model,/,/,/
+Precalculated inputs,limitCapeTown,/,1x24014,Pixel,Boolean for pixel belonging to CoCT,User,Model,/,/,/
+Precalculated inputs,gridCountRDPfromGV,/,1x24014,Pixel,Number of RDP housing units,Raw,Model,?,2012?,?
+Precalculated inputs,gridAreaRDPfromGV,/,1x24014,Pixel,Area of RDP housing,Raw,Model,CoCT's cadastre (Single Residential 2 - Incremental Housing),?,Land use map
+Precalculated inputs,householdSizeIncomeGroup,/,1x4,Parameter,Nb of households in each model income bracket,User,Model,/,/,/
+Precalculated inputs,gridDistanceRDP,.mat,24014x1,Pixel,Boolean for what?,User,Model,/,/,/
+Precalculated inputs,incomeCentersKeep,.mat,185x4,"Income centers (TAZ with more than 2,500 jobs)",What for each income bracket in model?,User,Model,/,/,/
+Precalculated inputs,lambda,.mat,1x1,Parameter,"Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3",User,Model,/,/,/
+Precalculated inputs,modelAmenity,.mat,1x1 GeneralizedLinearModel,Parameter,Fits a log-linear regression of residual utility on 9 predictors (amenities) among 16 distance variables for 307 SP (?) centroids (to get local amenity indices),User,Model,/,/,/
+Precalculated inputs,SPDistanceRDP,.mat,1046x1,SP (2011),Boolean for what?,User,Model,/,/,/
+Precalculated inputs,timeCenters,.mat,6x22x24014,Pixel,"distanceTrain: to what?
 distanceCar: to what?
 durationCar: to what?
 durationTrain: to what?
 durationMinibus: to what?
 durationBus: to what?",User,Model,/,/,/
-0. Precalculated inputs,Transport_times_GRID,.mat,5x185x24014,Pixel,"distanceCar: in km towards income center?
+Precalculated inputs,Transport_times_GRID,.mat,5x185x24014,Pixel,"distanceCar: in km towards income center?
 durationCar: in min towards income center?
 durationTrain: in min towards income center?
 durationMinibus: in min towards income center?
 durationBus: in min towards income center?",User,Model,/,/,/
-0. Precalculated inputs,Transport_times_SP,.mat,5x185x1046,SP (2011),"distanceCar: in km towards income center?
+Precalculated inputs,Transport_times_SP,.mat,5x185x1046,SP (2011),"distanceCar: in km towards income center?
 durationCar: in min towards income center?
 durationTrain: in min towards income center?
 durationMinibus: in min towards income center?
 durationBus: in min towards income center?",User,Model,/,/,/
-0. Precalculated inputs,transportMatrices,.mat,2x1787x1 + 4x1787x1787,TAZ (2013),"X: centroid x-coordinate
+Precalculated inputs,transportMatrices,.mat,2x1787x1 + 4x1787x1787,TAZ (2013),"X: centroid x-coordinate
 Y: centroid y-coordinate
 bus: time (in min?) between all TAZ
 cars: time (in min?) between all TAZ

@@ -66,8 +66,7 @@ def estim_construct_func_param(options, param, data_sp,
     coeff_b = parametersConstruction["x1"]
     coeff_a = 1 - coeff_b
     # Comes from zero profit condition combined with footnote 16 from
-    # optimization
-    # TODO: correct typo in paper
+    # optimization (typo in original paper)
     if options["correct_kappa"] == 1:
         # coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)
         #               * np.exp(model_construction.intercept_))
@@ -136,7 +135,6 @@ def estim_incomes_and_gravity(param, grid, list_lambda,
         job_centers, average_income, income_distribution, list_lambda, options)
 
     # Gives aggregate statistics for % of commuters per distance bracket
-    # TODO: where from?
     # data_modal_shares = np.array(
     #     [7.8, 14.8, 39.5+0.7, 16, 8]) / (7.8+14.8+39.5+0.7+16+8) * 100
     # data_time_distribution = np.array(
@@ -211,24 +209,23 @@ def estim_util_func_param(data_number_formal, data_income_group,
     # listBeta = np.arange(0.43, 0.451, 0.01)
     # listBeta = np.arange(0.44, 0.441, 0.01)
     # listBeta = np.arange(0.1, 0.51, 0.1)
-    listBeta = np.arange(0.27, 0.321, 0.01)
+    listBeta = np.arange(0.23, 0.331, 0.01)
 
     # listBasicQ = np.arange(2, 14.1, 1)
-    listBasicQ = np.arange(12.7, 13.21, 0.1)
+    # listBasicQ = np.arange(12.7, 13.21, 0.1)
+    listBasicQ = np.array([param["q0"]])
 
-    # Coefficient for spatial autocorrelation
+    # Coefficient for spatial autocorrelation (not used)
     listRho = 0
 
     # Utilities for simulations: we start with levels close from what we expect
     # in equilibrium
-    # TODO: to be updated with values close to what we obtain in equilibrium
-    # (to speed up convergence)
-    utilityTarget = np.array([1500, 5000, 17000, 80000])
+    utilityTarget = np.array([1000, 3000, 15000, 70000])
     # utilityTarget = np.array([300, 1000, 3000, 10000])
     # utilityTarget = np.array([3000, 10000, 30000, 100000])
 
     # We scan varying values of utility targets
-    listVariation = np.arange(0.5, 2.01, 0.25)
+    listVariation = np.arange(0.96, 1.041, 0.02)
     # listVariation1 = np.arange(1, 1.01, 0.1)
     # listVariation2 = np.arange(0.5, 0.51, 0.1)
 
@@ -237,36 +234,33 @@ def estim_util_func_param(data_number_formal, data_income_group,
     # Then, we do not vary the first income group as the magnitude is not that
     # large...
     initUti2 = utilityTarget[1]
-    # However, we do so for the two richest groups.
-    # NB: having opposite variations is key to maintain stability of beta and
-    # q0 estimates
-    # TODO: is it robust?
+    # However, we do so for the two richest groups
     listUti3 = utilityTarget[2] * listVariation
     listUti4 = utilityTarget[3] * listVariation
 
     # Cf. inversion of footnote 16
-    if options["correct_kappa"] == 1 & options["deprec_land"] == 1:
+    if options["correct_kappa"] == 1 and options["deprec_land"] == 1:
         dataRent = (
             data_sp["price"] ** (coeff_a)
             * (param["depreciation_rate"]
                + interest_rate)
             / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
             )
-    elif options["correct_kappa"] == 1 & options["deprec_land"] == 0:
+    elif options["correct_kappa"] == 1 and options["deprec_land"] == 0:
         dataRent = (
             (interest_rate * data_sp["price"]) ** coeff_a
             * (param["depreciation_rate"]
                + interest_rate) ** coeff_b
             / (coeffKappa * coeff_b ** coeff_b * coeff_a ** coeff_a)
             )
-    elif options["correct_kappa"] == 0 & options["deprec_land"] == 1:
+    elif options["correct_kappa"] == 0 and options["deprec_land"] == 1:
         dataRent = (
             data_sp["price"] ** (coeff_a)
             * (param["depreciation_rate"]
                + interest_rate)
             / (coeffKappa * coeff_b ** coeff_b)
             )
-    elif options["correct_kappa"] == 0 & options["deprec_land"] == 0:
+    elif options["correct_kappa"] == 0 and options["deprec_land"] == 0:
         dataRent = (
             (data_sp["price"] * interest_rate) ** coeff_a
             * (param["depreciation_rate"]
@@ -292,8 +286,6 @@ def estim_util_func_param(data_number_formal, data_income_group,
 
     # Note that this may be long to run as it depends on the combination of all
     # inputs
-    # NB: RBFInterpolator does not work well but interp2d does not have
-    # a regular behaviour...
     (parametersScan, scoreScan, parametersAmenitiesScan, modelAmenityScan,
      parametersHousing, _) = calscan.EstimateParametersByScanning(
          incomeNetOfCommuting, dataRent, data_sp["dwelling_size"],
@@ -302,42 +294,30 @@ def estim_util_func_param(data_number_formal, data_income_group,
          amenities_sp, variables_regression, listRho, listBeta, listBasicQ,
          initUti2, listUti3, listUti4, options)
 
-    # Coefficients appear to be stable as long as we allow utilities to vary
-    # widly... Where should we set the limit?
-
     print(modelAmenityScan.summary())
 
     # Now we run the optimization algo with identified value of the parameters:
     # corresponds to interior-point algorithm
 
     # Note that this may be long to run
-    # TODO: Should we allow more iterations?
     if options["param_optim"] == 1:
-        options["griddata"] = 1
-        options["log_form"] = 1
-        # Gets pretty slow above 100
-        options["interpol_neighbors"] = 100
-        # Cannot rely on solver? Stuck on the wrong side of q0?
 
-        # initBeta = parametersScan[0]
-        # initBasicQ = parametersScan[1]
-        # This allows to be on the good side of the solver?
-        # TODO: how to justify?
-        # initBasicQ = max(parametersScan[1], 5.1)
-        # initUti3 = parametersScan[2]
-        # initUti4 = parametersScan[3]
+        initBeta = parametersScan[0]
+        initBasicQ = parametersScan[1]
+        initUti3 = parametersScan[2]
+        initUti4 = parametersScan[3]
 
-        initBeta = scipy.io.loadmat(
-            path_precalc_inp + 'calibratedUtility_beta.mat'
-            )["calibratedUtility_beta"].squeeze()
-        initBasicQ = scipy.io.loadmat(
-            path_precalc_inp + 'calibratedUtility_q0.mat'
-            )["calibratedUtility_q0"].squeeze()
-        utils = scipy.io.loadmat(
-            path_precalc_inp + 'calibratedUtilities.mat'
-            )["utilitiesCorrected"].squeeze()
-        initUti3 = utils[0]
-        initUti4 = utils[1]
+        # initBeta = scipy.io.loadmat(
+        #     path_precalc_inp + 'calibratedUtility_beta.mat'
+        #     )["calibratedUtility_beta"].squeeze()
+        # initBasicQ = scipy.io.loadmat(
+        #     path_precalc_inp + 'calibratedUtility_q0.mat'
+        #     )["calibratedUtility_q0"].squeeze()
+        # utils = scipy.io.loadmat(
+        #     path_precalc_inp + 'calibratedUtilities.mat'
+        #     )["utilitiesCorrected"].squeeze()
+        # initUti3 = utils[0]
+        # initUti4 = utils[1]
 
         (parameters, scoreTot, parametersAmenities, modelAmenity,
          parametersHousing, selectedSPRent
@@ -377,8 +357,8 @@ def estim_util_func_param(data_number_formal, data_income_group,
 
     # Note that amenity map from GLM estimates yields absurd results, hence it
     # is not coded here
-    if options["glm"] == 1:
-        modelAmenity.save(path_precalc_inp + 'modelAmenity')
+    # if options["glm"] == 1:
+    #     modelAmenity.save(path_precalc_inp + 'modelAmenity')
 
     if options["param_optim"] == 1:
         calibratedUtility_beta = parameters[0]

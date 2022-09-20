@@ -187,7 +187,6 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
     annualToHourly = 1 / (8*20*12)
     #  Corresponds to the brackets for which we have aggregate statistics on
     #  the nb of commuters to fit our calibration
-    #  TODO: check where this comes from
     bracketsDistance = np.array([0, 5, 10, 15, 20, 25, 30, 35, 40, 200])
     monetary_cost = monetaryCost * annualToHourly
 
@@ -399,8 +398,7 @@ def compute_ODflows(householdSize, monetaryCost, costTime, incomeCentersFull,
         )
 
     # OD flows: corresponds to pi_c|ix (here, not the full matrix)
-    # NB: here, we consider maximum Gumbel
-    # TODO: correct typo in paper
+    # NB: here, we consider maximum Gumbel (typo in original paper)
     ODflows = (
         np.exp(param_lambda * (incomeCentersFull[:, None] - transportCost)
                - minIncome)
@@ -432,7 +430,6 @@ def funSolve(incomeCentersTemp, averageIncomeGroup, popCenters,
     # equivalent computed from simulated net income distribution: the closer
     # the score is to zero, the better (see equation 3 for formula)
 
-    # TODO: is it equivalent to selection criterion from paper?
     # Note that ODflows is of dimension 119x24014
     # NB: correction is not needed a priori, as income distribution data from
     # SP does not include people out of employment

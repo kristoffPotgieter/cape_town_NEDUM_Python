@@ -52,8 +52,8 @@ Installation
 * To run properly, the **NEDUM-2D** repository (here, ``code capetown python``) should be included in a project folder that also contains input data, according to the following tree structure (to be updated)::
 
 	.
-	├── 2. Data
-	│   ├── 0. Precalculated inputs
+	├── Data
+	│   ├── Precalculated inputs
 	│   ├── Aux data
 	│   ├── data_Cape_Town
 	│   ├── Flood plains - from Claus
@@ -61,7 +61,7 @@ Installation
 	│   ├── precalculated_transport
 	│   ├── CT Dwelling type data validation workbook 20201204 v2.xlsx
 	│   └── housing_types_grid_sal.xlsx
-	├── 4. Sorties
+	├── Output
 	└── code capetown python
  
 ..
@@ -70,7 +70,7 @@ Installation
 **Step 5**: Launch **NEDUM-2D**
 
 * From **NEDUM-2D** root folder, execute the ``main_nb`` notebook (either in .py or .ipynb format) to run the simulations and obtain a preview of results. A non-interactive copy is shown in the documentation for illustrative purposes
-* Run one of the plots scripts to export tables and figures in dedicated subfolders under the ``4. Sorties`` folder
+* Run one of the plots scripts to export tables and figures in dedicated subfolders under the ``Output`` folder
 * If needed, run the calibration script to calibrate parameters again if undelrying data has changed
 * See :doc:`../technical_doc` for more details on running custom simulations / calibration
 
