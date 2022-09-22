@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
@@ -117,7 +119,6 @@
     <span class="n">freq_iter</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span>
     <span class="c1">#  Here, we are going to run separate simulations with and without</span>
     <span class="c1">#  dynamics, hence the need for a new parameter</span>
-    <span class="c1">#  TODO: maybe do it before and plug this back in functions_solver</span>
     <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_init&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
         <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">])</span>
     <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -248,9 +249,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">stat_temp_deriv_housing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stat_temp_rent</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]))</span>
 
-<span class="c1">###</span>
+<span class="c1"># This whole part is unnecessary</span>
 
-        <span class="c1"># TODO: isn&#39;t it always the case? What happens else?</span>
         <span class="k">if</span> <span class="p">((</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span>
                 <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># We retain the new constrained equilibrium with dynamic housing</span>
@@ -283,7 +283,7 @@
                 <span class="nb">int</span><span class="p">((</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="p">:</span>
                     <span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">stat_temp_deriv_housing</span><span class="p">)</span>
 
-<span class="c1">###</span>
+<span class="c1">#</span>
 
     <span class="c1"># In case we have more than one simulation per year, we collapse timeline</span>
     <span class="c1"># to yearly</span>

@@ -45,7 +45,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         # implicit_empl_rate = ((households_per_income_class - unempl_attrib)
         #                       / households_per_income_class)
         # 0.74/0.99/0.98/0.99
-        # TODO: Re-use in calibration?
 
     #  Considering that all RDP belong to the poorest, we remove them from here
     households_per_income_class[0] = np.max(
@@ -111,9 +110,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  with high relative income as it will magnify the effect on rents, hence
     #  housing supply and resulting population distribution
 
-    #  TODO: run simulations with different convergence parameters to ensure
-    #  that we do not get stuck in some local optimum (unlikely as distribution
-    #  of households is monotonous wrt utility changes)
     param["convergence_factor"] = (
         0.02 * (np.nanmean(average_income) / mean_income) ** 0.4
         )  # 0.045

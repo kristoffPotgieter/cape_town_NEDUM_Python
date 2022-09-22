@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_doc.html">Technical documentation</a></li>
@@ -89,10 +91,8 @@
 <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp2d</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 <span class="kn">import</span> <span class="nn">scipy</span>
-<span class="c1"># from numba import jit</span>
 
 
-<span class="c1"># @jit</span>
 <div class="viewcode-block" id="LogLikelihoodModel"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.loglikelihood.LogLikelihoodModel">[docs]</a><span class="k">def</span> <span class="nf">LogLikelihoodModel</span><span class="p">(</span><span class="n">X0</span><span class="p">,</span> <span class="n">Uo2</span><span class="p">,</span> <span class="n">net_income</span><span class="p">,</span> <span class="n">groupLivingSpMatrix</span><span class="p">,</span>
                        <span class="n">dataDwellingSize</span><span class="p">,</span>
                        <span class="n">selectedDwellingSize</span><span class="p">,</span> <span class="n">dataRent</span><span class="p">,</span> <span class="n">selectedRents</span><span class="p">,</span>
@@ -178,26 +178,26 @@
     <span class="n">bidRents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">selectedRents</span><span class="p">)))</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">selectedRents</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">bidRents</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">griddedRents</span><span class="p">(</span>
                     <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Uo</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">])</span>
                      <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
                     <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">net_income</span><span class="p">[:,</span> <span class="n">selectedRents</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
                     <span class="p">))</span>
-            <span class="c1"># elif options[&quot;griddata&quot;] == 0 &amp; options[&quot;log_form&quot;] == 0:</span>
+            <span class="c1"># elif options[&quot;griddata&quot;] == 0 and options[&quot;log_form&quot;] == 0:</span>
             <span class="c1">#     bidRents[i, j] = griddedRents(</span>
             <span class="c1">#         (np.array(Uo)[:, None]</span>
             <span class="c1">#          / np.exp(np.array(residualAmenities)[None, :])[i, j]),</span>
             <span class="c1">#         net_income[:, selectedRents][i, j]</span>
             <span class="c1">#         )</span>
-            <span class="c1"># elif options[&quot;griddata&quot;] == 1 &amp; options[&quot;log_form&quot;] == 1:</span>
-            <span class="c1">#     coord = np.stack([</span>
-            <span class="c1">#         (np.log(np.array(Uo)[:, None])</span>
-            <span class="c1">#          - np.array(residualAmenities)[None, :])[i, j],</span>
-            <span class="c1">#         np.log(net_income[:, selectedRents][i, j])</span>
-            <span class="c1">#         ], -1)</span>
-            <span class="c1">#     coord = np.expand_dims(coord, axis=0)</span>
-            <span class="c1">#     bidRents[i, j] = np.exp(griddedRents(coord))</span>
+            <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;griddata&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span>
+                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Uo</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">])</span>
+                     <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">residualAmenities</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">net_income</span><span class="p">[:,</span> <span class="n">selectedRents</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+                    <span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">bidRents</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">griddedRents</span><span class="p">(</span><span class="n">coord</span><span class="p">))</span>
 
     <span class="c1"># Estimation of the parameters by maximization of the log-likelihood</span>
     <span class="c1"># (in overarching function)</span>
@@ -281,7 +281,6 @@
     <span class="k">return</span> <span class="n">utility</span></div>
 
 
-<span class="c1"># @jit</span>
 <div class="viewcode-block" id="InterpolateRents"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.loglikelihood.InterpolateRents">[docs]</a><span class="k">def</span> <span class="nf">InterpolateRents</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">basicQ</span><span class="p">,</span> <span class="n">net_income</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Interpolate log(rents) as a function of log(beta) and log(q0).&quot;&quot;&quot;</span>
     <span class="c1"># Decomposition for the interpolation (the more points, the slower)</span>
@@ -335,12 +334,15 @@
                 <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># Then we go to log-form (quickens computations and helps convergence)</span>
-            <span class="n">utilityVectLog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">net_income</span><span class="p">)),</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="c1"># Then we go to log-form (quickens computations and helps</span>
+            <span class="c1"># convergence)</span>
+            <span class="n">utilityVectLog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">net_income</span><span class="p">)),</span>
+                                       <span class="mf">0.1</span><span class="p">)</span>
             <span class="n">incomeLog</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
                 <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">net_income</span><span class="p">))),</span> <span class="mf">0.2</span><span class="p">)</span>
             <span class="n">rentLog</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">solusRentTemp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">incomeLog</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">utilityVectLog</span><span class="p">)))</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">solusRentTemp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">incomeLog</span><span class="p">),</span>
+                                     <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">utilityVectLog</span><span class="p">)))</span>
                 <span class="p">)</span>  <span class="c1"># * 1/beta</span>
 
             <span class="n">griddedRents</span> <span class="o">=</span> <span class="n">interp2d</span><span class="p">(</span>
@@ -384,7 +386,6 @@
 
         <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;log_form&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="c1"># TODO: play with kernel?</span>
             <span class="n">griddedRents</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">RBFInterpolator</span><span class="p">(</span>
                 <span class="n">points</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">neighbors</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;interpol_neighbors&quot;</span><span class="p">]</span>
                 <span class="p">)</span>

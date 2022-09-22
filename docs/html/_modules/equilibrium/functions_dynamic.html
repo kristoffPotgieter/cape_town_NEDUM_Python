@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
@@ -94,7 +96,6 @@
                      <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return linear regression splines for various scenarios.&quot;&quot;&quot;</span>
     <span class="c1"># Import Scenarios</span>
-    <span class="c1"># TODO: discuss choices</span>
     <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;inc_ineq_scenario&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">scenario_income_distribution</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
             <span class="n">path_scenarios</span> <span class="o">+</span> <span class="s1">&#39;Scenario_inc_distrib_2.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
@@ -121,7 +122,6 @@
         <span class="n">path_scenarios</span> <span class="o">+</span> <span class="s1">&#39;Scenario_inflation_1.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
     <span class="n">scenario_interest_rate</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
         <span class="n">path_scenarios</span> <span class="o">+</span> <span class="s1">&#39;Scenario_interest_rate_1.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
-    <span class="c1"># TODO: correct separators in source file</span>
     <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;fuel_price_scenario&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">scenario_price_fuel</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
             <span class="n">path_scenarios</span> <span class="o">+</span> <span class="s1">&#39;Scenario_price_fuel_2.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
@@ -215,7 +215,7 @@
          <span class="n">agricultural_rent_2040</span><span class="p">],</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Spline for fuel prices (in 10*cm^3?)</span>
+    <span class="c1"># Spline for fuel prices (per km)</span>
     <span class="n">spline_fuel</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">scenario_price_fuel</span><span class="o">.</span><span class="n">Year_fuel</span><span class="p">[</span>
             <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scenario_price_fuel</span><span class="o">.</span><span class="n">price_fuel</span><span class="p">)]</span>
@@ -305,18 +305,28 @@
     <span class="k">if</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># Yields the difference in housing supply (if growing) weighted by</span>
         <span class="c1"># time inertia, minus housing stock depreciation</span>
+        <span class="c1"># diff_housing = ((housing_supply_1 - housing_supply_0)</span>
+        <span class="c1">#                 * (housing_supply_1 &gt; housing_supply_0)</span>
+        <span class="c1">#                 * (t1 - t0) / param[&quot;time_invest_housing&quot;]</span>
+        <span class="c1">#                 - housing_supply_0 * (t1 - t0)</span>
+        <span class="c1">#                 / param[&quot;time_depreciation_buildings&quot;])</span>
         <span class="n">diff_housing</span> <span class="o">=</span> <span class="p">((</span><span class="n">housing_supply_1</span> <span class="o">-</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">housing_supply_1</span> <span class="o">&gt;</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_invest_housing&quot;</span><span class="p">]</span>
                         <span class="o">-</span> <span class="n">housing_supply_0</span> <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span>
-                        <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_depreciation_buildings&quot;</span><span class="p">])</span>
+                        <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">])</span>
     <span class="c1"># This allows to run backward simulations</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># diff_housing = ((housing_supply_1 - housing_supply_0)</span>
+        <span class="c1">#                 * (housing_supply_1 &lt; housing_supply_0)</span>
+        <span class="c1">#                 * (t1 - t0) / param[&quot;time_invest_housing&quot;]</span>
+        <span class="c1">#                 - housing_supply_0 * (t1 - t0)</span>
+        <span class="c1">#                 / param[&quot;time_depreciation_buildings&quot;])</span>
         <span class="n">diff_housing</span> <span class="o">=</span> <span class="p">((</span><span class="n">housing_supply_1</span> <span class="o">-</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">housing_supply_1</span> <span class="o">&lt;</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_invest_housing&quot;</span><span class="p">]</span>
                         <span class="o">-</span> <span class="n">housing_supply_0</span> <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span>
-                        <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_depreciation_buildings&quot;</span><span class="p">])</span>
+                        <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">])</span>
 
     <span class="c1"># We set the target &quot;non-equilibrium&quot; housing supply target</span>
     <span class="n">housing_supply_target</span> <span class="o">=</span> <span class="n">housing_supply_0</span> <span class="o">+</span> <span class="n">diff_housing</span>

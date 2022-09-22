@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
@@ -145,7 +147,6 @@
     <span class="sd">&quot;&quot;&quot;Import population and average income per income class in the model.&quot;&quot;&quot;</span>
     <span class="c1"># Import population distribution according to housing type and income class</span>
     <span class="c1"># Note that RDP is included in formal</span>
-    <span class="c1"># TODO: is formal backyard lacking or just included in formal housing?</span>
     <span class="n">income_2011</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_data</span> <span class="o">+</span> <span class="s1">&#39;Income_distribution_2011.csv&#39;</span><span class="p">)</span>
 
     <span class="c1"># Compute overall median income</span>
@@ -230,7 +231,6 @@
     <span class="n">housing_types_sp</span><span class="p">[</span><span class="s2">&quot;informal_SP_2011&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span>
         <span class="s1">&#39;spInformalSettlement&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
     <span class="c1">#  Number of dwellings</span>
-    <span class="c1">#  TODO: check if this includes formal backyards</span>
     <span class="n">housing_types_sp</span><span class="p">[</span><span class="s2">&quot;total_dwellings_SP_2011&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span>
         <span class="s1">&#39;spTotalDwellings&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
     <span class="c1">#  Coordinates</span>
@@ -346,10 +346,9 @@
     <span class="c1">#  We take total population in RDP at baseline year</span>
     <span class="n">RDP_2011</span> <span class="o">=</span> <span class="n">housing_type_data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
     <span class="c1">#  Also comes from general validation for 2001</span>
-    <span class="c1">#  TODO: ask Claus for references</span>
     <span class="n">RDP_2001</span> <span class="o">=</span> <span class="mf">1.1718e+05</span>
 
-    <span class="c1"># Land cover for informal settlements (see R code for details)</span>
+    <span class="c1"># Land cover for informal settlements</span>
 
     <span class="c1"># Set the area of a pixel in m²</span>
     <span class="n">area_pixel</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000000</span>
@@ -670,7 +669,6 @@
     <span class="n">informal_2020</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fmax</span><span class="p">(</span><span class="n">informal_risks_2020</span> <span class="o">/</span> <span class="n">area_pixel</span><span class="p">,</span> <span class="n">informal_2011</span><span class="p">)</span>
 
     <span class="c1">#  We also get area for high risk scenario retained in projections</span>
-    <span class="c1">#  TODO: add option to take into account less likely developments?</span>
     <span class="n">high_proba</span> <span class="o">=</span> <span class="n">informal_risks_VERYHIGH</span><span class="o">.</span><span class="n">area</span> <span class="o">+</span> <span class="n">informal_risks_HIGH</span><span class="o">.</span><span class="n">area</span>
 
     <span class="c1">#  We consider some scenario for 2023 and correct for RDP construction</span>
@@ -744,8 +742,8 @@
 <div class="viewcode-block" id="import_coeff_land"><a class="viewcode-back" href="../../api_ref.html#inputs.data.import_coeff_land">[docs]</a><span class="k">def</span> <span class="nf">import_coeff_land</span><span class="p">(</span><span class="n">spline_land_constraints</span><span class="p">,</span> <span class="n">spline_land_backyard</span><span class="p">,</span>
                       <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return pixel share for housing scenarios, weighted by max building %.&quot;&quot;&quot;</span>
-    <span class="c1"># TODO: do we consider area actually used for commercial purposes</span>
-    <span class="c1"># as &quot;available&quot; for residential construction?</span>
+    <span class="c1"># NB: we consider area actually used for commercial purposes</span>
+    <span class="c1"># as &quot;available&quot; for residential construction</span>
     <span class="n">coeff_land_private</span> <span class="o">=</span> <span class="p">(</span><span class="n">spline_land_constraints</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
                           <span class="o">-</span> <span class="n">spline_land_backyard</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
                           <span class="o">-</span> <span class="n">spline_land_informal</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
@@ -942,8 +940,6 @@
         <span class="c1"># flood-prone area (yields pixel share of destructed area), so as to</span>
         <span class="c1"># define damage intervals to be used in final computation</span>
 
-        <span class="c1"># TODO: should we take zero value at t = 0?</span>
-        <span class="c1"># TODO: is continuous time risk the right framework?</span>
         <span class="n">damages0</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">type_flood</span> <span class="o">+</span> <span class="s1">&#39;_5yr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">prop_flood_prone</span>
                     <span class="o">*</span> <span class="n">damage_function</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">type_flood</span> <span class="o">+</span> <span class="s1">&#39;_5yr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flood_depth</span><span class="p">))</span>
         <span class="c1"># damages0 = (</span>
@@ -1089,7 +1085,8 @@
     <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;defended&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">fluvialtype</span> <span class="o">=</span> <span class="s1">&#39;FU&#39;</span>
 
-    <span class="c1"># TODO: Define as maximum!</span>
+    <span class="c1"># When two flood types overlap (can happen with pluvial and fluvial),</span>
+    <span class="c1"># we keep the maximum among the flood depths to avoid double counting</span>
 
     <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in private formal&quot;</span><span class="p">)</span>
@@ -1111,301 +1108,335 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_1&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_2&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_1&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_2&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal settlement structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_settlements&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal backyard structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_backyards&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in private formal&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_formal&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in informal settlements&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_informal&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in (any) backyard&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_backyard&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in formal subsidized&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_subsidized&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_1&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_2&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_1&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_2&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal settlement structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_settlements&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal backyard structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
 
     <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in private formal&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_formal&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in informal settlements&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_informal&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in (any) backyard&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_backyard&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in formal subsidized&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_subsidized&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_1&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_2&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_1&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_2&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal settlement structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_settlements&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal backyard structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
 
     <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in private formal&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_formal&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in informal settlements&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_informal&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in (any) backyard&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_backyard&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in formal subsidized&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_subsidized&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_1&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_2&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_1&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
-                 <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_subsidized_2&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
-                 <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type4b</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal settlement structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_settlements&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
+                 <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Informal backyard structures&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_informal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+                 <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (one floor)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
-                 <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (two floors)&quot;</span><span class="p">)</span>
         <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
+             <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_coastal</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
-                 <span class="n">options</span><span class="p">)</span>
-             <span class="o">+</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+                 <span class="n">options</span><span class="p">),</span>
+             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
                  <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
                  <span class="n">options</span><span class="p">))</span>
 

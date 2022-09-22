@@ -47,7 +47,7 @@ import outputs.flood_outputs as outfld
 # This corresponds to the architecture described in the README file
 # (introduction tab of the documentation): the data folder is not hosted
 # on the Github repository and should be placed in the root folder enclosing
-# the repo
+# the repo.
 
 path_code = '..'
 path_folder = path_code + '/Data/'
@@ -127,10 +127,10 @@ options["fuel_price_scenario"] = 2
 # #### Finally, we set options regarding data processing
 
 # Default is set at zero to save computing time
-# (data is simply loaded in the model)
+# (data is simply loaded in the model).
 #
 # NB: this is only needed to create the data for the first time, or when the
-# source is changed, so that pre-processed data is updated
+# source is changed, so that pre-processed data is updated.
 
 # Dummy for converting small-area-level (SAL) data into grid-level data
 # (used for result validation)
@@ -154,8 +154,14 @@ name = ('floods' + str(options["agents_anticipate_floods"])
 
 # region
 # We also create the associated paths and directories to store outputs
-path_output_plots = path_outputs + name + '/plots/'
-path_output_tables = path_outputs + name + '/tables/'
+path_simul = path_outputs + name
+path_output_plots = path_simul + '/plots/'
+path_output_tables = path_simul + '/tables/'
+
+try:
+    os.mkdir(path_simul)
+except OSError as error:
+    print(error)
 
 try:
     os.mkdir(path_output_plots)
@@ -215,7 +221,6 @@ housing_types[np.isnan(housing_types)] = 0
 
 # ### Land use projections
 
-# region
 # We import basic projections
 import inputs.data as inpdt
 (spline_RDP, spline_estimate_RDP, spline_land_RDP,
@@ -365,7 +370,7 @@ coeff_land = inpdt.import_coeff_land(
     spline_land_constraints, spline_land_backyard, spline_land_informal,
     spline_land_RDP, param, 0)
 
-# #### Let us visualize land availaibility ay baseline year
+# #### Let us visualize land availaibility ay baseline year (2011)
 
 # region
 # For formal private housing
@@ -428,7 +433,6 @@ import inputs.parameters_and_options as inpprm
     mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
     interest_rate, options
     )
-# endregion
 
 # ### Import flood data (takes some time when agents anticipate floods)
 
@@ -468,11 +472,11 @@ elif options["agents_anticipate_floods"] == 0:
 
 # We will first show some flood maps for visual reference, then the associated
 # fractions of capital destroyed computed through damage functions
-# (final damages depend on spatial sorting)
+# (final damages depend on spatial sorting).
 #
 # NB: all maps are undefended (do not take protective infrastructure into
 # account), and a return period of 100 years corresponds to a 1% chance of
-# occurrence in a given year
+# occurrence in a given year.
 
 # region
 # Fluvial undefended maximum flood depth (in m) for a 100-year return period
@@ -482,9 +486,9 @@ import outputs.export_outputs as outexp
 ref_flood_map_depth = outexp.export_map(
     ref_flood_depth, grid, geo_grid,
     path_input_plots, 'FU_100yr' + '_map_depth',
-    "",
+    "Maximum fluvial flood depth (in m) for a 100-year return period (up to 99.9% quantile)",
     path_input_tables,
-    ubnd=4)
+    ubnd=np.quantile(ref_flood_depth[~np.isnan(ref_flood_depth)], 0.999))
 
 Image(path_input_plots + 'FU_100yr' + '_map_depth.png')
 # endregion
@@ -497,9 +501,9 @@ import outputs.export_outputs as outexp
 ref_flood_map_depth = outexp.export_map(
     ref_flood_depth, grid, geo_grid,
     path_input_plots, 'P_100yr' + '_map_depth',
-    "",
+    "Maximum pluvial flood depth (in m) for a 100-year return period (up to 99.9% quantile)",
     path_input_tables,
-    ubnd=4)
+    ubnd=np.quantile(ref_flood_depth[~np.isnan(ref_flood_depth)], 0.999))
 
 Image(path_input_plots + 'P_100yr' + '_map_depth.png')
 # endregion
@@ -513,9 +517,9 @@ import outputs.export_outputs as outexp
 ref_flood_map_depth = outexp.export_map(
     ref_flood_depth, grid, geo_grid,
     path_input_plots, 'C_MERITDEM_1_0100' + '_map_depth',
-    "",
+    "Maximum coastal flood depth (in m) for a 100-year return period (up to 99.9% quantile)",
     path_input_tables,
-    ubnd=4)
+    ubnd=np.quantile(ref_flood_depth[~np.isnan(ref_flood_depth)], 0.999))
 
 Image(path_input_plots + 'C_MERITDEM_1_0100' + '_map_depth.png')
 # endregion
@@ -525,7 +529,7 @@ import outputs.export_outputs as outexp
 for col in fraction_capital_destroyed.columns:
     value = fraction_capital_destroyed[col]
     outexp.export_map(value, grid, geo_grid,
-                      path_input_plots, col + '_fract_K_destroyed', "",
+                      path_input_plots, col + '_fract_K_destroyed', "Calibrated fraction of capital destroyed",
                       path_input_tables,
                       ubnd=1)
 
@@ -537,7 +541,7 @@ Image(path_input_plots + 'structure_informal_backyards'
       + '_fract_K_destroyed.png')
 
 # For informal settlement structures
-Image(path_input_plots + 'informal_settlements' + '_fract_K_destroyed.png')
+Image(path_input_plots + 'structure_informal_settlements' + '_fract_K_destroyed.png')
 
 # For formal subsidized structures
 Image(path_input_plots + 'structure_subsidized_1' + '_fract_K_destroyed.png')
@@ -556,7 +560,7 @@ import equilibrium.functions_dynamic as eqdyn
  ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
                             options)
 
-# ### Import (theoretical) income net of commuting costs (for all time periods)
+# ### Import expected income net of commuting costs (for all time periods)
 
 # region
 import inputs.data as inpdt
@@ -570,6 +574,7 @@ if options["compute_net_income"] == 1:
              spline_population_income_distribution, spline_income_distribution,
              path_precalc_inp, path_precalc_transp, 'GRID', options)
 
+# Load the variable at baseline year
 income_net_of_commuting_costs = np.load(
     path_precalc_transp + 'GRID_incomeNetOfCommuting_0.npy')
 # endregion
@@ -577,19 +582,19 @@ income_net_of_commuting_costs = np.load(
 # #### Let us visualize income net of commuting costs at baseline year
 
 # Note that this variable is computed through our commuting choice model,
-# based on calibrated incomes per income group and job center
+# based on calibrated incomes per income group and job center.
 
 # region
 # For income group 1
 netincome_poor = income_net_of_commuting_costs[0, :]
 import outputs.export_outputs as outexp
 netincome_poor_2d_sim = outexp.export_map(
-    netincome_poor, grid, geo_grid, path_output_plots, 'netincome_poor_2d_sim',
-    "Estimated income net of commuting costs (poor)",
-    path_output_tables,
-    ubnd=25000, lbnd=-15000, cmap='bwr')
+    netincome_poor, grid, geo_grid, path_input_plots, 'netincome_poor_2d_sim',
+    "Expected annual income net of commuting costs for the poor, in rands (up to the 99% quantile)",
+    path_input_tables,
+    ubnd=np.quantile(netincome_poor[~np.isnan(netincome_poor)], 0.99))
 
-Image(path_output_plots + 'netincome_poor_2d_sim.png')
+Image(path_input_plots + 'netincome_poor_2d_sim.png')
 # endregion
 
 # region
@@ -597,13 +602,13 @@ Image(path_output_plots + 'netincome_poor_2d_sim.png')
 netincome_midpoor = income_net_of_commuting_costs[1, :]
 import outputs.export_outputs as outexp
 netincome_midpoor_2d_sim = outexp.export_map(
-    netincome_midpoor, grid, geo_grid, path_output_plots,
+    netincome_midpoor, grid, geo_grid, path_input_plots,
     'netincome_midpoor_2d_sim',
-    "Estimated income net of commuting costs (mid-poor)",
-    path_output_tables,
-    ubnd=70000, lbnd=-20000, cmap='bwr')
+    "Expected annual income net of commuting costs for the midpoor, in rands (up to the 99% quantile)",
+    path_input_tables,
+    ubnd=np.quantile(netincome_midpoor[~np.isnan(netincome_midpoor)], 0.99))
 
-Image(path_output_plots + 'netincome_midpoor_2d_sim.png')
+Image(path_input_plots + 'netincome_midpoor_2d_sim.png')
 # endregion
 
 # region
@@ -611,13 +616,13 @@ Image(path_output_plots + 'netincome_midpoor_2d_sim.png')
 netincome_midrich = income_net_of_commuting_costs[2, :]
 import outputs.export_outputs as outexp
 netincome_midrich_2d_sim = outexp.export_map(
-    netincome_midrich, grid, geo_grid, path_output_plots,
+    netincome_midrich, grid, geo_grid, path_input_plots,
     'netincome_midrich_2d_sim',
-    "Estimated income net of commuting costs (mid-rich)",
-    path_output_tables,
-    ubnd=200000, lbnd=25000)
+    "Expected annual income net of commuting costs for the midrich, in rands (up to the 99% quantile)",
+    path_input_tables,
+    ubnd=np.quantile(netincome_midrich[~np.isnan(netincome_midrich)], 0.99))
 
-Image(path_output_plots + 'netincome_midrich_2d_sim.png')
+Image(path_input_plots + 'netincome_midrich_2d_sim.png')
 # endregion
 
 # region
@@ -625,12 +630,12 @@ Image(path_output_plots + 'netincome_midrich_2d_sim.png')
 netincome_rich = income_net_of_commuting_costs[3, :]
 import outputs.export_outputs as outexp
 netincome_rich_2d_sim = outexp.export_map(
-    netincome_rich, grid, geo_grid, path_output_plots, 'netincome_rich_2d_sim',
-    "Estimated income net of commuting costs (rich)",
-    path_output_tables,
-    ubnd=850000, lbnd=250000)
+    netincome_rich, grid, geo_grid, path_input_plots, 'netincome_rich_2d_sim',
+    "Expected annual income net of commuting costs for the rich, in rands (up to the 99% quantile)",
+    path_input_tables,
+    ubnd=np.quantile(netincome_rich[~np.isnan(netincome_rich)], 0.99))
 
-Image(path_output_plots + 'netincome_rich_2d_sim.png')
+Image(path_input_plots + 'netincome_rich_2d_sim.png')
 # endregion
 
 # ## Compute initial state equilibrium
@@ -706,7 +711,7 @@ import equilibrium.compute_equilibrium as eqcmp
 #   for each housing type (no RDP) and each income group in each pixel
 #
 # initial_state_capital_land = value of the (housing construction sector)
-#   capital stock (in available-land unit equivalent) per unit of available
+#   capital stock (in monetary units) per unit of available
 #   land (in km²) in each housing type (no RDP) and each selected pixel
 #
 # initial_state_average_income = average income per income group
@@ -753,7 +758,7 @@ np.save(path_outputs + name + '/initial_state_limit_city.npy',
 
 # #### Let us start with population distribution
 
-# We first look at sorting across housing types
+# We first look at sorting across housing types.
 
 # region
 # For formal private housing
@@ -761,12 +766,19 @@ sim_nb_households_formal = initial_state_households_housing_types[0, :]
 import outputs.export_outputs as outexp
 formal_sim = outexp.export_map(
     sim_nb_households_formal, grid, geo_grid, path_output_plots, 'formal_sim',
-    "Number of households in formal private (simulation)",
+    "Number of households in formal private housing (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=1000)
+    ubnd=np.quantile(sim_nb_households_formal[~np.isnan(sim_nb_households_formal)], 0.9999))
 
 Image(path_output_plots + 'formal_sim.png')
 # endregion
+
+# Here are a few caveats on how to interpret those results:
+#
+# - For a given housing type, residential locations only vary a priori according to their (dis)amenity index, income net of commuting costs, and exposure to flood risks. We do not account for other location-specific exogenous factors, which explains the overall smooth aspect (compared to reality) of our spatial sorting. Besides, land availability is defined negatively by the share of land not available for other housing types, but in reality, this land may also be allocated to other uses, such as commercial real estate. Therefore, even though we do simulate the model at the grid-cell level, it makes more sense to interpret results at the scale of the neighbourhood.
+# <br>
+#
+# - The fact that we are not able to replicate some stylized facts for the CoCT should be interpreted in this regard. For instance, we are not able to reproduce the high density on the Atlantic Seaboard, as its amenities do not appear sufficient to offset its distance to the CBD. Likewise, the higher disamenity or higher uncertainty in income calibration for specific areas (such as Khayelitsha or Mitchell's Plain) could explain why we are not able to reproduce the (formal) density in those areas.
 
 # region
 # For informal backyards
@@ -774,12 +786,14 @@ sim_nb_households_backyard = initial_state_households_housing_types[1, :]
 import outputs.export_outputs as outexp
 backyard_sim = outexp.export_map(
     sim_nb_households_backyard, grid, geo_grid, path_output_plots,
-    'backyard_sim', "Number of households in informal backyard (simulation)",
+    'backyard_sim', "Number of households in informal backyards (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=1000)
+    ubnd=np.quantile(sim_nb_households_backyard[~np.isnan(sim_nb_households_backyard)], 0.9999))
 
 Image(path_output_plots + 'backyard_sim.png')
 # endregion
+
+# Remember that backyarding essentially occurs within (exogenous) formal subsidized housing preccints, hence the observed spatial distribution.
 
 # region
 # For informal settlements
@@ -788,12 +802,14 @@ import outputs.export_outputs as outexp
 informal_sim = outexp.export_map(
     sim_nb_households_informal, grid, geo_grid, path_output_plots,
     'informal_sim',
-    "Number of households in informal settlements (simulation)",
+    "Number of households in informal settlements (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=3000)
+    ubnd=np.quantile(sim_nb_households_informal[~np.isnan(sim_nb_households_informal)], 0.9999))
 
 Image(path_output_plots + 'informal_sim.png')
 # endregion
+
+# Contrary to formal private housing, we do observe here a granular spatial distribution more in line with the data, that accounts for the fact that informal settlement locations are exogenously set.
 
 # region
 # For formal subsidized housing
@@ -801,14 +817,16 @@ data_nb_households_rdp = initial_state_households_housing_types[3, :]
 import outputs.export_outputs as outexp
 rdp_sim = outexp.export_map(
     data_nb_households_rdp, grid, geo_grid, path_output_plots, 'rdp_sim',
-    "Number of households in formal subsidized (data)",
+    "Number of households in formal subsidized housing (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=1800)
+    ubnd=np.quantile(data_nb_households_rdp[~np.isnan(data_nb_households_rdp)], 0.9999))
 
 Image(path_output_plots + 'rdp_sim.png')
 # endregion
 
-# We then look at sorting across income groups
+# Finally, the spatial distribution for formal subsidized housing is just taken from the data (not simulated).
+#
+# We then look at sorting across income groups.
 
 # region
 # For income group 1
@@ -816,9 +834,9 @@ sim_nb_households_poor = initial_state_household_centers[0, :]
 import outputs.export_outputs as outexp
 poor_sim = outexp.export_map(
     sim_nb_households_poor, grid, geo_grid, path_output_plots, 'poor_sim',
-    "Number of poor households (simulation)",
+    "Number of poor households (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=5000)
+    ubnd=np.quantile(sim_nb_households_poor[~np.isnan(sim_nb_households_poor)], 0.9999))
 
 Image(path_output_plots + 'poor_sim.png')
 # endregion
@@ -829,9 +847,9 @@ sim_nb_households_midpoor = initial_state_household_centers[1, :]
 import outputs.export_outputs as outexp
 midpoor_sim = outexp.export_map(
     sim_nb_households_midpoor, grid, geo_grid, path_output_plots,
-    'midpoor_sim', "Number of mid-poor households (simulation)",
+    'midpoor_sim', "Number of midpoor households (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=2000)
+    ubnd=np.quantile(sim_nb_households_midpoor[~np.isnan(sim_nb_households_midpoor)], 0.9999))
 
 Image(path_output_plots + 'midpoor_sim.png')
 # endregion
@@ -842,9 +860,9 @@ sim_nb_households_midrich = initial_state_household_centers[2, :]
 import outputs.export_outputs as outexp
 midrich_sim = outexp.export_map(
     sim_nb_households_midrich, grid, geo_grid, path_output_plots,
-    'midrich_sim', "Number of mid-rich households (simulation)",
+    'midrich_sim', "Number of midrich households (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=1000)
+    ubnd=np.quantile(sim_nb_households_midrich[~np.isnan(sim_nb_households_midrich)], 0.9999))
 
 Image(path_output_plots + 'midrich_sim.png')
 # endregion
@@ -855,12 +873,18 @@ sim_nb_households_rich = initial_state_household_centers[3, :]
 import outputs.export_outputs as outexp
 rich_sim = outexp.export_map(
     sim_nb_households_rich, grid, geo_grid, path_output_plots, 'rich_sim',
-    "Number of rich households (simulation)",
+    "Number of rich households (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=500)
+    ubnd=np.quantile(sim_nb_households_rich[~np.isnan(sim_nb_households_rich)], 0.9999))
 
 Image(path_output_plots + 'rich_sim.png')
 # endregion
+
+# Overall, the distribution of the two poorest income groups is in line with what we could expect given their opportunities on the housing market: being (parly or fully) crowded out of the formal private segment, they redirect themselves to the informal segments and the formal subsidized segment (for those eligible).
+#
+# The second richest group, which makes up the most part of formal private housing dwellers, illustrates the standard urban economics trade-off between job accessibility and high rents / small dwelling sizes, with a peak at mid-distance (abstracting from location specifics).
+#
+# The richest income group, who has a higher opportunity cost of time (and better job opportunities), crowds out the second richest group near the CBD, but also does locate in more peripheral high-amenity areas where they overbid the second richest group.
 
 # #### We may also look at housing supply (in m²)
 
@@ -874,9 +898,9 @@ hsupply_formal = housing_supply[0, :]
 import outputs.export_outputs as outexp
 hsupply_formal_2d_sim = outexp.export_map(
     hsupply_formal, grid, geo_grid, path_output_plots, 'hsupply_formal_2d_sim',
-    "Total housing supply in private formal (in m²)",
+    "Total housing supply (in m²) for formal private housing (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=35000)
+    ubnd=np.quantile(hsupply_formal[~np.isnan(hsupply_formal)], 0.9999))
 
 Image(path_output_plots + 'hsupply_formal_2d_sim.png')
 # endregion
@@ -888,9 +912,9 @@ import outputs.export_outputs as outexp
 hsupply_backyard_2d_sim = outexp.export_map(
     hsupply_backyard, grid, geo_grid, path_output_plots,
     'hsupply_backyard_2d_sim',
-    "Total housing supply in informal backyards (in m²)",
+    "Total housing supply (in m²) for informal backyards (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=30000)
+    ubnd=np.quantile(hsupply_backyard[~np.isnan(hsupply_backyard)], 0.9999))
 
 Image(path_output_plots + 'hsupply_backyard_2d_sim.png')
 # endregion
@@ -902,9 +926,9 @@ import outputs.export_outputs as outexp
 hsupply_informal_2d_sim = outexp.export_map(
     hsupply_informal, grid, geo_grid, path_output_plots,
     'hsupply_informal_2d_sim',
-    "Total housing supply in informal settlements (in m²)",
+    "Total housing supply (in m²) for informal settlements (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=70000)
+    ubnd=np.quantile(hsupply_informal[~np.isnan(hsupply_informal)], 0.9999))
 
 Image(path_output_plots + 'hsupply_informal_2d_sim.png')
 # endregion
@@ -915,16 +939,20 @@ hsupply_rdp = housing_supply[3, :]
 import outputs.export_outputs as outexp
 hsupply_rdp_2d_sim = outexp.export_map(
     hsupply_rdp, grid, geo_grid, path_output_plots, 'hsupply_rdp_2d_sim',
-    "Total housing supply in formal subsidized (in m²)",
+    "Total housing supply (in m²) for formal subsidized housing (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=25000)
+    ubnd=np.quantile(hsupply_rdp[~np.isnan(hsupply_rdp)], 0.9999))
 
 Image(path_output_plots + 'hsupply_rdp_2d_sim.png')
 # endregion
 
+# We do observe that informal settlements are somewhat denser than other housing types. This seems to indicate that horizontal densification dominates vertical densification within the context of the CoCT. Indeed, even though formal private housing can be built high, it is less constrained in terms of land availability and can spread out more, leaving some open space. On the contrary, as informal settlements are more constrained and can only expand horizontally, they end up using most of the available land.
+#
+# NB: Note that our model does not allow us to disentangle between high structures with small dwelling units and low structures with big dwelling units within the formal private housing sector.
+
 # #### Now, let us look at land prices (in rands / m²)
 
-# We first convert our estimates for the average monthly rents into land prices
+# We first convert our estimates for the average annual rents into land prices
 # based on the zero profit condition for developers
 land_rent = (
     (initial_state_rent[0:3, :] * param["coeff_A"])
@@ -938,27 +966,35 @@ land_rent = (
 # region
 # For formal private housing
 landrent_formal_simul = land_rent[0, :].copy()
+landrent_formal_simul[hsupply_formal==0 | np.isnan(hsupply_formal)] = 0
+
 import outputs.export_outputs as outexp
 land_price_formal_2d_sim = outexp.export_map(
     landrent_formal_simul, grid, geo_grid,
     path_output_plots, 'landrent_formal_2d_sim',
-    "Simulated average land rents per location (private formal)",
+    "Average land prices (in rands / m²) in formal private areas (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=15000)
+    ubnd=np.quantile(landrent_formal_simul[landrent_formal_simul > 0], 0.9999))
 
 Image(path_output_plots + 'landrent_formal_2d_sim.png')
 # endregion
 
+# Our results conform to the standard urban economics predictions about the overall shape of the housing/land rent/price gradient.
+
+# Note that, although we also simulate the average annual rents for informal backyards and settlements, it is not absolutely rigorous to apply the above formula to recover land prices in those areas, as they are considered unfit for development. We still include the plots for reference, that can be interpreted as land prices should such areas become fit for development, keeping constant housing supply and demand (not very realistic).
+
 # region
 # For informal backyards
 landrent_backyard_simul = land_rent[1, :].copy()
+landrent_backyard_simul[hsupply_backyard==0 | np.isnan(hsupply_backyard)] = 0
+
 import outputs.export_outputs as outexp
 land_price_backyard_2d_sim = outexp.export_map(
     landrent_backyard_simul, grid, geo_grid,
     path_output_plots, 'landrent_backyard_2d_sim',
-    "Simulated average land rents per location (informal backyards)",
+    "Average land prices (in rands / m²) in informal backyard areas (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=10000)
+    ubnd=np.quantile(landrent_backyard_simul[landrent_backyard_simul > 0], 0.9999))
 
 Image(path_output_plots + 'landrent_backyard_2d_sim.png')
 # endregion
@@ -966,19 +1002,21 @@ Image(path_output_plots + 'landrent_backyard_2d_sim.png')
 # region
 # For informal settlements
 landrent_informal_simul = land_rent[2, :].copy()
+landrent_informal_simul[hsupply_informal==0 | np.isnan(hsupply_informal)] = 0
+
 import outputs.export_outputs as outexp
 land_price_informal_2d_sim = outexp.export_map(
     landrent_informal_simul, grid, geo_grid,
     path_output_plots, 'landrent_informal_2d_sim',
-    "Simulated average land rents per location (informal settlements)",
+    "Average land prices (in rands / m²) in informal settlement areas (up to the 99.99% quantile)",
     path_output_tables,
-    ubnd=10000)
+    ubnd=np.quantile(landrent_informal_simul[landrent_informal_simul > 0], 0.9999))
 
 Image(path_output_plots + 'landrent_informal_2d_sim.png')
 # endregion
 
 # Note that we cannot estimate land rents for formal subsidized parcels since
-# such housing is exogenous in our model
+# such housing is exogenous in our model.
 
 # #### Finally, let us look at flood damages (in rands)
 
@@ -988,7 +1026,7 @@ Image(path_output_plots + 'landrent_informal_2d_sim.png')
 #
 # We redirect the reader to the interface for a more detailed view on other
 # housing submarkets or content damages, with results given as a share of
-# income, for instance
+# income and distributional impacts, for instance.
 
 # We first list the flood map labels to be used
 fluvialu_floods = ['FU_5yr', 'FU_10yr', 'FU_20yr', 'FU_50yr', 'FU_75yr',
@@ -1063,14 +1101,12 @@ for j in np.arange(24014):
         fluvialu_damages_2d_sim_stacked[:, j, 0],
         'fluvialu', 'formal', options)
 
-temp = fluvialu_formal_structure_2d_sim
 import outputs.export_outputs as outexp
-outexp.export_map(temp, grid, geo_grid,
+outexp.export_map(fluvialu_formal_structure_2d_sim, grid, geo_grid,
                   path_output_plots,
-                  outexp.retrieve_name(temp, -1),
-                  "", path_output_tables,
-                  ubnd=np.quantile(temp[temp > 0], 0.9),
-                  lbnd=np.min(temp[temp > 0]))
+                  "fluvialu_formal_structure_2d_sim",
+                  "Annual fluvial flood damages to formal private housing structures (up to 99.9pct R)", path_output_tables,
+                  ubnd=np.quantile(fluvialu_formal_structure_2d_sim[fluvialu_formal_structure_2d_sim > 0], 0.999))
 
 Image(path_output_plots + "fluvialu_formal_structure_2d_sim.png")
 # endregion
@@ -1087,14 +1123,12 @@ for j in np.arange(24014):
         pluvial_damages_2d_sim_stacked[:, j, 0],
         'pluvial', 'formal', options)
 
-temp = pluvial_formal_structure_2d_sim
 import outputs.export_outputs as outexp
-outexp.export_map(temp, grid, geo_grid,
+outexp.export_map(pluvial_formal_structure_2d_sim, grid, geo_grid,
                   path_output_plots,
-                  outexp.retrieve_name(temp, -1),
-                  "", path_output_tables,
-                  ubnd=np.quantile(temp[temp > 0], 0.9),
-                  lbnd=np.min(temp[temp > 0]))
+                  "pluvial_formal_structure_2d_sim",
+                  "Annual pluvial flood damages to formal private housing structures (up to 99.9pct R)", path_output_tables,
+                  ubnd=np.quantile(pluvial_formal_structure_2d_sim[pluvial_formal_structure_2d_sim > 0], 0.999))
 
 Image(path_output_plots + "pluvial_formal_structure_2d_sim.png")
 # endregion
@@ -1109,17 +1143,19 @@ for j in np.arange(24014):
         coastal_damages_2d_sim_stacked[:, j, 0],
         'coastal', 'formal', options)
 
-temp = coastal_formal_structure_2d_sim
 import outputs.export_outputs as outexp
-outexp.export_map(temp, grid, geo_grid,
+outexp.export_map(coastal_formal_structure_2d_sim, grid, geo_grid,
                   path_output_plots,
-                  outexp.retrieve_name(temp, -1),
-                  "", path_output_tables,
-                  ubnd=np.quantile(temp[temp > 0], 0.9),
-                  lbnd=np.min(temp[temp > 0]))
+                  "coastal_formal_structure_2d_sim",
+                  "Annual coastal flood damages to formal private housing structures (up to 99.9pct R)", path_output_tables,
+                  ubnd=np.quantile(coastal_formal_structure_2d_sim[coastal_formal_structure_2d_sim > 0], 0.999))
 
 Image(path_output_plots + "coastal_formal_structure_2d_sim.png")
 # endregion
+
+# As could have been expected from the flood maps, fluvial damages are more acute but also more localized than pluvial damages. Households seem to avoid the worst-affected areas, but are willing to trade off some flood exposure for good locations nearby the CBD (especially regarding fluvial risks). It is worth noting that the biggest pluvial damages occur in such places where flood exposure is not the highest: it is rather the increase in capital value (driven by a relaxed trade-off) that causes the impact.
+#
+# The same mechanism seems at play regarding coastal damages, but the estimated damages are well above standard estimates from the literature. This reflects the fact that we use sea-level rise projections based upon the (pessimistic) RCP 8.5 climate change scenario, but also the methodology we use: capital values are determined endogenously through the housing market, and not calibrated to reflect some maximum share of exposed capital at the city-level. As values are typically high near the CBD, so are damages when floods hit such areas.
 
 # ## Run simulations for subsequent periods (time depends on timeline length)
 
@@ -1171,32 +1207,26 @@ import equilibrium.run_simulations as eqsim
      income_2011
      )
 
-# We create the associated output directory
-try:
-    os.mkdir(path_outputs + name)
-except OSError as error:
-    print(error)
-
 # We save the output
-np.save(path_outputs + name + '/simulation_households_center.npy',
+np.save(path_simul + '/simulation_households_center.npy',
         simulation_households_center)
-np.save(path_outputs + name + '/simulation_households_housing_type.npy',
+np.save(path_simul + '/simulation_households_housing_type.npy',
         simulation_households_housing_type)
-np.save(path_outputs + name + '/simulation_dwelling_size.npy',
+np.save(path_simul + '/simulation_dwelling_size.npy',
         simulation_dwelling_size)
-np.save(path_outputs + name + '/simulation_rent.npy',
+np.save(path_simul + '/simulation_rent.npy',
         simulation_rent)
-np.save(path_outputs + name + '/simulation_households.npy',
+np.save(path_simul + '/simulation_households.npy',
         simulation_households)
-np.save(path_outputs + name + '/simulation_error.npy',
+np.save(path_simul + '/simulation_error.npy',
         simulation_error)
-np.save(path_outputs + name + '/simulation_housing_supply.npy',
+np.save(path_simul + '/simulation_housing_supply.npy',
         simulation_housing_supply)
-np.save(path_outputs + name + '/simulation_utility.npy',
+np.save(path_simul + '/simulation_utility.npy',
         simulation_utility)
-np.save(path_outputs + name + '/simulation_deriv_housing.npy',
+np.save(path_simul + '/simulation_deriv_housing.npy',
         simulation_deriv_housing)
-np.save(path_outputs + name + '/simulation_T.npy',
+np.save(path_simul + '/simulation_T.npy',
         simulation_T)
 
 # ### Output visualization
@@ -1207,7 +1237,7 @@ np.save(path_outputs + name + '/simulation_T.npy',
 # We redirect the reader to the interface for a more detailed view of other
 # aggregates, of which the evolution of flood damages for instance.
 # Note that since flood risks do not evolve through time, the evolution in
-# flood damages is just a function of population growth and spatial sorting
+# flood damages is just a function of population growth and spatial sorting.
 
 # We set the x-axis of our plots
 years_simul = np.arange(2011, 2011 + 30)

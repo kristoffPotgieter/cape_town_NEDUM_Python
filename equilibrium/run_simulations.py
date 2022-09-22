@@ -38,7 +38,6 @@ def run_simulation(t, options, param, grid, initial_state_utility,
     freq_iter = param["iter_calc_lite"]
     #  Here, we are going to run separate simulations with and without
     #  dynamics, hence the need for a new parameter
-    #  TODO: maybe do it before and plug this back in functions_solver
     options["adjust_housing_init"] = copy.deepcopy(
         options["adjust_housing_supply"])
     options["adjust_housing_supply"] = 0
@@ -169,9 +168,8 @@ def run_simulation(t, options, param, grid, initial_state_utility,
         else:
             stat_temp_deriv_housing = np.zeros(len(stat_temp_rent[0, :]))
 
-###
+# This whole part is unnecessary
 
-        # TODO: isn't it always the case? What happens else?
         if ((index_iter - 1) / param["iter_calc_lite"]
                 - np.floor((index_iter - 1) / param["iter_calc_lite"])) == 0:
             # We retain the new constrained equilibrium with dynamic housing
@@ -204,7 +202,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 int((index_iter - 1) / param["iter_calc_lite"] + 1), :
                     ] = copy.deepcopy(stat_temp_deriv_housing)
 
-###
+#
 
     # In case we have more than one simulation per year, we collapse timeline
     # to yearly

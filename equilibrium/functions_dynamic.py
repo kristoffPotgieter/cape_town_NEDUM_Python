@@ -15,7 +15,6 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
                      options):
     """Return linear regression splines for various scenarios."""
     # Import Scenarios
-    # TODO: discuss choices
     if options["inc_ineq_scenario"] == 2:
         scenario_income_distribution = pd.read_csv(
             path_scenarios + 'Scenario_inc_distrib_2.csv', sep=';')
@@ -42,7 +41,6 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
         path_scenarios + 'Scenario_inflation_1.csv', sep=';')
     scenario_interest_rate = pd.read_csv(
         path_scenarios + 'Scenario_interest_rate_1.csv', sep=';')
-    # TODO: correct separators in source file
     if options["fuel_price_scenario"] == 2:
         scenario_price_fuel = pd.read_csv(
             path_scenarios + 'Scenario_price_fuel_2.csv', sep=';')
@@ -136,7 +134,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
          agricultural_rent_2040],
         'linear')
 
-    # Spline for fuel prices (in 10*cm^3?)
+    # Spline for fuel prices (per km)
     spline_fuel = interp1d(
         scenario_price_fuel.Year_fuel[
             ~np.isnan(scenario_price_fuel.price_fuel)]
@@ -226,18 +224,28 @@ def evolution_housing_supply(housing_limit, param, option, t1, t0,
     if t1 - t0 > 0:
         # Yields the difference in housing supply (if growing) weighted by
         # time inertia, minus housing stock depreciation
+        # diff_housing = ((housing_supply_1 - housing_supply_0)
+        #                 * (housing_supply_1 > housing_supply_0)
+        #                 * (t1 - t0) / param["time_invest_housing"]
+        #                 - housing_supply_0 * (t1 - t0)
+        #                 / param["time_depreciation_buildings"])
         diff_housing = ((housing_supply_1 - housing_supply_0)
                         * (housing_supply_1 > housing_supply_0)
                         * (t1 - t0) / param["time_invest_housing"]
                         - housing_supply_0 * (t1 - t0)
-                        / param["time_depreciation_buildings"])
+                        * param["depreciation_rate"])
     # This allows to run backward simulations
     else:
+        # diff_housing = ((housing_supply_1 - housing_supply_0)
+        #                 * (housing_supply_1 < housing_supply_0)
+        #                 * (t1 - t0) / param["time_invest_housing"]
+        #                 - housing_supply_0 * (t1 - t0)
+        #                 / param["time_depreciation_buildings"])
         diff_housing = ((housing_supply_1 - housing_supply_0)
                         * (housing_supply_1 < housing_supply_0)
                         * (t1 - t0) / param["time_invest_housing"]
                         - housing_supply_0 * (t1 - t0)
-                        / param["time_depreciation_buildings"])
+                        * param["depreciation_rate"])
 
     # We set the target "non-equilibrium" housing supply target
     housing_supply_target = housing_supply_0 + diff_housing

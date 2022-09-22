@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_doc.html">Technical documentation</a></li>
@@ -87,12 +89,10 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">scipy</span>
-<span class="c1"># from numba import jit</span>
 
 <span class="kn">import</span> <span class="nn">calibration.sub.loglikelihood</span> <span class="k">as</span> <span class="nn">callog</span>
 
 
-<span class="c1"># @jit</span>
 <div class="viewcode-block" id="EstimateParametersByOptimization"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.estimate_parameters_by_optimization.EstimateParametersByOptimization">[docs]</a><span class="k">def</span> <span class="nf">EstimateParametersByOptimization</span><span class="p">(</span>
         <span class="n">incomeNetOfCommuting</span><span class="p">,</span> <span class="n">dataRent</span><span class="p">,</span> <span class="n">dataDwellingSize</span><span class="p">,</span> <span class="n">dataIncomeGroup</span><span class="p">,</span>
         <span class="n">dataHouseholdDensity</span><span class="p">,</span> <span class="n">selectedDensity</span><span class="p">,</span> <span class="n">xData</span><span class="p">,</span> <span class="n">yData</span><span class="p">,</span> <span class="n">selectedSP</span><span class="p">,</span>
@@ -148,10 +148,10 @@
     <span class="c1"># Initial value of parameters</span>
     <span class="n">initialVector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="p">[</span><span class="n">initBeta</span><span class="p">,</span> <span class="n">initBasicQ</span><span class="p">,</span> <span class="n">initUti3</span><span class="p">,</span> <span class="n">initUti4</span><span class="p">])</span>
-
-    <span class="c1"># Determines function that will be minimized</span>
+    <span class="c1"># We exclude GLM estimation for the fit on exogenous amenities</span>
     <span class="n">optionRegression</span> <span class="o">=</span> <span class="mi">0</span>
 
+    <span class="c1"># Determines function that will be minimized</span>
     <span class="n">minusLogLikelihoodModel</span> <span class="o">=</span> <span class="p">(</span>
         <span class="k">lambda</span> <span class="n">X0</span><span class="p">:</span>
             <span class="o">-</span> <span class="n">callog</span><span class="o">.</span><span class="n">LogLikelihoodModel</span><span class="p">(</span>
@@ -183,7 +183,6 @@
     <span class="c1"># print(&#39;{0:4s} {1:9s}&#39;.format(&#39;Iter&#39;, &#39;f(X)&#39;))</span>
 
     <span class="c1"># Then we run the algorithm</span>
-    <span class="c1"># TODO: play with algorigthm used?</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
         <span class="n">minusLogLikelihoodModel</span><span class="p">,</span> <span class="n">initialVector</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bnds</span><span class="p">,</span>
         <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>

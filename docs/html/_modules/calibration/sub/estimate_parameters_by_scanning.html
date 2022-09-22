@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_doc.html">Technical documentation</a></li>
@@ -86,12 +88,10 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
-<span class="c1"># from numba import jit</span>
 
 <span class="kn">import</span> <span class="nn">calibration.sub.loglikelihood</span> <span class="k">as</span> <span class="nn">callog</span>
 
 
-<span class="c1"># @jit</span>
 <div class="viewcode-block" id="EstimateParametersByScanning"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.estimate_parameters_by_scanning.EstimateParametersByScanning">[docs]</a><span class="k">def</span> <span class="nf">EstimateParametersByScanning</span><span class="p">(</span><span class="n">incomeNetOfCommuting</span><span class="p">,</span> <span class="n">dataRent</span><span class="p">,</span>
                                  <span class="n">dataDwellingSize</span><span class="p">,</span> <span class="n">dataIncomeGroup</span><span class="p">,</span>
                                  <span class="n">dataHouseholdDensity</span><span class="p">,</span> <span class="n">selectedDensity</span><span class="p">,</span>
@@ -106,7 +106,6 @@
     <span class="c1"># algorithm from Scipy to converge towards the solution</span>
 
     <span class="c1"># We remove poorest income group as it is crowded out of formal sector</span>
-    <span class="c1"># TODO: is it in line with the paper?</span>
     <span class="n">net_income</span> <span class="o">=</span> <span class="n">incomeNetOfCommuting</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="p">:]</span>
     <span class="c1"># We generate a matrix of dummies for dominant income group in each SP</span>
     <span class="c1"># (can be always false when dominant group is poorest)</span>
@@ -138,15 +137,13 @@
     <span class="c1"># likelihood function)</span>
 
     <span class="c1"># Function for dwelling sizes</span>
-    <span class="c1"># See equation 9</span>
-    <span class="c1"># TODO: correct typo in equation C3</span>
+    <span class="c1"># See equation 9 (typo in equation C3)</span>
     <span class="n">CalculateDwellingSize</span> <span class="o">=</span> <span class="p">(</span>
         <span class="k">lambda</span> <span class="n">beta</span><span class="p">,</span> <span class="n">basic_q</span><span class="p">,</span> <span class="n">incomeTemp</span><span class="p">,</span> <span class="n">rentTemp</span><span class="p">:</span>
             <span class="n">beta</span> <span class="o">*</span> <span class="n">incomeTemp</span> <span class="o">/</span> <span class="n">rentTemp</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta</span><span class="p">)</span> <span class="o">*</span> <span class="n">basic_q</span>
             <span class="p">)</span>
 
-    <span class="c1"># Log likelihood for a lognormal law of mean 0</span>
-    <span class="c1"># TODO: correct typo in paper</span>
+    <span class="c1"># Log likelihood for a lognormal law of mean 0 (typo in original paper)</span>
     <span class="n">ComputeLogLikelihood</span> <span class="o">=</span> <span class="p">(</span>
         <span class="k">lambda</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
             <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
@@ -155,7 +152,7 @@
 
     <span class="c1"># %% Optimization algorithm</span>
 
-    <span class="c1"># Determines function that will be minimized</span>
+    <span class="c1"># We exclude GLM estimation for the fit on exogenous amenities</span>
     <span class="n">optionRegression</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="c1"># Initial value of parameters (all possible combinations)</span>
@@ -196,18 +193,17 @@
     <span class="n">which</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">scoreVect</span><span class="p">)</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">combinationInputs</span><span class="p">[</span><span class="n">which</span><span class="p">,</span> <span class="p">:]</span>
 
-    <span class="c1"># Option to implement GLM (not used in practice as this yields absurd</span>
-    <span class="c1"># results)</span>
-    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;glm&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">optionRegression</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">parametersAmenities</span><span class="p">,</span> <span class="n">modelAmenities</span><span class="p">,</span> <span class="n">parametersHousing</span>
-         <span class="p">)</span> <span class="o">=</span> <span class="n">callog</span><span class="o">.</span><span class="n">LogLikelihoodModel</span><span class="p">(</span>
-             <span class="n">parameters</span><span class="p">,</span> <span class="n">initUti2</span><span class="p">,</span> <span class="n">net_income</span><span class="p">,</span> <span class="n">groupLivingSpMatrix</span><span class="p">,</span>
-             <span class="n">dataDwellingSize</span><span class="p">,</span> <span class="n">selectedDwellingSize</span><span class="p">,</span> <span class="n">dataRent</span><span class="p">,</span>
-             <span class="n">selectedRents</span><span class="p">,</span> <span class="n">selectedDensity</span><span class="p">,</span>
-             <span class="n">predictorsAmenitiesMatrix</span><span class="p">,</span> <span class="n">tableRegression</span><span class="p">,</span> <span class="n">variablesRegression</span><span class="p">,</span>
-             <span class="n">CalculateDwellingSize</span><span class="p">,</span> <span class="n">ComputeLogLikelihood</span><span class="p">,</span> <span class="n">optionRegression</span><span class="p">,</span>
-             <span class="n">options</span><span class="p">)</span>
+    <span class="c1"># Option to implement GLM (not used in practice)</span>
+    <span class="c1"># if options[&quot;glm&quot;] == 1:</span>
+    <span class="c1">#     optionRegression = 1</span>
+    <span class="c1">#     (*_, parametersAmenities, modelAmenities, parametersHousing</span>
+    <span class="c1">#      ) = callog.LogLikelihoodModel(</span>
+    <span class="c1">#          parameters, initUti2, net_income, groupLivingSpMatrix,</span>
+    <span class="c1">#          dataDwellingSize, selectedDwellingSize, dataRent,</span>
+    <span class="c1">#          selectedRents, selectedDensity,</span>
+    <span class="c1">#          predictorsAmenitiesMatrix, tableRegression, variablesRegression,</span>
+    <span class="c1">#          CalculateDwellingSize, ComputeLogLikelihood, optionRegression,</span>
+    <span class="c1">#          options)</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">scoreTot</span><span class="p">,</span> <span class="n">parametersAmenities</span><span class="p">,</span> <span class="n">modelAmenities</span><span class="p">,</span>
             <span class="n">parametersHousing</span><span class="p">,</span> <span class="n">selectedRents</span><span class="p">)</span></div>

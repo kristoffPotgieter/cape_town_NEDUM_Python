@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
@@ -124,7 +126,6 @@
         <span class="c1"># implicit_empl_rate = ((households_per_income_class - unempl_attrib)</span>
         <span class="c1">#                       / households_per_income_class)</span>
         <span class="c1"># 0.74/0.99/0.98/0.99</span>
-        <span class="c1"># TODO: Re-use in calibration?</span>
 
     <span class="c1">#  Considering that all RDP belong to the poorest, we remove them from here</span>
     <span class="n">households_per_income_class</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
@@ -190,9 +191,6 @@
     <span class="c1">#  with high relative income as it will magnify the effect on rents, hence</span>
     <span class="c1">#  housing supply and resulting population distribution</span>
 
-    <span class="c1">#  TODO: run simulations with different convergence parameters to ensure</span>
-    <span class="c1">#  that we do not get stuck in some local optimum (unlikely as distribution</span>
-    <span class="c1">#  of households is monotonous wrt utility changes)</span>
     <span class="n">param</span><span class="p">[</span><span class="s2">&quot;convergence_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="mf">0.02</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">average_income</span><span class="p">)</span> <span class="o">/</span> <span class="n">mean_income</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.4</span>
         <span class="p">)</span>  <span class="c1"># 0.045</span>

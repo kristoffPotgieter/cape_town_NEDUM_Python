@@ -297,7 +297,7 @@ def import_param(path_precalc_inp, path_outputs, path_folder, options):
     #  In practice, we rather use the inverse value of capital depreciation
     # param["time_depreciation_buildings"] = 100
     #  Set the nb of simulations per year (not used in practice)
-    # param["iter_calc_lite"] = 1
+    param["iter_calc_lite"] = 1
 
     # Size (in m^2) above which we need to switch flood damage functions for
     # formal housing: corresponds to existence of a 2nd floor

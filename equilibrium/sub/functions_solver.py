@@ -33,7 +33,6 @@ def compute_dwelling_size_formal(utility, amenities, param,
 
     # We get a regression spline expressing q as a function of
     # implicit_qfunc(q) for some arbitrarily chosen q
-    # TODO: where does it come from?
     x = np.concatenate((
         [10 ** (-8), 10 ** (-7), 10 ** (-6), 10 ** (-5), 10 ** (-4),
          10 ** (-3), 10 ** (-2), 10 ** (-1)],
@@ -46,7 +45,6 @@ def compute_dwelling_size_formal(utility, amenities, param,
         np.arange(110, 210, 10),
         [250, 300, 500, 1000, 2000, 200000, 1000000, 10 ** 12]))
 
-    # TODO: Check whether extrapolation yields erroneous results
     # f = interp1d(implicit_qfunc(x, param["q0"], param["alpha"]), x,
     #              fill_value="extrapolate")
 
@@ -135,7 +133,6 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
     # Same as before
     capital_destroyed = np.ones(
         len(fraction_capital_destroyed.structure_formal_2))
-    # TODO: shouldn't we consider size of RDP instead?
     # Check potential dimensionality issues
     # capital_destroyed[dwelling_size > param["threshold"]
     #                   ] = fraction_capital_destroyed.structure_subsidized_2[
@@ -154,7 +151,6 @@ def compute_housing_supply_backyard(R, param, income_net_of_commuting_costs,
     # NB: in practice, the distinction is not used
 
     # See research note, p.11
-    # TODO: Check that divide by zero come from groups 3 and 4
     # np.seterr(divide='ignore', invalid='ignore')
     housing_supply = (
         (param["alpha"] *
