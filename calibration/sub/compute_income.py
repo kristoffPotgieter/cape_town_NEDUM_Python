@@ -307,7 +307,7 @@ def EstimateIncome(param, timeOutput, distanceOutput, monetaryCost, costTime,
                     np.abs(error[:, iter] / popCenters))
                 scoreIter[iter] = np.nanmean(
                     np.abs(error[:, iter] / popCenters))
-                print(np.nanmean(np.abs(error[:, iter])))
+                # print(np.nanmean(np.abs(error[:, iter])))
 
                 iter = iter + 1
 
