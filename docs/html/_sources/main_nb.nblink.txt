@@ -1,3 +1,0 @@
-{
-    "path": "../main_nb.ipynb"
-}

@@ -28,7 +28,7 @@ author = 'Thomas Monnier'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinxcontrib.bibtex', 'sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon',
-'sphinx.ext.viewcode', 'myst_parser', 'nbsphinx', 'nbsphinx_link']
+'sphinx.ext.viewcode', 'myst_parser', 'nbsphinx', 'nbsphinx_link', 'sphinx_jekyll_builder']
 bibtex_bibfiles = ['refs.bib']
 bibtex_default_style = 'plain'
 bibtex_reference_style = 'author_year'

@@ -1,3 +1,0 @@
-{
-    "path": "../calib_nb.ipynb"
-}

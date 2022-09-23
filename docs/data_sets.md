@@ -1,0 +1,596 @@
+---
+date: '2022-09-23T09:22:05.479Z'
+docname: data_sets
+images: {}
+path: /data-sets
+title: Data sets
+---
+
+# Data sets
+
+> | Folder
+
+>     | Data set
+
+>          | Format
+
+>       | Dimension
+
+>  | Observation unit
+
+>  | Description
+
+>  | Type
+
+>  |
+> | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | --------- | ---------------- | ----------- | ---- |  |  |  |
+> | Precalculated inputs
+
+>                                                      | calibratedAmenities
+
+>                                                                                                                              | .npy
+
+>                        | 1x24014
+
+>    | Pixel
+
+>             | Amenity index: follows calibration from Pfeiffer et al. (appendix C4)
+
+>  | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | calibratedHousing_b
+
+>                                                                                                                              | .npy
+
+>                        | 1x1
+
+>        | Parameter
+
+>         | Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity
+
+>  | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | calibratedHousing_kappa
+
+>                                                                                                                          | .npy
+
+>                        | 1x1
+
+>        | Parameter
+
+>         | Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter
+
+>     | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | calibratedUtility_beta
+
+>                                                                                                                           | .npy
+
+>                        | 1x1
+
+>        | Parameter
+
+>         | Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity
+
+>     | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | calibratedUtility_q0
+
+>                                                                                                                             | .npy
+
+>                        | 1x1
+
+>        | Parameter
+
+>         | Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing
+
+>          | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | data
+
+>                                                                                                                                             | .mat
+
+>                        | /
+
+>          | /
+
+>                 | Matlab structure containing various household data, essentially at the SP level
+
+>                         | /
+
+>     |
+> | Precalculated inputs
+
+>                                                      | incomeCentersKeep
+
+>                                                                                                                                | .npy
+
+>                        | 185x4
+
+>      | TAZ (2013)
+
+>        | Calibrated incomes per income group and job center (see Pfeiffer et al., appendix C3)
+
+>                   | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | lambdaKeep
+
+>                                                                                                                                       | .npy
+
+>                        | 1x1
+
+>        | Parameter
+
+>         | Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3
+
+>  | User
+
+>  |
+> | Precalculated inputs
+
+>                                                      | Transport_times_GRID
+
+>                                                                                                                             | .mat
+
+>                        | 5x185x24014
+
+>  | Pixel
+
+>             | Transport times for a round trip with several transportation modes between all grid cells
+
+>                 | Raw
+
+>   |
+> | Precalculated inputs
+
+>                                                      | Transport_times_SP
+
+>                                                                                                                               | .mat
+
+>                        | 5x185x1046
+
+>   | SP (2011)
+
+>         | Transport times for a round trip with several transportation modes between all census blocks
+
+>              | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | TAZ_ampp_prod_attr_2013_2032
+
+>                                                                                                                     | .shp
+
+>                        | 1787x10
+
+>      | TAZ (2013)
+
+>        | Geographic data at the transport zone level, used to map employment data
+
+>                                  | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | grid_reference_500
+
+>                                                                                                                               | .shp
+
+>                        | 24014x7
+
+>      | Pixel
+
+>             | Geographic data at the grid cell level, used to map model outputs
+
+>                                         | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_inc_distrib_1
+
+>                                                                                                                           | .csv
+
+>                        | 12x3
+
+>         | Scenario
+
+>          | Lower inequality: income of groups 3 and 4 decrease by 10% relatively to groups 1 and 2
+
+>                   | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_inc_distrib_2
+
+>                                                                                                                           | .csv
+
+>                        | 12x3
+
+>         | Scenario
+
+>          | Reference scenario: income distribution remains the same as in 2011
+
+>                                       | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_inc_distrib_3
+
+>                                                                                                                           | .csv
+
+>                        | 12x3
+
+>         | Scenario
+
+>          | Higher inequality: income of groups 3 and 4 increase by 10% relatively to group 1 and 2
+
+>                   | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_inflation_1
+
+>                                                                                                                             | .csv
+
+>                        | 29x2
+
+>         | Scenario
+
+>          | Reference scenario
+
+>                                                                                        | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_interest_rate_1
+
+>                                                                                                                         | .csv
+
+>                        | 55x2
+
+>         | Scenario
+
+>          | Reference scenario: interest rate constant after 2014
+
+>                                                     | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_pop_1
+
+>                                                                                                                                   | .csv
+
+>                        | 4x4
+
+>          | Scenario
+
+>          | Low growth: population in 2040 is 10% lower than reference scenario
+
+>                                       | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_pop_2
+
+>                                                                                                                                   | .csv
+
+>                        | 4x4
+
+>          | Scenario
+
+>          | Reference scenario
+
+>                                                                                        | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_pop_3
+
+>                                                                                                                                   | .csv
+
+>                        | 4x4
+
+>          | Scenario
+
+>          | High growth: population in 2040 is 10% higher than reference scenario
+
+>                                     | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_pop_20201209
+
+>                                                                                                                            | .csv
+
+>                        | 4x4
+
+>          | Scenario
+
+>          | High growth: population in 2040 is 10% higher than reference scenario (alternative specification)
+
+>         | Raw
+
+>   |
+> | data_Cape_TownScenarios
+
+>                                                   | Scenario_price_fuel_1
+
+>                                                                                                                            | .csv
+
+>                        | 51x2
+
+>         | Scenario
+
+>          | Reference scenario: price of fuel increases with inflation
+
+>                                                | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | grid_NEDUM_Cape_Town_500
+
+>                                                                                                                         | .csv
+
+>                        | 24014x14
+
+>     | Pixel
+
+>             | Standard geographic data on CoCT’s grid used in model
+
+>                                                     | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | grid_new_RDP_projects
+
+>                                                                                                                            | .csv
+
+>                        | 24014x7
+
+>      | Pixel
+
+>             | Scenarios for formal subsidized housing construction: used to define land availability
+
+>                    | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | grid_SAL_intersect
+
+>                                                                                                                               | .csv
+
+>                        | 27490x4
+
+>      | Pixel & SAL
+
+>       | Correspondance table between Small Areas and grid cells
+
+>                                                   | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | grid_SP_intersect
+
+>                                                                                                                                | .csv
+
+>                        | 32090x3
+
+>      | Pixel & SP (2011)
+
+>  | Correspondance table between Small Places and grid cells
+
+>                                                  | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | Income_distribution_2011
+
+>                                                                                                                         | .csv
+
+>                        | 12x9
+
+>         | Parameter
+
+>          | Income distribution inputs into the model
+
+>                                                                 | Raw
+
+>   |
+> | data_Cape_Town
+
+>                                                            | TAZ_amp_2013_proj_centro2
+
+>                                                                                                                        | .csv
+
+>                        | 1787x26
+
+>      | TAZ (2013)
+
+>         | Employment data at the Transport Zone level, used in calibration
+
+>                                          | Raw
+
+>   |
+> | FATHOM
+
+>                                                                    | …
+
+>                                                                                                                                                | .xlsx
+
+>                       | 24014x2
+
+>      | Pixel
+
+>              | Flood depth hazard and share of flood-prone areas for fluvial undefended (FU), fluvial defended (FD), pluvial (P), and coastal (C) floods
+
+>  | Raw
+
+>   |
+> | Flood plains - from Claus
+
+>                                                 | inf_dwellings_2020
+
+>                                                                                                                               | .xlsx
+
+>                       | 24014x2
+
+>      | Pixel
+
+>              | Number of informal dwellings in 2020, used to define land availability
+
+>                                                                     | Raw
+
+>   |
+> | Land occupation
+
+>                                                           | informal_settlements_risk…
+
+>                                                                                                                       | .csv
+
+>                        | 24014x3
+
+>      | Pixel
+
+>              | Areas at risk of new informal settlements (9 scenarios)
+
+>                                                                                    | Raw
+
+>   |
+> | Land occupation
+
+>                                                           | polygon_medium_timing
+
+>                                                                                                                            | .xlsx
+
+>                       | 151x1
+
+>        | Pixel
+
+>              | Semi-agricultural land (Philippi neighbourhood), whose squatting risk can be changed to model push-back from farmers
+
+>                       | Raw
+
+>   |
+> | precalculated_transport
+
+>                                                   | incomeNetOfCommuting_0-29
+
+>                                                                                                                        | .npy
+
+>                        | 4x24014
+
+>      | Pixel
+
+>              | Income net of commuting costs for each income bracket in model, as calibrated in Pfeiffer et al. (see part 3.1 or appendix C3), simulated over 30 years
+
+>  | User
+
+>  |
+> | root
+
+>                                                                      | housing_types_grid_sal
+
+>                                                                                                                           | .xlsx
+
+>                       | 24014x4
+
+>      | Pixel
+
+>              | Population density per housing type, used for validation
+
+>                                                                                                 | User
+
+>  |
+> | root
+
+>                                                                      | Transport-costs
+
+>                                                                                                                                  | .xlsx
+
+>                       | /
+
+>            | /
+
+>                  | Regression data that define fixed and variable components of various public transportation modes (based on Roux, 2013)
+
+>                                   | Raw
+
+>   |
+> | root
+
+>                                                                      | CT Dwelling type data validation workbook 20201204 v2
+
+>                                                                                            | .xlsx
+
+>                       | /
+
+>            | /
+
+>                  | SAL data that shows the breakdown across multiple housing categories and from which we recover aggregate population values
+
+>                               | Raw
+
+>   |
+> | Aux data
+
+>                                                                  | flood_damages
+
+>                                                                                                                                    | .xlsx
+
+>                       | /
+
+>            | /
+
+>                  | Flood depth damage functions from the literature, used in the code to associate maximum flood depth to fraction of capital destroyed
+
+>                     | Raw
+
+>   |
+> | Aux data
+
+>                                                                  | HH Income per DU - CL
+
+>                                                                                                                            | .xlsx
+
+>                       | /
+
+>            | /
+
+>                  | Breakdown of representative household budget in main districts, from which we deduce the fraction of composite good at risk of destruction from floods
+
+>   | Raw
+
+>   |
