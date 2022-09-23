@@ -291,6 +291,10 @@ informal_risks_timing.to_csv(path_input_tables
 Image(path_input_plots + "informal_settlement_risk_timing.png")
 # endregion
 
+# ![test_image](./inc_group_distrib.png)
+
+# <img src="./inc_group_distrib.png">
+
 # region
 # Then for probability
 
