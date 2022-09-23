@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data sets &mdash; NEDUM-2D for CoCT  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Math appendix" href="math_appendix.html" />
+    <link rel="prev" title="Data bases" href="data_bases.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NEDUM-2D for CoCT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme_link.html">Introducing NEDUM-2D</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calib_nb.html">Notebook: run calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guidelines.html">User guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use_case.html">Use case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical_doc.html">Technical documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_tables.html">Input tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_bases.html">Data bases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math_appendix.html">Math appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ref.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install_help.html">Installation help</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NEDUM-2D for CoCT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Data sets</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data_sets.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="data-sets">
+<h1>Data sets<a class="headerlink" href="#data-sets" title="Permalink to this heading"></a></h1>
+<blockquote>
+<div><table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Folder</p></th>
+<th class="head"><p>Data set</p></th>
+<th class="head"><p>Format</p></th>
+<th class="head"><p>Dimension</p></th>
+<th class="head"><p>Observation unit</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Precalculated inputs</p></td>
+<td><p>calibratedAmenities</p></td>
+<td><p>.npy</p></td>
+<td><p>1x24014</p></td>
+<td><p>Pixel</p></td>
+<td><p>Amenity index: follows calibration from Pfeiffer et al. (appendix C4)</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-odd"><td><p>Precalculated inputs</p></td>
+<td><p>calibratedHousing_b</p></td>
+<td><p>.npy</p></td>
+<td><p>1x1</p></td>
+<td><p>Parameter</p></td>
+<td><p>Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): capital elasticity</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-even"><td><p>Precalculated inputs</p></td>
+<td><p>calibratedHousing_kappa</p></td>
+<td><p>.npy</p></td>
+<td><p>1x1</p></td>
+<td><p>Parameter</p></td>
+<td><p>Housing production function parameter, as calibrated in Pfeiffer et al. (table C7): scale parameter</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-odd"><td><p>Precalculated inputs</p></td>
+<td><p>calibratedUtility_beta</p></td>
+<td><p>.npy</p></td>
+<td><p>1x1</p></td>
+<td><p>Parameter</p></td>
+<td><p>Utility function parameter, as calibrated in Pfeiffer et al. (table C7): surplus housing elasticity</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-even"><td><p>Precalculated inputs</p></td>
+<td><p>calibratedUtility_q0</p></td>
+<td><p>.npy</p></td>
+<td><p>1x1</p></td>
+<td><p>Parameter</p></td>
+<td><p>Utility function parameter, as calibrated in Pfeiffer et al. (table C7): basic need in housing</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-odd"><td><p>Precalculated inputs</p></td>
+<td><p>data</p></td>
+<td><p>.mat</p></td>
+<td><p>/</p></td>
+<td><p>/</p></td>
+<td><p>Matlab structure containing various household data, essentially at the SP level</p></td>
+<td><p>/</p></td>
+</tr>
+<tr class="row-even"><td><p>Precalculated inputs</p></td>
+<td><p>incomeCentersKeep</p></td>
+<td><p>.npy</p></td>
+<td><p>185x4</p></td>
+<td><p>TAZ (2013)</p></td>
+<td><p>Calibrated incomes per income group and job center (see Pfeiffer et al., appendix C3)</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-odd"><td><p>Precalculated inputs</p></td>
+<td><p>lambdaKeep</p></td>
+<td><p>.npy</p></td>
+<td><p>1x1</p></td>
+<td><p>Parameter</p></td>
+<td><p>Gravity parameter of the minimum Gumbel distribution (see Pfeiffer et al.), as calibrated in appendix C3</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-even"><td><p>Precalculated inputs</p></td>
+<td><p>Transport_times_GRID</p></td>
+<td><p>.mat</p></td>
+<td><p>5x185x24014</p></td>
+<td><p>Pixel</p></td>
+<td><p>Transport times for a round trip with several transportation modes between all grid cells</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>Precalculated inputs</p></td>
+<td><p>Transport_times_SP</p></td>
+<td><p>.mat</p></td>
+<td><p>5x185x1046</p></td>
+<td><p>SP (2011)</p></td>
+<td><p>Transport times for a round trip with several transportation modes between all census blocks</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_Town</p></td>
+<td><p>TAZ_ampp_prod_attr_2013_2032</p></td>
+<td><p>.shp</p></td>
+<td><p>1787x10</p></td>
+<td><p>TAZ (2013)</p></td>
+<td><p>Geographic data at the transport zone level, used to map employment data</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_Town</p></td>
+<td><p>grid_reference_500</p></td>
+<td><p>.shp</p></td>
+<td><p>24014x7</p></td>
+<td><p>Pixel</p></td>
+<td><p>Geographic data at the grid cell level, used to map model outputs</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_inc_distrib_1</p></td>
+<td><p>.csv</p></td>
+<td><p>12x3</p></td>
+<td><p>Scenario</p></td>
+<td><p>Lower inequality: income of groups 3 and 4 decrease by 10% relatively to groups 1 and 2</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_inc_distrib_2</p></td>
+<td><p>.csv</p></td>
+<td><p>12x3</p></td>
+<td><p>Scenario</p></td>
+<td><p>Reference scenario: income distribution remains the same as in 2011</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_inc_distrib_3</p></td>
+<td><p>.csv</p></td>
+<td><p>12x3</p></td>
+<td><p>Scenario</p></td>
+<td><p>Higher inequality: income of groups 3 and 4 increase by 10% relatively to group 1 and 2</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_inflation_1</p></td>
+<td><p>.csv</p></td>
+<td><p>29x2</p></td>
+<td><p>Scenario</p></td>
+<td><p>Reference scenario</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_interest_rate_1</p></td>
+<td><p>.csv</p></td>
+<td><p>55x2</p></td>
+<td><p>Scenario</p></td>
+<td><p>Reference scenario: interest rate constant after 2014</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_pop_1</p></td>
+<td><p>.csv</p></td>
+<td><p>4x4</p></td>
+<td><p>Scenario</p></td>
+<td><p>Low growth: population in 2040 is 10% lower than reference scenario</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_pop_2</p></td>
+<td><p>.csv</p></td>
+<td><p>4x4</p></td>
+<td><p>Scenario</p></td>
+<td><p>Reference scenario</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_pop_3</p></td>
+<td><p>.csv</p></td>
+<td><p>4x4</p></td>
+<td><p>Scenario</p></td>
+<td><p>High growth: population in 2040 is 10% higher than reference scenario</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_pop_20201209</p></td>
+<td><p>.csv</p></td>
+<td><p>4x4</p></td>
+<td><p>Scenario</p></td>
+<td><p>High growth: population in 2040 is 10% higher than reference scenario (alternative specification)</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_TownScenarios</p></td>
+<td><p>Scenario_price_fuel_1</p></td>
+<td><p>.csv</p></td>
+<td><p>51x2</p></td>
+<td><p>Scenario</p></td>
+<td><p>Reference scenario: price of fuel increases with inflation</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_Town</p></td>
+<td><p>grid_NEDUM_Cape_Town_500</p></td>
+<td><p>.csv</p></td>
+<td><p>24014x14</p></td>
+<td><p>Pixel</p></td>
+<td><p>Standard geographic data on CoCT’s grid used in model</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_Town</p></td>
+<td><p>grid_new_RDP_projects</p></td>
+<td><p>.csv</p></td>
+<td><p>24014x7</p></td>
+<td><p>Pixel</p></td>
+<td><p>Scenarios for formal subsidized housing construction: used to define land availability</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_Town</p></td>
+<td><p>grid_SAL_intersect</p></td>
+<td><p>.csv</p></td>
+<td><p>27490x4</p></td>
+<td><p>Pixel &amp; SAL</p></td>
+<td><p>Correspondance table between Small Areas and grid cells</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_Town</p></td>
+<td><p>grid_SP_intersect</p></td>
+<td><p>.csv</p></td>
+<td><p>32090x3</p></td>
+<td><p>Pixel &amp; SP (2011)</p></td>
+<td><p>Correspondance table between Small Places and grid cells</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>data_Cape_Town</p></td>
+<td><p>Income_distribution_2011</p></td>
+<td><p>.csv</p></td>
+<td><p>12x9</p></td>
+<td><p>Parameter</p></td>
+<td><p>Income distribution inputs into the model</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>data_Cape_Town</p></td>
+<td><p>TAZ_amp_2013_proj_centro2</p></td>
+<td><p>.csv</p></td>
+<td><p>1787x26</p></td>
+<td><p>TAZ (2013)</p></td>
+<td><p>Employment data at the Transport Zone level, used in calibration</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>FATHOM</p></td>
+<td><p>…</p></td>
+<td><p>.xlsx</p></td>
+<td><p>24014x2</p></td>
+<td><p>Pixel</p></td>
+<td><p>Flood depth hazard and share of flood-prone areas for fluvial undefended (FU), fluvial defended (FD), pluvial (P), and coastal (C) floods</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>Flood plains - from Claus</p></td>
+<td><p>inf_dwellings_2020</p></td>
+<td><p>.xlsx</p></td>
+<td><p>24014x2</p></td>
+<td><p>Pixel</p></td>
+<td><p>Number of informal dwellings in 2020, used to define land availability</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>Land occupation</p></td>
+<td><p>informal_settlements_risk…</p></td>
+<td><p>.csv</p></td>
+<td><p>24014x3</p></td>
+<td><p>Pixel</p></td>
+<td><p>Areas at risk of new informal settlements (9 scenarios)</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>Land occupation</p></td>
+<td><p>polygon_medium_timing</p></td>
+<td><p>.xlsx</p></td>
+<td><p>151x1</p></td>
+<td><p>Pixel</p></td>
+<td><p>Semi-agricultural land (Philippi neighbourhood), whose squatting risk can be changed to model push-back from farmers</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>precalculated_transport</p></td>
+<td><p>incomeNetOfCommuting_0-29</p></td>
+<td><p>.npy</p></td>
+<td><p>4x24014</p></td>
+<td><p>Pixel</p></td>
+<td><p>Income net of commuting costs for each income bracket in model, as calibrated in Pfeiffer et al. (see part 3.1 or appendix C3), simulated over 30 years</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-odd"><td><p>root</p></td>
+<td><p>housing_types_grid_sal</p></td>
+<td><p>.xlsx</p></td>
+<td><p>24014x4</p></td>
+<td><p>Pixel</p></td>
+<td><p>Population density per housing type, used for validation</p></td>
+<td><p>User</p></td>
+</tr>
+<tr class="row-even"><td><p>root</p></td>
+<td><p>Transport-costs</p></td>
+<td><p>.xlsx</p></td>
+<td><p>/</p></td>
+<td><p>/</p></td>
+<td><p>Regression data that define fixed and variable components of various public transportation modes (based on Roux, 2013)</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>root</p></td>
+<td><p>CT Dwelling type data validation workbook 20201204 v2</p></td>
+<td><p>.xlsx</p></td>
+<td><p>/</p></td>
+<td><p>/</p></td>
+<td><p>SAL data that shows the breakdown across multiple housing categories and from which we recover aggregate population values</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-even"><td><p>Aux data</p></td>
+<td><p>flood_damages</p></td>
+<td><p>.xlsx</p></td>
+<td><p>/</p></td>
+<td><p>/</p></td>
+<td><p>Flood depth damage functions from the literature, used in the code to associate maximum flood depth to fraction of capital destroyed</p></td>
+<td><p>Raw</p></td>
+</tr>
+<tr class="row-odd"><td><p>Aux data</p></td>
+<td><p>HH Income per DU - CL</p></td>
+<td><p>.xlsx</p></td>
+<td><p>/</p></td>
+<td><p>/</p></td>
+<td><p>Breakdown of representative household budget in main districts, from which we deduce the fraction of composite good at risk of destruction from floods</p></td>
+<td><p>Raw</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_bases.html" class="btn btn-neutral float-left" title="Data bases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="math_appendix.html" class="btn btn-neutral float-right" title="Math appendix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Thomas Monnier.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
