@@ -3,7 +3,6 @@
 *.doc
 *.pdf
 *.jpg
-*.png
 *.bak
 
 # Byte-compiled / optimized / DLL files
