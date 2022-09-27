@@ -47,7 +47,7 @@ path_floods = path_folder + "FATHOM/"
 
 options = inpprm.import_options()
 param = inpprm.import_param(
-    path_precalc_inp, path_outputs, path_folder, options)
+    path_precalc_inp, options)
 
 # Set custom options for this simulation
 #  Dummy for taking floods into account in the utility function
@@ -247,7 +247,7 @@ options["agents_anticipate_floods"] = 1
  structural_damages_type3a, structural_damages_type3b,
  structural_damages_type4a, structural_damages_type4b
  ) = inpdt.import_full_floods_data(
-     options, param, path_folder, housing_type_data)
+     options, param, path_folder)
 
 
 # SCENARIOS

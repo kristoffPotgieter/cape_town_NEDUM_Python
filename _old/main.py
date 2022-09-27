@@ -75,7 +75,7 @@ print("Import default parameters and options, define custom ones")
 
 options = inpprm.import_options()
 param = inpprm.import_param(
-    path_precalc_inp, path_outputs, path_folder, options)
+    path_precalc_inp, options)
 
 # Set custom options for this simulation
 #  Dummy for taking floods into account in the utility function

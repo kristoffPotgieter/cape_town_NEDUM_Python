@@ -78,7 +78,7 @@ except OSError as error:
 import inputs.parameters_and_options as inpprm
 options = inpprm.import_options()
 param = inpprm.import_param(
-    path_precalc_inp, path_outputs, path_folder, options)
+    path_precalc_inp, options)
 
 # ### We also set custom options for this simulation
 
@@ -225,8 +225,7 @@ if options["agents_anticipate_floods"] == 1:
      content_damages, structural_damages_type1, structural_damages_type2,
      structural_damages_type3a, structural_damages_type3b,
      structural_damages_type4a, structural_damages_type4b
-     ) = inpdt.import_full_floods_data(options, param, path_folder,
-                                       housing_type_data)
+     ) = inpdt.import_full_floods_data(options, param, path_folder)
 
 # Else, we set those outputs as zero
 # NB: 24014 is the number of grid pixels

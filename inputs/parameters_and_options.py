@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 27 15:50:59 2020.
-
-@author: Charlotte Liotta
 """
 
 import numpy as np
@@ -12,14 +9,35 @@ import copy
 
 
 def import_options():
-    """Import default options."""
-    # Useful for coding green belt
-    options = {"urban_edge": 0}
-    # Used in solver_equil (dummy for housing supply adaptability)
-    options["adjust_housing_supply"] = 1
+    """
+    Import default options.
 
+    Import set of numerical values coding for options used in the model.
+    We can group them as follows: structural assumptions regarding agents'
+    behaviour, assumptions about different land uses, options about flood data
+    used, about re-processing input data, about calibration process, about
+    math correction relative to the original code, and about scenarios used
+    for time-moving exogenous variables.
+
+    Returns
+    -------
+    options : dict
+        Dictionary of default options
+
+    """
+    # STRUCTURAL ASSUMPTIONS
+    # Used in solver_equil (dummy for housing supply adaptability)
+    options = {"adjust_housing_supply": 1}
     # Dummy for agents taking floods into account in their choices
     options["agents_anticipate_floods"] = 1
+
+    # LAND USE ASSUMPTIONS
+    # Used for coding green belt
+    options["urban_edge"] = 0
+    # Dummy for forbidding new informal housing construction
+    options["informal_land_constrained"] = 0
+
+    # FLOOD DATA OPTIONS
     # Dummy for using flood data from WBUS2 on top of FATHOM
     options["WBUS2"] = 0
     # Dummy for considering pluvial floods on top of fluvial floods
@@ -34,15 +52,9 @@ def import_options():
     options["dem"] = "MERITDEM"
     #  Dummy for taking sea-level rise into account in coastal flood data
     options["slr"] = 1
-    # Dummy for forbidding new informal housing construction
-    options["informal_land_constrained"] = 0
 
-    # Dummy for loading pre-calibrated (from Basile) parameters, as opposed
-    # to newly calibrated paramaters
-    options["load_precal_param"] = 0
-    # Dummy for fitting informal housing disamenity parameter to grid pixels
-    options["location_based_calib"] = 1
-    # Re-processing options: default is set at zero to save computing time
+    # REPROCESSING OPTIONS
+    # Default is set at zero to save computing time
     # (data is simply loaded in the model)
     #  Convert housing type SAL data to grid level
     options["convert_sal_data"] = 0
@@ -53,24 +65,12 @@ def import_options():
     #  group (for every period)
     options["compute_net_income"] = 0
 
-    # Main code correction options
-    #  Dummy for taking formal backyards into account in backyard land use
-    #  coefficients and structural damages from floods
-    options["actual_backyards"] = 0
-    #  Dummy for allocating no-income population to each income group based on
-    #  their respective unemployment rates (instead of applying same rate)
-    options["unempl_reweight"] = 0
-    #  Dummy for correcting the formula for agricultural rent
-    #  (compared to original version of the code)
-    options["correct_agri_rent"] = 1
-    #  Dummy for taking into account capital depreciation as a factor of
-    #  land price in profit function (impact on agricultural land)
-    options["deprec_land"] = 0
-
-    # Dummy for running calibration again
-    # options["run_calib"] = 0
-
-    # Options for calibration code correction
+    # CALIBRATION OPTIONS
+    # Dummy for loading pre-calibrated (from Basile) parameters, as opposed
+    # to newly calibrated paramaters
+    options["load_precal_param"] = 0
+    # Dummy for fitting informal housing disamenity parameter to grid pixels
+    options["location_based_calib"] = 1
     #  Dummy for defining dominant income group based on number of people
     #  instead of median income at SP level
     options["correct_dominant_incgrp"] = 0
@@ -121,8 +121,21 @@ def import_options():
     #  function parameter estimation
     options["log_form"] = 1
 
-    # We also add options for time-moving variables scenarios
-    # See text description and raw numbers in Scenarios subfolder
+    # CODE CORRECTION OPTIONS
+    #  Dummy for taking formal backyards into account in backyard land use
+    #  coefficients and structural damages from floods
+    options["actual_backyards"] = 0
+    #  Dummy for allocating no-income population to each income group based on
+    #  their respective unemployment rates (instead of applying same rate)
+    options["unempl_reweight"] = 0
+    #  Dummy for correcting the formula for agricultural rent
+    #  (compared to original version of the code)
+    options["correct_agri_rent"] = 1
+    #  Dummy for taking into account capital depreciation as a factor of
+    #  land price in profit function (impact on agricultural land)
+    options["deprec_land"] = 0
+
+    # SCENARIO OPTIONS
     #  Code corresponds to low/medium/high
     options["inc_ineq_scenario"] = 2
     #  Code corresponds to low/medium/high/high_corrected
@@ -138,8 +151,30 @@ def import_options():
     return options
 
 
-def import_param(path_precalc_inp, path_outputs, path_folder, options):
-    """Import default parameters."""
+def import_param(path_precalc_inp, options):
+    """
+    Import default parameters.
+
+    Import set of numerical parameters used in the model.
+    Some parameters are the output of a calibration process: it is the case
+    of construction function parameters, incomes and associated gravity
+    parameter, utility function parameters, and disamenity index for informal
+    housing. Some other parameters are just defined ad hoc, based on existing
+    empirical evidence.
+
+    Parameters
+    ----------
+    path_precalc_inp : str
+        Path for precalcuted input data (calibrated parameters)
+    options : dict
+        Dictionary of default options
+
+    Returns
+    -------
+    param : dict
+        Dictionary of default parameters
+
+    """
     # Define baseline year
     param = {"baseline_year": 2011}
 
@@ -346,7 +381,58 @@ def import_construction_parameters(param, grid, housing_types_sp,
                                    dwelling_size_sp, mitchells_plain_grid_2011,
                                    grid_formal_density_HFA, coeff_land,
                                    interest_rate, options):
-    """Update parameters with values for construction."""
+    """
+    Update default parameters with construction parameters.
+
+    Import set of numerical construction-related parameters used in the model.
+    They depend on pre-loaded data and are therefore imported as part of a
+    separate function
+
+    Parameters
+    ----------
+    param : dict
+        Dictionary of default parameters
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    housing_types_sp : DataFrame
+        Table yielding, for each Small Place (1,046), the number of
+        informal backyards, informal settlements, and total number
+        of dwelling units at baseline year (2011), as well as its
+        x and y (centroid) coordinates
+    dwelling_size_sp : Series
+        Average dwelling size (in m²) in each Small Place (1,046)
+        at baseline year (2011)
+    mitchells_plain_grid_2011 : ndarray(uint8)
+        Dummy coding for belonging to Mitchells Plain neighbourhood
+        at the grid-cell (24,014) level
+    grid_formal_density_HFA : ndarray(float64)
+        Population density (per m²) in formal private housing at baseline year
+        (2011) at the grid-cell (24,014) level
+    coeff_land : ndarray(float64, ndim=2)
+        Table yielding, for each grid cell (24,014), the percentage of land
+        area available for construction in each housing type (4) respectively.
+        In the order: formal private housing, informal backyards, informal
+        settlements, formal subsidized housing.
+    interest_rate : float64
+        Interest rate for the overall economy, corresponding to an average
+        over past years
+    options : dict
+        Dictionary of default options
+
+    Returns
+    -------
+    param : dict
+        Updated dictionary of default parameters
+    minimum_housing_supply : ndarray(float64)
+        Minimum housing supply (in m²) for each grid cell (24,014), allowing
+        for an ad hoc correction of low values in Mitchells Plain
+    agricultural_rent : int
+        Annual housing rent below which it is not profitable for formal private
+        developers to urbanize (agricultural) land: endogenously limits urban
+        sprawl
+
+    """
     # We define housing supply per unit of land for simulations where
     # developers do not adjust
     param["housing_in"] = np.empty(len(grid_formal_density_HFA))

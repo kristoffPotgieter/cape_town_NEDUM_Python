@@ -497,7 +497,7 @@ div.rendered_html tbody tr:hover {
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">inputs.parameters_and_options</span> <span class="k">as</span> <span class="nn">inpprm</span>
 <span class="n">options</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_options</span><span class="p">()</span>
 <span class="n">param</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_param</span><span class="p">(</span>
-    <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_outputs</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+    <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -697,8 +697,7 @@ div.rendered_html tbody tr:hover {
      <span class="n">content_damages</span><span class="p">,</span> <span class="n">structural_damages_type1</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span>
      <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span>
      <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="n">structural_damages_type4b</span>
-     <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_full_floods_data</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">,</span>
-                                       <span class="n">housing_type_data</span><span class="p">)</span>
+     <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_full_floods_data</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">path_folder</span><span class="p">)</span>
 
 <span class="c1"># Else, we set those outputs as zero</span>
 <span class="c1"># NB: 24014 is the number of grid pixels</span>

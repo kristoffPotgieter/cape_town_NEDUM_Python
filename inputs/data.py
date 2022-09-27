@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct 27 15:57:41 2020.
-
-@author: Charlotte Liotta
 """
 
 import numpy as np
@@ -15,7 +12,21 @@ import equilibrium.functions_dynamic as eqdyn
 
 
 def import_grid(path_data):
-    """Import pixel coordinates and distances to center."""
+    """
+    Import standard geographic grid from the City of Cape Town.
+
+    Parameters
+    ----------
+    path_data : str
+        Path towards data used in the model
+
+    Returns
+    -------
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+
+    """
     data = pd.read_csv(path_data + 'grid_NEDUM_Cape_Town_500.csv', sep=';')
     grid = pd.DataFrame()
     grid["id"] = data.ID
@@ -32,7 +43,23 @@ def import_grid(path_data):
 
 
 def import_amenities(path_precalc_inp, options):
-    """Import amenity index for each pixel."""
+    """
+    Import calibrated amenity index.
+
+    Parameters
+    ----------
+    path_precalc_inp : str
+        Path for precalcuted input data (calibrated parameters)
+    options : dict
+        Dictionary of default options
+
+    Returns
+    -------
+    amenities : ndarray(float64)
+        Normalized amenity index (relative to the mean) for each grid cell
+        (24,014)
+
+    """
     # Follow calibration from Pfeiffer et al. (appendix C4)
     if options["load_precal_param"] == 1:
         precalculated_amenities = scipy.io.loadmat(
@@ -48,7 +75,16 @@ def import_amenities(path_precalc_inp, options):
 
 
 def import_hypothesis_housing_type():
-    """Import dummies to select income classes into housing types."""
+    """
+    Define housing market accessibility hypotheses.
+
+    Returns
+    -------
+    income_class_by_housing_type : DataFrame
+        Set of dummies coding for housing market access (across 4 housing
+        submarkets) for each income group (4, from poorest to richest)
+
+    """
     income_class_by_housing_type = pd.DataFrame()
     # Select which income class can live in formal settlements
     income_class_by_housing_type["formal"] = np.array([1, 1, 1, 1])
@@ -63,7 +99,40 @@ def import_hypothesis_housing_type():
 
 
 def import_income_classes_data(param, path_data):
-    """Import population and average income per income class in the model."""
+    """
+    Import population and average income per income class in the model.
+
+    Parameters
+    ----------
+    param : dict
+        Dictionary of default parameters
+    path_data : str
+        Path towards data used in the model
+
+    Returns
+    -------
+    mean_income : float64
+        Average median income across total population
+    households_per_income_class : ndarray(float64)
+        Exogenous total number of households per income group (excluding people
+        out of employment, for 4 groups)
+    average_income : ndarray(float64)
+        Average median income for each income group in the model (4)
+    income_mult : ndarray(float64)
+        Ratio of income-group-specific average income over global average
+        income
+    income_2011 : DataFrame
+        Table summarizing, for each income group in the data (12, including
+        people out of employment), the number of households living in each
+        endogenous housing type (3), their total number at baseline year (2011)
+        and in 2001, as well as the distribution of their average income
+        (at baseline year)
+    households_per_income_and_housing : ndarray(float64, ndim=2)
+        Exogenous number of households per income group (4, from poorest to
+        richest) in each endogenous housing type (3: formal private,
+        informal backyards, informal settlements), from SP-level data
+
+    """
     # Import population distribution according to housing type and income class
     # Note that RDP is included in formal
     income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
@@ -119,7 +188,47 @@ def import_income_classes_data(param, path_data):
 
 
 def import_households_data(path_precalc_inp):
-    """Import geographic data with class distributions for households."""
+    """
+    Import geographic data with class distributions for households.
+
+    Parameters
+    ----------
+    path_precalc_inp : str
+        Path for precalcuted input data (calibrated parameters)
+
+    Returns
+    -------
+    data_rdp : DataFrame
+        Table yielding, for each grid cell (24,014), the associated cumulative
+        count of cells with some formal subsidized housing, and the associated
+        area (in m²) dedicated to such housing
+    housing_types_sp : DataFrame
+        Table yielding, for each Small Place (1,046), the number of informal
+        backyards, of informal settlements, and total dwelling units, as well
+        as their (centroid) x and y coordinates
+    data_sp : DataFrame
+        Table yielding, for each Small Place (1,046), the average dwelling size
+        (in m²), the average land price and annual income level (in rands),
+        the size of unconstrained area for construction (in m²), the total area
+        (in km²), the distance to the city centre (in km), whether or not the
+        location belongs to Mitchells Plain, and the SP code
+    mitchells_plain_grid_2011 : ndarray(uint8)
+        Dummy coding for belonging to Mitchells Plain neighbourhood
+        at the grid-cell (24,014) level
+    grid_formal_density_HFA : ndarray(float64)
+        Population density (per m²) in formal private housing at baseline year
+        (2011) at the grid-cell (24,014) level
+    threshold_income_distribution : ndarray(int32)
+        Annual income level (in rands) above which a household is taken as
+        being part of one of the 4 income groups in the model
+    income_distribution : ndarray(uint16, ndim=2)
+        Exogenous number of households in each Small Place (1,046) for each
+        income group in the model (4)
+    cape_town_limits : ndarray(uint8)
+        Dummy indicating whether or not a Small Place (1,046) belongs to the
+        metropolitan area of the City of Cape Town
+
+    """
     # Import a structure of characteristics (for pixels and SPs mostly)
     data = scipy.io.loadmat(path_precalc_inp + 'data.mat')['data']
 
@@ -185,7 +294,34 @@ def import_households_data(path_precalc_inp):
 
 
 def import_macro_data(param, path_scenarios, path_folder):
-    """Import interest rate and population per housing type."""
+    """
+    Import interest rate and population per housing type.
+
+    Parameters
+    ----------
+    param : dict
+        Dictionary of default parameters
+    path_scenarios : str
+        Path towards raw scenarios used for time-moving exogenous variables
+    path_folder :
+        Path towards the root data folder
+
+    Returns
+    -------
+    interest_rate : float64
+        Interest rate for the overall economy, corresponding to an average
+        over past years
+    population : int64
+        Total number of households in the city (from Small-Area-Level data)
+    housing_type_data : ndarray(int64)
+        Exogenous number of households per housing type (4: formal private,
+        informal backyards, informal settlements, formal subsidized), from
+        Small-Area-Level data
+    total_RDP : int
+        Number of households living in formal subsidized housing (from SAL
+        data)
+
+    """
     # Interest rate
     #  Import interest_rate history + scenario until 2040
     scenario_interest_rate = pd.read_csv(
@@ -253,7 +389,75 @@ def import_macro_data(param, path_scenarios, path_folder):
 
 def import_land_use(grid, options, param, data_rdp, housing_types,
                     housing_type_data, path_data, path_folder):
-    """Return linear regression spline estimates for housing building paths."""
+    """
+    Return linear regression spline estimates for housing building paths.
+
+    This function imports scenarios about land use availability for several
+    housing types, then processes them to obtain a percentage of land available
+    for construction in each housing type, for each grid cell over the years.
+    It first sets the evolution of total number formal subsidized housing
+    dwellings, then does the same at the grid-cell level, before defining
+    land availability over time for some housing types: first formal subsidized
+    housing, then informal backyards and informal settlements. It also defines
+    the evolution of unconstrained land, with and without an urban edge.
+
+    Parameters
+    ----------
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    options : dict
+        Dictionary of default options
+    param : dict
+        Dictionary of default parameters
+    data_rdp : DataFrame
+        Table yielding, for each grid cell (24,014), the associated cumulative
+        count of cells with some formal subsidized housing, and the associated
+        area (in m²) dedicated to such housing
+    housing_types : DataFrame
+        Table yielding, for 4 different housing types (informal settlements,
+        formal backyards, informal backyards, and formal private housing),
+        the number of households in each grid cell (24,014), from SAL data.
+        Note that the notion of formal backyards correspond to backyards with
+        a concrete structure (as opposed to informal "shacks"), and not to
+        backyards located within the preccints of formal private homes. In any
+        case, we abstract from both of those definitions for the sake of
+        simplicity and as they account for a marginal share of overall
+        backyarding.
+    housing_type_data : ndarray(int64)
+        Exogenous number of households per housing type (4: formal private,
+        informal backyards, informal settlements, formal subsidized), from
+        Small-Area-Level data
+    path_data : str
+        Path towards data used in the model
+    path_folder : str
+        Path towards the root data folder
+
+    Returns
+    -------
+    spline_RDP : interp1d
+        Linear interpolation for the total number of formal subsidized
+        dwellings over the years (baseline year set at 0)
+    spline_estimate_RDP : interp1d
+        Linear interpolation for the grid-level number of formal subsidized
+        dwellings over the years (baseline year set at 0)
+    spline_land_RDP : interp1d
+        Linear interpolation for the grid-level land availability (in %)
+        for formal subsidized housing over the years (baseline year set at 0)
+    spline_land_backyard : interp1d
+        Linear interpolation for the grid-level land availability (in %)
+        for informal backyards over the years (baseline year set at 0)
+    spline_land_informal : interp1d
+        Linear interpolation for the grid-level land availability (in %)
+        for informal settlements over the years (baseline year set at 0)
+    spline_land_constraints : interp1d
+        Linear interpolation for the grid-level overall land availability,
+        (in %) over the years (baseline year set at 0)
+    number_properties_RDP : ndarray(float64)
+        Number of formal subsidized dwellings per grid cell (24,014) at
+        baseline year (2011)
+
+    """
 # 0. Import data
 
     # Social housing
@@ -660,7 +864,41 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
 def import_coeff_land(spline_land_constraints, spline_land_backyard,
                       spline_land_informal, spline_land_RDP, param, t):
-    """Return pixel share for housing scenarios, weighted by max building %."""
+    """
+    Update land availability ratios for a given year.
+
+    This function updates the land availability regression splines to account
+    for non-constructible land (such as roads, open spaces, etc.). This is done
+    by reweighting the estimates with an ad hoc parameter ratio.
+
+    Parameters
+    ----------
+    spline_land_constraints : interp1d
+        Linear interpolation for the grid-level overall land availability
+        (in %)
+    spline_land_backyard : interp1d
+        Linear interpolation for the grid-level land availability (in %)
+        for informal backyards over the years
+    spline_land_informal : interp1d
+        Linear interpolation for the grid-level land availability (in %)
+        for informal settlements over the years
+    spline_land_RDP : interp1d
+        Linear interpolation for the grid-level land availability (in %)
+        for formal subsidized housing over the years
+    param : dict
+        Dictionary of default parameters
+    t : int
+        Year (relative to baseline year set at 0) for which we want to
+        run the function
+
+    Returns
+    -------
+    coeff_land : ndarray(float64, ndim=2)
+        Updated land availability for each grid cell (24,014) and each
+        housing type (4: formal private, informal backyards, informal
+        settlements, formal subsidized)
+
+    """
     # NB: we consider area actually used for commercial purposes
     # as "available" for residential construction
     coeff_land_private = (spline_land_constraints(t)
@@ -680,7 +918,23 @@ def import_coeff_land(spline_land_constraints, spline_land_backyard,
 
 
 def import_housing_limit(grid, param):
-    """Return height limit within and out of historic city radius."""
+    """
+    Return maximum allowed housing supply in and out of historic city radius.
+
+    Parameters
+    ----------
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    param : dict
+        Dictionary of default parameters
+
+    Returns
+    -------
+    housing_limit . Series
+        Maximum housing supply (in m² per km²) in each grid cell (24,014)
+
+    """
     center_regulation = (grid["dist"] <= param["historic_radius"])
     outside_regulation = (grid["dist"] > param["historic_radius"])
     # We get the maximum amount of housing we can get per km² (hence the
@@ -694,7 +948,88 @@ def import_housing_limit(grid, param):
 
 
 def import_init_floods_data(options, param, path_folder):
-    """Import initial floods data and damage functions."""
+    """
+    Import raw flood data and damage functions.
+
+    More specifically, damage functions (taken from the literature) associate
+    to a given maximum flood depth level a fraction of capital destroyed,
+    depending on the type of capital considered. We focus here on housing
+    structures (whose value is determined endogenously) and housing contents
+    that are prone to flood destruction (calibrated ad hoc). We will later
+    associate building material types to housing types considered in the model.
+    Also note that fluvial flood maps are available both in a defended
+    (supposedly accounting for existing protection infrastructure) and
+    undefended version.
+
+    Parameters
+    ----------
+    options : dict
+        Dictionary of default options
+    param : dict
+        Dictionary of default parameters
+    path_folder : str
+        Path towards the root data folder
+
+    Returns
+    -------
+    structural_damages_small_houses : interp1d
+        Linear interpolation for fraction of capital destroyed (small house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    structural_damages_medium_houses : interp1d
+        Linear interpolation for fraction of capital destroyed (medium house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    structural_damages_large_houses : interp1d
+        Linear interpolation for fraction of capital destroyed (large house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    content_damages : interp1d
+        Linear interpolation for fraction of capital destroyed (house
+        contents) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    structural_damages_type1 : interp1d
+        Linear interpolation for fraction of capital destroyed (type-1 house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (non-engineered buildings)
+    structural_damages_type2 : interp1d
+        Linear interpolation for fraction of capital destroyed (type-2 house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (wooden buildings)
+    structural_damages_type3a : interp1d
+        Linear interpolation for fraction of capital destroyed (type-3a house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (one-floor unreinforced masonry/concrete
+        buildings)
+    structural_damages_type3b : interp1d
+        Linear interpolation for fraction of capital destroyed (type-3b house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (two-floor unreinforced masonry/concrete
+        buildings)
+    structural_damages_type4a : interp1d
+        Linear interpolation for fraction of capital destroyed (type-4a house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (one-floor reinforced masonry/concrete
+        and steel buildings)
+    structural_damages_type4b : interp1d
+        Linear interpolation for fraction of capital destroyed (type-4b house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (two-floor reinforced masonry/concrete
+        and steel buildings)
+    d_fluvial : dict
+        Dictionary of data frames yielding fluvial flood maps (maximum flood
+        depth + fraction of flood-prone area for each grid cell) for each
+        available return period
+    d_pluvial : dict
+        Dictionary of data frames yielding pluvial flood maps (maximum flood
+        depth + fraction of flood-prone area for each grid cell) for each
+        available return period
+    d_coastal : dict
+        Dictionary of data frames yielding coastal flood maps (maximum flood
+        depth + fraction of flood-prone area for each grid cell) for each
+        available return period
+
+    """
     # Import floods data
     if options["defended"] == 1:
         fluvial_floods = ['FD_5yr', 'FD_10yr', 'FD_20yr', 'FD_50yr', 'FD_75yr',
@@ -819,7 +1154,38 @@ def import_init_floods_data(options, param, path_folder):
 
 def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                                        housing_type, options):
-    """Define function used to get fraction of capital destroyed by floods."""
+    """
+    Compute expected fraction of capital destroyed by floods.
+
+    To go from discrete to continuous estimates of flood damages, we linearly
+    integrate between available return periods (understood as an annual event
+    inverse probability). This function allows us to do so for a given flood
+    type, housing type, and damage function.
+
+    Parameters
+    ----------
+    d : dict
+        Dictionary of data frames yielding flood maps (maximum flood
+        depth + fraction of flood-prone area for each grid cell) for each
+        available return period, for a given flood type
+    type_flood : str
+        Code for flood type considered (FU for fluvial undefended, FD for
+        fluvial defended, P for pluvial, C for coastal)
+    damage_function : interp1d
+        Linear interpolation for fraction of capital destroyed over maximum
+        flood depth (in m) in a given area, for a given capital type
+    housing_type : str
+        Housing type considered (to apply some ad hoc corrections).
+        Should be set to "formal", "subsidized", "backyard", or "informal".
+    options : dict
+        Dictionary of default options
+
+    Returns
+    -------
+    float64
+        Expected fraction of capital destroyed
+
+    """
     if type_flood == 'P' or type_flood == 'FD' or type_flood == 'FU':
         # This defines a probability rule (summing to 1) for each time interval
         # defined in FATHOM (the more distant, the less likely)
@@ -987,8 +1353,78 @@ def compute_fraction_capital_destroyed(d, type_flood, damage_function,
                    + (interval6 * damages6) + (interval7 * damages7)))
 
 
-def import_full_floods_data(options, param, path_folder, housing_type_data):
-    """Add fraction of capital destroyed by floods to initial floods data."""
+def import_full_floods_data(options, param, path_folder):
+    """
+    Compute expected fraction of capital destroyed by floods across space.
+
+    This function applies theoretical formulas to flood maps to get the
+    theoretical expected fraction of capital destroyed across space
+    (should households choose to live there). Note that we consider the maximum
+    flood depth across flood maps when they overlap each other, as there might
+    be some double counting between pluvial and fluvial flood risks, and floods
+    just spill over across space instead of piling up (bath-tub model).
+
+    Parameters
+    ----------
+    options : dict
+        Dictionary of default options
+    param : dict
+        Dictionary of default parameters
+    path_folder : str
+        Path towards the root data folder
+
+    Returns
+    -------
+    fraction_capital_destroyed : DataFrame
+        Data frame of expected fractions of capital destroyed, for housing
+        structures and contents in different housing types, in each
+        grid cell (24,014)
+    structural_damages_small_houses : interp1d
+        Linear interpolation for fraction of capital destroyed (small house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    structural_damages_medium_houses : interp1d
+        Linear interpolation for fraction of capital destroyed (medium house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    structural_damages_large_houses : interp1d
+        Linear interpolation for fraction of capital destroyed (large house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    content_damages : interp1d
+        Linear interpolation for fraction of capital destroyed (house
+        contents) over maximum flood depth (in m) in a given area,
+        from de Villiers et al., 2007
+    structural_damages_type1 : interp1d
+        Linear interpolation for fraction of capital destroyed (type-1 house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (non-engineered buildings)
+    structural_damages_type2 : interp1d
+        Linear interpolation for fraction of capital destroyed (type-2 house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (wooden buildings)
+    structural_damages_type3a : interp1d
+        Linear interpolation for fraction of capital destroyed (type-3a house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (one-floor unreinforced masonry/concrete
+        buildings)
+    structural_damages_type3b : interp1d
+        Linear interpolation for fraction of capital destroyed (type-3b house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (two-floor unreinforced masonry/concrete
+        buildings)
+    structural_damages_type4a : interp1d
+        Linear interpolation for fraction of capital destroyed (type-4a house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (one-floor reinforced masonry/concrete
+        and steel buildings)
+    structural_damages_type4b : interp1d
+        Linear interpolation for fraction of capital destroyed (type-4b house
+        structures) over maximum flood depth (in m) in a given area,
+        from de Englhardt et al., 2019 (two-floor reinforced masonry/concrete
+        and steel buildings)
+
+    """
     fraction_capital_destroyed = pd.DataFrame()
 
     (structural_damages_small_houses, structural_damages_medium_houses,
@@ -1388,48 +1824,6 @@ def import_full_floods_data(options, param, path_folder, housing_type_data):
             structural_damages_type4b)
 
 
-def infer_WBUS2_depth(housing_types, param, path_floods):
-    """Update CoCT flood data with FATHOM flood depth (deprecated)."""
-    FATHOM_20yr = np.squeeze(pd.read_excel(path_floods + 'FD_20yr' + ".xlsx"))
-    FATHOM_50yr = np.squeeze(pd.read_excel(path_floods + 'FD_50yr' + ".xlsx"))
-    FATHOM_100yr = np.squeeze(pd.read_excel(
-        path_floods + 'FD_100yr' + ".xlsx"))
-
-    FATHOM_20yr['pop_flood_prone'] = (
-        FATHOM_20yr.prop_flood_prone
-        * (housing_types.informal_grid
-           + housing_types.formal_grid
-           + housing_types.backyard_formal_grid
-           + housing_types.backyard_informal_grid)
-        )
-    FATHOM_50yr['pop_flood_prone'] = (
-        FATHOM_50yr.prop_flood_prone
-        * (housing_types.informal_grid
-           + housing_types.formal_grid
-           + housing_types.backyard_formal_grid
-           + housing_types.backyard_informal_grid)
-        )
-    FATHOM_100yr['pop_flood_prone'] = (
-        FATHOM_100yr.prop_flood_prone
-        * (housing_types.informal_grid
-           + housing_types.formal_grid
-           + housing_types.backyard_formal_grid
-           + housing_types.backyard_informal_grid)
-        )
-
-    param["depth_WBUS2_20yr"] = (np.nansum(
-        FATHOM_20yr.pop_flood_prone * FATHOM_20yr.flood_depth)
-        / np.nansum(FATHOM_20yr.pop_flood_prone))
-    param["depth_WBUS2_50yr"] = (np.nansum(
-        FATHOM_50yr.pop_flood_prone * FATHOM_50yr.flood_depth)
-        / np.nansum(FATHOM_50yr.pop_flood_prone))
-    param["depth_WBUS2_100yr"] = (np.nansum(
-        FATHOM_100yr.pop_flood_prone * FATHOM_100yr.flood_depth)
-        / np.nansum(FATHOM_100yr.pop_flood_prone))
-
-    return param
-
-
 def import_transport_data(grid, param, yearTraffic,
                           households_per_income_class, average_income,
                           spline_inflation,
@@ -1437,7 +1831,74 @@ def import_transport_data(grid, param, yearTraffic,
                           spline_population_income_distribution,
                           spline_income_distribution,
                           path_precalc_inp, path_precalc_transp, dim, options):
-    """Compute job center distribution, commuting and net income."""
+    """
+    Run commuting choice model.
+
+    This function runs the theoretical commuting choice model to
+    recover key transport-related intermediate outputs.
+    More specifically, it imports transport costs (from data) and
+    (calibrated) incomes, then computes the modal shares for each commuting
+    pair, the probability distribution of such commuting pairs, the
+    expected income net of commuting costs per residential location, and the
+    associated average incomes.
+
+    Parameters
+    ----------
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    param : dict
+        Dictionary of default parameters
+    yearTraffic : int
+        Year (relative to baseline year set at 0) for which we want to
+        run the function
+    households_per_income_class : ndarray(float64)
+        Exogenous total number of households per income group (excluding people
+        out of employment, for 4 groups)
+    average_income : ndarray(float64)
+        Average median income for each income group in the model (4)
+    spline_inflation : interp1d
+        Linear interpolation for inflation rate (in base 100 relative to
+        baseline year) over the years (baseline year set at 0)
+    spline_fuel : interp1d
+        Linear interpolation for fuel price (in rands per km)
+        over the years (baseline year set at 0)
+    spline_population_income_distribution : interp1d
+        Linear interpolation for total population per income group in the data
+        (12) over the years (baseline year set at 0)
+    spline_income_distribution : interp1d
+        Linear interpolation for median annual income (in rands) per income
+        group in the data (12) over the years (baseline year set at 0)
+    path_precalc_inp : str
+        Path for precalcuted input data (calibrated parameters)
+    path_precalc_transp : str
+        Path for precalcuted transport inputs (intermediate outputs from
+        commuting choice model)
+    dim : str
+        Geographic level of analysis at which we want to run the commuting
+        choice model: should be set to "GRID" or "SP"
+    options : dict
+        Dictionary of default options
+
+    Returns
+    -------
+    incomeNetOfCommuting : ndarray(float64, ndim=2)
+        Expected annual income net of commuting costs (in rands, for
+        one household), for each geographic unit, by income group (4)
+    modalShares : ndarray(float64, ndim=4)
+        Share (from 0 to 1) of each transport mode for each income group
+        (4) and each commuting pair (185 selected job centers + chosen
+        geographic units for residential locations)
+    ODflows : ndarray(float64, ndim=3)
+        Probability to work in a given selected job center (185, out of
+        a wider pool of transport zones), for a given income group (4)
+        and a given residential location (depending on geographic unit
+        chosen)
+    averageIncome : ndarray(float64, ndim=2)
+        Average annual income for each geographic unit and each income group
+        (4), for one household
+
+    """
     # Import (monetary and time) transport costs
     (timeOutput, distanceOutput, monetaryCost, costTime
      ) = calcmp.import_transport_costs(
@@ -1561,7 +2022,36 @@ def import_transport_data(grid, param, yearTraffic,
 
 
 def import_sal_data(grid, path_folder, path_data, housing_type_data):
-    """Import SAL data for population density by housing type."""
+    """
+    Import SAL data for population density by housing type.
+
+    This is used for validation as Small-Area-Level estimates are more
+    precise than Small-Place level estimates. However, they only yield
+    the distribution across housing types, and not income groups.
+
+    Parameters
+    ----------
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    path_folder : str
+        Path towards the root data folder
+    path_data : str
+        Path towards data used in the model
+    housing_type_data : ndarray(int64)
+        Exogenous number of households per housing type (4: formal private,
+        informal backyards, informal settlements, formal subsidized), from
+        Small-Area-Level data
+
+    Returns
+    -------
+    housing_types_grid_sal : DataFrame
+        Table yielding the number of dwellings for 4 housing types
+        (formal private, informal backyards, formal backyards, and
+        informal settlements) for each grid cell (24,014), from SAL
+        estimates
+
+    """
     sal_data = pd.read_excel(
         path_folder
         + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
@@ -1646,7 +2136,33 @@ def import_sal_data(grid, path_folder, path_data, housing_type_data):
 
 def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
                             small_area_code, unit):
-    """Convert SAL/SP to grid dimensions."""
+    """
+    Convert SAL/SP data to grid dimensions.
+
+    Parameters
+    ----------
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    grid_intersect : DataFrame
+        Table yielding the intersection areas between grid cells (24,014)
+        and Small Areas (5,339) or Small Places (1,046)
+    small_area_data : Series
+        Number of dwellings (or other variable) in each chosen geographic unit
+        for a given housing type
+    small_area_code : Series
+        Numerical code associated with each chosen geographic unit
+    unit : str
+        Code defining with geographic unit should be used: must be set to
+        either "SP" or "SAL"
+
+    Returns
+    -------
+    grid_data : ndarray(float64)
+        Number of dwellings (or other variable) in each grid cell (24,014)
+        for a given housing type
+
+    """
     grid_data = np.zeros(len(grid.dist))
     # We loop over grid pixels
     print("Looping over pixels")
@@ -1694,7 +2210,36 @@ def gen_small_areas_to_grid(grid, grid_intersect, small_area_data,
 
 
 def convert_income_distribution(income_distribution, grid, path_data, data_sp):
-    """Import SP data for income distribution in grid form."""
+    """
+    Convert SP data for income distribution into grid dimensions.
+
+    This is used for validation as Small-Area-Level estimates are not
+    available for population distribution across income groups.
+
+    Parameters
+    ----------
+    income_distribution : ndarray(uint16, ndim=2)
+        Exogenous number of households in each Small Place (1,046) for each
+        income group in the model (4)
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    path_data : str
+        Path towards data used in the model
+    data_sp : DataFrame
+        Table yielding, for each Small Place (1,046), the average dwelling size
+        (in m²), the average land price and annual income level (in rands),
+        the size of unconstrained area for construction (in m²), the total area
+        (in km²), the distance to the city centre (in km), whether or not the
+        location belongs to Mitchells Plain, and the SP code
+
+    Returns
+    -------
+    income_grid : ndarray(float64, ndim=2)
+        Exogenous number of households in each grid cell (24,014) for each
+        income group in the model (4)
+
+    """
     grid_intersect = pd.read_csv(
         path_data + 'grid_SP_intersect.csv', sep=';')
 

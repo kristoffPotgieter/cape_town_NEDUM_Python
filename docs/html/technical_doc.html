@@ -170,6 +170,15 @@
 <div class="math notranslate nohighlight">
 \[R_A = \frac{(\delta P_A)^a (\rho + \delta)^{1-a}}{\kappa a^a (1-a)^{1-a}}\]</div>
 <p>In the <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> function, this corresponds to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">469</span>             <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]))</span>
+<span class="linenos">470</span>        <span class="c1"># Alternative specification accounting for minimum dwelling size</span>
+<span class="linenos">471</span>        <span class="c1"># param[&quot;minimum_housing_supply&quot;][mitchells_plain_grid_2011] = (</span>
+<span class="linenos">472</span>        <span class="c1">#     (grid_formal_density_HFA[mitchells_plain_grid_2011] * param[&quot;q0&quot;]</span>
+<span class="linenos">473</span>        <span class="c1">#      / coeff_land[0, :][mitchells_plain_grid_2011]))</span>
+<span class="linenos">474</span>        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span>
+<span class="linenos">475</span>            <span class="p">(</span><span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Below this rent, it is therefore never profitable to build housing. Agricultural rent defines a floor on equilibrium rent values as well as an endogenous city edge.</p>
 <p>To store the output in a dedicated folder, we create a name associated to the parameters and options used:</p>
 <p>This name is a code associated to the options, parameters, and scenarios that we changed across our main simulation runs. They can safely be updated by the end user.</p>
@@ -188,23 +197,23 @@
 <p>Then, the code calls on the <code class="docutils literal notranslate"><span class="pre">data.py</span></code> module. This allows to import basic geographic data, macro data, households and income data, land use projections, flood data, scenarios for time-dependent variables, and transport data. The databases used are presented in <a class="reference internal" href="data_bases.html"><span class="doc">Data bases</span></a>. A more detailed view on the specific data sets called in the code, and their position in the folder architecture, is given in <a class="reference internal" href="data_sets.html"><span class="doc">Data sets</span></a> <a class="footnote-reference brackets" href="#fdata" id="id6">5</a>.</p>
 <p>It should be noted that, by default, housing type data (used for validation) has already been converted from the SAL (Small Area Level) dimension to the grid dimension (500x500m pixels) with the <code class="docutils literal notranslate"><span class="pre">import_sal_data</span></code> and <code class="docutils literal notranslate"><span class="pre">gen_small_areas_to_grid</span></code> functions, and that income net of commuting costs for each income group and each grid cell (from transport data) has already been computed from the calibrated incomes for each income group and each job center with the <code class="docutils literal notranslate"><span class="pre">import_transport_data</span></code> function. If one wants to run the process again, one needs to overwrite the associated default options (please note that this may take some time to run). The import of flood data (through the <code class="docutils literal notranslate"><span class="pre">import_full_floods_data</span></code>) is also a little time-consuming when agents are set to anticipate floods.</p>
 <p>A bit counter-intuitively, the scenario for interest rate does not only serve to define future values of the variable (more on that in <a class="reference internal" href="#subsequent-periods"><span class="std std-ref">Subsequent periods</span></a>), but also its value at the initial state (as the raw data contains both past and future values). As part of the <code class="docutils literal notranslate"><span class="pre">import_macro_data</span></code> function, the <code class="docutils literal notranslate"><span class="pre">interest_rate</span></code> variable is defined as the average of past values over the past three years, through the <code class="docutils literal notranslate"><span class="pre">interpolate_interest_rate</span></code> function defined in the <code class="docutils literal notranslate"><span class="pre">functions_dynamic.py</span></code> module (included in the <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> package). This allows to smooth outcomes around a supposed equilibrium value:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>    <span class="c1"># Interest rate</span>
-<span class="linenos">190</span>    <span class="c1">#  Import interest_rate history + scenario until 2040</span>
-<span class="linenos">191</span>    <span class="n">scenario_interest_rate</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-<span class="linenos">192</span>        <span class="n">path_scenarios</span> <span class="o">+</span> <span class="s1">&#39;Scenario_interest_rate_1.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
-<span class="linenos">193</span>    <span class="c1">#  Fit linear regression spline centered around baseline year</span>
-<span class="linenos">194</span>    <span class="n">spline_interest_rate</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
-<span class="linenos">195</span>        <span class="n">scenario_interest_rate</span><span class="o">.</span><span class="n">Year_interest_rate</span><span class="p">[</span>
-<span class="linenos">196</span>            <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scenario_interest_rate</span><span class="o">.</span><span class="n">real_interest_rate</span><span class="p">)]</span>
-<span class="linenos">197</span>        <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
-<span class="linenos">198</span>        <span class="n">scenario_interest_rate</span><span class="o">.</span><span class="n">real_interest_rate</span><span class="p">[</span>
-<span class="linenos">199</span>            <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scenario_interest_rate</span><span class="o">.</span><span class="n">real_interest_rate</span><span class="p">)],</span>
-<span class="linenos">200</span>        <span class="s1">&#39;linear&#39;</span>
-<span class="linenos">201</span>        <span class="p">)</span>
-<span class="linenos">202</span>    <span class="c1">#  Get interest rate as the mean (in %) over x last years</span>
-<span class="linenos">203</span>    <span class="n">interest_rate</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">interpolate_interest_rate</span><span class="p">(</span><span class="n">spline_interest_rate</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="linenos">204</span>
-<span class="linenos">205</span>    <span class="c1"># Aggregate population: this come from SAL data and serves as a benchmark</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>
+<span class="linenos">190</span><span class="k">def</span> <span class="nf">import_households_data</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">):</span>
+<span class="linenos">191</span>    <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">192</span><span class="s2">    Import geographic data with class distributions for households.</span>
+<span class="linenos">193</span>
+<span class="linenos">194</span><span class="s2">    Parameters</span>
+<span class="linenos">195</span><span class="s2">    ----------</span>
+<span class="linenos">196</span><span class="s2">    path_precalc_inp : str</span>
+<span class="linenos">197</span><span class="s2">        Path for precalcuted input data (calibrated parameters)</span>
+<span class="linenos">198</span>
+<span class="linenos">199</span><span class="s2">    Returns</span>
+<span class="linenos">200</span><span class="s2">    -------</span>
+<span class="linenos">201</span><span class="s2">    data_rdp : DataFrame</span>
+<span class="linenos">202</span><span class="s2">        Table yielding, for each grid cell (24,014), the associated cumulative</span>
+<span class="linenos">203</span><span class="s2">        count of cells with some formal subsidized housing, and the associated</span>
+<span class="linenos">204</span><span class="s2">        area (in m²) dedicated to such housing</span>
+<span class="linenos">205</span><span class="s2">    housing_types_sp : DataFrame</span>
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">213</span>    <span class="n">nb_years</span> <span class="o">=</span> <span class="mi">3</span>
@@ -229,18 +238,18 @@
 <p class="caption"><span class="caption-text">Estimated probability of future new informal settlements</span><a class="headerlink" href="#id39" title="Permalink to this image"></a></p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">import_coeff_land</span></code> function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">670</span>    <span class="n">coeff_land_private</span><span class="p">[</span><span class="n">coeff_land_private</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="linenos">671</span>    <span class="n">coeff_land_backyard</span> <span class="o">=</span> <span class="p">(</span><span class="n">spline_land_backyard</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-<span class="linenos">672</span>                           <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use_backyard&quot;</span><span class="p">])</span>
-<span class="linenos">673</span>    <span class="n">coeff_land_RDP</span> <span class="o">=</span> <span class="n">spline_land_RDP</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>  <span class="c1"># * param[&quot;max_land_use&quot;]</span>
-<span class="linenos">674</span>    <span class="n">coeff_land_settlement</span> <span class="o">=</span> <span class="p">(</span><span class="n">spline_land_informal</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-<span class="linenos">675</span>                             <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use_settlement&quot;</span><span class="p">])</span>
-<span class="linenos">676</span>    <span class="n">coeff_land</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">coeff_land_private</span><span class="p">,</span> <span class="n">coeff_land_backyard</span><span class="p">,</span>
-<span class="linenos">677</span>                           <span class="n">coeff_land_settlement</span><span class="p">,</span> <span class="n">coeff_land_RDP</span><span class="p">])</span>
-<span class="linenos">678</span>
-<span class="linenos">679</span>    <span class="k">return</span> <span class="n">coeff_land</span>
-<span class="linenos">680</span>
-<span class="linenos">681</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">670</span>    <span class="c1">#  backyarding and may be used for flood damage estimations</span>
+<span class="linenos">671</span>
+<span class="linenos">672</span>    <span class="c1">#  NB: note that the pb with previous specification is not that we do not</span>
+<span class="linenos">673</span>    <span class="c1">#  take formal backyards into account, but rather that we abstract from</span>
+<span class="linenos">674</span>    <span class="c1">#  backyarding occurring within formal private houses</span>
+<span class="linenos">675</span>
+<span class="linenos">676</span>    <span class="n">actual_backyards</span> <span class="o">=</span> <span class="p">(</span>
+<span class="linenos">677</span>        <span class="p">(</span><span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_formal_grid</span>
+<span class="linenos">678</span>         <span class="o">+</span> <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_informal_grid</span><span class="p">)</span>
+<span class="linenos">679</span>        <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_formal_grid</span>
+<span class="linenos">680</span>                    <span class="o">+</span> <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_informal_grid</span><span class="p">)</span>
+<span class="linenos">681</span>        <span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">coeff_land_backyard</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The outputs are stored in a <code class="docutils literal notranslate"><span class="pre">coeff_land</span></code> matrix that yields the values of <span class="math notranslate nohighlight">\(L^h(x)\)</span> for each time period when multiplied by the area of a pixel. Results are shown in the figure below.</p>
@@ -269,32 +278,32 @@
 <div class="section" id="transport-data">
 <h4>Transport data<a class="headerlink" href="#transport-data" title="Permalink to this heading"></a></h4>
 <p>Transport data is processed through the <code class="docutils literal notranslate"><span class="pre">import_transport_data</span></code> function. It imports monetary and time transport costs and pre-calibrated incomes (<code class="docutils literal notranslate"><span class="pre">income_centers_init</span></code> parameter) per income group and job center (more on that in <a class="reference internal" href="#calibration-process"><span class="std std-ref">Calibration</span></a>), for a given dimension (grid-cell level or small-place level) and a given simulation year (zero at initial state):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1412</span>    <span class="n">FATHOM_100yr</span><span class="p">[</span><span class="s1">&#39;pop_flood_prone&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-<span class="linenos">1413</span>        <span class="n">FATHOM_100yr</span><span class="o">.</span><span class="n">prop_flood_prone</span>
-<span class="linenos">1414</span>        <span class="o">*</span> <span class="p">(</span><span class="n">housing_types</span><span class="o">.</span><span class="n">informal_grid</span>
-<span class="linenos">1415</span>           <span class="o">+</span> <span class="n">housing_types</span><span class="o">.</span><span class="n">formal_grid</span>
-<span class="linenos">1416</span>           <span class="o">+</span> <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_formal_grid</span>
-<span class="linenos">1417</span>           <span class="o">+</span> <span class="n">housing_types</span><span class="o">.</span><span class="n">backyard_informal_grid</span><span class="p">)</span>
-<span class="linenos">1418</span>        <span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1412</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">3</span><span class="n">b</span> <span class="n">house</span>
+<span class="linenos">1413</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
+<span class="linenos">1414</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Englhardt</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2019</span> <span class="p">(</span><span class="n">two</span><span class="o">-</span><span class="n">floor</span> <span class="n">unreinforced</span> <span class="n">masonry</span><span class="o">/</span><span class="n">concrete</span>
+<span class="linenos">1415</span>        <span class="n">buildings</span><span class="p">)</span>
+<span class="linenos">1416</span>    <span class="n">structural_damages_type4a</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">1417</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">4</span><span class="n">a</span> <span class="n">house</span>
+<span class="linenos">1418</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1439</span>                          <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_precalc_transp</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-<span class="linenos">1440</span>    <span class="sd">&quot;&quot;&quot;Compute job center distribution, commuting and net income.&quot;&quot;&quot;</span>
-<span class="linenos">1441</span>    <span class="c1"># Import (monetary and time) transport costs</span>
-<span class="linenos">1442</span>    <span class="p">(</span><span class="n">timeOutput</span><span class="p">,</span> <span class="n">distanceOutput</span><span class="p">,</span> <span class="n">monetaryCost</span><span class="p">,</span> <span class="n">costTime</span>
-<span class="linenos">1443</span>     <span class="p">)</span> <span class="o">=</span> <span class="n">calcmp</span><span class="o">.</span><span class="n">import_transport_costs</span><span class="p">(</span>
-<span class="linenos">1444</span>         <span class="n">grid</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">yearTraffic</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span>
-<span class="linenos">1445</span>         <span class="n">spline_inflation</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span> <span class="n">spline_population_income_distribution</span><span class="p">,</span>
-<span class="linenos">1446</span>         <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">path_precalc_inp</span><span class="p">,</span> <span class="n">path_precalc_transp</span><span class="p">,</span>
-<span class="linenos">1447</span>         <span class="n">dim</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-<span class="linenos">1448</span>
-<span class="linenos">1449</span>    <span class="n">param_lambda</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-<span class="linenos">1450</span>
-<span class="linenos">1451</span>    <span class="n">incomeNetOfCommuting</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
-<span class="linenos">1452</span>        <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;nb_of_income_classes&quot;</span><span class="p">],</span>
-<span class="linenos">1453</span>         <span class="n">timeOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-<span class="linenos">1454</span>        <span class="p">)</span>
-<span class="linenos">1455</span>    <span class="n">averageIncome</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1439</span>        <span class="n">fluvialtype</span> <span class="o">=</span> <span class="s1">&#39;FD&#39;</span>
+<span class="linenos">1440</span>    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;defended&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">1441</span>        <span class="n">fluvialtype</span> <span class="o">=</span> <span class="s1">&#39;FU&#39;</span>
+<span class="linenos">1442</span>
+<span class="linenos">1443</span>    <span class="c1"># When two flood types overlap (can happen with pluvial and fluvial),</span>
+<span class="linenos">1444</span>    <span class="c1"># we keep the maximum among the flood depths to avoid double counting</span>
+<span class="linenos">1445</span>
+<span class="linenos">1446</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;pluvial&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;coastal&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">1447</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in private formal&quot;</span><span class="p">)</span>
+<span class="linenos">1448</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_formal&quot;</span><span class="p">]</span>
+<span class="linenos">1449</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+<span class="linenos">1450</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="linenos">1451</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in informal settlements&quot;</span><span class="p">)</span>
+<span class="linenos">1452</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_informal&quot;</span><span class="p">]</span>
+<span class="linenos">1453</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+<span class="linenos">1454</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="linenos">1455</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in (any) backyard&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>From there, it computes several outputs, of which the key variable is the expected income net of commuting costs <span class="math notranslate nohighlight">\(\tilde{y}_i(x)\)</span>, earned by a household of income group <span class="math notranslate nohighlight">\(i\)</span> choosing to live in <span class="math notranslate nohighlight">\(x\)</span> matrix). It is obtained by recursively solving for the optimal transport mode choice and job center choice of households characterized by <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(x\)</span> (see <a class="reference internal" href="math_appendix.html"><span class="doc">Math appendix</span></a> for more details).</p>
