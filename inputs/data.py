@@ -34,6 +34,7 @@ def import_grid(path_data):
 def import_amenities(path_precalc_inp, options):
     """Import amenity index for each pixel."""
     # Follow calibration from Pfeiffer et al. (appendix C4)
+    # TODO: which package does this calibration?
     if options["load_precal_param"] == 1:
         precalculated_amenities = scipy.io.loadmat(
             path_precalc_inp + 'calibratedAmenities.mat')["amenities"]
@@ -51,6 +52,7 @@ def import_hypothesis_housing_type():
     """Import dummies to select income classes into housing types."""
     income_class_by_housing_type = pd.DataFrame()
     # Select which income class can live in formal settlements
+    # TODO: Define income classes ex. [poor,midpoor,mid,rich]
     income_class_by_housing_type["formal"] = np.array([1, 1, 1, 1])
     # Select which income class can live in backyard settlements
     income_class_by_housing_type["backyard"] = np.array([1, 1, 0, 0])
@@ -66,6 +68,7 @@ def import_income_classes_data(param, path_data):
     """Import population and average income per income class in the model."""
     # Import population distribution according to housing type and income class
     # Note that RDP is included in formal
+    # QUESTION: why are RDP houses included in formal? shouldnt this be in the subsidized group?
     # TODO: is formal backyard lacking or just included in formal housing?
     income_2011 = pd.read_csv(path_data + 'Income_distribution_2011.csv')
 
@@ -90,6 +93,8 @@ def import_income_classes_data(param, path_data):
         households_per_income_class[j] = np.sum(
             nb_of_hh_bracket[(param["income_distribution"] == j + 1)])
         # Note that this is in fact an average over median incomes
+        # TODO: This measure calculates the mean not the median, is this correct?
+        # Median cannot be calculated without a sample, and then would best be included as a static measure
         average_income[j] = np.sum(
             avg_income_bracket[(param["income_distribution"] == j + 1)]
             * nb_of_hh_bracket[param["income_distribution"] == j + 1]
@@ -108,6 +113,8 @@ def import_income_classes_data(param, path_data):
             )
 
     #  Compute ratio of average income per class over global income average
+    # TODO: this normalises the average income in each bracket relative to 
+    # the population average (population average=1)
     income_mult = average_income / mean_income
 
     # Store breakdown in unique array
@@ -137,7 +144,7 @@ def import_households_data(path_precalc_inp):
     data_rdp["area"] = data['gridAreaRDPfromGV'][0][0].squeeze()
 
     # Get other data for pixels
-    #  Dummy indicating wheter pixel belongs to Mitchell's Plain district
+    #  Dummy indicating whether pixel belongs to Mitchell's Plain district
     mitchells_plain_grid_2011 = data['MitchellsPlain'][0][0].squeeze()
     #  Population density in formal housing
     grid_formal_density_HFA = data['gridFormalDensityHFA'][0][0].squeeze()
@@ -222,6 +229,11 @@ def import_macro_data(param, path_scenarios, path_folder):
     # others
     sal_data["formal"] = np.nansum(sal_data.iloc[:, [3, 5, 6, 7, 8]], 1)
 
+
+    # TODO: This RDP validation data will need to be standardised, 
+    # TODO: multiple versions will require editing the code as changes are made to the source data
+    # TODO: it would be better to have a standard practice regarding saving old versions and refering to the
+    # TODO: the most current version 
     rdp_data = pd.read_excel(
         path_folder
         + "CT Dwelling type data validation workbook 20201204 v2.xlsx",
@@ -298,8 +310,12 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         sep=',')
 
     # Nb of informal dwellings per pixel
+    # TODO: these naming conventions should be simplified and standardised
     informal_settlements_2020 = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
+
+
+    # QUESTION
     # Here we correct by 1 / max_land_use to make it comparable with other
     # informal risks (this will be removed afterwards as it does not
     # correspond to reality)
@@ -570,6 +586,9 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                 ), 'linear'
             )
     else:
+        # TODO: Thes projections will not change dynamically based on the the baseline year, 
+        # TODO: this will change the value of the year constraints every time the baseline is changed
+        # TODO: why not just project from -10 to 40, or something similar
         year_constraints = np.array([1990, 2040]) - param["baseline_year"]
         spline_land_constraints = interp1d(
             year_constraints,

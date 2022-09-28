@@ -61,7 +61,7 @@ Installation
 	│   ├── precalculated_transport
 	│   ├── CT Dwelling type data validation workbook 20201204 v2.xlsx
 	│   └── housing_types_grid_sal.xlsx
-	├── 4. Sorties
+	├── 4. Output
 	└── code capetown python
  
 ..
@@ -70,7 +70,7 @@ Installation
 **Step 5**: Launch **NEDUM-2D**
 
 * From **NEDUM-2D** root folder, execute the ``main_nb`` notebook (either in .py or .ipynb format) to run the simulations and obtain a preview of results. A non-interactive copy is shown in the documentation for illustrative purposes
-* Run one of the plots scripts to export tables and figures in dedicated subfolders under the ``4. Sorties`` folder
+* Run one of the plots scripts to export tables and figures in dedicated subfolders under the ``4. Output`` folder
 * If needed, run the calibration script to calibrate parameters again if undelrying data has changed
 * See :doc:`../technical_doc` for more details on running custom simulations / calibration
 

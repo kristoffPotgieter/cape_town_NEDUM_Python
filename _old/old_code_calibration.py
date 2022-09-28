@@ -32,7 +32,7 @@ precalculated_inputs = path_folder + "0. Precalculated inputs/"
 path_data = path_folder + "data_Cape_Town/"
 precalculated_transport = path_folder + "precalculated_transport/"
 path_scenarios = path_folder + 'data_Cape_Town/Scenarios/'
-path_outputs = path_code+'/4. Sorties/'
+path_outputs = path_code+'/4. Output/'
 
 start = time.process_time()
 

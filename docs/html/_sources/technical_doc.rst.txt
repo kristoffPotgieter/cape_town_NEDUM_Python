@@ -147,7 +147,7 @@ Flood data is processed through the ``import_init_floods_data``, ``compute_fract
 
 The ``import_init_floods_data`` function imports the pre-processed flood maps from FATHOM (fluvial and pluvial), and DELTARES (coastal). Those maps yield for each grid cell an estimate of the pixel share that is exposed to a flood of some maximum depth level, reached in a given year with a probability equal to the inverse of their return period. For instance, a flood map corresponding to a return period of 100 years considers events that have a 1/100 chance of ocurring in a given year.
 
-.. figure:: ../../4.\ Sorties/input_plots/P_100yr_map_depth.png
+.. figure:: ../../4.\ Output/input_plots/P_100yr_map_depth.png
    :scale: 70% 
    :align: center
    :alt: map of land availability ratios per housing type
@@ -162,7 +162,7 @@ On this basis, the ``compute_fraction_capital_destroyed`` function integrates fl
 
 Finally, the ``import_full_floods_data`` function uses those outputs to define the depreciation term :math:`\rho_{h}^{d}(x)` that is specific to housing type :math:`h`, damage type (structures or contents) :math:`d`, and location :math:`x` (stored in the ``fraction_capital_destroyed`` matrix), by taking the maximum of fractions of capital destroyed for all flood types considered. When multiplied by some capital value, this term yields the expected economic cost from flood risks that is considered by anticipating agents when solving for equilibrium. It is also equal to the risk premium in the case of a perfect insurance market (leading to full insurance with actuarially fair prices) [#f8]_.
 
-.. figure:: ../../4.\ Sorties/input_plots/structure_informal_settlements_fract_K_destroyed.png
+.. figure:: ../../4.\ Output/input_plots/structure_informal_settlements_fract_K_destroyed.png
    :scale: 70% 
    :align: center
    :alt: map of annualized fraction of capital destroyed for structures in informal settlements
