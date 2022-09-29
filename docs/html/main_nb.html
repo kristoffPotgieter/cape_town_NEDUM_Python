@@ -707,7 +707,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">param</span><span class="p">[</span><span class="s2">&quot;income_year_reference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_income</span>
 
 <span class="c1"># Other data at SP (small place) level used for calibration and validation</span>
-<span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+<span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span>
  <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">threshold_income_distribution</span><span class="p">,</span> <span class="n">income_distribution</span><span class="p">,</span>
  <span class="n">cape_town_limits</span><span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_households_data</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">)</span>
 
@@ -1061,7 +1061,7 @@ coeff_land_subsidized done
 <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">agricultural_rent</span>
  <span class="p">)</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_construction_parameters</span><span class="p">(</span>
     <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;dwelling_size&quot;</span><span class="p">],</span>
-    <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span> <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
+    <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span> <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
     <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span>
     <span class="p">)</span>
 </pre></div>
@@ -1392,7 +1392,7 @@ structure_backyards_fract_K_destroyed done
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">equilibrium.functions_dynamic</span> <span class="k">as</span> <span class="nn">eqdyn</span>
-<span class="p">(</span><span class="n">spline_agricultural_rent</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
+<span class="p">(</span><span class="n">spline_agricultural_price</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
  <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
  <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
  <span class="n">spline_income</span><span class="p">,</span> <span class="n">spline_minimum_housing_supply</span><span class="p">,</span> <span class="n">spline_fuel</span>
@@ -2537,7 +2537,7 @@ so are damages when floods hit such areas.</p>
      <span class="n">income_class_by_housing_type</span><span class="p">,</span>
      <span class="n">path_precalc_transp</span><span class="p">,</span>
      <span class="n">spline_RDP</span><span class="p">,</span>
-     <span class="n">spline_agricultural_rent</span><span class="p">,</span>
+     <span class="n">spline_agricultural_price</span><span class="p">,</span>
      <span class="n">spline_interest_rate</span><span class="p">,</span>
      <span class="n">spline_population_income_distribution</span><span class="p">,</span>
      <span class="n">spline_inflation</span><span class="p">,</span>

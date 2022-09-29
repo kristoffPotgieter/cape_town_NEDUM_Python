@@ -224,8 +224,9 @@
     <span class="c1"># We only have data on median income per income group in the data (12),</span>
     <span class="c1"># as opposed to income groups in the model (4). Therefore, we are only</span>
     <span class="c1"># able to compute an average of median incomes in place of a proper median</span>
-    <span class="c1"># (or average) income per income group (in the model or the data): </span>
-    <span class="c1"># in any case, this is only used as validation data (does not enter the model as an input)</span>
+    <span class="c1"># (or average) income per income group (in the model or the data):</span>
+    <span class="c1"># in any case, this is only used as validation data (does not enter the</span>
+    <span class="c1"># model as an input)</span>
 
     <span class="c1"># Overal &quot;mean&quot; income</span>
     <span class="n">mean_income</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span>
@@ -304,7 +305,7 @@
 <span class="sd">        the size of unconstrained area for construction (in m²), the total area</span>
 <span class="sd">        (in km²), the distance to the city centre (in km), whether or not the</span>
 <span class="sd">        location belongs to Mitchells Plain, and the SP code</span>
-<span class="sd">    mitchells_plain_grid_2011 : ndarray(uint8)</span>
+<span class="sd">    mitchells_plain_grid_baseline : ndarray(uint8)</span>
 <span class="sd">        Dummy coding for belonging to Mitchells Plain neighbourhood</span>
 <span class="sd">        at the grid-cell (24,014) level</span>
 <span class="sd">    grid_formal_density_HFA : ndarray(float64)</span>
@@ -338,7 +339,7 @@
 
     <span class="c1"># Get other data at grid-level</span>
     <span class="c1">#  Dummy indicating wheter pixel belongs to Mitchells Plain district</span>
-    <span class="n">mitchells_plain_grid_2011</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;MitchellsPlain&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">mitchells_plain_grid_baseline</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;MitchellsPlain&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
     <span class="c1">#  Population density in formal housing (per m²)</span>
     <span class="n">grid_formal_density_HFA</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gridFormalDensityHFA&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
@@ -382,7 +383,7 @@
     <span class="c1"># Dummy indicating whether SP belongs to Cape Town</span>
     <span class="n">cape_town_limits</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;sp2011CapeTown&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span>
             <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">threshold_income_distribution</span><span class="p">,</span>
             <span class="n">income_distribution</span><span class="p">,</span> <span class="n">cape_town_limits</span><span class="p">)</span></div>
 
@@ -1485,10 +1486,12 @@
 
 <span class="sd">    This function applies theoretical formulas to flood maps to get the</span>
 <span class="sd">    theoretical expected fraction of capital destroyed across space</span>
-<span class="sd">    (should households choose to live there). Note that we consider the maximum</span>
-<span class="sd">    flood depth across flood maps when they overlap each other, as there might</span>
-<span class="sd">    be some double counting between pluvial and fluvial flood risks, and floods</span>
-<span class="sd">    just spill over across space instead of piling up (bath-tub model).</span>
+<span class="sd">    (should households choose to live there). To do so, it leverages the</span>
+<span class="sd">    import_init_floods_data and compute_fraction_capital_destroyed functions.</span>
+<span class="sd">    Note that we consider the maximum flood depth across flood maps when they</span>
+<span class="sd">    overlap each other, as there might be some double counting between pluvial</span>
+<span class="sd">    and fluvial flood risks, and floods just spill over across space instead of</span>
+<span class="sd">    piling up (bath-tub model).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1962,10 +1965,10 @@
 <span class="sd">    Run commuting choice model.</span>
 
 <span class="sd">    This function runs the theoretical commuting choice model to</span>
-<span class="sd">    recover key transport-related intermediate outputs.</span>
-<span class="sd">    More specifically, it imports transport costs (from data) and</span>
-<span class="sd">    (calibrated) incomes, then computes the modal shares for each commuting</span>
-<span class="sd">    pair, the probability distribution of such commuting pairs, the</span>
+<span class="sd">    recover key transport-related intermediate outputs. More specifically,</span>
+<span class="sd">    it imports transport costs (from data) and (calibrated) incomes (see</span>
+<span class="sd">    calibration.sub.compute_income), then computes the modal shares for each</span>
+<span class="sd">    commuting pair, the probability distribution of such commuting pairs, the</span>
 <span class="sd">    expected income net of commuting costs per residential location, and the</span>
 <span class="sd">    associated average incomes.</span>
 

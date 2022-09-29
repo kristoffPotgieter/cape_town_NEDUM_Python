@@ -104,7 +104,7 @@
                    <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">spline_land_informal</span><span class="p">,</span>
                    <span class="n">income_class_by_housing_type</span><span class="p">,</span>
                    <span class="n">precalculated_transport</span><span class="p">,</span> <span class="n">spline_RDP</span><span class="p">,</span>
-                   <span class="n">spline_agricultural_rent</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
+                   <span class="n">spline_agricultural_price</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
                    <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
                    <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
                    <span class="n">spline_income</span><span class="p">,</span>
@@ -192,7 +192,7 @@
                 <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">year_temp</span><span class="p">)</span>
 
             <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">compute_agricultural_rent</span><span class="p">(</span>
-                <span class="n">spline_agricultural_rent</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
+                <span class="n">spline_agricultural_price</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
                 <span class="n">interest_rate</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
 
             <span class="c1"># We compute a new static equilibrium for next period</span>

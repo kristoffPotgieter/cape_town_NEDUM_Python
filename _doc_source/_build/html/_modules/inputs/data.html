@@ -216,7 +216,7 @@
 
     <span class="c1"># Get other data for pixels</span>
     <span class="c1">#  Dummy indicating wheter pixel belongs to Mitchell&#39;s Plain district</span>
-    <span class="n">mitchells_plain_grid_2011</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;MitchellsPlain&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">mitchells_plain_grid_baseline</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;MitchellsPlain&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
     <span class="c1">#  Population density in formal housing</span>
     <span class="n">grid_formal_density_HFA</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gridFormalDensityHFA&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
@@ -259,7 +259,7 @@
     <span class="c1"># Dummy indicating whether SP belongs to Cape Town</span>
     <span class="n">cape_town_limits</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;sp2011CapeTown&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data_rdp</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span>
             <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">threshold_income_distribution</span><span class="p">,</span>
             <span class="n">income_distribution</span><span class="p">,</span> <span class="n">cape_town_limits</span><span class="p">)</span></div>
 

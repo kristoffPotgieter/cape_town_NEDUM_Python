@@ -1,16 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Apr  1 16:20:51 2022.
-
-@author: monni
-"""
 
 import numpy as np
 import scipy.io
 import copy
 import math
-
-# import equilibrium.functions_dynamic as eqdyn
 
 
 def import_transport_costs(grid, param, yearTraffic,

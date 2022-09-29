@@ -143,8 +143,9 @@ def import_income_classes_data(param, path_data):
     # We only have data on median income per income group in the data (12),
     # as opposed to income groups in the model (4). Therefore, we are only
     # able to compute an average of median incomes in place of a proper median
-    # (or average) income per income group (in the model or the data): 
-    # in any case, this is only used as validation data (does not enter the model as an input)
+    # (or average) income per income group (in the model or the data):
+    # in any case, this is only used as validation data (does not enter the
+    # model as an input)
 
     # Overal "mean" income
     mean_income = np.sum(income_baseline.Households_nb
@@ -223,7 +224,7 @@ def import_households_data(path_precalc_inp):
         the size of unconstrained area for construction (in m²), the total area
         (in km²), the distance to the city centre (in km), whether or not the
         location belongs to Mitchells Plain, and the SP code
-    mitchells_plain_grid_2011 : ndarray(uint8)
+    mitchells_plain_grid_baseline : ndarray(uint8)
         Dummy coding for belonging to Mitchells Plain neighbourhood
         at the grid-cell (24,014) level
     grid_formal_density_HFA : ndarray(float64)
@@ -257,7 +258,7 @@ def import_households_data(path_precalc_inp):
 
     # Get other data at grid-level
     #  Dummy indicating wheter pixel belongs to Mitchells Plain district
-    mitchells_plain_grid_2011 = data['MitchellsPlain'][0][0].squeeze()
+    mitchells_plain_grid_baseline = data['MitchellsPlain'][0][0].squeeze()
     #  Population density in formal housing (per m²)
     grid_formal_density_HFA = data['gridFormalDensityHFA'][0][0].squeeze()
 
@@ -301,7 +302,7 @@ def import_households_data(path_precalc_inp):
     # Dummy indicating whether SP belongs to Cape Town
     cape_town_limits = data["sp2011CapeTown"][0][0].squeeze()
 
-    return (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
+    return (data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_baseline,
             grid_formal_density_HFA, threshold_income_distribution,
             income_distribution, cape_town_limits)
 
@@ -1404,10 +1405,12 @@ def import_full_floods_data(options, param, path_folder):
 
     This function applies theoretical formulas to flood maps to get the
     theoretical expected fraction of capital destroyed across space
-    (should households choose to live there). Note that we consider the maximum
-    flood depth across flood maps when they overlap each other, as there might
-    be some double counting between pluvial and fluvial flood risks, and floods
-    just spill over across space instead of piling up (bath-tub model).
+    (should households choose to live there). To do so, it leverages the
+    import_init_floods_data and compute_fraction_capital_destroyed functions.
+    Note that we consider the maximum flood depth across flood maps when they
+    overlap each other, as there might be some double counting between pluvial
+    and fluvial flood risks, and floods just spill over across space instead of
+    piling up (bath-tub model).
 
     Parameters
     ----------
@@ -1881,10 +1884,10 @@ def import_transport_data(grid, param, yearTraffic,
     Run commuting choice model.
 
     This function runs the theoretical commuting choice model to
-    recover key transport-related intermediate outputs.
-    More specifically, it imports transport costs (from data) and
-    (calibrated) incomes, then computes the modal shares for each commuting
-    pair, the probability distribution of such commuting pairs, the
+    recover key transport-related intermediate outputs. More specifically,
+    it imports transport costs (from data) and (calibrated) incomes (see
+    calibration.sub.compute_income), then computes the modal shares for each
+    commuting pair, the probability distribution of such commuting pairs, the
     expected income net of commuting costs per residential location, and the
     associated average incomes.
 

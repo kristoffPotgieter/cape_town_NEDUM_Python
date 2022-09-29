@@ -94,7 +94,59 @@
 
 <div class="viewcode-block" id="import_scenarios"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.import_scenarios">[docs]</a><span class="k">def</span> <span class="nf">import_scenarios</span><span class="p">(</span><span class="n">income_baseline</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
                      <span class="n">options</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return linear regression splines for various scenarios.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define linear interpolations for time-moving exogenous variables.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    income_baseline : DataFrame</span>
+<span class="sd">        Table summarizing, for each income group in the data (12, including</span>
+<span class="sd">        people out of employment), the number of households living in each</span>
+<span class="sd">        endogenous housing type (3), their total number at baseline year (2011)</span>
+<span class="sd">        in retrospect (2001), as well as the distribution of their average</span>
+<span class="sd">        income (at baseline year)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    grid : DataFrame</span>
+<span class="sd">        Table yielding, for each grid cell (24,014), its x and y</span>
+<span class="sd">        (centroid) coordinates, and its distance (in km) to the city centre</span>
+<span class="sd">    path_scenarios : str</span>
+<span class="sd">        Path towards raw scenarios used for time-moving exogenous variables</span>
+<span class="sd">    options : dict</span>
+<span class="sd">        Dictionary of default options</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    spline_agricultural_price : interp1d</span>
+<span class="sd">        Linear interpolation for the agricultural land price (in rands)</span>
+<span class="sd">        over the years (baseline year set at 0)</span>
+<span class="sd">    spline_interest_rate : interp1d</span>
+<span class="sd">        Linear interpolation for the interest rate (in %) over the years</span>
+<span class="sd">    spline_population_income_distribution : interp1d</span>
+<span class="sd">        Linear interpolation for total population per income group in the data</span>
+<span class="sd">        (12) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_inflation : interp1d</span>
+<span class="sd">        Linear interpolation for inflation rate (in base 100 relative to</span>
+<span class="sd">        baseline year) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_income_distribution : interp1d</span>
+<span class="sd">        Linear interpolation for median annual income (in rands) per income</span>
+<span class="sd">        group in the data (12) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_population : interp1d</span>
+<span class="sd">        Linear interpolation for total population over the years</span>
+<span class="sd">        (baseline year set at 0)</span>
+<span class="sd">    spline_income : interp1d</span>
+<span class="sd">        Linear interpolation for overall average (annual) income over the years</span>
+<span class="sd">        (baseline year set at 0), used to avoid money illusion in future</span>
+<span class="sd">        simulations when computing the housing supply</span>
+<span class="sd">        (see equilibrium.run_simulations)</span>
+<span class="sd">    spline_minimum_housing_supply : interp1d</span>
+<span class="sd">        Linear interpolation for minimum housing supply (in m²) over the years</span>
+<span class="sd">        (baseline year set at 0)</span>
+<span class="sd">    spline_fuel : interp1d</span>
+<span class="sd">        Linear interpolation for fuel price (in rands per km)</span>
+<span class="sd">        over the years (baseline year set at 0)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Import Scenarios</span>
     <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;inc_ineq_scenario&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">scenario_income_distribution</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
@@ -152,8 +204,8 @@
     <span class="c1"># Spline for median income by income group in raw data</span>
     <span class="c1">#  We initialize the vector for years 1996, 2001, 2011, and 2040</span>
     <span class="n">income_distribution</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span>
-         <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">INC_med_2040</span><span class="p">]</span>
+        <span class="p">[</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span>
+         <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">INC_med_2040</span><span class="p">]</span>
         <span class="p">)</span>
     <span class="c1">#  After 2011, for each income group, we multiply the baseline by inflation</span>
     <span class="c1">#  growth rate over the period</span>
@@ -189,7 +241,7 @@
             <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scenario_interest_rate</span><span class="o">.</span><span class="n">real_interest_rate</span><span class="p">)],</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Spline for minimum housing_supply per pixel (always zero?)</span>
+    <span class="c1"># Spline for minimum housing_supply per pixel</span>
     <span class="n">minimum_housing_2011</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]</span>
     <span class="n">spline_minimum_housing_supply</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2011</span><span class="p">,</span> <span class="mi">2100</span><span class="p">])</span>
@@ -199,23 +251,24 @@
              <span class="n">minimum_housing_2011</span><span class="p">])</span>
         <span class="p">)</span>
 
-    <span class="c1"># Spline for agricultural rent</span>
+    <span class="c1"># Spline for agricultural land price</span>
     <span class="c1">#  We get missing value for 2040 by accounting for inflation</span>
-    <span class="n">agricultural_rent_2040</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">]</span>
-                              <span class="o">*</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">2040</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])</span>
-                              <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">2011</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])</span>
-                              <span class="p">)</span>
+    <span class="n">agricultural_price_long_fut</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_baseline&quot;</span><span class="p">]</span>
+        <span class="o">*</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">2040</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])</span>
+        <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">2011</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
     <span class="c1">#  Then we get the spline</span>
-    <span class="n">spline_agricultural_rent</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+    <span class="n">spline_agricultural_price</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="p">[</span><span class="mi">2001</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
          <span class="mi">2011</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
          <span class="mi">2040</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">]],</span>
-        <span class="p">[</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2001&quot;</span><span class="p">],</span>
-         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">],</span>
-         <span class="n">agricultural_rent_2040</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_retrospect&quot;</span><span class="p">],</span>
+         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_baseline&quot;</span><span class="p">],</span>
+         <span class="n">agricultural_price_long_fut</span><span class="p">],</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Spline for fuel prices (per km)</span>
+    <span class="c1"># Spline for fuel prices (in rands per km)</span>
     <span class="n">spline_fuel</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">scenario_price_fuel</span><span class="o">.</span><span class="n">Year_fuel</span><span class="p">[</span>
             <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scenario_price_fuel</span><span class="o">.</span><span class="n">price_fuel</span><span class="p">)]</span>
@@ -227,13 +280,13 @@
 
     <span class="c1"># Spline for overall average income</span>
     <span class="c1">#  We first get initial values</span>
-    <span class="n">average_income_2001</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+    <span class="n">average_income_retrospect</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
         <span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb_2001</span> <span class="o">*</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span>
         <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb_2001</span><span class="p">)</span>
     <span class="n">average_income_baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
         <span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span> <span class="o">*</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span>
         <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">)</span>
-    <span class="n">average_income_2040</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+    <span class="n">average_income_long_fut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
         <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">Households_nb_2040</span>
         <span class="o">*</span> <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">INC_med_2040</span>
         <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">Households_nb_2040</span><span class="p">)</span>
@@ -244,7 +297,8 @@
     <span class="c1">#  We get initial spline (not taking inflation into account)</span>
     <span class="n">inc_year_noinfla</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2011</span><span class="p">,</span> <span class="mi">2040</span><span class="p">])</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
-        <span class="p">[</span><span class="n">average_income_2001</span><span class="p">,</span> <span class="n">average_income_baseline</span><span class="p">,</span> <span class="n">average_income_2040</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">average_income_retrospect</span><span class="p">,</span> <span class="n">average_income_baseline</span><span class="p">,</span>
+         <span class="n">average_income_long_fut</span><span class="p">],</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
     <span class="c1">#  We stock it into an array with the right number of periods</span>
     <span class="n">inc_ref</span> <span class="o">=</span> <span class="n">inc_year_noinfla</span><span class="p">(</span>
@@ -262,7 +316,7 @@
     <span class="n">spline_income</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">year_inc</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span> <span class="n">inc_year_infla</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="n">spline_agricultural_rent</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">spline_agricultural_price</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
             <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
             <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
             <span class="n">spline_income</span><span class="p">,</span> <span class="n">spline_minimum_housing_supply</span><span class="p">,</span>
@@ -271,7 +325,34 @@
 
 <div class="viewcode-block" id="compute_average_income"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.compute_average_income">[docs]</a><span class="k">def</span> <span class="nf">compute_average_income</span><span class="p">(</span><span class="n">spline_population_income_distribution</span><span class="p">,</span>
                            <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute average income from scenario data (includes RDP).&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute average income and population per income group for a given year.</span>
+
+<span class="sd">    This allows to update the relative distributions used to compute the</span>
+<span class="sd">    equilibrium in subsequent periods (see equilibrium.compute_equilibrium).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spline_population_income_distribution : interp1d</span>
+<span class="sd">        Linear interpolation for total population per income group in the data</span>
+<span class="sd">        (12) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_income_distribution : interp1d</span>
+<span class="sd">        Linear interpolation for median annual income (in rands) per income</span>
+<span class="sd">        group in the data (12) over the years (baseline year set at 0)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    t : int</span>
+<span class="sd">        Year for which we want to run the function</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    avg_income_group : ndarray(float64)</span>
+<span class="sd">        Average median income for each income group in the model (4)</span>
+<span class="sd">    total_group : ndarray(float64)</span>
+<span class="sd">        Exogenous total number of households per income group (excluding people</span>
+<span class="sd">        out of employment, for 4 groups)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">total_bracket</span> <span class="o">=</span> <span class="n">spline_population_income_distribution</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
     <span class="n">avg_income_bracket</span> <span class="o">=</span> <span class="n">spline_income_distribution</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 
@@ -290,26 +371,77 @@
 
 
 <div class="viewcode-block" id="interpolate_interest_rate"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.interpolate_interest_rate">[docs]</a><span class="k">def</span> <span class="nf">interpolate_interest_rate</span><span class="p">(</span><span class="n">spline_interest_rate</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return an average interest rate over some period of interest.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return real interest rate used in model, for a given year.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spline_interest_rate : interp1d</span>
+<span class="sd">        Linear interpolation for the interest rate (in %) over the years</span>
+<span class="sd">    t : int</span>
+<span class="sd">        Year for which we want to run the function</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float64</span>
+<span class="sd">        Real interest rate used in the model, and defined as the average over</span>
+<span class="sd">        past (3) years to convey the structural (as opposed to conjonctural)</span>
+<span class="sd">        component of the interest rate</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nb_years</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">interest_rate_n_years</span> <span class="o">=</span> <span class="n">spline_interest_rate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">nb_years</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
     <span class="n">interest_rate_n_years</span><span class="p">[</span><span class="n">interest_rate_n_years</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">interest_rate_n_years</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span></div>
 
 
-<div class="viewcode-block" id="evolution_housing_supply"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.evolution_housing_supply">[docs]</a><span class="k">def</span> <span class="nf">evolution_housing_supply</span><span class="p">(</span><span class="n">housing_limit</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span>
+<div class="viewcode-block" id="evolution_housing_supply"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.evolution_housing_supply">[docs]</a><span class="k">def</span> <span class="nf">evolution_housing_supply</span><span class="p">(</span><span class="n">housing_limit</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span>
                              <span class="n">housing_supply_1</span><span class="p">,</span> <span class="n">housing_supply_0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Yield dynamic housing supply with time inertia and depreciation.&quot;&quot;&quot;</span>
-    <span class="c1"># New housing supply (accounting for inertia and depreciation w/ time)</span>
-    <span class="c1"># See working paper, eq.15</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Yield dynamic housing supply with time inertia and capital depreciation.</span>
+
+<span class="sd">    We consider that formal private developers anticipate the unconstrained</span>
+<span class="sd">    equilibrium value of their housing supply in future periods. Only if it is</span>
+<span class="sd">    bigger than current values do we allow them to build more housing. In all</span>
+<span class="sd">    cases, housing capital depreciates. This function computes a new housing</span>
+<span class="sd">    supply including a time inertia parameter, that will be the (more</span>
+<span class="sd">    realistic) housing supply simulated for target year (all the other</span>
+<span class="sd">    equilibrium values will be updated correspondingly under this constraint).</span>
+<span class="sd">    Then, the function returns the difference between simulated future and</span>
+<span class="sd">    current values for housing supply.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    housing_limit : Series</span>
+<span class="sd">        Maximum housing supply (in m² per km²) in each grid cell (24,014)</span>
+<span class="sd">    param : Dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    t1 : float64</span>
+<span class="sd">        Target year (relative to baseline set at 0) for evolution of housing</span>
+<span class="sd">        supply</span>
+<span class="sd">    t0 : float64</span>
+<span class="sd">        Origin year (relative to baseline set at 0) for evolution of housing</span>
+<span class="sd">        supply</span>
+<span class="sd">    housing_supply_1 : ndarray(float64)</span>
+<span class="sd">        (Unconstrained) equilibrium housing supply per unit of available land</span>
+<span class="sd">        (in m² per km²) for target year, per grid cell (24,014)</span>
+<span class="sd">    housing_supply_0 : TYPE</span>
+<span class="sd">        Equilibrium housing supply per unit of available land</span>
+<span class="sd">        (in m² per km²) for origin year, per grid cell (24,014)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Series</span>
+<span class="sd">        Difference between simulated future and current values for housing</span>
+<span class="sd">        supply per unit of available land (in m² per km²), per grid cell</span>
+<span class="sd">        (24,014).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># New housing supply (accounting for inertia and depreciation with time)</span>
+    <span class="c1"># See technical documentation for math formula</span>
     <span class="k">if</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># Yields the difference in housing supply (if growing) weighted by</span>
         <span class="c1"># time inertia, minus housing stock depreciation</span>
-        <span class="c1"># diff_housing = ((housing_supply_1 - housing_supply_0)</span>
-        <span class="c1">#                 * (housing_supply_1 &gt; housing_supply_0)</span>
-        <span class="c1">#                 * (t1 - t0) / param[&quot;time_invest_housing&quot;]</span>
-        <span class="c1">#                 - housing_supply_0 * (t1 - t0)</span>
-        <span class="c1">#                 / param[&quot;time_depreciation_buildings&quot;])</span>
         <span class="n">diff_housing</span> <span class="o">=</span> <span class="p">((</span><span class="n">housing_supply_1</span> <span class="o">-</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">housing_supply_1</span> <span class="o">&gt;</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_invest_housing&quot;</span><span class="p">]</span>
@@ -317,23 +449,18 @@
                         <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">])</span>
     <span class="c1"># This allows to run backward simulations</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># diff_housing = ((housing_supply_1 - housing_supply_0)</span>
-        <span class="c1">#                 * (housing_supply_1 &lt; housing_supply_0)</span>
-        <span class="c1">#                 * (t1 - t0) / param[&quot;time_invest_housing&quot;]</span>
-        <span class="c1">#                 - housing_supply_0 * (t1 - t0)</span>
-        <span class="c1">#                 / param[&quot;time_depreciation_buildings&quot;])</span>
         <span class="n">diff_housing</span> <span class="o">=</span> <span class="p">((</span><span class="n">housing_supply_1</span> <span class="o">-</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">housing_supply_1</span> <span class="o">&lt;</span> <span class="n">housing_supply_0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_invest_housing&quot;</span><span class="p">]</span>
                         <span class="o">-</span> <span class="n">housing_supply_0</span> <span class="o">*</span> <span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span>
                         <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">])</span>
 
-    <span class="c1"># We set the target &quot;non-equilibrium&quot; housing supply target</span>
+    <span class="c1"># We set the target constrained equilibrium housing supply target</span>
     <span class="n">housing_supply_target</span> <span class="o">=</span> <span class="n">housing_supply_0</span> <span class="o">+</span> <span class="n">diff_housing</span>
     <span class="c1"># We bound it upwards as housing height is limited by potential regulations</span>
     <span class="n">housing_supply_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">housing_supply_target</span><span class="p">,</span> <span class="n">housing_limit</span><span class="p">)</span>
-    <span class="c1"># We also consider minimum housing supply in the future</span>
-    <span class="c1"># (cf. Mitchells Plain)</span>
+    <span class="c1"># We also consider minimum housing supply in the future (useful for ad hoc</span>
+    <span class="c1"># corrections on Mitchells Plain)</span>
     <span class="n">minimum_housing_supply_interp</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2011</span><span class="p">,</span> <span class="mi">2100</span><span class="p">])</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
         <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">])),</span>

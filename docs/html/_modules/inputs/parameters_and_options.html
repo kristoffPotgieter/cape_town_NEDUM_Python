@@ -375,11 +375,11 @@
     <span class="n">param</span><span class="p">[</span><span class="s2">&quot;limit_height_out&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
 
     <span class="c1"># Agricultural land prices (in rands)</span>
-    <span class="c1">#  Corresponds to the ninth decile in the sales data sets, when</span>
+    <span class="c1">#  Corresponds to the ninth decile in the sales data sets for 2011, when</span>
     <span class="c1">#  selecting only agricultural properties in rural areas (Pfeiffer et al.)</span>
-    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">807.2</span>
-    <span class="c1">#  Estimated the same way</span>
-    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2001&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">70.7</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_baseline&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">807.2</span>
+    <span class="c1">#  Estimated the same way for 2001</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_retrospect&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">70.7</span>
 
     <span class="c1"># Year urban edge constraint kicks in</span>
     <span class="n">param</span><span class="p">[</span><span class="s2">&quot;year_urban_edge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2015</span>
@@ -421,7 +421,7 @@
     <span class="c1">#  Time (in years) for the full depreciation of a housing unit (deprecated)</span>
     <span class="c1">#  In practice, we rather use the inverse value of capital depreciation.</span>
     <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_depreciation_buildings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
-    <span class="c1">#  Set the number of simulations per year (deprecated)</span>
+    <span class="c1">#  Set the number of simulations per year (do not change!)</span>
     <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="c1"># Size (in m²) above which we need to switch flood damage functions for</span>
@@ -469,7 +469,8 @@
 
 
 <div class="viewcode-block" id="import_construction_parameters"><a class="viewcode-back" href="../../api_ref.html#inputs.parameters_and_options.import_construction_parameters">[docs]</a><span class="k">def</span> <span class="nf">import_construction_parameters</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span>
-                                   <span class="n">dwelling_size_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+                                   <span class="n">dwelling_size_sp</span><span class="p">,</span>
+                                   <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span>
                                    <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
                                    <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -494,7 +495,7 @@
 <span class="sd">    dwelling_size_sp : Series</span>
 <span class="sd">        Average dwelling size (in m²) in each Small Place (1,046)</span>
 <span class="sd">        at baseline year (2011)</span>
-<span class="sd">    mitchells_plain_grid_2011 : ndarray(uint8)</span>
+<span class="sd">    mitchells_plain_grid_baseline : ndarray(uint8)</span>
 <span class="sd">        Dummy coding for belonging to Mitchells Plain neighbourhood</span>
 <span class="sd">        at the grid-cell (24,014) level</span>
 <span class="sd">    grid_formal_density_HFA : ndarray(float64)</span>
@@ -506,7 +507,7 @@
 <span class="sd">        In the order: formal private housing, informal backyards, informal</span>
 <span class="sd">        settlements, formal subsidized housing.</span>
 <span class="sd">    interest_rate : float64</span>
-<span class="sd">        Interest rate for the overall economy, corresponding to an average</span>
+<span class="sd">        Real interest rate for the overall economy, corresponding to an average</span>
 <span class="sd">        over past years</span>
 <span class="sd">    options : dict</span>
 <span class="sd">        Dictionary of default options</span>
@@ -556,13 +557,9 @@
         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># Original specification</span>
-        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">grid_formal_density_HFA</span><span class="p">[</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]</span>
-             <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]))</span>
-        <span class="c1"># Alternative specification accounting for minimum dwelling size</span>
-        <span class="c1"># param[&quot;minimum_housing_supply&quot;][mitchells_plain_grid_2011] = (</span>
-        <span class="c1">#     (grid_formal_density_HFA[mitchells_plain_grid_2011] * param[&quot;q0&quot;]</span>
-        <span class="c1">#      / coeff_land[0, :][mitchells_plain_grid_2011]))</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span><span class="n">mitchells_plain_grid_baseline</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">grid_formal_density_HFA</span><span class="p">[</span><span class="n">mitchells_plain_grid_baseline</span><span class="p">]</span>
+             <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">mitchells_plain_grid_baseline</span><span class="p">]))</span>
         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span>
             <span class="p">(</span><span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">)</span>
             <span class="o">|</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]))</span>
@@ -594,7 +591,7 @@
     <span class="c1"># (cf. Pfeiffer et al., footnote 16)</span>
 
     <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">compute_agricultural_rent</span><span class="p">(</span>
-        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">interest_rate</span><span class="p">,</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_baseline&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">interest_rate</span><span class="p">,</span>
         <span class="n">param</span><span class="p">,</span> <span class="n">options</span>
         <span class="p">)</span>
 
@@ -616,8 +613,8 @@
 <span class="sd">        (Calibrated) scale factor for the construction function of</span>
 <span class="sd">        formal private developers</span>
 <span class="sd">    interest_rate : float</span>
-<span class="sd">        Parametric interest rate at baseline year (computed as the</span>
-<span class="sd">        average over previous years)</span>
+<span class="sd">        Real interest rate for the overall economy, corresponding to an average</span>
+<span class="sd">        over past years</span>
 <span class="sd">    param : dict</span>
 <span class="sd">        Dictionary of default parameters</span>
 <span class="sd">    options : dict</span>

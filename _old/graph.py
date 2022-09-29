@@ -97,7 +97,7 @@ income_net_of_commuting_costs = np.load(
 
 # average_income_baseline = np.load(
 #     path_precalc_transp + 'average_income_year_0.npy')
-# average_income_2040 = np.load(
+# average_income_long_fut = np.load(
 #     path_precalc_transp + 'average_income_year_28.npy')
 
 # We convert income distribution data (at SP level) to grid dimensions for use
@@ -107,7 +107,7 @@ income_net_of_commuting_costs = np.load(
 income_distribution_grid = np.load(path_data + "income_distrib_grid.npy")
 
 
-(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
+(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_baseline,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
@@ -150,7 +150,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
-    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+    mitchells_plain_grid_baseline, grid_formal_density_HFA, coeff_land,
     interest_rate, options
     )
 
@@ -209,7 +209,7 @@ initial_state_dwelling_size = np.load(
 #     path_outputs + name + '/simulation_households.npy')
 # simulation_utility = np.load(path_outputs + name + '/simulation_utility.npy')
 
-(spline_agricultural_rent, spline_interest_rate,
+(spline_agricultural_price, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
@@ -2072,7 +2072,7 @@ for i in range(0, 24014):
     for j in range(0, 4):
         print(i)
         real_income_2040[i, j] = (
-            average_income_2040[np.array(income_class_2040)[j, i], i]
+            average_income_long_fut[np.array(income_class_2040)[j, i], i]
             )
 
 real_income_baseline = np.matlib.repmat(real_income_baseline, 10, 1).squeeze()

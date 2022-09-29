@@ -64,7 +64,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         developers to urbanize (agricultural) land: endogenously limits urban
         sprawl
     interest_rate : float64
-        Interest rate for the overall economy, corresponding to an average
+        Real interest rate for the overall economy, corresponding to an average
         over past years
     number_properties_RDP : ndarray(float64)
         Number of formal subsidized dwellings per grid cell (24,014) at

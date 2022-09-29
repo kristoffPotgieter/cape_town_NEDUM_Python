@@ -80,11 +80,6 @@
              
   <h1>Source code for equilibrium.sub.compute_outputs</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Wed Oct 28 16:01:05 2020.</span>
-
-<span class="sd">@author: Charlotte Liotta</span>
-<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">equilibrium.sub.functions_solver</span> <span class="k">as</span> <span class="nn">eqsol</span>
@@ -108,7 +103,103 @@
                     <span class="n">housing_in</span><span class="p">,</span>
                     <span class="n">param_pockets</span><span class="p">,</span>
                     <span class="n">param_backyards_pockets</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute equilibrium outputs from theoretical formulas.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute equilibrium outputs from theoretical formulas.</span>
+
+<span class="sd">    From optimality conditions on supply and demand (see technical</span>
+<span class="sd">    documentation for math formulas), this function computes, for a given</span>
+<span class="sd">    housing type, the following outputs. First, the demanded dwelling size in</span>
+<span class="sd">    each place per income group. Then, the bid-rent function / willingness to</span>
+<span class="sd">    pay (per m² of housing) in each place per income group. By selecting the</span>
+<span class="sd">    highest bid, we recover the final simulated dwweling size and market rent.</span>
+<span class="sd">    From there, we also compute the housing supply per unit of available land,</span>
+<span class="sd">    and the total number of households in each location, per income group.</span>
+<span class="sd">    To do so, it leverages the equilibrium.sub.functions_solver module.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    housing_type : str</span>
+<span class="sd">        Endogenous housing type considered in the function: should be set to</span>
+<span class="sd">        &quot;formal&quot;, &quot;backyard&quot;, or &quot;informal&quot;</span>
+<span class="sd">    utility : ndarray(float64)</span>
+<span class="sd">        Utility levels for each income group (4) considered in a given</span>
+<span class="sd">        iteration</span>
+<span class="sd">    amenities : ndarray(float64)</span>
+<span class="sd">        Normalized amenity index (relative to the mean) for each grid cell</span>
+<span class="sd">        (24,014)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    income_net_of_commuting_costs : ndarray(float64, ndim=2)</span>
+<span class="sd">        Expected annual income net of commuting costs (in rands, for</span>
+<span class="sd">        one household), for each geographic unit, by income group (4)</span>
+<span class="sd">    fraction_capital_destroyed : DataFrame</span>
+<span class="sd">        Data frame of expected fractions of capital destroyed, for housing</span>
+<span class="sd">        structures and contents in different housing types, in each</span>
+<span class="sd">        grid cell (24,014)</span>
+<span class="sd">    grid : DataFrame</span>
+<span class="sd">        Table yielding, for each grid cell (24,014), its x and y</span>
+<span class="sd">        (centroid) coordinates, and its distance (in km) to the city centre</span>
+<span class="sd">    income_class_by_housing_type : DataFrame</span>
+<span class="sd">        Set of dummies coding for housing market access (across 4 housing</span>
+<span class="sd">        submarkets) for each income group (4, from poorest to richest)</span>
+<span class="sd">    options : dict</span>
+<span class="sd">        Dictionary of default options</span>
+<span class="sd">    housing_limit : Series</span>
+<span class="sd">        Maximum housing supply (in m² per km²) in each grid cell (24,014)</span>
+<span class="sd">    agricultural_rent : float64</span>
+<span class="sd">        Annual housing rent below which it is not profitable for formal private</span>
+<span class="sd">        developers to urbanize (agricultural) land: endogenously limits urban</span>
+<span class="sd">        sprawl</span>
+<span class="sd">    interest_rate : float64</span>
+<span class="sd">        Real interest rate for the overall economy, corresponding to an average</span>
+<span class="sd">        over past years</span>
+<span class="sd">    coeff_land : ndarray(float64, ndim=2)</span>
+<span class="sd">        Updated land availability for each grid cell (24,014) and each</span>
+<span class="sd">        housing type (4: formal private, informal backyards, informal</span>
+<span class="sd">        settlements, formal subsidized)</span>
+<span class="sd">    minimum_housing_supply : ndarray(float64)</span>
+<span class="sd">        Minimum housing supply (in m²) for each grid cell (24,014), allowing</span>
+<span class="sd">        for an ad hoc correction of low values in Mitchells Plain</span>
+<span class="sd">    construction_param : ndarray(float64)</span>
+<span class="sd">        (Calibrated) scale factor for the construction function of formal</span>
+<span class="sd">        private developers</span>
+<span class="sd">    housing_in : ndarray(float64)</span>
+<span class="sd">        Theoretical minimum housing supply when formal private developers do</span>
+<span class="sd">        not adjust (not used in practice), per grid cell (24,014)</span>
+<span class="sd">    param_pockets : ndarray(float64)</span>
+<span class="sd">        (Calibrated) disamenity index for living in an informal settlement,</span>
+<span class="sd">        per grid cell (24,014)</span>
+<span class="sd">    param_backyards_pockets : ndarray(float64)</span>
+<span class="sd">        (Calibrated) disamenity index for living in an informal backyard,</span>
+<span class="sd">        per grid cell (24,014)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    job_simul : ndarray(float64)</span>
+<span class="sd">        Simulated number of households per income group (4) for a given housing</span>
+<span class="sd">        type, at a given iteration</span>
+<span class="sd">    R : ndarray(float64)</span>
+<span class="sd">        Simulated average annual rent (in rands/m²) for a given housing type,</span>
+<span class="sd">        at a given iteration, for each selected pixel (4,043)</span>
+<span class="sd">    people_init : ndarray(float64)</span>
+<span class="sd">        Simulated number of households for a given housing type, at a given</span>
+<span class="sd">        iteration, for each selected pixel (4,043)</span>
+<span class="sd">    people_center : ndarray(float64, ndim=2)</span>
+<span class="sd">        Simulated number of households for a given housing type, at a given</span>
+<span class="sd">        iteration, for each selected pixel (4,043) and each income group (4)</span>
+<span class="sd">    housing_supply : ndarray(float64)</span>
+<span class="sd">        Simulated housing supply per unit of available land (in m² per km²)</span>
+<span class="sd">        for a given housing type, at a given iteration, for each selected pixel</span>
+<span class="sd">        (4,043)</span>
+<span class="sd">    dwelling_size : ndarray(float64)</span>
+<span class="sd">        Simulated average dwelling size (in m²) for a given housing type, at a</span>
+<span class="sd">        given iteration, for each selected pixel (4,043)</span>
+<span class="sd">    R_mat : ndarray(float64, ndim=2)</span>
+<span class="sd">        Simulated willingness to pay / bid-rents (in rands/m²) for a given</span>
+<span class="sd">        housing type, at a given iteration, for each selected pixel (4,043) and</span>
+<span class="sd">        each income group (4)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># %% Dwelling size in selected pixels per (endogenous) housing type</span>
 
     <span class="k">if</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;formal&#39;</span><span class="p">:</span>
@@ -117,7 +208,7 @@
             <span class="n">utility</span><span class="p">,</span> <span class="n">amenities</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">income_net_of_commuting_costs</span><span class="p">,</span>
             <span class="n">fraction_capital_destroyed</span><span class="p">)</span>
 
-        <span class="c1"># Here, we introduce the minimum lot-size</span>
+        <span class="c1"># Here, we introduce the minimum lot size</span>
         <span class="n">dwelling_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">dwelling_size</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;mini_lot_size&quot;</span><span class="p">])</span>
         <span class="c1"># And we make sure we do not consider cases where some income groups</span>
         <span class="c1"># would have no access to formal housing</span>
@@ -137,11 +228,11 @@
         <span class="c1"># As before</span>
         <span class="n">dwelling_size</span><span class="p">[</span><span class="n">income_class_by_housing_type</span><span class="o">.</span><span class="n">settlement</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-    <span class="c1"># %% Bid rent functions in selected pixels per (endogenous) housing type</span>
+    <span class="c1"># %% Bid-rent functions in selected pixels per (endogenous) housing type</span>
 
     <span class="k">if</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;formal&#39;</span><span class="p">:</span>
 
-        <span class="c1"># See research note, p.11</span>
+        <span class="c1"># See technical documentation for math formula</span>
         <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">income_net_of_commuting_costs</span><span class="p">)</span>
                  <span class="o">/</span> <span class="p">(</span><span class="n">dwelling_size</span> <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])))</span>
         <span class="n">R_mat</span><span class="p">[</span><span class="n">income_net_of_commuting_costs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -149,7 +240,7 @@
 
     <span class="k">elif</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;backyard&#39;</span><span class="p">:</span>
 
-        <span class="c1"># See research note, p.12</span>
+        <span class="c1"># See technical documentation for math formula</span>
 
         <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;actual_backyards&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span>
@@ -195,7 +286,7 @@
 
     <span class="k">elif</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;informal&#39;</span><span class="p">:</span>
 
-        <span class="c1"># See research note, p.12: same definition as for backyards</span>
+        <span class="c1"># See technical documentation for math formula</span>
 
         <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;shack_size&quot;</span><span class="p">])</span>
@@ -245,7 +336,7 @@
 
     <span class="n">dwelling_size</span> <span class="o">=</span> <span class="n">dwelling_size_temp</span>
 
-    <span class="c1"># %% Housing supply (per unit of land)</span>
+    <span class="c1"># %% Housing supply (per unit of available land)</span>
 
     <span class="k">if</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;formal&#39;</span><span class="p">:</span>
         <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">eqsol</span><span class="o">.</span><span class="n">compute_housing_supply_formal</span><span class="p">(</span>
@@ -282,6 +373,8 @@
     <span class="c1"># group for given housing type</span>
     <span class="n">job_simul</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">people_center</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
+    <span class="c1"># We also put a floor equal to the agricultural rent for rents in the</span>
+    <span class="c1"># formal private sector</span>
     <span class="k">if</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;formal&#39;</span><span class="p">:</span>
         <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">agricultural_rent</span><span class="p">)</span>
 

@@ -35,7 +35,7 @@ Note that, on top of the ``import_options`` and ``import_param`` functions, the 
    :lines: 193-198
    :lineno-start: 193
 
-The key ones are the ``mini_lot_size`` parameter and the ``agricultural_rent`` variable (defined through ``compute_agricultural_rent`` as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords' outside options / opportunity cost, here ``agricultural_price_2011`` parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized [#fagri]_:
+The key ones are the ``mini_lot_size`` parameter and the ``agricultural_rent`` variable (defined through ``compute_agricultural_rent`` as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords' outside options / opportunity cost, here ``agricultural_price_baseline`` parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized [#fagri]_:
 
 .. math::
 

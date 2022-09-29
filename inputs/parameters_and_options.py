@@ -294,11 +294,11 @@ def import_param(path_precalc_inp, options):
     param["limit_height_out"] = 10
 
     # Agricultural land prices (in rands)
-    #  Corresponds to the ninth decile in the sales data sets, when
+    #  Corresponds to the ninth decile in the sales data sets for 2011, when
     #  selecting only agricultural properties in rural areas (Pfeiffer et al.)
-    param["agricultural_price_2011"] = 807.2
-    #  Estimated the same way
-    param["agricultural_price_2001"] = 70.7
+    param["agricultural_price_baseline"] = 807.2
+    #  Estimated the same way for 2001
+    param["agricultural_price_retrospect"] = 70.7
 
     # Year urban edge constraint kicks in
     param["year_urban_edge"] = 2015
@@ -340,7 +340,7 @@ def import_param(path_precalc_inp, options):
     #  Time (in years) for the full depreciation of a housing unit (deprecated)
     #  In practice, we rather use the inverse value of capital depreciation.
     param["time_depreciation_buildings"] = 100
-    #  Set the number of simulations per year (deprecated)
+    #  Set the number of simulations per year (do not change!)
     param["iter_calc_lite"] = 1
 
     # Size (in m²) above which we need to switch flood damage functions for
@@ -388,7 +388,8 @@ def import_param(path_precalc_inp, options):
 
 
 def import_construction_parameters(param, grid, housing_types_sp,
-                                   dwelling_size_sp, mitchells_plain_grid_2011,
+                                   dwelling_size_sp,
+                                   mitchells_plain_grid_baseline,
                                    grid_formal_density_HFA, coeff_land,
                                    interest_rate, options):
     """
@@ -413,7 +414,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
     dwelling_size_sp : Series
         Average dwelling size (in m²) in each Small Place (1,046)
         at baseline year (2011)
-    mitchells_plain_grid_2011 : ndarray(uint8)
+    mitchells_plain_grid_baseline : ndarray(uint8)
         Dummy coding for belonging to Mitchells Plain neighbourhood
         at the grid-cell (24,014) level
     grid_formal_density_HFA : ndarray(float64)
@@ -425,7 +426,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
         In the order: formal private housing, informal backyards, informal
         settlements, formal subsidized housing.
     interest_rate : float64
-        Interest rate for the overall economy, corresponding to an average
+        Real interest rate for the overall economy, corresponding to an average
         over past years
     options : dict
         Dictionary of default options
@@ -475,13 +476,9 @@ def import_construction_parameters(param, grid, housing_types_sp,
         param["minimum_housing_supply"] = np.zeros(len(grid.dist))
     elif options["correct_mitchells_plain"] == 1:
         # Original specification
-        param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
-            (grid_formal_density_HFA[mitchells_plain_grid_2011]
-             / coeff_land[0, :][mitchells_plain_grid_2011]))
-        # Alternative specification accounting for minimum dwelling size
-        # param["minimum_housing_supply"][mitchells_plain_grid_2011] = (
-        #     (grid_formal_density_HFA[mitchells_plain_grid_2011] * param["q0"]
-        #      / coeff_land[0, :][mitchells_plain_grid_2011]))
+        param["minimum_housing_supply"][mitchells_plain_grid_baseline] = (
+            (grid_formal_density_HFA[mitchells_plain_grid_baseline]
+             / coeff_land[0, :][mitchells_plain_grid_baseline]))
         param["minimum_housing_supply"][
             (coeff_land[0, :] < 0.1)
             | (np.isnan(param["minimum_housing_supply"]))
@@ -513,7 +510,7 @@ def import_construction_parameters(param, grid, housing_types_sp,
     # (cf. Pfeiffer et al., footnote 16)
 
     agricultural_rent = compute_agricultural_rent(
-        param["agricultural_price_2011"], param["coeff_A"], interest_rate,
+        param["agricultural_price_baseline"], param["coeff_A"], interest_rate,
         param, options
         )
 
@@ -535,8 +532,8 @@ def compute_agricultural_rent(rent, scale_fact, interest_rate, param, options):
         (Calibrated) scale factor for the construction function of
         formal private developers
     interest_rate : float
-        Parametric interest rate at baseline year (computed as the
-        average over previous years)
+        Real interest rate for the overall economy, corresponding to an average
+        over past years
     param : dict
         Dictionary of default parameters
     options : dict

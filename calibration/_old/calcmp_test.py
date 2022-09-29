@@ -35,7 +35,7 @@ def import_transport_costs(income_baseline, param, grid, path_precalc_inp, path_
         # Import travel times and distances
         transport_times = scipy.io.loadmat(path_precalc_inp + 'Transport_times_SP.mat')
         #Import Scenarios
-        (spline_agricultural_rent, spline_interest_rate,
+        (spline_agricultural_price, spline_interest_rate,
          spline_population_income_distribution, spline_inflation,
          spline_income_distribution, spline_population,
          spline_income, spline_minimum_housing_supply, spline_fuel) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios)

@@ -133,12 +133,12 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">193</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">agricultural_rent</span>
 <span class="linenos">194</span> <span class="p">)</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">import_construction_parameters</span><span class="p">(</span>
 <span class="linenos">195</span>    <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;dwelling_size&quot;</span><span class="p">],</span>
-<span class="linenos">196</span>    <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span> <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
+<span class="linenos">196</span>    <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span> <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
 <span class="linenos">197</span>    <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span>
 <span class="linenos">198</span>    <span class="p">)</span>
 </pre></div>
 </div>
-<p>The key ones are the <code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter and the <code class="docutils literal notranslate"><span class="pre">agricultural_rent</span></code> variable (defined through <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords’ outside options / opportunity cost, here <code class="docutils literal notranslate"><span class="pre">agricultural_price_2011</span></code> parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized <a class="footnote-reference brackets" href="#fagri" id="id2">2</a>:</p>
+<p>The key ones are the <code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter and the <code class="docutils literal notranslate"><span class="pre">agricultural_rent</span></code> variable (defined through <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords’ outside options / opportunity cost, here <code class="docutils literal notranslate"><span class="pre">agricultural_price_baseline</span></code> parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized <a class="footnote-reference brackets" href="#fagri" id="id2">2</a>:</p>
 <div class="math notranslate nohighlight">
 \[R_A = \frac{(\delta P_A)^a (\rho + \delta)^{1-a}}{\kappa a^a (1-a)^{1-a}}\]</div>
 <p>In the <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> function, this corresponds to:</p>
@@ -414,7 +414,7 @@
 </ul>
 <p>By reorganizing the above equation, we obtain the following left and right sides in the code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">22</span>    <span class="c1"># According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B</span>
-<span class="linenos">23</span>    <span class="c1"># (draft, p.11), see theoretical expression in implicit_qfunc()</span>
+<span class="linenos">23</span>    <span class="c1"># (draft, p.11), see theoretical expression in explicit_qfunc()</span>
 <span class="linenos">24</span>    <span class="n">left_side</span> <span class="o">=</span> <span class="p">(</span>
 <span class="linenos">25</span>        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utility</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">amenities</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
 <span class="linenos">26</span>        <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">]</span>
@@ -424,7 +424,7 @@
 <span class="linenos">30</span>        <span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">65</span><span class="k">def</span> <span class="nf">implicit_qfunc</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">65</span><span class="k">def</span> <span class="nf">explicit_qfunc</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
 <span class="linenos">66</span>    <span class="sd">&quot;&quot;&quot;Implicitely define optimal dwelling size.&quot;&quot;&quot;</span>
 <span class="linenos">67</span>    <span class="c1"># Note that with above x definition, q-alpha*q_0 can be negative</span>
 <span class="linenos">68</span>
@@ -441,7 +441,7 @@
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">compute_dwelling_size_formal</span></code> function then recovers the value of <span class="math notranslate nohighlight">\(Q*\)</span> (depending on income group) through a linear interpolation, before constraining it to be bigger than the parametrized minimum dwelling size in this sector (<code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">53</span>    <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">implicit_qfunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]),</span> <span class="n">x</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">53</span>    <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">explicit_qfunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]),</span> <span class="n">x</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Back to the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function, the dwelling size in the informal backyards and informal settlements sectors is exogenously set as being the standard parametrized size of a “shack” (<code class="docutils literal notranslate"><span class="pre">shack_size</span></code> parameter).</p>
@@ -734,7 +734,7 @@
 <span class="linenos">114</span>                <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">year_temp</span><span class="p">)</span>
 <span class="linenos">115</span>
 <span class="linenos">116</span>            <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">compute_agricultural_rent</span><span class="p">(</span>
-<span class="linenos">117</span>                <span class="n">spline_agricultural_rent</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
+<span class="linenos">117</span>                <span class="n">spline_agricultural_price</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
 <span class="linenos">118</span>                <span class="n">interest_rate</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
 </pre></div>
 </div>

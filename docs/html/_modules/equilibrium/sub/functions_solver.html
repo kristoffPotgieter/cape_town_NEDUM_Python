@@ -88,20 +88,54 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="c1"># import scipy</span>
-<span class="c1"># from scipy.optimize import minimize</span>
 <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 
 
 <div class="viewcode-block" id="compute_dwelling_size_formal"><a class="viewcode-back" href="../../../api_ref.html#equilibrium.sub.functions_solver.compute_dwelling_size_formal">[docs]</a><span class="k">def</span> <span class="nf">compute_dwelling_size_formal</span><span class="p">(</span><span class="n">utility</span><span class="p">,</span> <span class="n">amenities</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span>
                                  <span class="n">income_net_of_commuting_costs</span><span class="p">,</span>
                                  <span class="n">fraction_capital_destroyed</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return optimal dwelling size per income group for formal housing.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return optimal dwelling size per income group for formal housing.</span>
+
+<span class="sd">    This function leverages the explicit_qfunc() function to express</span>
+<span class="sd">    dwelling size as an implicit function of observed values, coming from</span>
+<span class="sd">    optimality conditions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    utility : ndarray(float64)</span>
+<span class="sd">        Utility levels for each income group (4) considered in a given</span>
+<span class="sd">        iteration</span>
+<span class="sd">    amenities : ndarray(float64)</span>
+<span class="sd">        Normalized amenity index (relative to the mean) for each grid cell</span>
+<span class="sd">        (24,014)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    income_net_of_commuting_costs : ndarray(float64, ndim=2)</span>
+<span class="sd">        Expected annual income net of commuting costs (in rands, for</span>
+<span class="sd">        one household), for each geographic unit, by income group (4)</span>
+<span class="sd">    fraction_capital_destroyed : DataFrame</span>
+<span class="sd">        Data frame of expected fractions of capital destroyed, for housing</span>
+<span class="sd">        structures and contents in different housing types, in each</span>
+<span class="sd">        grid cell (24,014)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dwelling_size : ndarray(float64, ndim=2)</span>
+<span class="sd">        Simulated average dwelling size (in m²) for each selected pixel (4,043)</span>
+<span class="sd">        and each income group (4)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># We reprocess income net of commuting costs not to break down equations</span>
+    <span class="c1"># with negative values</span>
     <span class="n">income_temp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">income_net_of_commuting_costs</span><span class="p">)</span>
     <span class="n">income_temp</span><span class="p">[</span><span class="n">income_temp</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-    <span class="c1"># According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B</span>
-    <span class="c1"># (draft, p.11), see theoretical expression in implicit_qfunc()</span>
+    <span class="c1"># We are going to express dwelling size as an implicit function (coming</span>
+    <span class="c1"># from optimality conditions) of observed variables. The corresponding</span>
+    <span class="c1"># explicit function is given in explicit_qfunc(q, q_0, alpha), and the</span>
+    <span class="c1"># observed part (corresponding to the left side of equation given in</span>
+    <span class="c1"># technical documentation) is given below:</span>
     <span class="n">left_side</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utility</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">amenities</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
         <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">]</span>
@@ -110,10 +144,9 @@
         <span class="o">/</span> <span class="p">((</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">income_temp</span><span class="p">)</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">])</span>
         <span class="p">)</span>
 
-    <span class="c1"># approx = left_side ** (1/param[&quot;beta&quot;])</span>
-
-    <span class="c1"># We get a regression spline expressing q as a function of</span>
-    <span class="c1"># implicit_qfunc(q) for some arbitrarily chosen q</span>
+    <span class="c1"># We get a regression spline expressing dwelling size as an implicit</span>
+    <span class="c1"># function of explicit_qfunc(q, q_0, alpha) for some arbitrarily chosen q</span>
+    <span class="c1"># defined below:</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
         <span class="p">[</span><span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">),</span>
          <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)],</span>
@@ -126,23 +159,42 @@
         <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">110</span><span class="p">,</span> <span class="mi">210</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
         <span class="p">[</span><span class="mi">250</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">200000</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">,</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">12</span><span class="p">]))</span>
 
-    <span class="c1"># f = interp1d(implicit_qfunc(x, param[&quot;q0&quot;], param[&quot;alpha&quot;]), x,</span>
-    <span class="c1">#              fill_value=&quot;extrapolate&quot;)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">explicit_qfunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]),</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">implicit_qfunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]),</span> <span class="n">x</span><span class="p">)</span>
-
-    <span class="c1"># We define dwelling size as q corresponding to true values of</span>
-    <span class="c1"># implicit_qfunc(q), for each selected pixel and each income group</span>
+    <span class="c1"># We define dwelling size as the image corresponding to observed values</span>
+    <span class="c1"># from left_side, for each selected pixel and each income group</span>
     <span class="n">dwelling_size</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">left_side</span><span class="p">)</span>
 
-    <span class="c1"># We cap dwelling size to 10**12 (why?)</span>
+    <span class="c1"># We cap dwelling size to 10**12 (to avoid numerical difficulties with</span>
+    <span class="c1"># infinite numbers)</span>
     <span class="n">dwelling_size</span><span class="p">[</span><span class="n">dwelling_size</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dwelling_size</span></div>
 
 
-<div class="viewcode-block" id="implicit_qfunc"><a class="viewcode-back" href="../../../api_ref.html#equilibrium.sub.functions_solver.implicit_qfunc">[docs]</a><span class="k">def</span> <span class="nf">implicit_qfunc</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Implicitely define optimal dwelling size.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="explicit_qfunc"><a class="viewcode-back" href="../../../api_ref.html#equilibrium.sub.functions_solver.explicit_qfunc">[docs]</a><span class="k">def</span> <span class="nf">explicit_qfunc</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q_0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Explicit function that will be inverted to recover optimal dwelling size.</span>
+
+<span class="sd">    This function is used as part of compute_dwelling_size_formal().</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    q : ndarray(float64)</span>
+<span class="sd">        Arbitrary values for dwelling size (in m²)</span>
+<span class="sd">    q_0 : ndarray(float64)</span>
+<span class="sd">        Parametric basic need in housing (in m²)</span>
+<span class="sd">    alpha : float64</span>
+<span class="sd">        (Calibrated) composite good elasticity in households&#39; utility function</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : ndarray(float64)</span>
+<span class="sd">        Theoretical values associated with observed variable left_side (see</span>
+<span class="sd">        compute_dwelling_size_formal function) through optimality conditions,</span>
+<span class="sd">        for arbitrary values of dwelling size</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Note that with above x definition, q-alpha*q_0 can be negative</span>
 
     <span class="c1"># Note that numpy returns null when trying to get the fractional power of a</span>
@@ -162,10 +214,58 @@
         <span class="n">fraction_capital_destroyed</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">construction_param</span><span class="p">,</span>
         <span class="n">housing_in</span><span class="p">,</span> <span class="n">dwelling_size</span>
         <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Calculate the formal housing supply as a function of rents.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return optimal housing supply for formal private housing.</span>
+
+<span class="sd">    This function leverages optimality conditions function to express</span>
+<span class="sd">    housing supply as a function of rents.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    R : ndarray(float64)</span>
+<span class="sd">        Simulated average annual rent (in rands/m²) for a given housing type,</span>
+<span class="sd">        for each selected pixel (4,043)</span>
+<span class="sd">    options : dict</span>
+<span class="sd">        Dictionary of default options</span>
+<span class="sd">    housing_limit : Series</span>
+<span class="sd">        Maximum housing supply (in m² per km²) in each grid cell (24,014)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    agricultural_rent : float64</span>
+<span class="sd">        Annual housing rent below which it is not profitable for formal private</span>
+<span class="sd">        developers to urbanize (agricultural) land: endogenously limits urban</span>
+<span class="sd">        sprawl</span>
+<span class="sd">    interest_rate : float64</span>
+<span class="sd">        Real interest rate for the overall economy, corresponding to an average</span>
+<span class="sd">        over past years</span>
+<span class="sd">    fraction_capital_destroyed : DataFrame</span>
+<span class="sd">        Data frame of expected fractions of capital destroyed, for housing</span>
+<span class="sd">        structures and contents in different housing types, in each</span>
+<span class="sd">        grid cell (24,014)</span>
+<span class="sd">    minimum_housing_supply : ndarray(float64)</span>
+<span class="sd">        Minimum housing supply (in m²) for each grid cell (24,014), allowing</span>
+<span class="sd">        for an ad hoc correction of low values in Mitchells Plain</span>
+<span class="sd">    construction_param : ndarray(float64)</span>
+<span class="sd">        (Calibrated) scale factor for the construction function of formal</span>
+<span class="sd">        private developers</span>
+<span class="sd">    housing_in : ndarray(float64)</span>
+<span class="sd">        Theoretical minimum housing supply when formal private developers do</span>
+<span class="sd">        not adjust (not used in practice), per grid cell (24,014)</span>
+<span class="sd">    dwelling_size : ndarray(float64)</span>
+<span class="sd">        Simulated average dwelling size (in m²) for a given housing type, for</span>
+<span class="sd">        each selected pixel (4,043)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    housing_supply : ndarray(float64)</span>
+<span class="sd">        Simulated housing supply per unit of available land (in m² per km²)</span>
+<span class="sd">        for formal private housing, for each selected pixel (4,043)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># We consider two different damage functions above and below some</span>
-        <span class="c1"># exogenous dwelling size threshold</span>
+        <span class="c1"># exogenous dwelling size threshold (proxies for the existence of</span>
+        <span class="c1"># a second floor)</span>
         <span class="n">capital_destroyed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_formal_2</span><span class="p">))</span>
         <span class="p">(</span><span class="n">capital_destroyed</span><span class="p">[</span><span class="n">dwelling_size</span> <span class="o">&gt;</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]]</span>
@@ -177,8 +277,8 @@
              <span class="n">dwelling_size</span> <span class="o">&lt;=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]</span>
              <span class="p">]</span>
 
-        <span class="c1"># See research note, p.10</span>
-        <span class="c1"># NB: we convert to supply in m² per km²</span>
+        <span class="c1"># See technical documentation for math formulas</span>
+        <span class="c1"># NB: we convert values to supply in m² per km² of available land</span>
         <span class="n">housing_supply</span> <span class="o">=</span> <span class="p">(</span>
             <span class="mi">1000000</span>
             <span class="o">*</span> <span class="p">(</span><span class="n">construction_param</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]))</span>
@@ -189,18 +289,23 @@
             <span class="o">*</span> <span class="p">((</span><span class="n">R</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span><span class="o">/</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]))</span>
             <span class="p">)</span>
 
-        <span class="c1"># Outside the agricultural rent, no housing (accounting for a tax)</span>
+        <span class="c1"># Below the agricultural rent, no housing is built</span>
         <span class="n">housing_supply</span><span class="p">[</span><span class="n">R</span> <span class="o">&lt;</span> <span class="n">agricultural_rent</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="n">housing_supply</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">housing_supply</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1"># housing_supply[housing_supply.imag != 0] = 0</span>
         <span class="n">housing_supply</span><span class="p">[</span><span class="n">housing_supply</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">housing_supply</span><span class="p">,</span> <span class="n">housing_limit</span><span class="p">)</span>
 
-        <span class="c1"># To add the construction on Mitchells_Plain</span>
+        <span class="c1"># We also correct for a potential ad hoc minimum housing supply in</span>
+        <span class="c1"># Mitchells_Plain</span>
         <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
             <span class="n">housing_supply</span><span class="p">,</span> <span class="n">minimum_housing_supply</span> <span class="o">*</span> <span class="mi">1000000</span><span class="p">)</span>
 
+    <span class="c1"># Note that housing supply is just equal to a floor value when developers</span>
+    <span class="c1"># do not adjust. In practice, this is only used in simulations for</span>
+    <span class="c1"># subsequent years, and this value is set to the housing supply obtained</span>
+    <span class="c1"># for the period before. We could, in theory, simulate an initial state</span>
+    <span class="c1"># where developers do not adjust, although this makes no practical sense.</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">housing_in</span>
 
@@ -210,29 +315,57 @@
 <div class="viewcode-block" id="compute_housing_supply_backyard"><a class="viewcode-back" href="../../../api_ref.html#equilibrium.sub.functions_solver.compute_housing_supply_backyard">[docs]</a><span class="k">def</span> <span class="nf">compute_housing_supply_backyard</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">income_net_of_commuting_costs</span><span class="p">,</span>
                                     <span class="n">fraction_capital_destroyed</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span>
                                     <span class="n">income_class_by_housing_type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute backyard housing supply as a function of rents.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return optimal housing supply for informal backyards.</span>
+
+<span class="sd">    This function leverages optimality conditions function to express</span>
+<span class="sd">    housing supply as a function of rents.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    R : ndarray(float64)</span>
+<span class="sd">        Simulated average annual rent (in rands/m²) for a given housing type,</span>
+<span class="sd">        for each selected pixel (4,043)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    income_net_of_commuting_costs : ndarray(float64, ndim=2)</span>
+<span class="sd">        Expected annual income net of commuting costs (in rands, for</span>
+<span class="sd">        one household), for each geographic unit, by income group (4)</span>
+<span class="sd">    fraction_capital_destroyed : DataFrame</span>
+<span class="sd">        Data frame of expected fractions of capital destroyed, for housing</span>
+<span class="sd">        structures and contents in different housing types, in each</span>
+<span class="sd">        grid cell (24,014)</span>
+<span class="sd">    grid : DataFrame</span>
+<span class="sd">        Table yielding, for each grid cell (24,014), its x and y</span>
+<span class="sd">        (centroid) coordinates, and its distance (in km) to the city centre</span>
+<span class="sd">    income_class_by_housing_type : DataFrame</span>
+<span class="sd">        Set of dummies coding for housing market access (across 4 housing</span>
+<span class="sd">        submarkets) for each income group (4, from poorest to richest)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    housing_supply : ndarray(float64)</span>
+<span class="sd">        Simulated housing supply per unit of available land (in m² per km²)</span>
+<span class="sd">        for informal backyards, for each selected pixel (4,043)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Same as before</span>
     <span class="n">capital_destroyed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
         <span class="nb">len</span><span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_formal_2</span><span class="p">))</span>
-    <span class="c1"># Check potential dimensionality issues</span>
-    <span class="c1"># capital_destroyed[dwelling_size &gt; param[&quot;threshold&quot;]</span>
-    <span class="c1">#                   ] = fraction_capital_destroyed.structure_subsidized_2[</span>
-    <span class="c1">#                       dwelling_size &gt; param[&quot;threshold&quot;]]</span>
-    <span class="c1"># capital_destroyed[dwelling_size &lt;= param[&quot;threshold&quot;]</span>
-    <span class="c1">#                   ] = fraction_capital_destroyed.structure_subsidized_1[</span>
-    <span class="c1">#                       dwelling_size &lt;= param[&quot;threshold&quot;]]</span>
     <span class="n">dwelling_size</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;RDP_size&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">)))</span>
-    <span class="c1"># dwelling_size[income_class_by_housing_type.subsidized == 0, :] = np.nan</span>
+    <span class="c1"># We consider two different damage functions above and below some</span>
+    <span class="c1"># exogenous dwelling size threshold (proxies for the existence of</span>
+    <span class="c1"># a second floor)</span>
+    <span class="c1"># NB: in practice, as the size of a backyard &quot;shack&quot; is parametrically</span>
+    <span class="c1"># fixed, this will always be considered as one floor</span>
     <span class="n">capital_destroyed</span><span class="p">[</span><span class="n">dwelling_size</span> <span class="o">&gt;</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]</span>
                       <span class="p">]</span> <span class="o">=</span> <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_subsidized_2</span><span class="p">[</span>
                           <span class="n">dwelling_size</span> <span class="o">&gt;</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]]</span>
     <span class="n">capital_destroyed</span><span class="p">[</span><span class="n">dwelling_size</span> <span class="o">&lt;=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]</span>
                       <span class="p">]</span> <span class="o">=</span> <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_subsidized_1</span><span class="p">[</span>
                           <span class="n">dwelling_size</span> <span class="o">&lt;=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">]]</span>
-    <span class="c1"># NB: in practice, the distinction is not used</span>
 
-    <span class="c1"># See research note, p.11</span>
-    <span class="c1"># np.seterr(divide=&#39;ignore&#39;, invalid=&#39;ignore&#39;)</span>
+    <span class="c1"># See technical documentation for math formulas</span>
     <span class="n">housing_supply</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">*</span>
          <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;RDP_size&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_size&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])</span>
@@ -243,7 +376,7 @@
            <span class="o">/</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_size&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="p">))</span>
     <span class="p">)</span>
 
-    <span class="c1"># NB: we convert units to m²</span>
+    <span class="c1"># NB: we convert units to m² per km² of available land</span>
     <span class="n">housing_supply</span><span class="p">[</span><span class="n">R</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">housing_supply</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">housing_supply</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>

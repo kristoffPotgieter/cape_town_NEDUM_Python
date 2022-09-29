@@ -121,7 +121,7 @@ amenities = inpdt.import_amenities(path_precalc_inp, options)
  income_baseline, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
-(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
+(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_baseline,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
@@ -159,7 +159,7 @@ coeff_land = inpdt.import_coeff_land(
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
-    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+    mitchells_plain_grid_baseline, grid_formal_density_HFA, coeff_land,
     interest_rate, options
     )
 
@@ -239,7 +239,7 @@ options["agents_anticipate_floods"] = 1
 #  TODO: Set as a variable, not a parameter
 param["income_year_reference"] = mean_income
 
-(spline_agricultural_rent, spline_interest_rate,
+(spline_agricultural_price, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
@@ -360,12 +360,12 @@ for year_temp in np.arange(0, 30):
     (param, minimum_housing_supply, agricultural_rent
      ) = inpprm.import_construction_parameters(
         param, grid, housing_types_sp, data_sp["dwelling_size"],
-        mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+        mitchells_plain_grid_baseline, grid_formal_density_HFA, coeff_land,
         interest_rate, options
         )
 
     agricultural_rent = inpprm.compute_agricultural_rent(
-        spline_agricultural_rent(year_temp), construction_param,
+        spline_agricultural_price(year_temp), construction_param,
         interest_rate, param, options)
 
     # POPULATION OUTPUTS

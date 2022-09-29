@@ -349,9 +349,9 @@
     <span class="c1">#  selecting only agricultural properties in rural areas</span>
     <span class="c1">#  NB: corresponds to the price of land, not of real estate</span>
     <span class="c1">#  TODO: recover original data</span>
-    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">807.2</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_baseline&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">807.2</span>
     <span class="c1">#  Estimated the same way</span>
-    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2001&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">70.7</span>
+    <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_retrospect&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">70.7</span>
 
     <span class="c1"># Year urban edge constraint kicks in</span>
     <span class="c1"># (only useful if options[&quot;urban_edge&quot;] == 1)</span>
@@ -442,7 +442,7 @@
 
 
 <div class="viewcode-block" id="import_construction_parameters"><a class="viewcode-back" href="../../api_ref.html#inputs.parameters_and_options.import_construction_parameters">[docs]</a><span class="k">def</span> <span class="nf">import_construction_parameters</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">housing_types_sp</span><span class="p">,</span>
-                                   <span class="n">dwelling_size_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_2011</span><span class="p">,</span>
+                                   <span class="n">dwelling_size_sp</span><span class="p">,</span> <span class="n">mitchells_plain_grid_baseline</span><span class="p">,</span>
                                    <span class="n">grid_formal_density_HFA</span><span class="p">,</span> <span class="n">coeff_land</span><span class="p">,</span>
                                    <span class="n">interest_rate</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Update parameters with values for construction.&quot;&quot;&quot;</span>
@@ -478,13 +478,13 @@
         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># Original specification from Matlab</span>
-        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">grid_formal_density_HFA</span><span class="p">[</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]</span>
-             <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">mitchells_plain_grid_2011</span><span class="p">]))</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span><span class="n">mitchells_plain_grid_baseline</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">grid_formal_density_HFA</span><span class="p">[</span><span class="n">mitchells_plain_grid_baseline</span><span class="p">]</span>
+             <span class="o">/</span> <span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:][</span><span class="n">mitchells_plain_grid_baseline</span><span class="p">]))</span>
         <span class="c1"># Alternative specification accounting for minimum dwelling size</span>
-        <span class="c1"># param[&quot;minimum_housing_supply&quot;][mitchells_plain_grid_2011] = (</span>
-        <span class="c1">#     (grid_formal_density_HFA[mitchells_plain_grid_2011] * param[&quot;q0&quot;]</span>
-        <span class="c1">#      / coeff_land[0, :][mitchells_plain_grid_2011]))</span>
+        <span class="c1"># param[&quot;minimum_housing_supply&quot;][mitchells_plain_grid_baseline] = (</span>
+        <span class="c1">#     (grid_formal_density_HFA[mitchells_plain_grid_baseline] * param[&quot;q0&quot;]</span>
+        <span class="c1">#      / coeff_land[0, :][mitchells_plain_grid_baseline]))</span>
         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">][</span>
             <span class="p">(</span><span class="n">coeff_land</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">)</span>
             <span class="o">|</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]))</span>
@@ -514,7 +514,7 @@
     <span class="c1"># housing prices (cf. also inversion from footnote 16)</span>
 
     <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">compute_agricultural_rent</span><span class="p">(</span>
-        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">interest_rate</span><span class="p">,</span>
+        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_baseline&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">interest_rate</span><span class="p">,</span>
         <span class="n">param</span><span class="p">,</span> <span class="n">options</span>
         <span class="p">)</span>
 

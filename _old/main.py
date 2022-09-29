@@ -172,7 +172,7 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 param["income_year_reference"] = mean_income
 
 #  Other data at SP level used for calibration and validation
-(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_2011,
+(data_rdp, housing_types_sp, data_sp, mitchells_plain_grid_baseline,
  grid_formal_density_HFA, threshold_income_distribution, income_distribution,
  cape_town_limits) = inpdt.import_households_data(path_precalc_inp)
 
@@ -211,7 +211,7 @@ housing_limit = inpdt.import_housing_limit(grid, param)
 (param, minimum_housing_supply, agricultural_rent
  ) = inpprm.import_construction_parameters(
     param, grid, housing_types_sp, data_sp["dwelling_size"],
-    mitchells_plain_grid_2011, grid_formal_density_HFA, coeff_land,
+    mitchells_plain_grid_baseline, grid_formal_density_HFA, coeff_land,
     interest_rate, options
     )
 
@@ -250,7 +250,7 @@ elif options["agents_anticipate_floods"] == 0:
 
 # SCENARIOS
 
-(spline_agricultural_rent, spline_interest_rate,
+(spline_agricultural_price, spline_interest_rate,
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
@@ -952,7 +952,7 @@ print("Compute simulations")
      income_class_by_housing_type,
      path_precalc_transp,
      spline_RDP,
-     spline_agricultural_rent,
+     spline_agricultural_price,
      spline_interest_rate,
      spline_population_income_distribution,
      spline_inflation,

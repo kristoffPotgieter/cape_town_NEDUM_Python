@@ -166,17 +166,17 @@
 <h3>Parameters and options<a class="headerlink" href="#parameters-and-options" title="Permalink to this heading"></a></h3>
 <p>In this part, the code calls on the <code class="docutils literal notranslate"><span class="pre">parameters_and_options.py</span></code> module that imports the default parameters and options, then sets the timeline for the simulations, and overwrites the default parameters and options according to the specific scenario one is interested in. The detail of key parameters and options is given in <a class="reference internal" href="input_tables.html"><span class="doc">Input tables</span></a> (there are other technical parameters and options that should be of no interest for the end user) <a class="footnote-reference brackets" href="#f1" id="id1">1</a>. Typically, one may set options allowing or not agents to anticipate floods, or new informal settlements to be built.</p>
 <p>Note that, on top of the <code class="docutils literal notranslate"><span class="pre">import_options</span></code> and <code class="docutils literal notranslate"><span class="pre">import_param</span></code> functions, the code later calls on a <code class="docutils literal notranslate"><span class="pre">import_construction_parameters</span></code> function that makes use of imported data to define additional parameter variables:</p>
-<p>The key ones are the <code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter and the <code class="docutils literal notranslate"><span class="pre">agricultural_rent</span></code> variable (defined through <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords’ outside options / opportunity cost, here <code class="docutils literal notranslate"><span class="pre">agricultural_price_2011</span></code> parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized <a class="footnote-reference brackets" href="#fagri" id="id2">2</a>:</p>
+<p>The key ones are the <code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter and the <code class="docutils literal notranslate"><span class="pre">agricultural_rent</span></code> variable (defined through <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> as a function of other parameters). Here is how to interpret the value of agricultural rent. We assume that the price of agricultural land is fixed (corresponds to landlords’ outside options / opportunity cost, here <code class="docutils literal notranslate"><span class="pre">agricultural_price_baseline</span></code> parameter) and that agricultural land is undeveloped. Since we assume that developers make zero profit in equilibrium due to pure and perfect competition, this gives us a relation to obtain the minimum rent developers would be willing to accept if this land were urbanized <a class="footnote-reference brackets" href="#fagri" id="id2">2</a>:</p>
 <div class="math notranslate nohighlight">
 \[R_A = \frac{(\delta P_A)^a (\rho + \delta)^{1-a}}{\kappa a^a (1-a)^{1-a}}\]</div>
 <p>In the <code class="docutils literal notranslate"><span class="pre">compute_agricultural_rent</span></code> function, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">469</span>    <span class="c1"># and only households of group 2 live there (coloured neighborhood).</span>
-<span class="linenos">470</span>    <span class="c1"># We do the same as before: the idea is to have a min housing supply in</span>
-<span class="linenos">471</span>    <span class="c1"># this zone whose formal density might be underestimated by the model.</span>
-<span class="linenos">472</span>    <span class="c1"># Then, we may choose whether or not to apply this ad hoc correction.</span>
-<span class="linenos">473</span>
-<span class="linenos">474</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<span class="linenos">475</span>        <span class="n">param</span><span class="p">[</span><span class="s2">&quot;minimum_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">469</span>    <span class="c1"># In Mitchells Plain, housing supply is given exogenously (planning),</span>
+<span class="linenos">470</span>    <span class="c1"># and only households of group 2 live there (coloured neighborhood).</span>
+<span class="linenos">471</span>    <span class="c1"># We do the same as before: the idea is to have a min housing supply in</span>
+<span class="linenos">472</span>    <span class="c1"># this zone whose formal density might be underestimated by the model.</span>
+<span class="linenos">473</span>    <span class="c1"># Then, we may choose whether or not to apply this ad hoc correction.</span>
+<span class="linenos">474</span>
+<span class="linenos">475</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_mitchells_plain&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
 </pre></div>
 </div>
 <p>Below this rent, it is therefore never profitable to build housing. Agricultural rent defines a floor on equilibrium rent values as well as an endogenous city edge.</p>
@@ -197,31 +197,31 @@
 <p>Then, the code calls on the <code class="docutils literal notranslate"><span class="pre">data.py</span></code> module. This allows to import basic geographic data, macro data, households and income data, land use projections, flood data, scenarios for time-dependent variables, and transport data. The databases used are presented in <a class="reference internal" href="data_bases.html"><span class="doc">Data bases</span></a>. A more detailed view on the specific data sets called in the code, and their position in the folder architecture, is given in <a class="reference internal" href="data_sets.html"><span class="doc">Data sets</span></a> <a class="footnote-reference brackets" href="#fdata" id="id6">5</a>.</p>
 <p>It should be noted that, by default, housing type data (used for validation) has already been converted from the SAL (Small Area Level) dimension to the grid dimension (500x500m pixels) with the <code class="docutils literal notranslate"><span class="pre">import_sal_data</span></code> and <code class="docutils literal notranslate"><span class="pre">gen_small_areas_to_grid</span></code> functions, and that income net of commuting costs for each income group and each grid cell (from transport data) has already been computed from the calibrated incomes for each income group and each job center with the <code class="docutils literal notranslate"><span class="pre">import_transport_data</span></code> function. If one wants to run the process again, one needs to overwrite the associated default options (please note that this may take some time to run). The import of flood data (through the <code class="docutils literal notranslate"><span class="pre">import_full_floods_data</span></code>) is also a little time-consuming when agents are set to anticipate floods.</p>
 <p>A bit counter-intuitively, the scenario for interest rate does not only serve to define future values of the variable (more on that in <a class="reference internal" href="#subsequent-periods"><span class="std std-ref">Subsequent periods</span></a>), but also its value at the initial state (as the raw data contains both past and future values). As part of the <code class="docutils literal notranslate"><span class="pre">import_macro_data</span></code> function, the <code class="docutils literal notranslate"><span class="pre">interest_rate</span></code> variable is defined as the average of past values over the past three years, through the <code class="docutils literal notranslate"><span class="pre">interpolate_interest_rate</span></code> function defined in the <code class="docutils literal notranslate"><span class="pre">functions_dynamic.py</span></code> module (included in the <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> package). This allows to smooth outcomes around a supposed equilibrium value:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>    <span class="c1">#  we normalize &quot;average&quot; income to 1</span>
-<span class="linenos">190</span>    <span class="n">income_mult</span> <span class="o">=</span> <span class="n">average_income</span> <span class="o">/</span> <span class="n">mean_income</span>
-<span class="linenos">191</span>
-<span class="linenos">192</span>    <span class="c1"># Store breakdown in unique array</span>
-<span class="linenos">193</span>    <span class="n">households_per_income_and_housing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
-<span class="linenos">194</span>        <span class="p">[</span><span class="n">households_per_income_in_formal</span><span class="p">,</span> <span class="n">households_per_income_in_backyard</span><span class="p">,</span>
-<span class="linenos">195</span>         <span class="n">households_per_income_in_informal</span><span class="p">])</span>
-<span class="linenos">196</span>
-<span class="linenos">197</span>    <span class="k">return</span> <span class="p">(</span><span class="n">mean_income</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span>
-<span class="linenos">198</span>            <span class="n">income_mult</span><span class="p">,</span> <span class="n">income_baseline</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span><span class="p">)</span>
-<span class="linenos">199</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>    <span class="c1">#  Compute ratio of &quot;average&quot; income per class over global income average:</span>
+<span class="linenos">190</span>    <span class="c1">#  we normalize &quot;average&quot; income to 1</span>
+<span class="linenos">191</span>    <span class="n">income_mult</span> <span class="o">=</span> <span class="n">average_income</span> <span class="o">/</span> <span class="n">mean_income</span>
+<span class="linenos">192</span>
+<span class="linenos">193</span>    <span class="c1"># Store breakdown in unique array</span>
+<span class="linenos">194</span>    <span class="n">households_per_income_and_housing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+<span class="linenos">195</span>        <span class="p">[</span><span class="n">households_per_income_in_formal</span><span class="p">,</span> <span class="n">households_per_income_in_backyard</span><span class="p">,</span>
+<span class="linenos">196</span>         <span class="n">households_per_income_in_informal</span><span class="p">])</span>
+<span class="linenos">197</span>
+<span class="linenos">198</span>    <span class="k">return</span> <span class="p">(</span><span class="n">mean_income</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span>
+<span class="linenos">199</span>            <span class="n">income_mult</span><span class="p">,</span> <span class="n">income_baseline</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span><span class="p">)</span>
 <span class="linenos">200</span>
-<span class="linenos">201</span><span class="k">def</span> <span class="nf">import_households_data</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">):</span>
-<span class="linenos">202</span>    <span class="s2">&quot;&quot;&quot;</span>
-<span class="linenos">203</span><span class="s2">    Import geographic data with class distributions for households.</span>
-<span class="linenos">204</span>
-<span class="linenos">205</span><span class="s2">    Parameters</span>
+<span class="linenos">201</span>
+<span class="linenos">202</span><span class="k">def</span> <span class="nf">import_households_data</span><span class="p">(</span><span class="n">path_precalc_inp</span><span class="p">):</span>
+<span class="linenos">203</span>    <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">204</span><span class="s2">    Import geographic data with class distributions for households.</span>
+<span class="linenos">205</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">213</span>    <span class="n">nb_years</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="linenos">214</span>    <span class="n">interest_rate_n_years</span> <span class="o">=</span> <span class="n">spline_interest_rate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">nb_years</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
-<span class="linenos">215</span>    <span class="n">interest_rate_n_years</span><span class="p">[</span><span class="n">interest_rate_n_years</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-<span class="linenos">216</span>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">interest_rate_n_years</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span>
-<span class="linenos">217</span>
-<span class="linenos">218</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">213</span>    <span class="n">year_inc</span> <span class="o">=</span> <span class="n">scenario_inflation</span><span class="o">.</span><span class="n">Year_infla</span><span class="p">[</span>
+<span class="linenos">214</span>        <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scenario_inflation</span><span class="o">.</span><span class="n">inflation_base_2010</span><span class="p">)]</span>
+<span class="linenos">215</span>    <span class="n">year_inc</span> <span class="o">=</span> <span class="n">year_inc</span><span class="p">[(</span><span class="n">year_inc</span> <span class="o">&gt;</span> <span class="mi">2000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">year_inc</span> <span class="o">&lt;</span> <span class="mi">2041</span><span class="p">)]</span>
+<span class="linenos">216</span>    <span class="c1">#  We get initial spline (not taking inflation into account)</span>
+<span class="linenos">217</span>    <span class="n">inc_year_noinfla</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+<span class="linenos">218</span>        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2011</span><span class="p">,</span> <span class="mi">2040</span><span class="p">])</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
 </pre></div>
 </div>
 <p>The imported files can be modified directly in the repository, to account for changes in scenarios for instance, as long as the format used remains the same (see <a class="reference internal" href="api_ref.html"><span class="doc">API reference</span></a> for more details on each function requirements). Before going to the next step of the code, we would like to give more details on the imports of land use, flood, and transport data, which we think are not as transparent as the rest of the imports.</p>
@@ -238,18 +238,18 @@
 <p class="caption"><span class="caption-text">Estimated probability of future new informal settlements</span><a class="headerlink" href="#id39" title="Permalink to this image"></a></p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">import_coeff_land</span></code> function then takes those outputs as arguments and reweight them by a housing-specific maximum land use parameter. This parameter allows to reduce the development potential of each area to its housing component (accounting for roads, for instance). The share of pixel area available for formal private housing (in a given period) is simply defined as the share of pixel area available for unconstrained development, minus the shares dedicated to the other housing types, times its own maximum land use parameter:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">670</span>               <span class="o">+</span> <span class="n">construction_rdp</span><span class="o">.</span><span class="n">total_yield_DU_LT</span><span class="p">)</span>
-<span class="linenos">671</span>            <span class="p">),</span>
-<span class="linenos">672</span>        <span class="n">area_pixel</span>
-<span class="linenos">673</span>        <span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use&quot;</span><span class="p">]</span>
-<span class="linenos">674</span>
-<span class="linenos">675</span>    <span class="c1"># Regression spline</span>
-<span class="linenos">676</span>
-<span class="linenos">677</span>    <span class="n">spline_land_RDP</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
-<span class="linenos">678</span>        <span class="n">year_data_informal</span><span class="p">,</span>
-<span class="linenos">679</span>        <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
-<span class="linenos">680</span>            <span class="p">[</span><span class="n">area_RDP</span><span class="p">,</span> <span class="n">area_RDP</span><span class="p">,</span> <span class="n">area_RDP_short_term</span><span class="p">,</span> <span class="n">area_RDP_long_term</span><span class="p">]</span>
-<span class="linenos">681</span>            <span class="p">),</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">670</span>            <span class="o">*</span> <span class="p">(</span><span class="n">construction_rdp</span><span class="o">.</span><span class="n">total_yield_DU_ST</span>
+<span class="linenos">671</span>               <span class="o">+</span> <span class="n">construction_rdp</span><span class="o">.</span><span class="n">total_yield_DU_LT</span><span class="p">)</span>
+<span class="linenos">672</span>            <span class="p">),</span>
+<span class="linenos">673</span>        <span class="n">area_pixel</span>
+<span class="linenos">674</span>        <span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use&quot;</span><span class="p">]</span>
+<span class="linenos">675</span>
+<span class="linenos">676</span>    <span class="c1"># Regression spline</span>
+<span class="linenos">677</span>
+<span class="linenos">678</span>    <span class="n">spline_land_RDP</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
+<span class="linenos">679</span>        <span class="n">year_data_informal</span><span class="p">,</span>
+<span class="linenos">680</span>        <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+<span class="linenos">681</span>            <span class="p">[</span><span class="n">area_RDP</span><span class="p">,</span> <span class="n">area_RDP</span><span class="p">,</span> <span class="n">area_RDP_short_term</span><span class="p">,</span> <span class="n">area_RDP_long_term</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>The outputs are stored in a <code class="docutils literal notranslate"><span class="pre">coeff_land</span></code> matrix that yields the values of <span class="math notranslate nohighlight">\(L^h(x)\)</span> for each time period when multiplied by the area of a pixel. Results are shown in the figure below.</p>
@@ -278,32 +278,32 @@
 <div class="section" id="transport-data">
 <h4>Transport data<a class="headerlink" href="#transport-data" title="Permalink to this heading"></a></h4>
 <p>Transport data is processed through the <code class="docutils literal notranslate"><span class="pre">import_transport_data</span></code> function. It imports monetary and time transport costs and pre-calibrated incomes (<code class="docutils literal notranslate"><span class="pre">income_centers_init</span></code> parameter) per income group and job center (more on that in <a class="reference internal" href="#calibration-process"><span class="std std-ref">Calibration</span></a>), for a given dimension (grid-cell level or small-place level) and a given simulation year (zero at initial state):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1412</span>    <span class="n">Parameters</span>
-<span class="linenos">1413</span>    <span class="o">----------</span>
-<span class="linenos">1414</span>    <span class="n">options</span> <span class="p">:</span> <span class="nb">dict</span>
-<span class="linenos">1415</span>        <span class="n">Dictionary</span> <span class="n">of</span> <span class="n">default</span> <span class="n">options</span>
-<span class="linenos">1416</span>    <span class="n">param</span> <span class="p">:</span> <span class="nb">dict</span>
-<span class="linenos">1417</span>        <span class="n">Dictionary</span> <span class="n">of</span> <span class="n">default</span> <span class="n">parameters</span>
-<span class="linenos">1418</span>    <span class="n">path_folder</span> <span class="p">:</span> <span class="nb">str</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1412</span>    <span class="ow">and</span> <span class="n">fluvial</span> <span class="n">flood</span> <span class="n">risks</span><span class="p">,</span> <span class="ow">and</span> <span class="n">floods</span> <span class="n">just</span> <span class="n">spill</span> <span class="n">over</span> <span class="n">across</span> <span class="n">space</span> <span class="n">instead</span> <span class="n">of</span>
+<span class="linenos">1413</span>    <span class="n">piling</span> <span class="n">up</span> <span class="p">(</span><span class="n">bath</span><span class="o">-</span><span class="n">tub</span> <span class="n">model</span><span class="p">)</span><span class="o">.</span>
+<span class="linenos">1414</span>
+<span class="linenos">1415</span>    <span class="n">Parameters</span>
+<span class="linenos">1416</span>    <span class="o">----------</span>
+<span class="linenos">1417</span>    <span class="n">options</span> <span class="p">:</span> <span class="nb">dict</span>
+<span class="linenos">1418</span>        <span class="n">Dictionary</span> <span class="n">of</span> <span class="n">default</span> <span class="n">options</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1439</span>    <span class="n">content_damages</span> <span class="p">:</span> <span class="n">interp1d</span>
-<span class="linenos">1440</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="n">house</span>
-<span class="linenos">1441</span>        <span class="n">contents</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
-<span class="linenos">1442</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Villiers</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2007</span>
-<span class="linenos">1443</span>    <span class="n">structural_damages_type1</span> <span class="p">:</span> <span class="n">interp1d</span>
-<span class="linenos">1444</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">1</span> <span class="n">house</span>
-<span class="linenos">1445</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
-<span class="linenos">1446</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Englhardt</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2019</span> <span class="p">(</span><span class="n">non</span><span class="o">-</span><span class="n">engineered</span> <span class="n">buildings</span><span class="p">)</span>
-<span class="linenos">1447</span>    <span class="n">structural_damages_type2</span> <span class="p">:</span> <span class="n">interp1d</span>
-<span class="linenos">1448</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">2</span> <span class="n">house</span>
-<span class="linenos">1449</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
-<span class="linenos">1450</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Englhardt</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2019</span> <span class="p">(</span><span class="n">wooden</span> <span class="n">buildings</span><span class="p">)</span>
-<span class="linenos">1451</span>    <span class="n">structural_damages_type3a</span> <span class="p">:</span> <span class="n">interp1d</span>
-<span class="linenos">1452</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">3</span><span class="n">a</span> <span class="n">house</span>
-<span class="linenos">1453</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
-<span class="linenos">1454</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Englhardt</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2019</span> <span class="p">(</span><span class="n">one</span><span class="o">-</span><span class="n">floor</span> <span class="n">unreinforced</span> <span class="n">masonry</span><span class="o">/</span><span class="n">concrete</span>
-<span class="linenos">1455</span>        <span class="n">buildings</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1439</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="n">large</span> <span class="n">house</span>
+<span class="linenos">1440</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
+<span class="linenos">1441</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Villiers</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2007</span>
+<span class="linenos">1442</span>    <span class="n">content_damages</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">1443</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="n">house</span>
+<span class="linenos">1444</span>        <span class="n">contents</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
+<span class="linenos">1445</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Villiers</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2007</span>
+<span class="linenos">1446</span>    <span class="n">structural_damages_type1</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">1447</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">1</span> <span class="n">house</span>
+<span class="linenos">1448</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
+<span class="linenos">1449</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Englhardt</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2019</span> <span class="p">(</span><span class="n">non</span><span class="o">-</span><span class="n">engineered</span> <span class="n">buildings</span><span class="p">)</span>
+<span class="linenos">1450</span>    <span class="n">structural_damages_type2</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">1451</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">2</span> <span class="n">house</span>
+<span class="linenos">1452</span>        <span class="n">structures</span><span class="p">)</span> <span class="n">over</span> <span class="n">maximum</span> <span class="n">flood</span> <span class="n">depth</span> <span class="p">(</span><span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span> <span class="n">area</span><span class="p">,</span>
+<span class="linenos">1453</span>        <span class="kn">from</span> <span class="nn">de</span> <span class="n">Englhardt</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2019</span> <span class="p">(</span><span class="n">wooden</span> <span class="n">buildings</span><span class="p">)</span>
+<span class="linenos">1454</span>    <span class="n">structural_damages_type3a</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">1455</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fraction</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">destroyed</span> <span class="p">(</span><span class="nb">type</span><span class="o">-</span><span class="mi">3</span><span class="n">a</span> <span class="n">house</span>
 </pre></div>
 </div>
 <p>From there, it computes several outputs, of which the key variable is the expected income net of commuting costs <span class="math notranslate nohighlight">\(\tilde{y}_i(x)\)</span>, earned by a household of income group <span class="math notranslate nohighlight">\(i\)</span> choosing to live in <span class="math notranslate nohighlight">\(x\)</span> matrix). It is obtained by recursively solving for the optimal transport mode choice and job center choice of households characterized by <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(x\)</span> (see <a class="reference internal" href="math_appendix.html"><span class="doc">Math appendix</span></a> for more details).</p>
@@ -331,44 +331,44 @@
 </ul>
 <p>We therefore have <span class="math notranslate nohighlight">\(a = 1 - _gamma_2\)</span> and <span class="math notranslate nohighlight">\(\kappa = \frac{a}{1-a}^{1-a} exp(\gamma_1)\)</span>.</p>
 <p>In the code, this translates into:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">43</span>    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_number_formal</span><span class="p">[</span><span class="n">selected_density</span><span class="p">])</span>
-<span class="linenos">44</span>    <span class="c1"># Note that we use data_sp[&quot;unconstrained_area&quot;] (which is accurate data at</span>
-<span class="linenos">45</span>    <span class="c1"># SP level) rather than coeff_land (which is an estimate at grid level)</span>
-<span class="linenos">46</span>    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
-<span class="linenos">47</span>        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">])),</span>
-<span class="linenos">48</span>                  <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">]),</span>
-<span class="linenos">49</span>                  <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;dwelling_size&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">]),</span>
-<span class="linenos">50</span>                  <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_land_use&quot;</span><span class="p">]</span>
-<span class="linenos">51</span>                         <span class="o">*</span> <span class="n">data_sp</span><span class="p">[</span><span class="s2">&quot;unconstrained_area&quot;</span><span class="p">][</span><span class="n">selected_density</span><span class="p">])])</span>
-<span class="linenos">52</span>        <span class="p">)</span>
-<span class="linenos">53</span>    <span class="c1"># NB: Our data set for dwelling sizes only provides the average (not</span>
-<span class="linenos">54</span>    <span class="c1"># median) dwelling size at the Sub-Place level, aggregating formal and</span>
-<span class="linenos">55</span>    <span class="c1"># informal housing</span>
-<span class="linenos">56</span>
-<span class="linenos">57</span>    <span class="c1"># model_construction = LinearRegression().fit(X, y)</span>
-<span class="linenos">58</span>
-<span class="linenos">59</span>    <span class="n">modelSpecification</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">OLS</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s1">&#39;drop&#39;</span><span class="p">)</span>
-<span class="linenos">60</span>    <span class="n">model_construction</span> <span class="o">=</span> <span class="n">modelSpecification</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
-<span class="linenos">61</span>    <span class="nb">print</span><span class="p">(</span><span class="n">model_construction</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
-<span class="linenos">62</span>    <span class="n">parametersConstruction</span> <span class="o">=</span> <span class="n">model_construction</span><span class="o">.</span><span class="n">params</span>
-<span class="linenos">63</span>
-<span class="linenos">64</span>    <span class="c1"># We export outputs of the model</span>
-<span class="linenos">65</span>    <span class="c1"># coeff_b = model_construction.coef_[0]</span>
-<span class="linenos">66</span>    <span class="n">coeff_b</span> <span class="o">=</span> <span class="n">parametersConstruction</span><span class="p">[</span><span class="s2">&quot;x1&quot;</span><span class="p">]</span>
-<span class="linenos">67</span>    <span class="n">coeff_a</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">coeff_b</span>
-<span class="linenos">68</span>    <span class="c1"># Comes from zero profit condition combined with footnote 16 from</span>
-<span class="linenos">69</span>    <span class="c1"># optimization (typo in original paper)</span>
-<span class="linenos">70</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_kappa&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-<span class="linenos">71</span>        <span class="c1"># coeffKappa = ((1 / (coeff_b / coeff_a) ** coeff_b)</span>
-<span class="linenos">72</span>        <span class="c1">#               * np.exp(model_construction.intercept_))</span>
-<span class="linenos">73</span>        <span class="n">coeffKappa</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">coeff_b</span> <span class="o">/</span> <span class="n">coeff_a</span><span class="p">)</span> <span class="o">**</span> <span class="n">coeff_b</span><span class="p">)</span>
-<span class="linenos">74</span>                      <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parametersConstruction</span><span class="p">[</span><span class="s2">&quot;const&quot;</span><span class="p">]))</span>
-<span class="linenos">75</span>    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_kappa&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<span class="linenos">76</span>        <span class="c1"># coeffKappa = ((1 / (coeff_b) ** coeff_b)</span>
-<span class="linenos">77</span>        <span class="c1">#               * np.exp(model_construction.intercept_))</span>
-<span class="linenos">78</span>        <span class="n">coeffKappa</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">coeff_b</span><span class="p">)</span> <span class="o">**</span> <span class="n">coeff_b</span><span class="p">)</span>
-<span class="linenos">79</span>                      <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parametersConstruction</span><span class="p">[</span><span class="s2">&quot;const&quot;</span><span class="p">]))</span>
-<span class="linenos">80</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">43</span>    threshold_income_distribution : ndarray(int32)
+<span class="linenos">44</span>        Annual income level (in rands) above which a household is taken as
+<span class="linenos">45</span>        being part of one of the 4 income groups in the model
+<span class="linenos">46</span>    income_distribution : ndarray(uint16, ndim=2)
+<span class="linenos">47</span>        Exogenous number of households in each Small Place (1,046) for each
+<span class="linenos">48</span>        income group in the model (4)
+<span class="linenos">49</span>    data_rdp : DataFrame
+<span class="linenos">50</span>        Table yielding, for each grid cell (24,014), the associated cumulative
+<span class="linenos">51</span>        count of cells with some formal subsidized housing, and the associated
+<span class="linenos">52</span>        area (in m²) dedicated to such housing
+<span class="linenos">53</span>    housing_types_sp : DataFrame
+<span class="linenos">54</span>        Table yielding, for each Small Place (1,046), the number of informal
+<span class="linenos">55</span>        backyards, of informal settlements, and total dwelling units, as well
+<span class="linenos">56</span>        as their (centroid) x and y coordinates
+<span class="linenos">57</span>    data_number_formal : Series
+<span class="linenos">58</span>        Number of formal private housing units considered for each Small Place
+<span class="linenos">59</span>        (1,046)
+<span class="linenos">60</span>    data_income_group : ndarray(float64)
+<span class="linenos">61</span>        Categorical variable indicating, for each Small Place (1,046), the
+<span class="linenos">62</span>        dominant income group (from 0 to 3)
+<span class="linenos">63</span>    selected_density : Series
+<span class="linenos">64</span>        Dummy variable allowing for sample selection across Small Places
+<span class="linenos">65</span>        (1,046) for regressions that are only valid in the formal private
+<span class="linenos">66</span>        housing sector
+<span class="linenos">67</span>    path_data : str
+<span class="linenos">68</span>        Path towards data used in the model
+<span class="linenos">69</span>    path_precalc_inp : str
+<span class="linenos">70</span>        Path for precalcuted input data (calibrated parameters)
+<span class="linenos">71</span>    path_folder : str
+<span class="linenos">72</span>        Path towards the root data folder
+<span class="linenos">73</span>
+<span class="linenos">74</span>    Returns
+<span class="linenos">75</span>    -------
+<span class="linenos">76</span>    coeff_b : float64
+<span class="linenos">77</span>        Calibrated capital elasticity in housing production function
+<span class="linenos">78</span>    coeff_a : float64
+<span class="linenos">79</span>        Calibrated land elasticity in housing production function
+<span class="linenos">80</span>    coeffKappa : float64
 </pre></div>
 </div>
 <p>Note that we run our regression on a restricted sample defined by the <code class="docutils literal notranslate"><span class="pre">selected_density</span></code> variable:</p>
@@ -385,64 +385,64 @@
 <p>It then imports transport costs through the <code class="docutils literal notranslate"><span class="pre">import_transport_costs</span></code> function (from the <code class="docutils literal notranslate"><span class="pre">compute_income.py</span></code> module).</p>
 <p>The first part of this function imports the data on transportation times and distances, and estimates of public transportation fixed (over one month) and variable costs, based upon linear regressions using data from <span id="id18">Roux [<a class="reference internal" href="bibliography.html#id26" title="Y. Roux. A comparative study of public transport systems in developing countries. University of Cape Town, Masters Dissertation Series, 2013.">2013</a>]</span> (table 4.15). It also imports fuel prices for the variable component of private transportation costs, and 400 rands as the monthly depreciation cost of a vehicle for its fixed component.</p>
 <p>In a second part, it computes the total yearly monetary cost of commuting for one household over round trips:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">109</span>    <span class="c1"># Length (in km) using each mode</span>
-<span class="linenos">110</span>    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_round_trip&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-<span class="linenos">111</span>        <span class="n">multiplierPrice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-<span class="linenos">112</span>        <span class="n">multiplierPrice</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-<span class="linenos">113</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">timeOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-<span class="linenos">114</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
-<span class="linenos">115</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
-<span class="linenos">116</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
-<span class="linenos">117</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
-<span class="linenos">118</span>    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_round_trip&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<span class="linenos">119</span>        <span class="n">multiplierPrice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-<span class="linenos">120</span>        <span class="n">multiplierPrice</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-<span class="linenos">121</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">timeOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-<span class="linenos">122</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
-<span class="linenos">123</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
-<span class="linenos">124</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
-<span class="linenos">125</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
-<span class="linenos">126</span>
-<span class="linenos">127</span>    <span class="c1"># Multiplying by 235 (nb of working days per year)</span>
-<span class="linenos">128</span>    <span class="n">pricePerKM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-<span class="linenos">129</span>    <span class="n">pricePerKM</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-<span class="linenos">130</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="linenos">131</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceTrainPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
-<span class="linenos">132</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceFuelPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
-<span class="linenos">133</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceTaxiPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
-<span class="linenos">134</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceBusPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">109</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="linenos">110</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="linenos">111</span>    <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_round_trip&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">112</span>        <span class="n">multiplierPrice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">113</span>        <span class="n">multiplierPrice</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">114</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">timeOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">115</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">116</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">117</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">118</span>        <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">119</span>
+<span class="linenos">120</span>    <span class="c1"># Multiplying by 235 (nb of working days per year)</span>
+<span class="linenos">121</span>    <span class="n">pricePerKM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="linenos">122</span>    <span class="n">pricePerKM</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">123</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">124</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceTrainPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">125</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceFuelPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">126</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceTaxiPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">127</span>    <span class="n">pricePerKM</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">priceBusPerKMMonth</span><span class="o">*</span><span class="n">numberDaysPerYear</span>
+<span class="linenos">128</span>
+<span class="linenos">129</span>    <span class="c1"># Simple distances (not useful to calculate price but interesting output)</span>
+<span class="linenos">130</span>    <span class="n">distanceOutput</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="linenos">131</span>    <span class="n">distanceOutput</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">132</span>    <span class="n">distanceOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">133</span>    <span class="n">distanceOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
+<span class="linenos">134</span>    <span class="n">distanceOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport_times</span><span class="p">[</span><span class="s2">&quot;distanceCar&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">145</span>    <span class="c1"># Monetary price per year (for each employment center)</span>
-<span class="linenos">146</span>    <span class="n">monetaryCost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">185</span><span class="p">,</span> <span class="n">timeOutput</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">))</span>
-<span class="linenos">147</span>    <span class="c1"># trans_monetaryCost = np.zeros((185, timeOutput.shape[1], 5))</span>
-<span class="linenos">148</span>    <span class="k">for</span> <span class="n">index2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
-<span class="linenos">149</span>        <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">pricePerKM</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span>
-<span class="linenos">150</span>                                      <span class="o">*</span> <span class="n">multiplierPrice</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index2</span><span class="p">])</span>
-<span class="linenos">151</span>
-<span class="linenos">152</span>    <span class="c1">#  Train (monthly fare)</span>
-<span class="linenos">153</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceTrainFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
-<span class="linenos">154</span>    <span class="c1">#  Private car</span>
-<span class="linenos">155</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceFixedVehiculeMonth</span>
-<span class="linenos">156</span>                             <span class="o">*</span> <span class="mi">12</span><span class="p">)</span>
-<span class="linenos">157</span>    <span class="c1">#  Minibus/taxi</span>
-<span class="linenos">158</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceTaxiFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
-<span class="linenos">159</span>    <span class="c1">#  Bus</span>
-<span class="linenos">160</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceBusFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">145</span>    <span class="c1">#  Train (monthly fare)</span>
+<span class="linenos">146</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceTrainFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+<span class="linenos">147</span>    <span class="c1">#  Private car</span>
+<span class="linenos">148</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceFixedVehiculeMonth</span>
+<span class="linenos">149</span>                             <span class="o">*</span> <span class="mi">12</span><span class="p">)</span>
+<span class="linenos">150</span>    <span class="c1">#  Minibus/taxi</span>
+<span class="linenos">151</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceTaxiFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+<span class="linenos">152</span>    <span class="c1">#  Bus</span>
+<span class="linenos">153</span>    <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">monetaryCost</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">priceBusFixedMonth</span> <span class="o">*</span> <span class="mi">12</span>
+<span class="linenos">154</span>
+<span class="linenos">155</span>    <span class="c1"># We assume that people not taking some transport mode</span>
+<span class="linenos">156</span>    <span class="c1"># have a extra high cost of doing so&quot;</span>
+<span class="linenos">157</span>    <span class="c1"># monetaryCost[np.isnan(monetaryCost)] = 10 ** 3</span>
+<span class="linenos">158</span>    <span class="n">monetaryCost</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">monetaryCost</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">5</span>
+<span class="linenos">159</span>
+<span class="linenos">160</span>    <span class="c1"># trans_monetaryCost = copy.deepcopy(monetaryCost)</span>
 </pre></div>
 </div>
 <p>In a third and last part, it computes the time opportunity cost parameter (i.e., the fraction of working time spent commuting). Here, the values are given in minutes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">173</span>    <span class="n">costTime</span> <span class="o">=</span> <span class="p">(</span><span class="n">timeOutput</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;time_cost&quot;</span><span class="p">]</span>
-<span class="linenos">174</span>                <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">numberHourWorkedPerDay</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">173</span>
+<span class="linenos">174</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="income-calculation">
 <h4>Income calculation<a class="headerlink" href="#income-calculation" title="Permalink to this heading"></a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">estim_incomes_and_gravity</span></code> function then goes on with the calibration of incomes per se. To do so, it calls on the <code class="docutils literal notranslate"><span class="pre">EstimateIncome</span></code> function (also from the <code class="docutils literal notranslate"><span class="pre">compute_income.py</span></code> module):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">133</span>     <span class="p">)</span> <span class="o">=</span> <span class="n">calcmp</span><span class="o">.</span><span class="n">EstimateIncome</span><span class="p">(</span>
-<span class="linenos">134</span>        <span class="n">param</span><span class="p">,</span> <span class="n">timeOutput</span><span class="p">,</span> <span class="n">distanceOutput</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">monetaryCost</span><span class="p">,</span> <span class="n">costTime</span><span class="p">,</span>
-<span class="linenos">135</span>        <span class="n">job_centers</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span> <span class="n">income_distribution</span><span class="p">,</span> <span class="n">list_lambda</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">133</span>        <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;correct_kappa&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">134</span>            <span class="n">coeffKappa</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">coeff_b</span><span class="p">)</span> <span class="o">**</span> <span class="n">coeff_b</span><span class="p">)</span>
+<span class="linenos">135</span>                          <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">model_construction</span><span class="o">.</span><span class="n">intercept_</span><span class="p">))</span>
 <span class="linenos">136</span>
 </pre></div>
 </div>
@@ -572,35 +572,35 @@
 <li><p><span class="math notranslate nohighlight">\(Q*\)</span> is the equilibrium dwelling size</p></li>
 </ul>
 <p>By reorganizing the above equation, we obtain the following left and right sides in the code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">22</span>    <span class="c1"># According to WP, corresponds to [(Q*-q_0)/(Q*-alpha x q_0)^(alpha)] x B</span>
-<span class="linenos">23</span>    <span class="c1"># (draft, p.11), see theoretical expression in implicit_qfunc()</span>
-<span class="linenos">24</span>    <span class="n">left_side</span> <span class="o">=</span> <span class="p">(</span>
-<span class="linenos">25</span>        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utility</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">amenities</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-<span class="linenos">26</span>        <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">]</span>
-<span class="linenos">27</span>                 <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">contents_formal</span><span class="p">)[</span>
-<span class="linenos">28</span>                     <span class="kc">None</span><span class="p">,</span> <span class="p">:]))</span> <span class="o">**</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]))</span>
-<span class="linenos">29</span>        <span class="o">/</span> <span class="p">((</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">income_temp</span><span class="p">)</span> <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">])</span>
-<span class="linenos">30</span>        <span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">22</span>
+<span class="linenos">23</span>    <span class="n">Parameters</span>
+<span class="linenos">24</span>    <span class="o">----------</span>
+<span class="linenos">25</span>    <span class="n">utility</span> <span class="p">:</span> <span class="n">ndarray</span><span class="p">(</span><span class="n">float64</span><span class="p">)</span>
+<span class="linenos">26</span>        <span class="n">Utility</span> <span class="n">levels</span> <span class="k">for</span> <span class="n">each</span> <span class="n">income</span> <span class="n">group</span> <span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="n">considered</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">given</span>
+<span class="linenos">27</span>        <span class="n">iteration</span>
+<span class="linenos">28</span>    <span class="n">amenities</span> <span class="p">:</span> <span class="n">ndarray</span><span class="p">(</span><span class="n">float64</span><span class="p">)</span>
+<span class="linenos">29</span>        <span class="n">Normalized</span> <span class="n">amenity</span> <span class="n">index</span> <span class="p">(</span><span class="n">relative</span> <span class="n">to</span> <span class="n">the</span> <span class="n">mean</span><span class="p">)</span> <span class="k">for</span> <span class="n">each</span> <span class="n">grid</span> <span class="n">cell</span>
+<span class="linenos">30</span>        <span class="p">(</span><span class="mi">24</span><span class="p">,</span><span class="mi">014</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">65</span>    <span class="c1"># Note that with above x definition, q-alpha*q_0 can be negative</span>
-<span class="linenos">66</span>
-<span class="linenos">67</span>    <span class="c1"># Note that numpy returns null when trying to get the fractional power of a</span>
-<span class="linenos">68</span>    <span class="c1"># negative number (which is fine, because we are not interested in such</span>
-<span class="linenos">69</span>    <span class="c1"># values), hence we ignore the error</span>
-<span class="linenos">70</span>    <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
-<span class="linenos">71</span>    <span class="n">result</span> <span class="o">=</span> <span class="p">(</span>
-<span class="linenos">72</span>        <span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">q_0</span><span class="p">)</span>
-<span class="linenos">73</span>        <span class="o">/</span> <span class="p">((</span><span class="n">q</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">q_0</span><span class="p">))</span> <span class="o">**</span> <span class="n">alpha</span><span class="p">)</span>
-<span class="linenos">74</span>        <span class="p">)</span>
-<span class="linenos">75</span>
-<span class="linenos">76</span>    <span class="k">return</span> <span class="n">result</span>
-<span class="linenos">77</span>
-<span class="linenos">78</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">65</span>
+<span class="linenos">66</span>    <span class="c1"># We get a regression spline expressing dwelling size as an implicit</span>
+<span class="linenos">67</span>    <span class="c1"># function of explicit_qfunc(q, q_0, alpha) for some arbitrarily chosen q</span>
+<span class="linenos">68</span>    <span class="c1"># defined below:</span>
+<span class="linenos">69</span>    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
+<span class="linenos">70</span>        <span class="p">[</span><span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">),</span>
+<span class="linenos">71</span>         <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)],</span>
+<span class="linenos">72</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.11</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span>
+<span class="linenos">73</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">1.15</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span>
+<span class="linenos">74</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+<span class="linenos">75</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">13.1</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">),</span>
+<span class="linenos">76</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+<span class="linenos">77</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
+<span class="linenos">78</span>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">110</span><span class="p">,</span> <span class="mi">210</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">compute_dwelling_size_formal</span></code> function then recovers the value of <span class="math notranslate nohighlight">\(Q*\)</span> (depending on income group) through a linear interpolation, before constraining it to be bigger than the parametrized minimum dwelling size in this sector (<code class="docutils literal notranslate"><span class="pre">mini_lot_size</span></code> parameter):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">53</span>    <span class="c1"># We define dwelling size as q corresponding to true values of</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">53</span>    <span class="c1"># We are going to express dwelling size as an implicit function (coming</span>
 </pre></div>
 </div>
 <p>Back to the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function, the dwelling size in the informal backyards and informal settlements sectors is exogenously set as being the standard parametrized size of a “shack” (<code class="docutils literal notranslate"><span class="pre">shack_size</span></code> parameter).</p>
@@ -618,74 +618,74 @@
 <div class="math notranslate nohighlight">
 \[\Psi_i^{IS}(x,u) = \frac{1}{q_I}[\tilde{y}_i(x) - (\rho + \delta + \textcolor{green}{\rho_{IS}^{struct}})v_I - (1 + \textcolor{green}{\gamma \rho_{IS}^{contents}})(\frac{u}{(q_I-q_0)^{1-\alpha}A(x)B_{IS}(x)})^\frac{1}{\alpha}]\]</div>
 <p>In the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">64</span>        <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">income_net_of_commuting_costs</span><span class="p">)</span>
-<span class="linenos">65</span>                 <span class="o">/</span> <span class="p">(</span><span class="n">dwelling_size</span> <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">64</span>    <span class="n">options</span> <span class="p">:</span> <span class="nb">dict</span>
+<span class="linenos">65</span>        <span class="n">Dictionary</span> <span class="n">of</span> <span class="n">default</span> <span class="n">options</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 93</span>        <span class="k">elif</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;actual_backyards&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<span class="linenos"> 94</span>            <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span>
-<span class="linenos"> 95</span>                <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;shack_size&quot;</span><span class="p">])</span>
-<span class="linenos"> 96</span>                <span class="o">*</span> <span class="p">(</span><span class="n">income_net_of_commuting_costs</span>
-<span class="linenos"> 97</span>                    <span class="o">-</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-<span class="linenos"> 98</span>                        <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">contents_backyard</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="linenos"> 99</span>                        <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">])</span>
-<span class="linenos">100</span>                        <span class="o">*</span> <span class="p">((</span><span class="n">utility</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
-<span class="linenos">101</span>                            <span class="o">/</span> <span class="p">(</span><span class="n">amenities</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="linenos">102</span>                               <span class="o">*</span> <span class="n">param_backyards_pockets</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="linenos">103</span>                               <span class="o">*</span> <span class="p">((</span><span class="n">dwelling_size</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])</span>
-<span class="linenos">104</span>                                  <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">])))</span>
-<span class="linenos">105</span>                           <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">])))</span>
-<span class="linenos">106</span>                    <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]</span>
-<span class="linenos">107</span>                       <span class="o">*</span> <span class="p">(</span><span class="n">interest_rate</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]))</span>
-<span class="linenos">108</span>                    <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-<span class="linenos">109</span>                        <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_informal_backyards</span>
-<span class="linenos">110</span>                        <span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]))</span>
-<span class="linenos">111</span>                <span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 93</span>        per grid cell (24,014)
+<span class="linenos"> 94</span>
+<span class="linenos"> 95</span>    Returns
+<span class="linenos"> 96</span>    -------
+<span class="linenos"> 97</span>    job_simul : ndarray(float64)
+<span class="linenos"> 98</span>        Simulated number of households per income group (4) for a given housing
+<span class="linenos"> 99</span>        type, at a given iteration
+<span class="linenos">100</span>    R : ndarray(float64)
+<span class="linenos">101</span>        Simulated average annual rent (in rands/m²) for a given housing type,
+<span class="linenos">102</span>        at a given iteration, for each selected pixel (4,043)
+<span class="linenos">103</span>    people_init : ndarray(float64)
+<span class="linenos">104</span>        Simulated number of households for a given housing type, at a given
+<span class="linenos">105</span>        iteration, for each selected pixel (4,043)
+<span class="linenos">106</span>    people_center : ndarray(float64, ndim=2)
+<span class="linenos">107</span>        Simulated number of households for a given housing type, at a given
+<span class="linenos">108</span>        iteration, for each selected pixel (4,043) and each income group (4)
+<span class="linenos">109</span>    housing_supply : ndarray(float64)
+<span class="linenos">110</span>        Simulated housing supply per unit of available land (in m² per km²)
+<span class="linenos">111</span>        for a given housing type, at a given iteration, for each selected pixel
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">119</span>        <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span>
-<span class="linenos">120</span>            <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;shack_size&quot;</span><span class="p">])</span>
-<span class="linenos">121</span>            <span class="o">*</span> <span class="p">(</span><span class="n">income_net_of_commuting_costs</span>
-<span class="linenos">122</span>                <span class="o">-</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">contents_informal</span><span class="p">)[</span>
-<span class="linenos">123</span>                    <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">])</span>
-<span class="linenos">124</span>                    <span class="o">*</span> <span class="p">((</span><span class="n">utility</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">amenities</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="linenos">125</span>                                            <span class="o">*</span> <span class="n">param_pockets</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-<span class="linenos">126</span>                                            <span class="o">*</span> <span class="p">((</span><span class="n">dwelling_size</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])</span>
-<span class="linenos">127</span>                                               <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">])))</span>
-<span class="linenos">128</span>                       <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">])))</span>
-<span class="linenos">129</span>                <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]</span>
-<span class="linenos">130</span>                   <span class="o">*</span> <span class="p">(</span><span class="n">interest_rate</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]))</span>
-<span class="linenos">131</span>                <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-<span class="linenos">132</span>                    <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_informal_settlements</span>
-<span class="linenos">133</span>                    <span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]))</span>
-<span class="linenos">134</span>            <span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">119</span>        <span class="n">each</span> <span class="n">income</span> <span class="n">group</span> <span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="linenos">120</span>
+<span class="linenos">121</span>    <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">122</span><span class="s2">    # </span><span class="si">%%</span><span class="s2"> Dwelling size in selected pixels per (endogenous) housing type</span>
+<span class="linenos">123</span>
+<span class="linenos">124</span><span class="s2">    if housing_type == &#39;formal&#39;:</span>
+<span class="linenos">125</span>
+<span class="linenos">126</span><span class="s2">        dwelling_size = eqsol.compute_dwelling_size_formal(</span>
+<span class="linenos">127</span><span class="s2">            utility, amenities, param, income_net_of_commuting_costs,</span>
+<span class="linenos">128</span><span class="s2">            fraction_capital_destroyed)</span>
+<span class="linenos">129</span>
+<span class="linenos">130</span><span class="s2">        # Here, we introduce the minimum lot size</span>
+<span class="linenos">131</span><span class="s2">        dwelling_size = np.maximum(dwelling_size, param[&quot;mini_lot_size&quot;])</span>
+<span class="linenos">132</span><span class="s2">        # And we make sure we do not consider cases where some income groups</span>
+<span class="linenos">133</span><span class="s2">        # would have no access to formal housing</span>
+<span class="linenos">134</span><span class="s2">        dwelling_size[income_class_by_housing_type.formal == 0, :] = np.nan</span>
 </pre></div>
 </div>
 <p>Bid rents <span class="math notranslate nohighlight">\(\psi^i_h(x,u)\)</span> correspond to the maximum amount households of type <span class="math notranslate nohighlight">\(i\)</span> are willing to pay for a unit (1 m²) of housing of type <span class="math notranslate nohighlight">\(h\)</span> in a certain location <span class="math notranslate nohighlight">\(x\)</span> for a given utility level <span class="math notranslate nohighlight">\(u\)</span> (over one year). Assuming that households bid their true valuation and that there are no strategic interactions, housing / land <a class="footnote-reference brackets" href="#fhland" id="id29">21</a> is allocated to the highest bidder. This is why we retain the bid rents from the highest bidding income groups, and the associated dwelling sizes, as the equilibrium output values for rents and dwelling sizes. In the code, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">142</span>    <span class="c1"># We select highest bidder (income group) in each location</span>
-<span class="linenos">143</span>    <span class="n">proba</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_mat</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">R_mat</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-<span class="linenos">144</span>    <span class="c1"># We correct the matrix if binding budget constraint</span>
-<span class="linenos">145</span>    <span class="c1"># (and other precautions)</span>
-<span class="linenos">146</span>    <span class="n">limit</span> <span class="o">=</span> <span class="p">((</span><span class="n">income_net_of_commuting_costs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="linenos">147</span>             <span class="o">&amp;</span> <span class="p">(</span><span class="n">proba</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="linenos">148</span>             <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">income_net_of_commuting_costs</span><span class="p">))</span>
-<span class="linenos">149</span>             <span class="o">&amp;</span> <span class="p">(</span><span class="n">R_mat</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span>
-<span class="linenos">150</span>    <span class="n">proba</span> <span class="o">=</span> <span class="n">proba</span> <span class="o">*</span> <span class="n">limit</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">142</span>
+<span class="linenos">143</span>    <span class="k">elif</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;informal&#39;</span><span class="p">:</span>
+<span class="linenos">144</span>
+<span class="linenos">145</span>        <span class="c1"># Defined exogenously</span>
+<span class="linenos">146</span>        <span class="n">dwelling_size</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;shack_size&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">)))</span>
+<span class="linenos">147</span>        <span class="c1"># As before</span>
+<span class="linenos">148</span>        <span class="n">dwelling_size</span><span class="p">[</span><span class="n">income_class_by_housing_type</span><span class="o">.</span><span class="n">settlement</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="linenos">149</span>
+<span class="linenos">150</span>    <span class="c1"># %% Bid-rent functions in selected pixels per (endogenous) housing type</span>
 <span class="linenos">151</span>
-<span class="linenos">152</span>    <span class="c1"># Yields directly the selected income group for each location</span>
-<span class="linenos">153</span>    <span class="n">which_group</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanargmax</span><span class="p">(</span><span class="n">R_mat</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="linenos">154</span>
-<span class="linenos">155</span>    <span class="c1"># Then we recover rent and dwelling size associated with the selected</span>
-<span class="linenos">156</span>    <span class="c1"># income group in each location</span>
-<span class="linenos">157</span>    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">which_group</span><span class="p">))</span>
-<span class="linenos">158</span>    <span class="n">R</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-<span class="linenos">159</span>    <span class="n">dwelling_size_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">which_group</span><span class="p">))</span>
-<span class="linenos">160</span>    <span class="n">dwelling_size_temp</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-<span class="linenos">161</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">which_group</span><span class="p">)):</span>
-<span class="linenos">162</span>        <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">R_mat</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">which_group</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">i</span><span class="p">]</span>
-<span class="linenos">163</span>        <span class="n">dwelling_size_temp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dwelling_size</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">which_group</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">i</span><span class="p">]</span>
-<span class="linenos">164</span>
-<span class="linenos">165</span>    <span class="n">dwelling_size</span> <span class="o">=</span> <span class="n">dwelling_size_temp</span>
+<span class="linenos">152</span>    <span class="k">if</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;formal&#39;</span><span class="p">:</span>
+<span class="linenos">153</span>
+<span class="linenos">154</span>        <span class="c1"># See technical documentation for math formula</span>
+<span class="linenos">155</span>        <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">income_net_of_commuting_costs</span><span class="p">)</span>
+<span class="linenos">156</span>                 <span class="o">/</span> <span class="p">(</span><span class="n">dwelling_size</span> <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])))</span>
+<span class="linenos">157</span>        <span class="n">R_mat</span><span class="p">[</span><span class="n">income_net_of_commuting_costs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">158</span>        <span class="n">R_mat</span><span class="p">[</span><span class="n">income_class_by_housing_type</span><span class="o">.</span><span class="n">formal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">159</span>
+<span class="linenos">160</span>    <span class="k">elif</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;backyard&#39;</span><span class="p">:</span>
+<span class="linenos">161</span>
+<span class="linenos">162</span>        <span class="c1"># See technical documentation for math formula</span>
+<span class="linenos">163</span>
+<span class="linenos">164</span>        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;actual_backyards&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<span class="linenos">165</span>            <span class="n">R_mat</span> <span class="o">=</span> <span class="p">(</span>
 </pre></div>
 </div>
 </div>
@@ -696,30 +696,30 @@
 <div class="math notranslate nohighlight">
 \[s_{FP}(x) = \kappa^{\frac{1}{a}} (\frac{(1-a)R_{FP}(x)}{\rho + \textcolor{green}{\rho_{FP}^{struct}(x)} + \delta})^{\frac{1-a}{a}}\]</div>
 <p>In the code, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">103</span>            <span class="o">*</span> <span class="p">(</span><span class="n">construction_param</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]))</span>
-<span class="linenos">104</span>            <span class="o">*</span> <span class="p">((</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span>
-<span class="linenos">105</span>                <span class="o">/</span> <span class="p">(</span><span class="n">interest_rate</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]</span>
-<span class="linenos">106</span>                   <span class="o">+</span> <span class="n">capital_destroyed</span><span class="p">))</span>
-<span class="linenos">107</span>               <span class="o">**</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span><span class="o">/</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]))</span>
-<span class="linenos">108</span>            <span class="o">*</span> <span class="p">((</span><span class="n">R</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]</span><span class="o">/</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_a&quot;</span><span class="p">]))</span>
-<span class="linenos">109</span>            <span class="p">)</span>
-<span class="linenos">110</span>
-<span class="linenos">111</span>        <span class="c1"># Outside the agricultural rent, no housing (accounting for a tax)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">103</span>        Arbitrary values for dwelling size (in m²)
+<span class="linenos">104</span>    q_0 : ndarray(float64)
+<span class="linenos">105</span>        Parametric basic need in housing (in m²)
+<span class="linenos">106</span>    alpha : float64
+<span class="linenos">107</span>        (Calibrated) composite good elasticity in households&#39; utility function
+<span class="linenos">108</span>
+<span class="linenos">109</span>    Returns
+<span class="linenos">110</span>    -------
+<span class="linenos">111</span>    result : ndarray(float64)
 </pre></div>
 </div>
 <p>In the informal backyard sector, utility maximization of households living in formal subsidized housing with respect to fraction of backyard rented out yields:</p>
 <div class="math notranslate nohighlight">
 \[\mu(x) = \alpha \frac{q_{FS}-q_0}{Y} - (1-\alpha) \frac{\tilde{y}_1(x) - (\rho + \textcolor{green}{\rho_{FS}^{struct}(x)}) \textcolor{green}{h_{FS}}}{YR_{IB}(x)}\]</div>
 <p>In the code, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">159</span>        <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span>
-<span class="linenos">160</span>           <span class="o">*</span> <span class="p">(</span><span class="n">income_net_of_commuting_costs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
-<span class="linenos">161</span>              <span class="o">-</span> <span class="p">(</span><span class="n">capital_destroyed</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;subsidized_structure_value&quot;</span><span class="p">]))</span>
-<span class="linenos">162</span>           <span class="o">/</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_size&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">R</span><span class="p">))</span>
-<span class="linenos">163</span>    <span class="p">)</span>
-<span class="linenos">164</span>
-<span class="linenos">165</span>    <span class="c1"># NB: we convert units to m²</span>
-<span class="linenos">166</span>    <span class="n">housing_supply</span><span class="p">[</span><span class="n">R</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="linenos">167</span>    <span class="n">housing_supply</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">housing_supply</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">159</span>        over past years
+<span class="linenos">160</span>    fraction_capital_destroyed : DataFrame
+<span class="linenos">161</span>        Data frame of expected fractions of capital destroyed, for housing
+<span class="linenos">162</span>        structures and contents in different housing types, in each
+<span class="linenos">163</span>        grid cell (24,014)
+<span class="linenos">164</span>    minimum_housing_supply : ndarray(float64)
+<span class="linenos">165</span>        Minimum housing supply (in m²) for each grid cell (24,014), allowing
+<span class="linenos">166</span>        for an ad hoc correction of low values in Mitchells Plain
+<span class="linenos">167</span>    construction_param : ndarray(float64)
 </pre></div>
 </div>
 <p>Back to the <code class="docutils literal notranslate"><span class="pre">compute_outputs</span></code> function, the housing supply per unit of available land for informal settlements is just set as 1 km²/km². Indeed, as absentee landlords do not have outside use for their land, they face no opportunity cost when renting it out, and therefore rent all of it. We also recall that the informal backyard and settlement dwellings are not capital-intensive, to the extent that they have a fixed size and cover only one floor. The housing supply is therefore equal to the land supply. Again, this is a simplification, but we believe that this is a good enough approximation of reality.</p>
@@ -730,25 +730,25 @@
 <div class="math notranslate nohighlight">
 \[N_i^h(x) = \frac{s_h(x)L_h(x)}{Q_h(x,i,u)}\]</div>
 <p>From there, we are able to recover the total number of households in each income group for a given housing type:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>    <span class="c1"># Yields population density in each selected pixel</span>
-<span class="linenos">190</span>    <span class="n">people_init</span> <span class="o">=</span> <span class="n">housing_supply</span> <span class="o">/</span> <span class="n">dwelling_size</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-<span class="linenos">191</span>    <span class="n">people_init</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">people_init</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="linenos">192</span>    <span class="c1"># Yields number of people per pixel, as 0.25 is the area of a pixel</span>
-<span class="linenos">193</span>    <span class="c1"># (0.5*0.5 km) and coeff_land reduces it to inhabitable area</span>
-<span class="linenos">194</span>    <span class="n">people_init_land</span> <span class="o">=</span> <span class="n">people_init</span> <span class="o">*</span> <span class="n">coeff_land</span> <span class="o">*</span> <span class="mf">0.25</span>
-<span class="linenos">195</span>
-<span class="linenos">196</span>    <span class="c1"># We associate people in each selected pixel to the highest bidding income</span>
-<span class="linenos">197</span>    <span class="c1"># group</span>
-<span class="linenos">198</span>    <span class="n">people_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">people_init_land</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">proba</span>
-<span class="linenos">199</span>    <span class="n">people_center</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">people_center</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="linenos">200</span>    <span class="c1"># Then we sum across pixels and get the number of people in each income</span>
-<span class="linenos">201</span>    <span class="c1"># group for given housing type</span>
-<span class="linenos">202</span>    <span class="n">job_simul</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">people_center</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">189</span>                        <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">contents_backyard</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="linenos">190</span>                        <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;fraction_z_dwellings&quot;</span><span class="p">])</span>
+<span class="linenos">191</span>                        <span class="o">*</span> <span class="p">((</span><span class="n">utility</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="linenos">192</span>                            <span class="o">/</span> <span class="p">(</span><span class="n">amenities</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="linenos">193</span>                               <span class="o">*</span> <span class="n">param_backyards_pockets</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="linenos">194</span>                               <span class="o">*</span> <span class="p">((</span><span class="n">dwelling_size</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;q0&quot;</span><span class="p">])</span>
+<span class="linenos">195</span>                                  <span class="o">**</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">])))</span>
+<span class="linenos">196</span>                           <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">])))</span>
+<span class="linenos">197</span>                    <span class="o">-</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]</span>
+<span class="linenos">198</span>                       <span class="o">*</span> <span class="p">(</span><span class="n">interest_rate</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;depreciation_rate&quot;</span><span class="p">]))</span>
+<span class="linenos">199</span>                    <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+<span class="linenos">200</span>                        <span class="n">fraction_capital_destroyed</span><span class="o">.</span><span class="n">structure_informal_backyards</span>
+<span class="linenos">201</span>                        <span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]))</span>
+<span class="linenos">202</span>                <span class="p">)</span>
 </pre></div>
 </div>
 <p>Also note that we ensure that the housing rent in the formal private sector is bigger than the agricultural rent:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">204</span>    <span class="k">if</span> <span class="n">housing_type</span> <span class="o">==</span> <span class="s1">&#39;formal&#39;</span><span class="p">:</span>
-<span class="linenos">205</span>        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">agricultural_rent</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">204</span>        <span class="n">R_mat</span><span class="p">[</span><span class="n">income_class_by_housing_type</span><span class="o">.</span><span class="n">backyard</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">205</span>
 </pre></div>
 </div>
 </div>
@@ -867,44 +867,44 @@
 <li><p>Land use</p></li>
 </ul>
 <p>This leads to the update of, among others, number of households per income class, expected income net of commuting costs, capital values of formal subsidized and informal dwelling units:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">83</span>             <span class="p">)</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">compute_average_income</span><span class="p">(</span>
-<span class="linenos">84</span>                <span class="n">spline_population_income_distribution</span><span class="p">,</span>
-<span class="linenos">85</span>                <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">year_temp</span><span class="p">)</span>
-<span class="linenos">86</span>            <span class="n">income_net_of_commuting_costs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
-<span class="linenos">87</span>                <span class="n">precalculated_transport</span> <span class="o">+</span> <span class="s2">&quot;GRID_incomeNetOfCommuting_&quot;</span>
-<span class="linenos">88</span>                <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">year_temp</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.npy&quot;</span><span class="p">)</span>
-<span class="linenos">89</span>            <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;subsidized_structure_value&quot;</span><span class="p">]</span>
-<span class="linenos">90</span>             <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;subsidized_structure_value_ref&quot;</span><span class="p">]</span>
-<span class="linenos">91</span>                  <span class="o">*</span> <span class="p">(</span><span class="n">spline_inflation</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span> <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
-<span class="linenos">92</span>            <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value&quot;</span><span class="p">]</span>
-<span class="linenos">93</span>             <span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;informal_structure_value_ref&quot;</span><span class="p">]</span>
-<span class="linenos">94</span>                  <span class="o">*</span> <span class="p">(</span><span class="n">spline_inflation</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span> <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
-<span class="linenos">95</span>            <span class="n">mean_income</span> <span class="o">=</span> <span class="n">spline_income</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">83</span>        type (4) at baseline year (2011)
+<span class="linenos">84</span>    fraction_capital_destroyed : DataFrame
+<span class="linenos">85</span>        Data frame of expected fractions of capital destroyed, for housing
+<span class="linenos">86</span>        structures and contents in different housing types, in each
+<span class="linenos">87</span>        grid cell (24,014)
+<span class="linenos">88</span>    amenities : ndarray(float64)
+<span class="linenos">89</span>        Normalized amenity index (relative to the mean) for each grid cell
+<span class="linenos">90</span>        (24,014)
+<span class="linenos">91</span>    housing_limit : Series
+<span class="linenos">92</span>        Maximum housing supply (in m² per km²) in each grid cell (24,014)
+<span class="linenos">93</span>    spline_estimate_RDP : interp1d
+<span class="linenos">94</span>        Linear interpolation for the grid-level number of formal subsidized
+<span class="linenos">95</span>        dwellings over the years (baseline year set at 0)
 </pre></div>
 </div>
 <p>Note that we also update the scale factor of the Cobb-Douglas housing production function so as to neutralize the impact that the inflation of incomes would have on housing supply through the rent <a class="footnote-reference brackets" href="#fmoney-illus" id="id31">22</a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">108</span>                <span class="p">(</span><span class="n">mean_income</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;income_year_reference&quot;</span><span class="p">])</span>
-<span class="linenos">109</span>                <span class="o">**</span> <span class="p">(</span><span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span>
-<span class="linenos">110</span>            <span class="p">)</span>
-<span class="linenos">111</span>            <span class="n">coeff_land</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_coeff_land</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">108</span>    <span class="n">income_class_by_housing_type</span> <span class="p">:</span> <span class="n">DataFrame</span>
+<span class="linenos">109</span>        <span class="n">Set</span> <span class="n">of</span> <span class="n">dummies</span> <span class="n">coding</span> <span class="k">for</span> <span class="n">housing</span> <span class="n">market</span> <span class="n">access</span> <span class="p">(</span><span class="n">across</span> <span class="mi">4</span> <span class="n">housing</span>
+<span class="linenos">110</span>        <span class="n">submarkets</span><span class="p">)</span> <span class="k">for</span> <span class="n">each</span> <span class="n">income</span> <span class="n">group</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="kn">from</span> <span class="nn">poorest</span> <span class="n">to</span> <span class="n">richest</span><span class="p">)</span>
+<span class="linenos">111</span>    <span class="n">precalculated_transport</span> <span class="p">:</span> <span class="nb">str</span>
 </pre></div>
 </div>
 <p>This is because we build a stable equilibrium model with rational agents. In particular, this requires to remove money illusion, that is the tendency of households to view their wealth and income in nominal terms, rather than in real terms.</p>
 <p>Also note that we are updating land availability coefficents, as they evolve through time, and agricultural rent, which also depends on the interest rate and the updated scale factor:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">112</span>                <span class="n">spline_land_constraints</span><span class="p">,</span> <span class="n">spline_land_backyard</span><span class="p">,</span>
-<span class="linenos">113</span>                <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">year_temp</span><span class="p">)</span>
-<span class="linenos">114</span>
-<span class="linenos">115</span>            <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">compute_agricultural_rent</span><span class="p">(</span>
-<span class="linenos">116</span>                <span class="n">spline_agricultural_rent</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
-<span class="linenos">117</span>                <span class="n">interest_rate</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-<span class="linenos">118</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">112</span>        <span class="n">Path</span> <span class="k">for</span> <span class="n">precalcuted</span> <span class="n">transport</span> <span class="n">inputs</span> <span class="p">(</span><span class="n">intermediate</span> <span class="n">outputs</span> <span class="kn">from</span>
+<span class="linenos">113</span>        <span class="nn">commuting</span> <span class="n">choice</span> <span class="n">model</span><span class="p">)</span>
+<span class="linenos">114</span>    <span class="n">spline_RDP</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">115</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">the</span> <span class="n">total</span> <span class="n">number</span> <span class="n">of</span> <span class="n">formal</span> <span class="n">subsidized</span>
+<span class="linenos">116</span>        <span class="n">dwellings</span> <span class="n">over</span> <span class="n">the</span> <span class="n">years</span> <span class="p">(</span><span class="n">baseline</span> <span class="n">year</span> <span class="nb">set</span> <span class="n">at</span> <span class="mi">0</span><span class="p">)</span>
+<span class="linenos">117</span>    <span class="n">spline_agricultural_price</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">118</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">the</span> <span class="n">agricultural</span> <span class="n">land</span> <span class="n">price</span> <span class="p">(</span><span class="ow">in</span> <span class="n">rands</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Then, we proceed in three steps. We first compute a new unconstrained equilibrium with the updated variables. We then compute the targeted difference between the final value of formal private housing supply at <span class="math notranslate nohighlight">\(t+1\)</span> and the one at at <span class="math notranslate nohighlight">\(t\)</span>, through the <code class="docutils literal notranslate"><span class="pre">evolution_housing_supply</span></code> function:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">135</span>                <span class="n">housing_limit</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">years_simulations</span><span class="p">[</span><span class="n">index_iter</span><span class="p">],</span>
-<span class="linenos">136</span>                <span class="n">years_simulations</span><span class="p">[</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">tmpi_housing_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
-<span class="linenos">137</span>                <span class="n">stat_temp_housing_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
-<span class="linenos">138</span>            <span class="c1"># We update the initial housing parameter as it will give the</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">135</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">overall</span> <span class="n">average</span> <span class="p">(</span><span class="n">annual</span><span class="p">)</span> <span class="n">income</span> <span class="n">over</span> <span class="n">the</span> <span class="n">years</span>
+<span class="linenos">136</span>        <span class="p">(</span><span class="n">baseline</span> <span class="n">year</span> <span class="nb">set</span> <span class="n">at</span> <span class="mi">0</span><span class="p">),</span> <span class="n">used</span> <span class="n">to</span> <span class="n">avoid</span> <span class="n">money</span> <span class="n">illusion</span> <span class="ow">in</span> <span class="n">future</span>
+<span class="linenos">137</span>        <span class="n">simulations</span> <span class="n">when</span> <span class="n">computing</span> <span class="n">the</span> <span class="n">housing</span> <span class="n">supply</span>
+<span class="linenos">138</span>        <span class="p">(</span><span class="n">see</span> <span class="n">equilibrium</span><span class="o">.</span><span class="n">run_simulations</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This law of motion reflects the fact that formal private housing stock (only) depreciates with time and that developers respond to price incentives with delay as in <span id="id32">Viguié and Hallegatte [<a class="reference internal" href="bibliography.html#id23" title="V. Viguié and S. Hallegatte. Trade-offs and synergies in urban climate policies. Nature Climate Change, 2:334-7, 2012.">2012</a>]</span>, hence might differ from the one computed as an unconstrained equilibrium. Formally, this corresponds to:</p>
@@ -913,16 +913,16 @@
 <div class="math notranslate nohighlight">
 \[\begin{split}= \begin{cases} \frac{s_{FP}^{eq}(x|t+1) - s_{FP}(x|t)}{\tau} - (\rho + \textcolor{green}{\rho_{FP}^{struct}(x)}) s_{FP}(x|t) &amp; \text{if $s_{FP}(x|t) &lt; s_{FP}^{eq}(x|t+1)$} \\ -(\rho + \textcolor{green}{\rho_{FP}^{struct}(x)}) s_{FP}(x|t) &amp; \text{if $s_{FP}(x|t) \geq s_{FP}^{eq}(x|t+1)$} \end{cases}\end{split}\]</div>
 <p>In the body of the <code class="docutils literal notranslate"><span class="pre">evolution_housing_supply</span></code> function, it translates into:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">229</span>        <span class="c1">#                 * (t1 - t0) / param[&quot;time_invest_housing&quot;]</span>
-<span class="linenos">230</span>        <span class="c1">#                 - housing_supply_0 * (t1 - t0)</span>
-<span class="linenos">231</span>        <span class="c1">#                 / param[&quot;time_depreciation_buildings&quot;])</span>
-<span class="linenos">232</span>        <span class="n">diff_housing</span> <span class="o">=</span> <span class="p">((</span><span class="n">housing_supply_1</span> <span class="o">-</span> <span class="n">housing_supply_0</span><span class="p">)</span>
-<span class="linenos">233</span>                        <span class="o">*</span> <span class="p">(</span><span class="n">housing_supply_1</span> <span class="o">&gt;</span> <span class="n">housing_supply_0</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">229</span>        <span class="n">year_inc</span><span class="p">[(</span><span class="n">year_inc</span> <span class="o">&gt;</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])]</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">]</span>
+<span class="linenos">230</span>        <span class="p">)</span> <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="linenos">231</span>    <span class="n">infla_schedule</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">noinfla_ref</span><span class="p">,</span> <span class="n">infla_ref</span><span class="p">)</span>
+<span class="linenos">232</span>    <span class="c1">#  Then we correct output from initial spline with inflation growth rates</span>
+<span class="linenos">233</span>    <span class="n">inc_year_infla</span> <span class="o">=</span> <span class="n">inc_ref</span> <span class="o">*</span> <span class="n">infla_schedule</span>
 </pre></div>
 </div>
 <p>Finally, we compute a new equilibrium under this constraint, which yields our final outputs at <span class="math notranslate nohighlight">\(t+1\)</span>. Concretely, we set the value of housing supply at <span class="math notranslate nohighlight">\(t+1\)</span> as being the sum of the housing supply at <span class="math notranslate nohighlight">\(t\)</span> plus the difference we just computed, and store it under the <code class="docutils literal notranslate"><span class="pre">housing_in</span></code> parameter (whose default value does not matter). In the body of the <code class="docutils literal notranslate"><span class="pre">run_simulations</span></code> function, it looks like:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">142</span>            <span class="o">+</span> <span class="n">deriv_housing_temp</span>
-<span class="linenos">143</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">142</span>    <span class="n">spline_fuel</span> <span class="p">:</span> <span class="n">interp1d</span>
+<span class="linenos">143</span>        <span class="n">Linear</span> <span class="n">interpolation</span> <span class="k">for</span> <span class="n">fuel</span> <span class="n">price</span> <span class="p">(</span><span class="ow">in</span> <span class="n">rands</span> <span class="n">per</span> <span class="n">km</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Then, we run the <code class="docutils literal notranslate"><span class="pre">compute_equilibrium</span></code> function with the modified option that developers do not adjust their housing supply anymore (so that <code class="docutils literal notranslate"><span class="pre">housing_supply</span> <span class="pre">=</span> <span class="pre">housing_in</span></code> in the body of the <code class="docutils literal notranslate"><span class="pre">compute_housing_supply_formal</span></code> function). All outputs will then be re-computed to correspond to this fixed target housing supply.</p>
