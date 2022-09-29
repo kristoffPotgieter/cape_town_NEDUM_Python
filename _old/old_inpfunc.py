@@ -19,7 +19,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # 0. Import land cover data (see R code for details?) / informal?
 
     #  General surface data on land use (urban, agricultural...)
-    land_use_data_old = pd.read_csv(
+    land_use_data = pd.read_csv(
         path_data + 'grid_NEDUM_Cape_Town_500.csv', sep=';')
 
     #  Surface data on scenarios for informal settlement building?
@@ -41,15 +41,15 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         sep=',')
 
     #  Nb of informal dwellings per pixel (realized scenario?)
-    informal_settlements_2020 = pd.read_excel(
+    informal_settlements_nearfuture = pd.read_excel(
         path_folder + 'Flood plains - from Claus/inf_dwellings_2020.xlsx')
     #  Why do we divide by the max % of buildable land? To account for risk?
-    informal_risks_2020 = (
-        informal_settlements_2020.inf_dwellings_2020
+    informal_risks_nearfuture = (
+        informal_settlements_nearfuture.inf_dwellings_2020
         * param["shack_size"] * (1 / param["max_land_use_settlement"]))
     #  We neglect building risks smaller than 1% of a pixel area (why?)
-    informal_risks_2020[informal_risks_2020 < area_pixel/100] = 0
-    informal_risks_2020[np.isnan(informal_risks_2020)] = 0
+    informal_risks_nearfuture[informal_risks_nearfuture < area_pixel/100] = 0
+    informal_risks_nearfuture[np.isnan(informal_risks_nearfuture)] = 0
 
     #  Is it a selection of pixels? On which criterion?
     polygon_medium_timing = pd.read_excel(
@@ -69,10 +69,10 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
 
     #  Share of pixel are with and without urban edge
     coeff_land_no_urban_edge = (
-        np.transpose(land_use_data_old.unconstrained_out)
-        + np.transpose(land_use_data_old.unconstrained_UE)) / area_pixel
+        np.transpose(land_use_data.unconstrained_out)
+        + np.transpose(land_use_data.unconstrained_UE)) / area_pixel
     coeff_land_urban_edge = np.transpose(
-        land_use_data_old.unconstrained_UE) / area_pixel
+        land_use_data.unconstrained_UE) / area_pixel
 
     # 2. Backyard???
     #  We get share of pixel backyard area by reweighting total area by the
@@ -81,7 +81,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                      / (param["backyard_size"] + param["RDP_size"])
                      / area_pixel)
     #  Share of pixel urban land
-    urban = np.transpose(land_use_data_old.urban) / area_pixel
+    urban = np.transpose(land_use_data.urban) / area_pixel
     #  We consider that the potential for backyard building cannot exceed that
     #  of urban area?
     coeff_land_backyard = np.fmin(urban, area_backyard)
@@ -112,7 +112,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
                 / (param["backyard_size"] + param["RDP_size"])
                 / area_pixel)
     #  Why do we weight by closeness to the center? Are we mixing data years?
-    number_properties_2000 = (
+    number_properties_retrospect = (
         data_rdp["count"]
         * (1 - grid.dist / max(grid.dist[data_rdp["count"] > 0]))
         )
@@ -124,18 +124,18 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     year_RDP = np.arange(year_begin_RDP, 2040) - param["baseline_year"]
 
     #  We take total population in RDP at baseline year
-    RDP_2011 = housing_type_data[3]
+    RDP_baseline = housing_type_data[3]
     #  We take estimate for total population in RDP in 2001 (why?)
     #  (estimated as sum(data.gridFormal(data.countRDPfromGV > 0)))  % 262452;
     #  % Estimated by nb inc_1 - BY - settlement in 2001
-    RDP_2001 = 1.1718e+05
+    RDP_restrospect = 1.1718e+05
     #  We compute linear regression spline for 4 years centered around baseline
     #  Where does growth rate come from? Set as parameter?
     spline_RDP = interp1d(
         [2001 - param["baseline_year"], 2011 - param["baseline_year"],
          2020 - param["baseline_year"], 2041 - param["baseline_year"]],
-        [RDP_2001, RDP_2011, RDP_2011 + 9*5000,
-         RDP_2011 + 9*5000 + 21 * param["future_rate_public_housing"]],
+        [RDP_restrospect, RDP_baseline, RDP_baseline + 9*5000,
+         RDP_baseline + 9*5000 + 21 * param["future_rate_public_housing"]],
         'linear'
         )
     #  Captures the outcome of the function
@@ -251,7 +251,7 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     spline_estimate_RDP = interp1d(
         year_data_informal,
         np.transpose(
-            [number_properties_2000,
+            [number_properties_retrospect,
              RDP_houses_estimates,
              RDP_houses_estimates + construction_rdp.total_yield_DU_ST,
              RDP_houses_estimates + construction_rdp.total_yield_DU_ST
@@ -262,58 +262,58 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     # 1. Informal?
 
     #  We get pixel share for informal settlement area
-    informal_2011 = np.transpose(land_use_data_old.informal) / area_pixel
+    informal_baseline = np.transpose(land_use_data.informal) / area_pixel
 
     #  We consider construction risk as the higher bound between initial
     #  conditions and prospective scenario
-    informal_2020 = np.fmax(informal_risks_2020 / area_pixel, informal_2011)
+    informal_nearfuture = np.fmax(informal_risks_nearfuture / area_pixel, informal_baseline)
 
     #  We also get area for high risk scenario
     high_proba = informal_risks_VERYHIGH.area + informal_risks_HIGH.area
 
     #  We consider some scenario for 2023 (?) and correct for RDP construction
     #  (why?)
-    informal_2023 = np.fmin(
+    informal_midshort_fut = np.fmin(
         coeff_land_no_urban_edge,
         np.fmax(
-            informal_2020,
+            informal_nearfuture,
             np.transpose(np.fmin(informal_risks_short.area, high_proba))
             / area_pixel
             )
         ) - spline_land_RDP(12)
-    informal_2023[informal_2023 < 0] = 0
+    informal_midshort_fut[informal_midshort_fut < 0] = 0
 
     #  We do the same for 2025
-    informal_2025 = np.fmin(
+    informal_midlong_fut = np.fmin(
         coeff_land_no_urban_edge,
         np.fmax(
-            informal_2023,
+            informal_midshort_fut,
             np.transpose(np.fmin(informal_risks_medium.area, high_proba))
             / area_pixel
             )
         ) - spline_land_RDP(14)
-    informal_2025[informal_2025 < 0] = 0
+    informal_midlong_fut[informal_midlong_fut < 0] = 0
 
     #  And again for 2030
-    informal_2030 = np.fmin(
+    informal_long_fut = np.fmin(
         coeff_land_no_urban_edge,
         np.fmax(
-            informal_2025,
+            informal_midlong_fut,
             np.transpose(np.fmin(informal_risks_long.area, high_proba))
             / area_pixel
             )
         ) - spline_land_RDP(19)
-    informal_2030[informal_2030 < 0] = 0
+    informal_long_fut[informal_long_fut < 0] = 0
 
     #  Finally, we take into account potential land constraints
     if options["informal_land_constrained"] == 0:
         spline_land_informal = interp1d(
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 14, 19, 29],
             np.transpose(
-                [informal_2011, informal_2011, informal_2011, informal_2011,
-                 informal_2011, informal_2011, informal_2011, informal_2011,
-                 informal_2011, informal_2020, informal_2023, informal_2025,
-                 informal_2030, informal_2030]
+                [informal_baseline, informal_baseline, informal_baseline, informal_baseline,
+                 informal_baseline, informal_baseline, informal_baseline, informal_baseline,
+                 informal_baseline, informal_nearfuture, informal_midshort_fut, informal_midlong_fut,
+                 informal_long_fut, informal_long_fut]
                 ),
             'linear'
             )
@@ -321,10 +321,10 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
         spline_land_informal = interp1d(
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 14, 19, 29],
             np.transpose(
-                [informal_2011, informal_2011, informal_2011, informal_2011,
-                 informal_2011, informal_2011, informal_2011, informal_2011,
-                 informal_2011, informal_2020, informal_2020, informal_2020,
-                 informal_2020, informal_2020]
+                [informal_baseline, informal_baseline, informal_baseline, informal_baseline,
+                 informal_baseline, informal_baseline, informal_baseline, informal_baseline,
+                 informal_baseline, informal_nearfuture, informal_nearfuture, informal_nearfuture,
+                 informal_nearfuture, informal_nearfuture]
                 ),
             'linear'
             )
@@ -335,11 +335,11 @@ def import_land_use(grid, options, param, data_rdp, housing_types,
     #  the coefficients from other types of housing and taking into account
     #  that not all land is available for housing (w/ and w/o/ urban edge)
     coeff_land_private_urban_edge = (
-        coeff_land_urban_edge - informal_2011 - area_RDP
+        coeff_land_urban_edge - informal_baseline - area_RDP
         - np.fmax(area_backyard, actual_backyards)
         ) * param["max_land_use"]
     coeff_land_private_no_urban_edge = (
-        coeff_land_no_urban_edge - informal_2011 - area_RDP
+        coeff_land_no_urban_edge - informal_baseline - area_RDP
         - np.fmax(area_backyard, actual_backyards)
         ) * param["max_land_use"]
     coeff_land_private_urban_edge[coeff_land_private_urban_edge < 0] = 0

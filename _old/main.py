@@ -163,7 +163,7 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 #  See appendix A1 for income group and housing type definitions
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011, households_per_income_and_housing
+ income_baseline, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
@@ -254,7 +254,7 @@ elif options["agents_anticipate_floods"] == 0:
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
+ ) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios,
                             options)
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
@@ -587,7 +587,7 @@ if options["run_calib"] == 1:
                  income_class_by_housing_type,
                  minimum_housing_supply,
                  param["coeff_A"],
-                 income_2011)
+                 income_baseline)
 
             # We fill output matrix with the total number of HHs per housing
             # type for given values of backyard and informal amenity parameters
@@ -686,7 +686,7 @@ if options["run_calib"] == 1:
              income_class_by_housing_type,
              minimum_housing_supply,
              param["coeff_A"],
-             income_2011)
+             income_baseline)
 
         print("\n** ITERATIONS **")
 
@@ -761,7 +761,7 @@ if options["run_calib"] == 1:
                  coeff_land, income_net_of_commuting_costs, grid, options,
                  agricultural_rent, interest_rate, number_properties_RDP,
                  average_income, mean_income, income_class_by_housing_type,
-                 minimum_housing_supply, param["coeff_A"], income_2011)
+                 minimum_housing_supply, param["coeff_A"], income_baseline)
 
             time_elapsed = time.process_time() - debut_iterations_time
             iteration_number = index + 1
@@ -845,7 +845,7 @@ print("Compute initial state")
      income_class_by_housing_type,
      minimum_housing_supply,
      param["coeff_A"],
-     income_2011)
+     income_baseline)
 
 # Reminder: income groups are ranked from poorer to richer, and housing types
 # follow the following order: formal-backyard-informal-RDP
@@ -961,7 +961,7 @@ print("Compute simulations")
      spline_income,
      spline_minimum_housing_supply,
      spline_fuel,
-     income_2011
+     income_baseline
      )
 
 # Save outputs

@@ -620,7 +620,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">income_class_by_housing_type</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_hypothesis_housing_type</span><span class="p">()</span>
 
 <span class="p">(</span><span class="n">mean_income</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span> <span class="n">income_mult</span><span class="p">,</span>
- <span class="n">income_2011</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span>
+ <span class="n">income_baseline</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span>
  <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_income_classes_data</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">path_data</span><span class="p">)</span>
 
 <span class="c1"># NB: we create this parameter to maintain money illusion in simulations</span>
@@ -779,7 +779,7 @@ Formal backyard structures (two floors)
  <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
  <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
  <span class="n">spline_income</span><span class="p">,</span> <span class="n">spline_minimum_housing_supply</span><span class="p">,</span> <span class="n">spline_fuel</span>
- <span class="p">)</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">import_scenarios</span><span class="p">(</span><span class="n">income_2011</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">import_scenarios</span><span class="p">(</span><span class="n">income_baseline</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
                             <span class="n">options</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2166,7 +2166,7 @@ amenity_map done
              <span class="n">income_class_by_housing_type</span><span class="p">,</span>
              <span class="n">minimum_housing_supply</span><span class="p">,</span>
              <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span>
-             <span class="n">income_2011</span><span class="p">)</span>
+             <span class="n">income_baseline</span><span class="p">)</span>
 
         <span class="c1"># We fill output matrix with the total number of HHs per housing</span>
         <span class="c1"># type for given values of backyard and informal amenity parameters</span>
@@ -2702,7 +2702,7 @@ amenity_settlement = 0.62
          <span class="n">income_class_by_housing_type</span><span class="p">,</span>
          <span class="n">minimum_housing_supply</span><span class="p">,</span>
          <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span>
-         <span class="n">income_2011</span><span class="p">)</span>
+         <span class="n">income_baseline</span><span class="p">)</span>
 
     <span class="c1"># We set the maximum number of iterations</span>
     <span class="n">number_total_iterations</span> <span class="o">=</span> <span class="n">index_max</span>
@@ -2787,7 +2787,7 @@ amenity_settlement = 0.62
              <span class="n">coeff_land</span><span class="p">,</span> <span class="n">income_net_of_commuting_costs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span>
              <span class="n">agricultural_rent</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span> <span class="n">number_properties_RDP</span><span class="p">,</span>
              <span class="n">average_income</span><span class="p">,</span> <span class="n">mean_income</span><span class="p">,</span> <span class="n">income_class_by_housing_type</span><span class="p">,</span>
-             <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">income_2011</span><span class="p">)</span>
+             <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span> <span class="n">income_baseline</span><span class="p">)</span>
 
         <span class="n">iteration_number</span> <span class="o">=</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
 

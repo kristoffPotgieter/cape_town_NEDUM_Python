@@ -144,7 +144,29 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="inputs.parameters_and_options.compute_agricultural_rent">
 <span class="sig-prename descclassname"><span class="pre">inputs.parameters_and_options.</span></span><span class="sig-name descname"><span class="pre">compute_agricultural_rent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_fact</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/inputs/parameters_and_options.html#compute_agricultural_rent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#inputs.parameters_and_options.compute_agricultural_rent" title="Permalink to this definition"></a></dt>
-<dd><p>Convert land price into real estate price for land.</p>
+<dd><p>Convert agricultural land price into theoretical annual housing rent.</p>
+<p>The conversion leverages the zero profit condition for formal private
+developers in equilibrium.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rent</strong> (<em>float</em>) – Parametric agricultural land price at baseline year (2011)</p></li>
+<li><p><strong>scale_fact</strong> (<em>float</em>) – (Calibrated) scale factor for the construction function of
+formal private developers</p></li>
+<li><p><strong>interest_rate</strong> (<em>float</em>) – Parametric interest rate at baseline year (computed as the
+average over previous years)</p></li>
+<li><p><strong>param</strong> (<em>dict</em>) – Dictionary of default parameters</p></li>
+<li><p><strong>options</strong> (<em>dict</em>) – Dictionary of default options</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>agricultural_rent</strong> – Theoretical agricultural (annual) rent (corresponds to opportunity
+cost of non-urbanized land)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float64</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -561,11 +583,11 @@ out of employment, for 4 groups)</p></li>
 <li><p><strong>average_income</strong> (<em>ndarray(float64)</em>) – Average median income for each income group in the model (4)</p></li>
 <li><p><strong>income_mult</strong> (<em>ndarray(float64)</em>) – Ratio of income-group-specific average income over global average
 income</p></li>
-<li><p><strong>income_2011</strong> (<em>DataFrame</em>) – Table summarizing, for each income group in the data (12, including
+<li><p><strong>income_baseline</strong> (<em>DataFrame</em>) – Table summarizing, for each income group in the data (12, including
 people out of employment), the number of households living in each
 endogenous housing type (3), their total number at baseline year (2011)
-and in 2001, as well as the distribution of their average income
-(at baseline year)</p></li>
+in retrospect (2001), as well as the distribution of their average
+income (at baseline year)</p></li>
 <li><p><strong>households_per_income_and_housing</strong> (<em>ndarray(float64, ndim=2)</em>) – Exogenous number of households per income group (4, from poorest to
 richest) in each endogenous housing type (3: formal private,
 informal backyards, informal settlements), from SP-level data</p></li>
@@ -829,12 +851,100 @@ chosen)</p></li>
 <h2>Equilibrium<a class="headerlink" href="#equilibrium" title="Permalink to this heading"></a></h2>
 <div class="section" id="module-equilibrium.compute_equilibrium">
 <span id="compute-equilibrium"></span><h3>Compute equilibrium<a class="headerlink" href="#module-equilibrium.compute_equilibrium" title="Permalink to this heading"></a></h3>
-<p>Created on Mon Nov  2 11:21:21 2020.</p>
-<p>&#64;author: Charlotte Liotta</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="equilibrium.compute_equilibrium.compute_equilibrium">
-<span class="sig-prename descclassname"><span class="pre">equilibrium.compute_equilibrium.</span></span><span class="sig-name descname"><span class="pre">compute_equilibrium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_land</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_properties_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construction_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_2011</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/compute_equilibrium.html#compute_equilibrium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.compute_equilibrium.compute_equilibrium" title="Permalink to this definition"></a></dt>
-<dd><p>Determine static equilibrium allocation from iterative algorithm.</p>
+<span class="sig-prename descclassname"><span class="pre">equilibrium.compute_equilibrium.</span></span><span class="sig-name descname"><span class="pre">compute_equilibrium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_per_income_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_land</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_net_of_commuting_costs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_properties_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construction_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_baseline</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/compute_equilibrium.html#compute_equilibrium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.compute_equilibrium.compute_equilibrium" title="Permalink to this definition"></a></dt>
+<dd><p>Run the static equilibrium algorithm.</p>
+<p>This function runs the algorithm described in the technical documentation.
+It starts from arbitrary utility levels, and leverages optimality
+conditions on supply and demand to recover key output variables
+(detailed in equilibrium.sub.compute_outputs). Then, it updates utility
+levels to minimize the error between simulated and target number of
+households per income group. Note that the whole process abstracts from
+formal subsidised housing (fully exogenous in the model), that is added
+to final outputs at the end of the function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fraction_capital_destroyed</strong> (<em>DataFrame</em>) – Data frame of expected fractions of capital destroyed, for housing
+structures and contents in different housing types, in each
+grid cell (24,014)</p></li>
+<li><p><strong>amenities</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>)</em>) – Normalized amenity index (relative to the mean) for each grid cell
+(24,014)</p></li>
+<li><p><strong>param</strong> (<em>dict</em>) – Dictionary of default parameters</p></li>
+<li><p><strong>housing_limit</strong> (<em>Series</em>) – Maximum housing supply (in m² per km²) in each grid cell (24,014)</p></li>
+<li><p><strong>population</strong> (<em>int64</em>) – Total number of households in the city (from Small-Area-Level data)</p></li>
+<li><p><strong>households_per_income_class</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>)</em>) – Exogenous total number of households per income group (excluding people
+out of employment, for 4 groups)</p></li>
+<li><p><strong>total_RDP</strong> (<em>int</em>) – Number of households living in formal subsidized housing (from SAL
+data)</p></li>
+<li><p><strong>coeff_land</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>, </em><em>ndim=2</em><em>)</em>) – Updated land availability for each grid cell (24,014) and each
+housing type (4: formal private, informal backyards, informal
+settlements, formal subsidized)</p></li>
+<li><p><strong>income_net_of_commuting_costs</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>, </em><em>ndim=2</em><em>)</em>) – Expected annual income net of commuting costs (in rands, for
+one household), for each geographic unit, by income group (4)</p></li>
+<li><p><strong>grid</strong> (<em>DataFrame</em>) – Table yielding, for each grid cell (24,014), its x and y
+(centroid) coordinates, and its distance (in km) to the city centre</p></li>
+<li><p><strong>options</strong> (<em>dict</em>) – Dictionary of default options</p></li>
+<li><p><strong>agricultural_rent</strong> (<em>float64</em>) – Annual housing rent below which it is not profitable for formal private
+developers to urbanize (agricultural) land: endogenously limits urban
+sprawl</p></li>
+<li><p><strong>interest_rate</strong> (<em>float64</em>) – Interest rate for the overall economy, corresponding to an average
+over past years</p></li>
+<li><p><strong>number_properties_RDP</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>)</em>) – Number of formal subsidized dwellings per grid cell (24,014) at
+baseline year (2011)</p></li>
+<li><p><strong>average_income</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>)</em>) – Average median income for each income group in the model (4)</p></li>
+<li><p><strong>mean_income</strong> (<em>float64</em>) – Average median income across total population</p></li>
+<li><p><strong>income_class_by_housing_type</strong> (<em>DataFrame</em>) – Set of dummies coding for housing market access (across 4 housing
+submarkets) for each income group (4, from poorest to richest)</p></li>
+<li><p><strong>minimum_housing_supply</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>)</em>) – Minimum housing supply (in m²) for each grid cell (24,014), allowing
+for an ad hoc correction of low values in Mitchells Plain</p></li>
+<li><p><strong>construction_param</strong> (<em>ndarray</em><em>(</em><em>float64</em><em>)</em>) – (Calibrated) scale factor for the construction function of formal
+private developers</p></li>
+<li><p><strong>income_baseline</strong> (<em>DataFrame</em>) – Table summarizing, for each income group in the data (12, including
+people out of employment), the number of households living in each
+endogenous housing type (3), their total number at baseline year (2011)
+in retrospect (2001), as well as the distribution of their average
+income (at baseline year)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>initial_state_utility</strong> (<em>ndarray(float64)</em>) – Utility levels for each income group (4) at baseline year
+(2011)</p></li>
+<li><p><strong>initial_state_error</strong> (<em>ndarray(float64)</em>) – Ratio (in %) of simulated number of households per income group over
+target population per income group at baseline year (2011)</p></li>
+<li><p><strong>initial_state_simulated_jobs</strong> (<em>ndarray(float64, ndim=2)</em>) – Total number of households in each income group (4) in each
+endogenous housing type (3: formal private, informal backyards,
+informal settlements) at baseline year (2011)</p></li>
+<li><p><strong>initial_state_households_housing_types</strong> (<em>ndarray(float64, ndim=2)</em>) – Number of households per grid cell in each housing type (4)
+at baseline year (2011)</p></li>
+<li><p><strong>initial_state_household_centers</strong> (<em>ndarray(float64, ndim=2)</em>) – Number of households per grid cell in each income group (4)
+at baseline year (2011)</p></li>
+<li><p><strong>initial_state_households</strong> (<em>ndarray(float64, ndim=3)</em>) – Number of households per grid cell in each income group (4) and
+each housing type (4) at baseline year (2011)</p></li>
+<li><p><strong>initial_state_dwelling_size</strong> (<em>ndarray(float64, ndim=2)</em>) – Average dwelling size (in m²) per grid cell in each housing
+type (4) at baseline year (2011)</p></li>
+<li><p><strong>initial_state_housing_supply</strong> (<em>ndarray(float64, ndim=2)</em>) – Housing supply per unit of available land (in m² per km²)
+for each housing type (4) in each grid cell at baseline year (2011)</p></li>
+<li><p><strong>initial_state_rent</strong> (<em>ndarray(float64, ndim=2)</em>) – Average annual rent (in rands) per grid cell for each housing type
+(4) at baseline year (2011)</p></li>
+<li><p><strong>initial_state_rent_matrix</strong> (<em>ndarray(float64, ndim=3)</em>) – Average annual willingness to pay (in rands) per grid cell
+for each income group (4) and each endogenous housing type (3)
+at baseline year (2011)</p></li>
+<li><p><strong>initial_state_capital_land</strong> (<em>ndarray(float64, ndim=2)</em>) – Value (in rands) of the housing capital stock per unit of available
+land (in km²) for each endogenous housing type (3) per grid cell
+at baseline year (2011)</p></li>
+<li><p><strong>initial_state_average_income</strong> (<em>ndarray(float64)</em>) – Not an output of the model per se : it is just the average median
+income for each income group in the model (4), that may change
+over time</p></li>
+<li><p><strong>initial_state_limit_city</strong> (<em>list</em>) – Contains a ndarray(bool, ndim=3) of indicator dummies for having
+strictly more than one household per housing type and income group
+in each grid cell</p></li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -844,7 +954,7 @@ chosen)</p></li>
 <p>&#64;author: Charlotte Liotta</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="equilibrium.run_simulations.run_simulation">
-<span class="sig-prename descclassname"><span class="pre">equilibrium.run_simulations.</span></span><span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_household_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_estimate_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precalculated_transport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_fuel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_2011</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/run_simulations.html#run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.run_simulations.run_simulation" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">equilibrium.run_simulations.</span></span><span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_households_housing_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_household_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_average_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state_dwelling_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_capital_destroyed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amenities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">housing_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_estimate_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_backyard</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_land_informal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_class_by_housing_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precalculated_transport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_RDP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_agricultural_rent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_interest_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_inflation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_minimum_housing_supply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_fuel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">income_baseline</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/run_simulations.html#run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.run_simulations.run_simulation" title="Permalink to this definition"></a></dt>
 <dd><p>Run simulations over several years according to scenarios.</p>
 </dd></dl>
 
@@ -867,7 +977,7 @@ chosen)</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="equilibrium.functions_dynamic.import_scenarios">
-<span class="sig-prename descclassname"><span class="pre">equilibrium.functions_dynamic.</span></span><span class="sig-name descname"><span class="pre">import_scenarios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">income_2011</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_scenarios</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/functions_dynamic.html#import_scenarios"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.functions_dynamic.import_scenarios" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">equilibrium.functions_dynamic.</span></span><span class="sig-name descname"><span class="pre">import_scenarios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">income_baseline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_scenarios</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/equilibrium/functions_dynamic.html#import_scenarios"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#equilibrium.functions_dynamic.import_scenarios" title="Permalink to this definition"></a></dt>
 <dd><p>Return linear regression splines for various scenarios.</p>
 </dd></dl>
 

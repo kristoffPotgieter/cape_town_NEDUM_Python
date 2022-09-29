@@ -11,7 +11,7 @@ import numpy as np
 import numpy.matlib
 
 
-def import_scenarios(income_2011, param, grid, path_scenarios,
+def import_scenarios(income_baseline, param, grid, path_scenarios,
                      options):
     """Return linear regression splines for various scenarios."""
     # Import Scenarios
@@ -54,8 +54,8 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
     # Spline for population by income group in raw data
     spline_population_income_distribution = interp1d(
         np.array([2001, 2011, 2040]) - param["baseline_year"],
-        np.transpose([income_2011.Households_nb_2001,
-                      income_2011.Households_nb,
+        np.transpose([income_baseline.Households_nb_2001,
+                      income_baseline.Households_nb,
                       scenario_income_distribution.Households_nb_2040]),
         'linear')
 
@@ -71,7 +71,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
     # Spline for median income by income group in raw data
     #  We initialize the vector for years 1996, 2001, 2011, and 2040
     income_distribution = np.array(
-        [income_2011.INC_med, income_2011.INC_med, income_2011.INC_med,
+        [income_baseline.INC_med, income_baseline.INC_med, income_baseline.INC_med,
          scenario_income_distribution.INC_med_2040]
         )
     #  After 2011, for each income group, we multiply the baseline by inflation
@@ -120,7 +120,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
 
     # Spline for agricultural rent
     #  We get missing value for 2040 by accounting for inflation
-    agricultural_rent_2040 = (param["agricultural_rent_2011"]
+    agricultural_rent_2040 = (param["agricultural_price_2011"]
                               * spline_inflation(2040 - param["baseline_year"])
                               / spline_inflation(2011 - param["baseline_year"])
                               )
@@ -129,8 +129,8 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
         [2001 - param["baseline_year"],
          2011 - param["baseline_year"],
          2040 - param["baseline_year"]],
-        [param["agricultural_rent_2001"],
-         param["agricultural_rent_2011"],
+        [param["agricultural_price_2001"],
+         param["agricultural_price_2011"],
          agricultural_rent_2040],
         'linear')
 
@@ -147,11 +147,11 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
     # Spline for overall average income
     #  We first get initial values
     average_income_2001 = np.sum(
-        income_2011.Households_nb_2001 * income_2011.INC_med
-        ) / sum(income_2011.Households_nb_2001)
-    average_income_2011 = np.sum(
-        income_2011.Households_nb * income_2011.INC_med
-        ) / sum(income_2011.Households_nb)
+        income_baseline.Households_nb_2001 * income_baseline.INC_med
+        ) / sum(income_baseline.Households_nb_2001)
+    average_income_baseline = np.sum(
+        income_baseline.Households_nb * income_baseline.INC_med
+        ) / sum(income_baseline.Households_nb)
     average_income_2040 = np.sum(
         scenario_income_distribution.Households_nb_2040
         * scenario_income_distribution.INC_med_2040
@@ -163,7 +163,7 @@ def import_scenarios(income_2011, param, grid, path_scenarios,
     #  We get initial spline (not taking inflation into account)
     inc_year_noinfla = interp1d(
         np.array([2001, 2011, 2040]) - param["baseline_year"],
-        [average_income_2001, average_income_2011, average_income_2040],
+        [average_income_2001, average_income_baseline, average_income_2040],
         'linear')
     #  We stock it into an array with the right number of periods
     inc_ref = inc_year_noinfla(

@@ -86,7 +86,7 @@ income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 # See appendix A1
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011, households_per_income_and_housing
+ income_baseline, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
@@ -167,7 +167,7 @@ elif options["agents_anticipate_floods"] == 0:
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios)
 
 #  Import income net of commuting costs, as calibrated in Pfeiffer et al.
 #  (see part 3.1 or appendix C3)
@@ -330,7 +330,7 @@ job_centers = calemp.import_employment_data(
                                    path_precalc_inp, path_precalc_transp, 'SP')
 # (timeOutput, distanceOutput, monetaryCost, costTime
 #  ) = calcmpt.import_transport_costs(
-#      income_2011, param, grid, path_precalc_inp, path_scenarios)
+#      income_baseline, param, grid, path_precalc_inp, path_scenarios)
 
 
 # Note that this is long to run

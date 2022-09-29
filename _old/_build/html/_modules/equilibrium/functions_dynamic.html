@@ -85,7 +85,7 @@
 <span class="kn">import</span> <span class="nn">numpy.matlib</span>
 
 
-<div class="viewcode-block" id="import_scenarios"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.import_scenarios">[docs]</a><span class="k">def</span> <span class="nf">import_scenarios</span><span class="p">(</span><span class="n">income_2011</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
+<div class="viewcode-block" id="import_scenarios"><a class="viewcode-back" href="../../api_ref.html#equilibrium.functions_dynamic.import_scenarios">[docs]</a><span class="k">def</span> <span class="nf">import_scenarios</span><span class="p">(</span><span class="n">income_baseline</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
                      <span class="n">options</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return linear regression splines for various scenarios.&quot;&quot;&quot;</span>
     <span class="c1"># Import Scenarios</span>
@@ -130,8 +130,8 @@
     <span class="c1"># Spline for population by income group in raw data</span>
     <span class="n">spline_population_income_distribution</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2011</span><span class="p">,</span> <span class="mi">2040</span><span class="p">])</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb_2001</span><span class="p">,</span>
-                      <span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb_2001</span><span class="p">,</span>
+                      <span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">,</span>
                       <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">Households_nb_2040</span><span class="p">]),</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
@@ -147,7 +147,7 @@
     <span class="c1"># Spline for median income by income group in raw data</span>
     <span class="c1">#  We initialize the vector for years 1996, 2001, 2011, and 2040</span>
     <span class="n">income_distribution</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">income_2011</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_2011</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_2011</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span><span class="p">,</span>
          <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">INC_med_2040</span><span class="p">]</span>
         <span class="p">)</span>
     <span class="c1">#  After 2011, for each income group, we multiply the baseline by inflation</span>
@@ -196,7 +196,7 @@
 
     <span class="c1"># Spline for agricultural rent</span>
     <span class="c1">#  We get missing value for 2040 by accounting for inflation</span>
-    <span class="n">agricultural_rent_2040</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_rent_2011&quot;</span><span class="p">]</span>
+    <span class="n">agricultural_rent_2040</span> <span class="o">=</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">]</span>
                               <span class="o">*</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">2040</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])</span>
                               <span class="o">/</span> <span class="n">spline_inflation</span><span class="p">(</span><span class="mi">2011</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">])</span>
                               <span class="p">)</span>
@@ -205,8 +205,8 @@
         <span class="p">[</span><span class="mi">2001</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
          <span class="mi">2011</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
          <span class="mi">2040</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">]],</span>
-        <span class="p">[</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_rent_2001&quot;</span><span class="p">],</span>
-         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_rent_2011&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2001&quot;</span><span class="p">],</span>
+         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;agricultural_price_2011&quot;</span><span class="p">],</span>
          <span class="n">agricultural_rent_2040</span><span class="p">],</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 
@@ -223,11 +223,11 @@
     <span class="c1"># Spline for overall average income</span>
     <span class="c1">#  We first get initial values</span>
     <span class="n">average_income_2001</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb_2001</span> <span class="o">*</span> <span class="n">income_2011</span><span class="o">.</span><span class="n">INC_med</span>
-        <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb_2001</span><span class="p">)</span>
-    <span class="n">average_income_2011</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb</span> <span class="o">*</span> <span class="n">income_2011</span><span class="o">.</span><span class="n">INC_med</span>
-        <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">)</span>
+        <span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb_2001</span> <span class="o">*</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb_2001</span><span class="p">)</span>
+    <span class="n">average_income_baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+        <span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span> <span class="o">*</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">INC_med</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">)</span>
     <span class="n">average_income_2040</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
         <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">Households_nb_2040</span>
         <span class="o">*</span> <span class="n">scenario_income_distribution</span><span class="o">.</span><span class="n">INC_med_2040</span>
@@ -239,7 +239,7 @@
     <span class="c1">#  We get initial spline (not taking inflation into account)</span>
     <span class="n">inc_year_noinfla</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2011</span><span class="p">,</span> <span class="mi">2040</span><span class="p">])</span> <span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;baseline_year&quot;</span><span class="p">],</span>
-        <span class="p">[</span><span class="n">average_income_2001</span><span class="p">,</span> <span class="n">average_income_2011</span><span class="p">,</span> <span class="n">average_income_2040</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">average_income_2001</span><span class="p">,</span> <span class="n">average_income_baseline</span><span class="p">,</span> <span class="n">average_income_2040</span><span class="p">],</span>
         <span class="s1">&#39;linear&#39;</span><span class="p">)</span>
     <span class="c1">#  We stock it into an array with the right number of periods</span>
     <span class="n">inc_ref</span> <span class="o">=</span> <span class="n">inc_year_noinfla</span><span class="p">(</span>

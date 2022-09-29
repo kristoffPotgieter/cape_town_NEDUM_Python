@@ -30,7 +30,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                    spline_population_income_distribution, spline_inflation,
                    spline_income_distribution, spline_population,
                    spline_income,
-                   spline_minimum_housing_supply, spline_fuel, income_2011):
+                   spline_minimum_housing_supply, spline_fuel, income_baseline):
     """Run simulations over several years according to scenarios."""
     # Parameters and options of the scenario
 
@@ -127,7 +127,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 income_net_of_commuting_costs, grid, options,
                 agricultural_rent, interest_rate, number_properties_RDP,
                 average_income, mean_income, income_class_by_housing_type,
-                minimum_housing_supply, construction_param, income_2011)
+                minimum_housing_supply, construction_param, income_baseline)
 
             # Estimation of the derivation of housing supply between t and t+1
             # (only for formal housing)
@@ -159,7 +159,7 @@ def run_simulation(t, options, param, grid, initial_state_utility,
                 income_net_of_commuting_costs, grid, options,
                 agricultural_rent, interest_rate, number_properties_RDP,
                 average_income, mean_income, income_class_by_housing_type,
-                minimum_housing_supply, construction_param, income_2011)
+                minimum_housing_supply, construction_param, income_baseline)
 
             # stat_temp_utility = copy.deepcopy(tmpi_utility)
             stat_temp_deriv_housing = copy.deepcopy(deriv_housing_temp)

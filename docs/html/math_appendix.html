@@ -130,10 +130,10 @@
 <li><p><span class="math notranslate nohighlight">\(\textcolor{orange}{\eta_{xcij}}\)</span> also follows a Gumbel minimum distribution of mean <span class="math notranslate nohighlight">\(0\)</span> and scale parameter <span class="math notranslate nohighlight">\(\frac{1}{\lambda}\)</span>.</p></li>
 </ul>
 <p>In <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, this is imported with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1475</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-<span class="linenos">1476</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type4a</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span>
-<span class="linenos">1477</span>             <span class="n">options</span><span class="p">)</span>
-<span class="linenos">1478</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal subsidized structures (two floors)&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1475</span>    <span class="p">(</span><span class="n">structural_damages_small_houses</span><span class="p">,</span> <span class="n">structural_damages_medium_houses</span><span class="p">,</span>
+<span class="linenos">1476</span>     <span class="n">structural_damages_large_houses</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span>
+<span class="linenos">1477</span>     <span class="n">structural_damages_type1</span><span class="p">,</span> <span class="n">structural_damages_type2</span><span class="p">,</span>
+<span class="linenos">1478</span>     <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="n">structural_damages_type3b</span><span class="p">,</span>
 </pre></div>
 </div>
 <p>Given their residential location <span class="math notranslate nohighlight">\(x\)</span>, workers choose the workplace location <span class="math notranslate nohighlight">\(c\)</span> that <strong>maximizes their income net of commuting costs</strong>:</p>
@@ -146,25 +146,25 @@
 <div class="math notranslate nohighlight">
 \[\pi_{c|ix} = \frac{exp[\lambda y_{ic} + log(\sum_{m=1}^{M}exp[-\lambda\chi_i(\tau_m(x,c) + \delta_m(x,c)w_{ic})])]}{\sum_{k=1}^{C} exp[\lambda y_{ik} + log(\sum_{m=1}^{M}exp[-\lambda\chi_i(\tau_m(x,k) + \delta_m(x,k)w_{ik})])]}\]</div>
 <p>In <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1494</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-<span class="linenos">1495</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-<span class="linenos">1496</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">structural_damages_type3a</span><span class="p">,</span> <span class="s1">&#39;backyard&#39;</span><span class="p">,</span>
-<span class="linenos">1497</span>             <span class="n">options</span><span class="p">)</span>
-<span class="linenos">1498</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Formal backyard structures (two floors)&quot;</span><span class="p">)</span>
-<span class="linenos">1499</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_backyards&quot;</span><span class="p">]</span>
-<span class="linenos">1500</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1494</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+<span class="linenos">1495</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="linenos">1496</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in informal settlements&quot;</span><span class="p">)</span>
+<span class="linenos">1497</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_informal&quot;</span><span class="p">]</span>
+<span class="linenos">1498</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+<span class="linenos">1499</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;informal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="linenos">1500</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in (any) backyard&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>From there, we calculate the <strong>expected income net of commuting costs</strong> for residents of group <span class="math notranslate nohighlight">\(i\)</span> living in location <span class="math notranslate nohighlight">\(x\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\tilde{y}_i(x) = E[y_{ic} - min_m(t_m(x,c,w_{ic}))|x]\]</div>
 <p>In <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, this corresponds to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1505</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Contents in private formal&quot;</span><span class="p">)</span>
-<span class="linenos">1506</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_formal&quot;</span><span class="p">]</span>
-<span class="linenos">1507</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-<span class="linenos">1508</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">),</span>
-<span class="linenos">1509</span>             <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
-<span class="linenos">1510</span>                 <span class="n">d_pluvial</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;formal&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1505</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;contents_subsidized&quot;</span><span class="p">]</span>
+<span class="linenos">1506</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
+<span class="linenos">1507</span>             <span class="n">d_fluvial</span><span class="p">,</span> <span class="n">fluvialtype</span><span class="p">,</span> <span class="n">content_damages</span><span class="p">,</span> <span class="s1">&#39;subsidized&#39;</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="linenos">1508</span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Private formal structures (one floor)&quot;</span><span class="p">)</span>
+<span class="linenos">1509</span>        <span class="p">(</span><span class="n">fraction_capital_destroyed</span><span class="p">[</span><span class="s2">&quot;structure_formal_1&quot;</span><span class="p">]</span>
+<span class="linenos">1510</span>         <span class="p">)</span> <span class="o">=</span> <span class="n">compute_fraction_capital_destroyed</span><span class="p">(</span>
 </pre></div>
 </div>
 </div>

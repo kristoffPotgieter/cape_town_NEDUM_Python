@@ -1,8 +1,4 @@
 .spyproject
-*.docx
-*.doc
-*.pdf
-*.jpg
 *.bak
 
 # Byte-compiled / optimized / DLL files

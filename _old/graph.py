@@ -83,7 +83,7 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011, households_per_income_and_housing
+ income_baseline, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
 param["income_year_reference"] = mean_income
@@ -95,7 +95,7 @@ income_net_of_commuting_costs = np.load(
 # income_net_of_commuting_costs_29 = np.load(
 #     path_precalc_transp + 'GRID_incomeNetofCommuting_29.npy')
 
-# average_income_2011 = np.load(
+# average_income_baseline = np.load(
 #     path_precalc_transp + 'average_income_year_0.npy')
 # average_income_2040 = np.load(
 #     path_precalc_transp + 'average_income_year_28.npy')
@@ -213,7 +213,7 @@ initial_state_dwelling_size = np.load(
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios)
 
 
 construction_coeff = ((spline_income(0) / param["income_year_reference"])
@@ -2059,12 +2059,12 @@ damages_1000yr_2040 = damages_1000yr_2040.loc[
 income_class_2011 = np.argmax(simulation_households[0, :, :, :], 1)
 income_class_2040 = np.argmax(simulation_households[28, :, :, :], 1)
 
-real_income_2011 = np.empty((24014, 4))
+real_income_baseline = np.empty((24014, 4))
 for i in range(0, 24014):
     for j in range(0, 4):
         print(i)
-        real_income_2011[i, j] = (
-            average_income_2011[np.array(income_class_2011)[j, i], i]
+        real_income_baseline[i, j] = (
+            average_income_baseline[np.array(income_class_2011)[j, i], i]
             )
 
 real_income_2040 = np.empty((24014, 4))
@@ -2075,7 +2075,7 @@ for i in range(0, 24014):
             average_income_2040[np.array(income_class_2040)[j, i], i]
             )
 
-real_income_2011 = np.matlib.repmat(real_income_2011, 10, 1).squeeze()
+real_income_baseline = np.matlib.repmat(real_income_baseline, 10, 1).squeeze()
 real_income_2040 = np.matlib.repmat(real_income_2040, 10, 1).squeeze()
 
 total_2011 = np.vstack(
@@ -2087,10 +2087,10 @@ total_2040 = np.vstack(
      damages_75yr_2040, damages_100yr_2040, damages_200yr_2040,
      damages_250yr_2040, damages_500yr_2040, damages_1000yr_2040])
 
-total_2011[:, 4] = (total_2011[:, 4] / real_income_2011[:, 0]) * 100
-total_2011[:, 5] = (total_2011[:, 5] / real_income_2011[:, 2]) * 100
-total_2011[:, 6] = (total_2011[:, 6] / real_income_2011[:, 3]) * 100
-total_2011[:, 7] = (total_2011[:, 7] / real_income_2011[:, 1]) * 100
+total_2011[:, 4] = (total_2011[:, 4] / real_income_baseline[:, 0]) * 100
+total_2011[:, 5] = (total_2011[:, 5] / real_income_baseline[:, 2]) * 100
+total_2011[:, 6] = (total_2011[:, 6] / real_income_baseline[:, 3]) * 100
+total_2011[:, 7] = (total_2011[:, 7] / real_income_baseline[:, 1]) * 100
 
 total_2040[:, 4] = (total_2040[:, 4] / real_income_2040[:, 0]) * 100
 total_2040[:, 5] = (total_2040[:, 5] / real_income_2040[:, 2]) * 100
@@ -2100,7 +2100,7 @@ total_2040[:, 7] = (total_2040[:, 7] / real_income_2040[:, 1]) * 100
 # Reshape
 formal_2011 = total_2011[:, [0, 4]]
 backyard_2011 = total_2011[:, [1, 7]]
-informal_2011 = total_2011[:, [2, 5]]
+informal_baseline = total_2011[:, [2, 5]]
 subsidized_2011 = total_2011[:, [3, 6]]
 
 formal_2040 = total_2040[:, [0, 4]]
@@ -2146,10 +2146,10 @@ backyard_2040_class2 = backyard_2040[income_class_2040_reshape[1, :] == 1]
 backyard_2040_class3 = backyard_2040[income_class_2040_reshape[1, :] == 2]
 backyard_2040_class4 = backyard_2040[income_class_2040_reshape[1, :] == 3]
 
-informal_2011_class1 = informal_2011[income_class_2011_reshape[2, :] == 0]
-informal_2011_class2 = informal_2011[income_class_2011_reshape[2, :] == 1]
-informal_2011_class3 = informal_2011[income_class_2011_reshape[2, :] == 2]
-informal_2011_class4 = informal_2011[income_class_2011_reshape[2, :] == 3]
+informal_baseline_class1 = informal_baseline[income_class_2011_reshape[2, :] == 0]
+informal_baseline_class2 = informal_baseline[income_class_2011_reshape[2, :] == 1]
+informal_baseline_class3 = informal_baseline[income_class_2011_reshape[2, :] == 2]
+informal_baseline_class4 = informal_baseline[income_class_2011_reshape[2, :] == 3]
 
 informal_2040_class1 = informal_2040[income_class_2040_reshape[2, :] == 0]
 informal_2040_class2 = informal_2040[income_class_2040_reshape[2, :] == 1]
@@ -2159,7 +2159,7 @@ informal_2040_class4 = informal_2040[income_class_2040_reshape[2, :] == 3]
 # Total
 
 array_2011 = np.vstack(
-    [formal_2011, backyard_2011, informal_2011, subsidized_2011])
+    [formal_2011, backyard_2011, informal_baseline, subsidized_2011])
 subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
 array_2040 = np.vstack(
     [formal_2040, backyard_2040, informal_2040, subsidized_2040])
@@ -2178,7 +2178,7 @@ plt.ylabel("Number of households")
 
 # Class 1
 array_2011 = np.vstack([formal_2011_class1, backyard_2011_class1,
-                       informal_2011_class1, subsidized_2011_class1])
+                       informal_baseline_class1, subsidized_2011_class1])
 subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
 array_2040 = np.vstack([formal_2040_class1, backyard_2040_class1,
                        informal_2040_class1, subsidized_2040_class1])
@@ -2195,7 +2195,7 @@ plt.ylabel("Number of households")
 
 # Class 2
 array_2011 = np.vstack([formal_2011_class2, backyard_2011_class2,
-                       informal_2011_class2, subsidized_2011_class2])
+                       informal_baseline_class2, subsidized_2011_class2])
 subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
 array_2040 = np.vstack([formal_2040_class2, backyard_2040_class2,
                        informal_2040_class2, subsidized_2040_class2])
@@ -2212,7 +2212,7 @@ plt.ylabel("Number of households")
 
 # Class 3
 array_2011 = np.vstack([formal_2011_class3, backyard_2011_class3,
-                       informal_2011_class3, subsidized_2011_class3])
+                       informal_baseline_class3, subsidized_2011_class3])
 subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
 array_2040 = np.vstack([formal_2040_class3, backyard_2040_class3,
                        informal_2040_class3, subsidized_2040_class3])
@@ -2229,7 +2229,7 @@ plt.ylabel("Number of households")
 
 # Class 4
 array_2011 = np.vstack([formal_2011_class4, backyard_2011_class4,
-                       informal_2011_class4, subsidized_2011_class4])
+                       informal_baseline_class4, subsidized_2011_class4])
 subset_2011 = array_2011[~np.isnan(array_2011[:, 1])]
 array_2040 = np.vstack([formal_2040_class4, backyard_2040_class4,
                        informal_2040_class4, subsidized_2040_class4])

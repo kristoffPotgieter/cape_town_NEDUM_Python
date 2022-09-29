@@ -699,7 +699,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">income_class_by_housing_type</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_hypothesis_housing_type</span><span class="p">()</span>
 
 <span class="p">(</span><span class="n">mean_income</span><span class="p">,</span> <span class="n">households_per_income_class</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span> <span class="n">income_mult</span><span class="p">,</span>
- <span class="n">income_2011</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span>
+ <span class="n">income_baseline</span><span class="p">,</span> <span class="n">households_per_income_and_housing</span>
  <span class="p">)</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_income_classes_data</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">path_data</span><span class="p">)</span>
 
 <span class="c1"># NB: we create this parameter to maintain money illusion in simulations</span>
@@ -1396,7 +1396,7 @@ structure_backyards_fract_K_destroyed done
  <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
  <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
  <span class="n">spline_income</span><span class="p">,</span> <span class="n">spline_minimum_housing_supply</span><span class="p">,</span> <span class="n">spline_fuel</span>
- <span class="p">)</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">import_scenarios</span><span class="p">(</span><span class="n">income_2011</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
+ <span class="p">)</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">import_scenarios</span><span class="p">(</span><span class="n">income_baseline</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">path_scenarios</span><span class="p">,</span>
                             <span class="n">options</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1605,7 +1605,7 @@ netincome_rich_2d_sim done
      <span class="n">income_class_by_housing_type</span><span class="p">,</span>
      <span class="n">minimum_housing_supply</span><span class="p">,</span>
      <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">],</span>
-     <span class="n">income_2011</span><span class="p">)</span>
+     <span class="n">income_baseline</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -2546,7 +2546,7 @@ so are damages when floods hit such areas.</p>
      <span class="n">spline_income</span><span class="p">,</span>
      <span class="n">spline_minimum_housing_supply</span><span class="p">,</span>
      <span class="n">spline_fuel</span><span class="p">,</span>
-     <span class="n">income_2011</span>
+     <span class="n">income_baseline</span>
      <span class="p">)</span>
 </pre></div>
 </div>

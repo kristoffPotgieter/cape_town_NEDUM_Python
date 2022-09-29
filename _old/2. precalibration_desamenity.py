@@ -73,7 +73,7 @@ amenities = inpdt.import_amenities(path_precalc_inp)
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011, households_per_income_and_housing
+ income_baseline, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
 #  We create this parameter to maintain money illusion in simulations
@@ -153,7 +153,7 @@ elif options["agents_anticipate_floods"] == 0:
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+ ) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios)
 
 # Long to run: uncomment if need to update scenarios for transport data
 

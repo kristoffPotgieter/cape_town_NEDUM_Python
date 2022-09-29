@@ -197,7 +197,7 @@ import inputs.data as inpdt
 income_class_by_housing_type = inpdt.import_hypothesis_housing_type()
 
 (mean_income, households_per_income_class, average_income, income_mult,
- income_2011, households_per_income_and_housing
+ income_baseline, households_per_income_and_housing
  ) = inpdt.import_income_classes_data(param, path_data)
 
 # NB: we create this parameter to maintain money illusion in simulations
@@ -556,7 +556,7 @@ import equilibrium.functions_dynamic as eqdyn
  spline_population_income_distribution, spline_inflation,
  spline_income_distribution, spline_population,
  spline_income, spline_minimum_housing_supply, spline_fuel
- ) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios,
+ ) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios,
                             options)
 
 # ### Import expected income net of commuting costs (for all time periods)
@@ -673,7 +673,7 @@ import equilibrium.compute_equilibrium as eqcmp
      income_class_by_housing_type,
      minimum_housing_supply,
      param["coeff_A"],
-     income_2011)
+     income_baseline)
 
 # Reminder: income groups are ranked from poorer to richer, and housing types
 # follow the following order: formal-backyard-informal-RDP
@@ -1203,7 +1203,7 @@ import equilibrium.run_simulations as eqsim
      spline_income,
      spline_minimum_housing_supply,
      spline_fuel,
-     income_2011
+     income_baseline
      )
 
 # We save the output
