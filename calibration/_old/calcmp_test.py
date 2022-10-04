@@ -27,7 +27,7 @@ from sklearn.linear_model import LinearRegression
 
 import equilibrium.functions_dynamic as eqdyn
 
-def import_transport_costs(income_2011, param, grid, path_precalc_inp, path_scenarios):
+def import_transport_costs(income_baseline, param, grid, path_precalc_inp, path_scenarios):
         """ Compute travel times and costs """
 
         #### STEP 1: IMPORT TRAVEL TIMES AND COSTS
@@ -35,10 +35,10 @@ def import_transport_costs(income_2011, param, grid, path_precalc_inp, path_scen
         # Import travel times and distances
         transport_times = scipy.io.loadmat(path_precalc_inp + 'Transport_times_SP.mat')
         #Import Scenarios
-        (spline_agricultural_rent, spline_interest_rate,
+        (spline_agricultural_price, spline_interest_rate,
          spline_population_income_distribution, spline_inflation,
          spline_income_distribution, spline_population,
-         spline_income, spline_minimum_housing_supply, spline_fuel) = eqdyn.import_scenarios(income_2011, param, grid, path_scenarios)
+         spline_income, spline_minimum_housing_supply, spline_fuel) = eqdyn.import_scenarios(income_baseline, param, grid, path_scenarios)
 
         #Price per km
         priceTrainPerKMMonth = 0.164 * spline_inflation(2011 - param["baseline_year"]) / spline_inflation(2013 - param["baseline_year"])

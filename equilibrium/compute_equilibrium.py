@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Nov  2 11:21:21 2020.
-
-@author: Charlotte Liotta
-"""
 
 import numpy as np
 from tqdm import tqdm
@@ -18,8 +13,130 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                         grid, options, agricultural_rent, interest_rate,
                         number_properties_RDP, average_income, mean_income,
                         income_class_by_housing_type, minimum_housing_supply,
-                        construction_param, income_2011):
-    """Determine static equilibrium allocation from iterative algorithm."""
+                        construction_param, income_baseline):
+    """
+    Run the static equilibrium algorithm.
+
+    This function runs the algorithm described in the technical documentation.
+    It starts from arbitrary utility levels, and leverages optimality
+    conditions on supply and demand to recover key output variables
+    (detailed in equilibrium.sub.compute_outputs). Then, it updates utility
+    levels to minimize the error between simulated and target number of
+    households per income group. Note that the whole process abstracts from
+    formal subsidised housing (fully exogenous in the model), that is added
+    to final outputs at the end of the function.
+
+    Parameters
+    ----------
+    fraction_capital_destroyed : DataFrame
+        Data frame of expected fractions of capital destroyed, for housing
+        structures and contents in different housing types, in each
+        grid cell (24,014)
+    amenities : ndarray(float64)
+        Normalized amenity index (relative to the mean) for each grid cell
+        (24,014)
+    param : dict
+        Dictionary of default parameters
+    housing_limit : Series
+        Maximum housing supply (in m² per km²) in each grid cell (24,014)
+    population : int64
+        Total number of households in the city (from Small-Area-Level data)
+    households_per_income_class : ndarray(float64)
+        Exogenous total number of households per income group (excluding people
+        out of employment, for 4 groups)
+    total_RDP : int
+        Number of households living in formal subsidized housing (from SAL
+        data)
+    coeff_land : ndarray(float64, ndim=2)
+        Updated land availability for each grid cell (24,014) and each
+        housing type (4: formal private, informal backyards, informal
+        settlements, formal subsidized)
+    income_net_of_commuting_costs : ndarray(float64, ndim=2)
+        Expected annual income net of commuting costs (in rands, for
+        one household), for each geographic unit, by income group (4)
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    options : dict
+        Dictionary of default options
+    agricultural_rent : float64
+        Annual housing rent below which it is not profitable for formal private
+        developers to urbanize (agricultural) land: endogenously limits urban
+        sprawl
+    interest_rate : float64
+        Real interest rate for the overall economy, corresponding to an average
+        over past years
+    number_properties_RDP : ndarray(float64)
+        Number of formal subsidized dwellings per grid cell (24,014) at
+        baseline year (2011)
+    average_income : ndarray(float64)
+        Average median income for each income group in the model (4)
+    mean_income : float64
+        Average median income across total population
+    income_class_by_housing_type : DataFrame
+        Set of dummies coding for housing market access (across 4 housing
+        submarkets) for each income group (4, from poorest to richest)
+    minimum_housing_supply : ndarray(float64)
+        Minimum housing supply (in m²) for each grid cell (24,014), allowing
+        for an ad hoc correction of low values in Mitchells Plain
+    construction_param : ndarray(float64)
+        (Calibrated) scale factor for the construction function of formal
+        private developers
+    income_baseline : DataFrame
+        Table summarizing, for each income group in the data (12, including
+        people out of employment), the number of households living in each
+        endogenous housing type (3), their total number at baseline year (2011)
+        in retrospect (2001), as well as the distribution of their average
+        income (at baseline year)
+
+    Returns
+    -------
+    initial_state_utility : ndarray(float64)
+        Utility levels for each income group (4) at baseline year
+        (2011)
+    initial_state_error : ndarray(float64)
+        Ratio (in %) of simulated number of households per income group over
+        target population per income group at baseline year (2011)
+    initial_state_simulated_jobs : ndarray(float64, ndim=2)
+        Total number of households in each income group (4) in each
+        endogenous housing type (3: formal private, informal backyards,
+        informal settlements) at baseline year (2011)
+    initial_state_households_housing_types : ndarray(float64, ndim=2)
+        Number of households per grid cell in each housing type (4)
+        at baseline year (2011)
+    initial_state_household_centers : ndarray(float64, ndim=2)
+        Number of households per grid cell in each income group (4)
+        at baseline year (2011)
+    initial_state_households : ndarray(float64, ndim=3)
+        Number of households per grid cell in each income group (4) and
+        each housing type (4) at baseline year (2011)
+    initial_state_dwelling_size : ndarray(float64, ndim=2)
+        Average dwelling size (in m²) per grid cell in each housing
+        type (4) at baseline year (2011)
+    initial_state_housing_supply : ndarray(float64, ndim=2)
+        Housing supply per unit of available land (in m² per km²)
+        for each housing type (4) in each grid cell at baseline year (2011)
+    initial_state_rent : ndarray(float64, ndim=2)
+        Average annual rent (in rands) per grid cell for each housing type
+        (4) at baseline year (2011)
+    initial_state_rent_matrix : ndarray(float64, ndim=3)
+        Average annual willingness to pay (in rands) per grid cell
+        for each income group (4) and each endogenous housing type (3)
+        at baseline year (2011)
+    initial_state_capital_land : ndarray(float64, ndim=2)
+        Value (in rands) of the housing capital stock per unit of available
+        land (in km²) for each endogenous housing type (3) per grid cell
+        at baseline year (2011)
+    initial_state_average_income : ndarray(float64)
+        Not an output of the model per se : it is just the average median
+        income for each income group in the model (4), that may change
+        over time
+    initial_state_limit_city : list
+        Contains a ndarray(bool, ndim=3) of indicator dummies for having
+        strictly more than one household per housing type and income group
+        in each grid cell
+
+    """
     # Adjust the population to include unemployed people, then take out RDP
     # by considering that they all belong to poorest income group
 
@@ -30,13 +147,13 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
     # Alternative strategy: we attribute the unemployed population in
     # proportion with calibrated unemployment rates, without applying them
-    # directly
+    # directly (as they are too noisy)
     if options["unempl_reweight"] == 1:
         ratio = [2 / size for size in param["household_size"]]
         households_tot = households_per_income_class * ratio
         households_unempl = households_tot - households_per_income_class
         weights = households_unempl / sum(households_unempl)
-        unempl_pop = income_2011.Households_nb[0]
+        unempl_pop = income_baseline.Households_nb[0]
         unempl_attrib = [unempl_pop * w for w in weights]
         households_per_income_class = (
             households_per_income_class + unempl_attrib)
@@ -45,7 +162,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
         # implicit_empl_rate = ((households_per_income_class - unempl_attrib)
         #                       / households_per_income_class)
         # 0.74/0.99/0.98/0.99
-        # TODO: Re-use in calibration?
 
     #  Considering that all RDP belong to the poorest, we remove them from here
     households_per_income_class[0] = np.max(
@@ -64,8 +180,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     grid_temp = copy.deepcopy(grid)
     grid = grid.iloc[selected_pixels, :]
     housing_limit = housing_limit[selected_pixels]
-    # param["multi_proba_group"] = param["multi_proba_group"][
-    # :, selected_pixels]
     income_net_of_commuting_costs = income_net_of_commuting_costs[
         :, selected_pixels]
     minimum_housing_supply = minimum_housing_supply[selected_pixels]
@@ -77,7 +191,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     param_backyards_pockets = param["backyard_pockets"][selected_pixels]
 
     # Useful variables for the solver
-    # (3 is because we have 3 types of housing in the solver)
+    # (we only consider 3 types of housing in the solver)
     diff_utility = np.zeros((param["max_iter"], param["nb_of_income_classes"]))
     simulated_people_housing_types = np.zeros(
         (param["max_iter"], 3, len(grid.dist)))
@@ -111,14 +225,11 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  with high relative income as it will magnify the effect on rents, hence
     #  housing supply and resulting population distribution
 
-    #  TODO: run simulations with different convergence parameters to ensure
-    #  that we do not get stuck in some local optimum (unlikely as distribution
-    #  of households is monotonous wrt utility changes)
     param["convergence_factor"] = (
         0.02 * (np.nanmean(average_income) / mean_income) ** 0.4
-        )  # 0.045
+        )
 
-    # Compute outputs solver - First iteration (for each housing type, no RDP)
+    # Compute outputs solver (for each housing type, no RDP)
     #  Formal housing
     (simulated_jobs[index_iteration, 0, :], rent_matrix[index_iteration, 0, :],
      simulated_people_housing_types[index_iteration, 0, :],
@@ -166,7 +277,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  diff_utility will be used to adjust the utility levels
     #  Note that optimization is made to stick to households_per_income_class,
     #  which does not include people living in RDP (as we take this as
-    #  exogenous), see equilibrium condition (i)
+    #  exogenous)
 
     #  We compare total population for each income group obtained from
     #  equilibrium condition (total_simulated_jobs) with target population
@@ -175,6 +286,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     #  We arbitrarily set a strictly positive minimum utility level at 10
     #  (as utility will be adjusted multiplicatively, we do not want to break
     #  the model with zero terms)
+
     diff_utility[index_iteration, :] = np.log(
         (total_simulated_jobs[index_iteration, :] + 10)
         / (households_per_income_class + 10))
@@ -191,6 +303,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     error_max_abs[index_iteration] = np.nanmax(
         np.abs(total_simulated_jobs[index_iteration, :]
                / households_per_income_class - 1))
+    #  Other parameters
     error_max[index_iteration] = -1
     error_mean[index_iteration] = np.nanmean(
         np.abs(total_simulated_jobs[index_iteration, :]
@@ -200,7 +313,6 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
                / households_per_income_class - 1) > param["precision"])
 
     # Iteration (no RDP)
-    # with alive_bar(param["max_iter"],title='compute equilibrium') as bar:
     # We use a progression bar
     with tqdm(total=param["max_iter"],
               desc="stops when error_max_abs <" + str(param["precision"])
@@ -218,22 +330,24 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
             # This is a precaution as utility cannot be negative
             utility[index_iteration, utility[index_iteration, :] < 0] = 10
 
-            # We augment the convergence factor at each iteration in propotion
-            # with the estimation error to augment the importance of later
-            # compared to earlier errors (as algorithm should improve across
-            # iterations)
+            # We reduce the convergence factor at each iteration in inverse
+            # proportion with the estimation error not to overshoot target in
+            # subsequent iterations
 
             # NB: we assume the minimum error is 100 not to break model with
             # zeros
             convergence_factor = (
                 param["convergence_factor"] / (
-                    1 + 0.5 * np.abs((
-                        total_simulated_jobs[index_iteration, :] + 100
-                        ) / (households_per_income_class + 100) - 1))
+                    1
+                    + 0.5 * np.abs(
+                        (total_simulated_jobs[index_iteration, :] + 100)
+                        / (households_per_income_class + 100)
+                        - 1)
+                    )
                 )
 
-            # At the same time, we also reduce it while time passes, not to
-            # demand too much of the algorithm and to help convergence
+            # We also reduce it as time passes, as errors should become smaller
+            # and smaller
             convergence_factor = (
                 convergence_factor
                 * (1 - 0.6 * index_iteration / param["max_iter"])
@@ -241,7 +355,7 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
 
             # Now, we do the same as in the initalization phase
 
-            # Compute outputs solver - first iteration
+            # Compute outputs solver
 
             #  Formal housing
             (simulated_jobs[index_iteration, 0, :],
@@ -329,7 +443,8 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
             pbar.set_postfix({'error_max_abs': error_max_abs[index_iteration]})
             pbar.update()
 
-    # RDP houses
+    # We plug back RDP houses in the output : let us define useful variables
+    # first
     #  We correct output coming from data_RDP with more reliable estimations
     #  from SAL data (to include council housing)
     households_RDP = (number_properties_RDP * total_RDP
@@ -338,11 +453,11 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     construction_RDP = np.matlib.repmat(
         param["RDP_size"] / (param["RDP_size"] + param["backyard_size"]),
         1, len(grid_temp.dist))
-    #  RDP dwelling size
+    #  RDP dwelling size (in m²)
     dwelling_size_RDP = np.matlib.repmat(
         param["RDP_size"], 1, len(grid_temp.dist))
 
-    # We fill the vector for each housing type
+    # We fill the output matrix for each housing type
     simulated_people_with_RDP = np.zeros((4, 4, len(grid_temp.dist)))
     simulated_people_with_RDP[0, :, selected_pixels] = np.transpose(
         simulated_people[0, :, :, ])
@@ -355,13 +470,16 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     # Outputs of the solver
 
     initial_state_error = error[index_iteration, :]
+
     #  Note that this does not contain RDP
     initial_state_simulated_jobs = simulated_jobs[index_iteration, :, :]
+
     #  We sum across income groups (axis=1)
     initial_state_households_housing_types = np.sum(simulated_people_with_RDP,
                                                     1)
     #  We sum across housing types (axis=0)
     initial_state_household_centers = np.sum(simulated_people_with_RDP, 0)
+
     #  We keep both dimensions
     initial_state_households = simulated_people_with_RDP
 
@@ -373,18 +491,17 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     dwelling_size_export[dwelling_size_export <= 0] = np.nan
     # NB: we multiply by construction_RDP because we want the housing supply
     # per unit of AVAILABLE land: RDP building is only a fraction of overall
-    # surface (also accounts for backyard)
+    # surface (also accounts for backyarding)
     housing_supply_RDP = (
         construction_RDP * dwelling_size_RDP * households_RDP
-        / (coeff_land_full[3, :] * 0.25)  # * 1000000
+        / (coeff_land_full[3, :] * 0.25)
         )
     housing_supply_RDP[np.isnan(housing_supply_RDP)] = 0
     dwelling_size_RDP = dwelling_size_RDP * (coeff_land_full[3, :] > 0)
-    # dwelling_size_RDP[dwelling_size_RDP == 0] = np.nan
     initial_state_dwelling_size = np.vstack(
         [dwelling_size_export, dwelling_size_RDP])
-    # Note that RDP housing supply per unit of land has nothing to do with
-    # backyard housing supply per unit of land
+    # Note that RDP housing supply per unit of available land has nothing to do
+    # with backyard housing supply per unit of available land
     initial_state_housing_supply = np.vstack(
         [housing_supply_export, housing_supply_RDP]
         )
@@ -403,16 +520,15 @@ def compute_equilibrium(fraction_capital_destroyed, amenities, param,
     initial_state_rent_matrix = copy.deepcopy(rent_matrix_export)
 
     # Other outputs
-    #  See research note, p.10 (Cobb-Douglas)
-    # initial_state_capital_land = ((housing_supply / (construction_param))
-    #                               ** (1 / param["coeff_b"]))
+    initial_state_utility = utility[index_iteration, :]
+    # Housing capital value per unit of available land: see math appendix
     initial_state_capital_land = ((initial_state_housing_supply
                                    / construction_param)
                                   ** (1 / param["coeff_b"]))
     #  NB: this is not an output of the model
     initial_state_average_income = copy.deepcopy(average_income)
+    #  NB: this is not used in practice and is included for reference
     initial_state_limit_city = [initial_state_households > 1]
-    initial_state_utility = utility[index_iteration, :]
 
     return (initial_state_utility,
             initial_state_error,

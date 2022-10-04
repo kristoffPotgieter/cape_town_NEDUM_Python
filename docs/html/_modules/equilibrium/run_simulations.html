@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
@@ -105,19 +107,168 @@
                    <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">spline_land_informal</span><span class="p">,</span>
                    <span class="n">income_class_by_housing_type</span><span class="p">,</span>
                    <span class="n">precalculated_transport</span><span class="p">,</span> <span class="n">spline_RDP</span><span class="p">,</span>
-                   <span class="n">spline_agricultural_rent</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
+                   <span class="n">spline_agricultural_price</span><span class="p">,</span> <span class="n">spline_interest_rate</span><span class="p">,</span>
                    <span class="n">spline_population_income_distribution</span><span class="p">,</span> <span class="n">spline_inflation</span><span class="p">,</span>
                    <span class="n">spline_income_distribution</span><span class="p">,</span> <span class="n">spline_population</span><span class="p">,</span>
                    <span class="n">spline_income</span><span class="p">,</span>
-                   <span class="n">spline_minimum_housing_supply</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span> <span class="n">income_2011</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run simulations over several years according to scenarios.&quot;&quot;&quot;</span>
-    <span class="c1"># Parameters and options of the scenario</span>
+                   <span class="n">spline_minimum_housing_supply</span><span class="p">,</span> <span class="n">spline_fuel</span><span class="p">,</span>
+                   <span class="n">income_baseline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run simulations over several years according to exogenous scenarios.</span>
 
-    <span class="c1">#  Nb of iterations per year</span>
+<span class="sd">    After accounting for the changes in time-moving exogenous variables each</span>
+<span class="sd">    period, the function returns key equilibrium values (computed with</span>
+<span class="sd">    equilibrium.compute_equilibrium) under a housing supply constraint</span>
+<span class="sd">    described in equilibrium.functions_dynamic and the technical</span>
+<span class="sd">    documentation. This allows to account for inertia in formal private</span>
+<span class="sd">    developers&#39; actions and return more realistic simulated outputs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : int</span>
+<span class="sd">        Year for which we want to run the function</span>
+<span class="sd">    options : dict</span>
+<span class="sd">        Dictionary of default options</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    grid : DataFrame</span>
+<span class="sd">        Table yielding, for each grid cell (24,014), its x and y</span>
+<span class="sd">        (centroid) coordinates, and its distance (in km) to the city centre</span>
+<span class="sd">    initial_state_utility : ndarray(float64)</span>
+<span class="sd">        Utility levels for each income group (4) at baseline year</span>
+<span class="sd">        (2011)</span>
+<span class="sd">    initial_state_error : ndarray(float64)</span>
+<span class="sd">        Ratio (in %) of simulated number of households per income group over</span>
+<span class="sd">        target population per income group at baseline year (2011)</span>
+<span class="sd">    initial_state_households : ndarray(float64, ndim=3)</span>
+<span class="sd">        Number of households per grid cell in each income group (4) and</span>
+<span class="sd">        each housing type (4) at baseline year (2011)</span>
+<span class="sd">    initial_state_households_housing_types : ndarray(float64, ndim=2)</span>
+<span class="sd">        Number of households per grid cell in each housing type (4)</span>
+<span class="sd">        at baseline year (2011)</span>
+<span class="sd">    initial_state_housing_supply : ndarray(float64, ndim=2)</span>
+<span class="sd">        Housing supply per unit of available land (in m² per km²)</span>
+<span class="sd">        for each housing type (4) in each grid cell at baseline year (2011)</span>
+<span class="sd">    initial_state_household_centers : ndarray(float64, ndim=2)</span>
+<span class="sd">        Number of households per grid cell in each income group (4)</span>
+<span class="sd">        at baseline year (2011)</span>
+<span class="sd">    initial_state_average_income : ndarray(float64)</span>
+<span class="sd">        Not an output of the model per se : it is just the average median</span>
+<span class="sd">        income for each income group in the model (4), that may change</span>
+<span class="sd">        over time</span>
+<span class="sd">    initial_state_rent : ndarray(float64, ndim=2)</span>
+<span class="sd">        Average annual rent (in rands) per grid cell for each housing type</span>
+<span class="sd">        (4) at baseline year (2011)</span>
+<span class="sd">    initial_state_dwelling_size : ndarray(float64, ndim=2)</span>
+<span class="sd">        Average dwelling size (in m²) per grid cell in each housing</span>
+<span class="sd">        type (4) at baseline year (2011)</span>
+<span class="sd">    fraction_capital_destroyed : DataFrame</span>
+<span class="sd">        Data frame of expected fractions of capital destroyed, for housing</span>
+<span class="sd">        structures and contents in different housing types, in each</span>
+<span class="sd">        grid cell (24,014)</span>
+<span class="sd">    amenities : ndarray(float64)</span>
+<span class="sd">        Normalized amenity index (relative to the mean) for each grid cell</span>
+<span class="sd">        (24,014)</span>
+<span class="sd">    housing_limit : Series</span>
+<span class="sd">        Maximum housing supply (in m² per km²) in each grid cell (24,014)</span>
+<span class="sd">    spline_estimate_RDP : interp1d</span>
+<span class="sd">        Linear interpolation for the grid-level number of formal subsidized</span>
+<span class="sd">        dwellings over the years (baseline year set at 0)</span>
+<span class="sd">    spline_land_constraints : interp1d</span>
+<span class="sd">        Linear interpolation for the grid-level overall land availability,</span>
+<span class="sd">        (in %) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_land_backyard : interp1d</span>
+<span class="sd">        Linear interpolation for the grid-level land availability (in %)</span>
+<span class="sd">        for informal backyards over the years (baseline year set at 0)</span>
+<span class="sd">    spline_land_RDP : interp1d</span>
+<span class="sd">        Linear interpolation for the grid-level land availability (in %)</span>
+<span class="sd">        for formal subsidized housing over the years (baseline year set at 0)</span>
+<span class="sd">    spline_land_informal : interp1d</span>
+<span class="sd">        Linear interpolation for the grid-level land availability (in %)</span>
+<span class="sd">        for informal settlements over the years (baseline year set at 0)</span>
+<span class="sd">    income_class_by_housing_type : DataFrame</span>
+<span class="sd">        Set of dummies coding for housing market access (across 4 housing</span>
+<span class="sd">        submarkets) for each income group (4, from poorest to richest)</span>
+<span class="sd">    precalculated_transport : str</span>
+<span class="sd">        Path for precalcuted transport inputs (intermediate outputs from</span>
+<span class="sd">        commuting choice model)</span>
+<span class="sd">    spline_RDP : interp1d</span>
+<span class="sd">        Linear interpolation for the total number of formal subsidized</span>
+<span class="sd">        dwellings over the years (baseline year set at 0)</span>
+<span class="sd">    spline_agricultural_price : interp1d</span>
+<span class="sd">        Linear interpolation for the agricultural land price (in rands)</span>
+<span class="sd">        over the years (baseline year set at 0)</span>
+<span class="sd">    spline_interest_rate : interp1d</span>
+<span class="sd">        Linear interpolation for the interest rate (in %) over the years</span>
+<span class="sd">    spline_population_income_distribution : interp1d</span>
+<span class="sd">        Linear interpolation for total population per income group in the data</span>
+<span class="sd">        (12) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_inflation : interp1d</span>
+<span class="sd">        Linear interpolation for inflation rate (in base 100 relative to</span>
+<span class="sd">        baseline year) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_income_distribution : interp1d</span>
+<span class="sd">        Linear interpolation for median annual income (in rands) per income</span>
+<span class="sd">        group in the data (12) over the years (baseline year set at 0)</span>
+<span class="sd">    spline_population : interp1d</span>
+<span class="sd">        Linear interpolation for total population over the years</span>
+<span class="sd">        (baseline year set at 0)</span>
+<span class="sd">    spline_income : interp1d</span>
+<span class="sd">        Linear interpolation for overall average (annual) income over the years</span>
+<span class="sd">        (baseline year set at 0), used to avoid money illusion in future</span>
+<span class="sd">        simulations when computing the housing supply</span>
+<span class="sd">        (see equilibrium.run_simulations)</span>
+<span class="sd">    spline_minimum_housing_supply : interp1d</span>
+<span class="sd">        Linear interpolation for minimum housing supply (in m²) over the years</span>
+<span class="sd">        (baseline year set at 0)</span>
+<span class="sd">    spline_fuel : interp1d</span>
+<span class="sd">        Linear interpolation for fuel price (in rands per km)</span>
+<span class="sd">        over the years (baseline year set at 0)</span>
+<span class="sd">    income_baseline : DataFrame</span>
+<span class="sd">        Table summarizing, for each income group in the data (12, including</span>
+<span class="sd">        people out of employment), the number of households living in each</span>
+<span class="sd">        endogenous housing type (3), their total number at baseline year (2011)</span>
+<span class="sd">        in retrospect (2001), as well as the distribution of their average</span>
+<span class="sd">        income (at baseline year)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    simulation_households_center : ndarray(float64, ndim=3)</span>
+<span class="sd">        Number of households per grid cell (24,014) in each income group (4)</span>
+<span class="sd">        over all simulation years (30)</span>
+<span class="sd">    simulation_households_housing_type : ndarray(float64, ndim=3)</span>
+<span class="sd">        Number of households per grid cell (24,014) in each housing type (4)</span>
+<span class="sd">        over all simulation years (30)</span>
+<span class="sd">    simulation_dwelling_size : ndarray(float64, ndim=3)</span>
+<span class="sd">        Average dwelling size (in m²) per grid cell (24,014) in each housing</span>
+<span class="sd">        type (4) over all simulation years (30)</span>
+<span class="sd">    simulation_rent : ndarray(float64, ndim=3)</span>
+<span class="sd">        Average annual rent (in rands) per grid cell (24,014) for each housing</span>
+<span class="sd">        type (4) over all simulation years (30)</span>
+<span class="sd">    simulation_households : ndarray(float64, ndim=4)</span>
+<span class="sd">        Number of households per grid cell (24,014) in each income group (4)</span>
+<span class="sd">        and each housing type (4) at baseline year (2011) over all simulation</span>
+<span class="sd">        years (30)</span>
+<span class="sd">    simulation_error : ndarray(float64, ndim=2)</span>
+<span class="sd">        Ratio (in %) of simulated number of households per income group over</span>
+<span class="sd">        target population per income group over all simulation years (30)</span>
+<span class="sd">    simulation_housing_supply : ndarray(float64, ndim=3)</span>
+<span class="sd">        Housing supply per unit of available land (in m² per km²)</span>
+<span class="sd">        for each housing type (4) in each grid cell (24,014) over all</span>
+<span class="sd">        simulation years (30)</span>
+<span class="sd">    simulation_utility : ndarray(float64, ndim=2)</span>
+<span class="sd">        Utility levels for each income group (4) over all simulation years (30)</span>
+<span class="sd">    simulation_deriv_housing : ndarray(float64, ndim=2)</span>
+<span class="sd">        Difference between simulated next and current period values for housing</span>
+<span class="sd">        supply per unit of available land (in m² per km²) per grid cell</span>
+<span class="sd">        (24,014), for all simulation years (30).</span>
+<span class="sd">    simulation_T : ndarray(float64)</span>
+<span class="sd">        Years (relative to baseline set at 0) used for the simulations</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#  Number of iterations per year</span>
     <span class="n">freq_iter</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span>
     <span class="c1">#  Here, we are going to run separate simulations with and without</span>
     <span class="c1">#  dynamics, hence the need for a new parameter</span>
-    <span class="c1">#  TODO: maybe do it before and plug this back in functions_solver</span>
     <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_init&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
         <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">])</span>
     <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -142,12 +293,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="n">index_iter</span><span class="p">)</span>
 
         <span class="n">year_temp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">years_simulations</span><span class="p">[</span><span class="n">index_iter</span><span class="p">])</span>
-        <span class="c1"># stat_temp_utility = copy.deepcopy(initial_state_utility)</span>
-        <span class="c1"># Note that we actually need nothing more than the housing supply</span>
         <span class="n">stat_temp_housing_supply</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">initial_state_housing_supply</span><span class="p">)</span>
         <span class="n">stat_temp_rent</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">initial_state_rent</span><span class="p">)</span>
-        <span class="c1"># stat_temp_average_income = copy.deepcopy(</span>
-        <span class="c1"># initial_state_average_income)</span>
 
         <span class="k">if</span> <span class="n">index_iter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
@@ -178,12 +325,11 @@
             <span class="n">population</span> <span class="o">=</span> <span class="n">spline_population</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span>
             <span class="n">total_RDP</span> <span class="o">=</span> <span class="n">spline_RDP</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span>
             <span class="n">minimum_housing_supply</span> <span class="o">=</span> <span class="n">spline_minimum_housing_supply</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span>
-            <span class="c1"># income_mult = average_income / mean_income</span>
             <span class="n">number_properties_RDP</span> <span class="o">=</span> <span class="n">spline_estimate_RDP</span><span class="p">(</span><span class="n">year_temp</span><span class="p">)</span>
-            <span class="c1"># Scale factor needs to move to create monetary illusion in the</span>
+            <span class="c1"># Scale factor needs to move to avoid monetary illusion in the</span>
             <span class="c1"># model, e.g. housing supply should not change when currency</span>
-            <span class="c1"># changes and all prices move: this is where the formula comes</span>
-            <span class="c1"># from</span>
+            <span class="c1"># changes and all prices move: see technical documentation for</span>
+            <span class="c1"># math formula</span>
             <span class="n">construction_param</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="p">(</span><span class="n">mean_income</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;income_year_reference&quot;</span><span class="p">])</span>
                 <span class="o">**</span> <span class="p">(</span><span class="o">-</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_A&quot;</span><span class="p">]</span>
@@ -191,9 +337,8 @@
             <span class="n">coeff_land</span> <span class="o">=</span> <span class="n">inpdt</span><span class="o">.</span><span class="n">import_coeff_land</span><span class="p">(</span>
                 <span class="n">spline_land_constraints</span><span class="p">,</span> <span class="n">spline_land_backyard</span><span class="p">,</span>
                 <span class="n">spline_land_informal</span><span class="p">,</span> <span class="n">spline_land_RDP</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">year_temp</span><span class="p">)</span>
-
             <span class="n">agricultural_rent</span> <span class="o">=</span> <span class="n">inpprm</span><span class="o">.</span><span class="n">compute_agricultural_rent</span><span class="p">(</span>
-                <span class="n">spline_agricultural_rent</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
+                <span class="n">spline_agricultural_price</span><span class="p">(</span><span class="n">year_temp</span><span class="p">),</span> <span class="n">construction_param</span><span class="p">,</span>
                 <span class="n">interest_rate</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
 
             <span class="c1"># We compute a new static equilibrium for next period</span>
@@ -207,17 +352,16 @@
                 <span class="n">income_net_of_commuting_costs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span>
                 <span class="n">agricultural_rent</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span> <span class="n">number_properties_RDP</span><span class="p">,</span>
                 <span class="n">average_income</span><span class="p">,</span> <span class="n">mean_income</span><span class="p">,</span> <span class="n">income_class_by_housing_type</span><span class="p">,</span>
-                <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">construction_param</span><span class="p">,</span> <span class="n">income_2011</span><span class="p">)</span>
+                <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">construction_param</span><span class="p">,</span> <span class="n">income_baseline</span><span class="p">)</span>
 
-            <span class="c1"># Estimation of the derivation of housing supply between t and t+1</span>
-            <span class="c1"># (only for formal housing)</span>
+            <span class="c1"># Estimation of the housing supply difference between t and t+1</span>
+            <span class="c1"># (only for formal private housing)</span>
             <span class="n">deriv_housing_temp</span> <span class="o">=</span> <span class="n">eqdyn</span><span class="o">.</span><span class="n">evolution_housing_supply</span><span class="p">(</span>
-                <span class="n">housing_limit</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">years_simulations</span><span class="p">[</span><span class="n">index_iter</span><span class="p">],</span>
+                <span class="n">housing_limit</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">years_simulations</span><span class="p">[</span><span class="n">index_iter</span><span class="p">],</span>
                 <span class="n">years_simulations</span><span class="p">[</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">tmpi_housing_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
                 <span class="n">stat_temp_housing_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
             <span class="c1"># We update the initial housing parameter as it will give the</span>
             <span class="c1"># housing supply when developers do not adjust</span>
-            <span class="c1"># TODO: create a copy to plug back in functions_solver</span>
             <span class="n">param</span><span class="p">[</span><span class="s2">&quot;housing_in&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stat_temp_housing_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
             <span class="o">+</span> <span class="n">deriv_housing_temp</span>
 
@@ -239,18 +383,18 @@
                 <span class="n">income_net_of_commuting_costs</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span>
                 <span class="n">agricultural_rent</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span> <span class="n">number_properties_RDP</span><span class="p">,</span>
                 <span class="n">average_income</span><span class="p">,</span> <span class="n">mean_income</span><span class="p">,</span> <span class="n">income_class_by_housing_type</span><span class="p">,</span>
-                <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">construction_param</span><span class="p">,</span> <span class="n">income_2011</span><span class="p">)</span>
+                <span class="n">minimum_housing_supply</span><span class="p">,</span> <span class="n">construction_param</span><span class="p">,</span> <span class="n">income_baseline</span><span class="p">)</span>
 
-            <span class="c1"># stat_temp_utility = copy.deepcopy(tmpi_utility)</span>
             <span class="n">stat_temp_deriv_housing</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">deriv_housing_temp</span><span class="p">)</span>
 
-        <span class="c1"># We initialize the derivation vector</span>
+        <span class="c1"># We initialize the output vector</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">stat_temp_deriv_housing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stat_temp_rent</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]))</span>
 
-<span class="c1">###</span>
+<span class="c1"># The next condition was added to consider more than one simulation per year.</span>
+<span class="c1"># This is not used in practice and was not fully coded, hence the function</span>
+<span class="c1"># breaks down for frequencies bigger than one.</span>
 
-        <span class="c1"># TODO: isn&#39;t it always the case? What happens else?</span>
         <span class="k">if</span> <span class="p">((</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span>
                 <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># We retain the new constrained equilibrium with dynamic housing</span>
@@ -283,8 +427,6 @@
                 <span class="nb">int</span><span class="p">((</span><span class="n">index_iter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;iter_calc_lite&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="p">:</span>
                     <span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">stat_temp_deriv_housing</span><span class="p">)</span>
 
-<span class="c1">###</span>
-
     <span class="c1"># In case we have more than one simulation per year, we collapse timeline</span>
     <span class="c1"># to yearly</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">years_simulations</span><span class="p">):</span>
@@ -292,10 +434,10 @@
     <span class="c1"># Else, we just keep it as it is</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">years_simulations</span><span class="p">)</span>
-
     <span class="c1"># We retain this timeline as an output for our plots</span>
     <span class="n">simulation_T</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
-    <span class="c1"># We reinitialize parameter</span>
+
+    <span class="c1"># We also reinitialize parameter values</span>
     <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_supply&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
         <span class="n">options</span><span class="p">[</span><span class="s2">&quot;adjust_housing_init&quot;</span><span class="p">])</span>
 

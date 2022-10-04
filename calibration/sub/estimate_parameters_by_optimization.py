@@ -8,12 +8,10 @@ Created on Tue Oct 20 10:49:58 2020.
 import numpy as np
 import math
 import scipy
-# from numba import jit
 
 import calibration.sub.loglikelihood as callog
 
 
-# @jit
 def EstimateParametersByOptimization(
         incomeNetOfCommuting, dataRent, dataDwellingSize, dataIncomeGroup,
         dataHouseholdDensity, selectedDensity, xData, yData, selectedSP,
@@ -69,10 +67,10 @@ def EstimateParametersByOptimization(
     # Initial value of parameters
     initialVector = np.array(
         [initBeta, initBasicQ, initUti3, initUti4])
-
-    # Determines function that will be minimized
+    # We exclude GLM estimation for the fit on exogenous amenities
     optionRegression = 0
 
+    # Determines function that will be minimized
     minusLogLikelihoodModel = (
         lambda X0:
             - callog.LogLikelihoodModel(
@@ -104,7 +102,6 @@ def EstimateParametersByOptimization(
     # print('{0:4s} {1:9s}'.format('Iter', 'f(X)'))
 
     # Then we run the algorithm
-    # TODO: play with algorigthm used?
     res = scipy.optimize.minimize(
         minusLogLikelihoodModel, initialVector, bounds=bnds,
         options={'maxiter': 10, 'disp': True},

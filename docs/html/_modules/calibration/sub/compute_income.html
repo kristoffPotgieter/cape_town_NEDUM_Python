@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../technical_doc.html">Technical documentation</a></li>
@@ -78,18 +80,11 @@
              
   <h1>Source code for calibration.sub.compute_income</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Fri Apr  1 16:20:51 2022.</span>
-
-<span class="sd">@author: monni</span>
-<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.io</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">math</span>
-
-<span class="c1"># import equilibrium.functions_dynamic as eqdyn</span>
 
 
 <div class="viewcode-block" id="import_transport_costs"><a class="viewcode-back" href="../../../api_ref.html#calibration.sub.compute_income.import_transport_costs">[docs]</a><span class="k">def</span> <span class="nf">import_transport_costs</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">yearTraffic</span><span class="p">,</span>
@@ -266,7 +261,6 @@
     <span class="n">annualToHourly</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="mi">20</span><span class="o">*</span><span class="mi">12</span><span class="p">)</span>
     <span class="c1">#  Corresponds to the brackets for which we have aggregate statistics on</span>
     <span class="c1">#  the nb of commuters to fit our calibration</span>
-    <span class="c1">#  TODO: check where this comes from</span>
     <span class="n">bracketsDistance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">200</span><span class="p">])</span>
     <span class="n">monetary_cost</span> <span class="o">=</span> <span class="n">monetaryCost</span> <span class="o">*</span> <span class="n">annualToHourly</span>
 
@@ -387,7 +381,7 @@
                     <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">error</span><span class="p">[:,</span> <span class="nb">iter</span><span class="p">]</span> <span class="o">/</span> <span class="n">popCenters</span><span class="p">))</span>
                 <span class="n">scoreIter</span><span class="p">[</span><span class="nb">iter</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span>
                     <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">error</span><span class="p">[:,</span> <span class="nb">iter</span><span class="p">]</span> <span class="o">/</span> <span class="n">popCenters</span><span class="p">))</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">error</span><span class="p">[:,</span> <span class="nb">iter</span><span class="p">])))</span>
+                <span class="c1"># print(np.nanmean(np.abs(error[:, iter])))</span>
 
                 <span class="nb">iter</span> <span class="o">=</span> <span class="nb">iter</span> <span class="o">+</span> <span class="mi">1</span>
 
@@ -478,8 +472,7 @@
         <span class="p">)</span>
 
     <span class="c1"># OD flows: corresponds to pi_c|ix (here, not the full matrix)</span>
-    <span class="c1"># NB: here, we consider maximum Gumbel</span>
-    <span class="c1"># TODO: correct typo in paper</span>
+    <span class="c1"># NB: here, we consider maximum Gumbel (typo in original paper)</span>
     <span class="n">ODflows</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">param_lambda</span> <span class="o">*</span> <span class="p">(</span><span class="n">incomeCentersFull</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">transportCost</span><span class="p">)</span>
                <span class="o">-</span> <span class="n">minIncome</span><span class="p">)</span>
@@ -511,7 +504,6 @@
     <span class="c1"># equivalent computed from simulated net income distribution: the closer</span>
     <span class="c1"># the score is to zero, the better (see equation 3 for formula)</span>
 
-    <span class="c1"># TODO: is it equivalent to selection criterion from paper?</span>
     <span class="c1"># Note that ODflows is of dimension 119x24014</span>
     <span class="c1"># NB: correction is not needed a priori, as income distribution data from</span>
     <span class="c1"># SP does not include people out of employment</span>

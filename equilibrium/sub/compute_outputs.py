@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Oct 28 16:01:05 2020.
-
-@author: Charlotte Liotta
-"""
 
 import numpy as np
 import equilibrium.sub.functions_solver as eqsol
@@ -27,7 +22,103 @@ def compute_outputs(housing_type,
                     housing_in,
                     param_pockets,
                     param_backyards_pockets):
-    """Compute equilibrium outputs from theoretical formulas."""
+    """
+    Compute equilibrium outputs from theoretical formulas.
+
+    From optimality conditions on supply and demand (see technical
+    documentation for math formulas), this function computes, for a given
+    housing type, the following outputs. First, the demanded dwelling size in
+    each place per income group. Then, the bid-rent function / willingness to
+    pay (per m² of housing) in each place per income group. By selecting the
+    highest bid, we recover the final simulated dwweling size and market rent.
+    From there, we also compute the housing supply per unit of available land,
+    and the total number of households in each location, per income group.
+    To do so, it leverages the equilibrium.sub.functions_solver module.
+
+    Parameters
+    ----------
+    housing_type : str
+        Endogenous housing type considered in the function: should be set to
+        "formal", "backyard", or "informal"
+    utility : ndarray(float64)
+        Utility levels for each income group (4) considered in a given
+        iteration
+    amenities : ndarray(float64)
+        Normalized amenity index (relative to the mean) for each grid cell
+        (24,014)
+    param : dict
+        Dictionary of default parameters
+    income_net_of_commuting_costs : ndarray(float64, ndim=2)
+        Expected annual income net of commuting costs (in rands, for
+        one household), for each geographic unit, by income group (4)
+    fraction_capital_destroyed : DataFrame
+        Data frame of expected fractions of capital destroyed, for housing
+        structures and contents in different housing types, in each
+        grid cell (24,014)
+    grid : DataFrame
+        Table yielding, for each grid cell (24,014), its x and y
+        (centroid) coordinates, and its distance (in km) to the city centre
+    income_class_by_housing_type : DataFrame
+        Set of dummies coding for housing market access (across 4 housing
+        submarkets) for each income group (4, from poorest to richest)
+    options : dict
+        Dictionary of default options
+    housing_limit : Series
+        Maximum housing supply (in m² per km²) in each grid cell (24,014)
+    agricultural_rent : float64
+        Annual housing rent below which it is not profitable for formal private
+        developers to urbanize (agricultural) land: endogenously limits urban
+        sprawl
+    interest_rate : float64
+        Real interest rate for the overall economy, corresponding to an average
+        over past years
+    coeff_land : ndarray(float64, ndim=2)
+        Updated land availability for each grid cell (24,014) and each
+        housing type (4: formal private, informal backyards, informal
+        settlements, formal subsidized)
+    minimum_housing_supply : ndarray(float64)
+        Minimum housing supply (in m²) for each grid cell (24,014), allowing
+        for an ad hoc correction of low values in Mitchells Plain
+    construction_param : ndarray(float64)
+        (Calibrated) scale factor for the construction function of formal
+        private developers
+    housing_in : ndarray(float64)
+        Theoretical minimum housing supply when formal private developers do
+        not adjust (not used in practice), per grid cell (24,014)
+    param_pockets : ndarray(float64)
+        (Calibrated) disamenity index for living in an informal settlement,
+        per grid cell (24,014)
+    param_backyards_pockets : ndarray(float64)
+        (Calibrated) disamenity index for living in an informal backyard,
+        per grid cell (24,014)
+
+    Returns
+    -------
+    job_simul : ndarray(float64)
+        Simulated number of households per income group (4) for a given housing
+        type, at a given iteration
+    R : ndarray(float64)
+        Simulated average annual rent (in rands/m²) for a given housing type,
+        at a given iteration, for each selected pixel (4,043)
+    people_init : ndarray(float64)
+        Simulated number of households for a given housing type, at a given
+        iteration, for each selected pixel (4,043)
+    people_center : ndarray(float64, ndim=2)
+        Simulated number of households for a given housing type, at a given
+        iteration, for each selected pixel (4,043) and each income group (4)
+    housing_supply : ndarray(float64)
+        Simulated housing supply per unit of available land (in m² per km²)
+        for a given housing type, at a given iteration, for each selected pixel
+        (4,043)
+    dwelling_size : ndarray(float64)
+        Simulated average dwelling size (in m²) for a given housing type, at a
+        given iteration, for each selected pixel (4,043)
+    R_mat : ndarray(float64, ndim=2)
+        Simulated willingness to pay / bid-rents (in rands/m²) for a given
+        housing type, at a given iteration, for each selected pixel (4,043) and
+        each income group (4)
+
+    """
     # %% Dwelling size in selected pixels per (endogenous) housing type
 
     if housing_type == 'formal':
@@ -36,7 +127,7 @@ def compute_outputs(housing_type,
             utility, amenities, param, income_net_of_commuting_costs,
             fraction_capital_destroyed)
 
-        # Here, we introduce the minimum lot-size
+        # Here, we introduce the minimum lot size
         dwelling_size = np.maximum(dwelling_size, param["mini_lot_size"])
         # And we make sure we do not consider cases where some income groups
         # would have no access to formal housing
@@ -56,11 +147,11 @@ def compute_outputs(housing_type,
         # As before
         dwelling_size[income_class_by_housing_type.settlement == 0, :] = np.nan
 
-    # %% Bid rent functions in selected pixels per (endogenous) housing type
+    # %% Bid-rent functions in selected pixels per (endogenous) housing type
 
     if housing_type == 'formal':
 
-        # See research note, p.11
+        # See technical documentation for math formula
         R_mat = (param["beta"] * (income_net_of_commuting_costs)
                  / (dwelling_size - (param["alpha"] * param["q0"])))
         R_mat[income_net_of_commuting_costs < 0] = 0
@@ -68,7 +159,7 @@ def compute_outputs(housing_type,
 
     elif housing_type == 'backyard':
 
-        # See research note, p.12
+        # See technical documentation for math formula
 
         if options["actual_backyards"] == 1:
             R_mat = (
@@ -114,7 +205,7 @@ def compute_outputs(housing_type,
 
     elif housing_type == 'informal':
 
-        # See research note, p.12: same definition as for backyards
+        # See technical documentation for math formula
 
         R_mat = (
             (1 / param["shack_size"])
@@ -164,7 +255,7 @@ def compute_outputs(housing_type,
 
     dwelling_size = dwelling_size_temp
 
-    # %% Housing supply (per unit of land)
+    # %% Housing supply (per unit of available land)
 
     if housing_type == 'formal':
         housing_supply = eqsol.compute_housing_supply_formal(
@@ -201,6 +292,8 @@ def compute_outputs(housing_type,
     # group for given housing type
     job_simul = np.nansum(people_center, 1)
 
+    # We also put a floor equal to the agricultural rent for rents in the
+    # formal private sector
     if housing_type == 'formal':
         R = np.maximum(R, agricultural_rent)
 

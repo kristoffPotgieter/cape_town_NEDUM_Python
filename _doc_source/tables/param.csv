@@ -1,5 +1,5 @@
 ﻿Parameters,Type,Value,Description,Reference,Modif
-agricultural_rent_2011,user,807.2,Value (in rands) of the agricultural land price in 2011,Pfeiffer et al. (2019),1
+agricultural_price_baseline,user,807.2,Value (in rands) of the agricultural land price in 2011,Pfeiffer et al. (2019),1
 alpha,calib,0.75,Composite good elasticity in utility function,/,0
 backyard_pockets,calib,/,Disamenity index (real value from 0 to 1) for informal settlements in each grid cell,/,0
 backyard_size,user,70,Size (in m²) of the backyard part in a RDP housing unit,Pfeiffer et al. (2019),1

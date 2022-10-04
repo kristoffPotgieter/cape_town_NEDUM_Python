@@ -40,6 +40,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme_link.html">Introducing NEDUM-2D</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license_rst.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main_nb.html">Notebook: run model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calib_nb.html">Notebook: run calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guidelines.html">User guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../use_case.html">Use case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../technical_doc.html">Technical documentation</a></li>
@@ -78,11 +80,6 @@
              
   <h1>Source code for equilibrium.compute_equilibrium</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Mon Nov  2 11:21:21 2020.</span>
-
-<span class="sd">@author: Charlotte Liotta</span>
-<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
@@ -97,8 +94,130 @@
                         <span class="n">grid</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">agricultural_rent</span><span class="p">,</span> <span class="n">interest_rate</span><span class="p">,</span>
                         <span class="n">number_properties_RDP</span><span class="p">,</span> <span class="n">average_income</span><span class="p">,</span> <span class="n">mean_income</span><span class="p">,</span>
                         <span class="n">income_class_by_housing_type</span><span class="p">,</span> <span class="n">minimum_housing_supply</span><span class="p">,</span>
-                        <span class="n">construction_param</span><span class="p">,</span> <span class="n">income_2011</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Determine static equilibrium allocation from iterative algorithm.&quot;&quot;&quot;</span>
+                        <span class="n">construction_param</span><span class="p">,</span> <span class="n">income_baseline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run the static equilibrium algorithm.</span>
+
+<span class="sd">    This function runs the algorithm described in the technical documentation.</span>
+<span class="sd">    It starts from arbitrary utility levels, and leverages optimality</span>
+<span class="sd">    conditions on supply and demand to recover key output variables</span>
+<span class="sd">    (detailed in equilibrium.sub.compute_outputs). Then, it updates utility</span>
+<span class="sd">    levels to minimize the error between simulated and target number of</span>
+<span class="sd">    households per income group. Note that the whole process abstracts from</span>
+<span class="sd">    formal subsidised housing (fully exogenous in the model), that is added</span>
+<span class="sd">    to final outputs at the end of the function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fraction_capital_destroyed : DataFrame</span>
+<span class="sd">        Data frame of expected fractions of capital destroyed, for housing</span>
+<span class="sd">        structures and contents in different housing types, in each</span>
+<span class="sd">        grid cell (24,014)</span>
+<span class="sd">    amenities : ndarray(float64)</span>
+<span class="sd">        Normalized amenity index (relative to the mean) for each grid cell</span>
+<span class="sd">        (24,014)</span>
+<span class="sd">    param : dict</span>
+<span class="sd">        Dictionary of default parameters</span>
+<span class="sd">    housing_limit : Series</span>
+<span class="sd">        Maximum housing supply (in m² per km²) in each grid cell (24,014)</span>
+<span class="sd">    population : int64</span>
+<span class="sd">        Total number of households in the city (from Small-Area-Level data)</span>
+<span class="sd">    households_per_income_class : ndarray(float64)</span>
+<span class="sd">        Exogenous total number of households per income group (excluding people</span>
+<span class="sd">        out of employment, for 4 groups)</span>
+<span class="sd">    total_RDP : int</span>
+<span class="sd">        Number of households living in formal subsidized housing (from SAL</span>
+<span class="sd">        data)</span>
+<span class="sd">    coeff_land : ndarray(float64, ndim=2)</span>
+<span class="sd">        Updated land availability for each grid cell (24,014) and each</span>
+<span class="sd">        housing type (4: formal private, informal backyards, informal</span>
+<span class="sd">        settlements, formal subsidized)</span>
+<span class="sd">    income_net_of_commuting_costs : ndarray(float64, ndim=2)</span>
+<span class="sd">        Expected annual income net of commuting costs (in rands, for</span>
+<span class="sd">        one household), for each geographic unit, by income group (4)</span>
+<span class="sd">    grid : DataFrame</span>
+<span class="sd">        Table yielding, for each grid cell (24,014), its x and y</span>
+<span class="sd">        (centroid) coordinates, and its distance (in km) to the city centre</span>
+<span class="sd">    options : dict</span>
+<span class="sd">        Dictionary of default options</span>
+<span class="sd">    agricultural_rent : float64</span>
+<span class="sd">        Annual housing rent below which it is not profitable for formal private</span>
+<span class="sd">        developers to urbanize (agricultural) land: endogenously limits urban</span>
+<span class="sd">        sprawl</span>
+<span class="sd">    interest_rate : float64</span>
+<span class="sd">        Real interest rate for the overall economy, corresponding to an average</span>
+<span class="sd">        over past years</span>
+<span class="sd">    number_properties_RDP : ndarray(float64)</span>
+<span class="sd">        Number of formal subsidized dwellings per grid cell (24,014) at</span>
+<span class="sd">        baseline year (2011)</span>
+<span class="sd">    average_income : ndarray(float64)</span>
+<span class="sd">        Average median income for each income group in the model (4)</span>
+<span class="sd">    mean_income : float64</span>
+<span class="sd">        Average median income across total population</span>
+<span class="sd">    income_class_by_housing_type : DataFrame</span>
+<span class="sd">        Set of dummies coding for housing market access (across 4 housing</span>
+<span class="sd">        submarkets) for each income group (4, from poorest to richest)</span>
+<span class="sd">    minimum_housing_supply : ndarray(float64)</span>
+<span class="sd">        Minimum housing supply (in m²) for each grid cell (24,014), allowing</span>
+<span class="sd">        for an ad hoc correction of low values in Mitchells Plain</span>
+<span class="sd">    construction_param : ndarray(float64)</span>
+<span class="sd">        (Calibrated) scale factor for the construction function of formal</span>
+<span class="sd">        private developers</span>
+<span class="sd">    income_baseline : DataFrame</span>
+<span class="sd">        Table summarizing, for each income group in the data (12, including</span>
+<span class="sd">        people out of employment), the number of households living in each</span>
+<span class="sd">        endogenous housing type (3), their total number at baseline year (2011)</span>
+<span class="sd">        in retrospect (2001), as well as the distribution of their average</span>
+<span class="sd">        income (at baseline year)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    initial_state_utility : ndarray(float64)</span>
+<span class="sd">        Utility levels for each income group (4) at baseline year</span>
+<span class="sd">        (2011)</span>
+<span class="sd">    initial_state_error : ndarray(float64)</span>
+<span class="sd">        Ratio (in %) of simulated number of households per income group over</span>
+<span class="sd">        target population per income group at baseline year (2011)</span>
+<span class="sd">    initial_state_simulated_jobs : ndarray(float64, ndim=2)</span>
+<span class="sd">        Total number of households in each income group (4) in each</span>
+<span class="sd">        endogenous housing type (3: formal private, informal backyards,</span>
+<span class="sd">        informal settlements) at baseline year (2011)</span>
+<span class="sd">    initial_state_households_housing_types : ndarray(float64, ndim=2)</span>
+<span class="sd">        Number of households per grid cell in each housing type (4)</span>
+<span class="sd">        at baseline year (2011)</span>
+<span class="sd">    initial_state_household_centers : ndarray(float64, ndim=2)</span>
+<span class="sd">        Number of households per grid cell in each income group (4)</span>
+<span class="sd">        at baseline year (2011)</span>
+<span class="sd">    initial_state_households : ndarray(float64, ndim=3)</span>
+<span class="sd">        Number of households per grid cell in each income group (4) and</span>
+<span class="sd">        each housing type (4) at baseline year (2011)</span>
+<span class="sd">    initial_state_dwelling_size : ndarray(float64, ndim=2)</span>
+<span class="sd">        Average dwelling size (in m²) per grid cell in each housing</span>
+<span class="sd">        type (4) at baseline year (2011)</span>
+<span class="sd">    initial_state_housing_supply : ndarray(float64, ndim=2)</span>
+<span class="sd">        Housing supply per unit of available land (in m² per km²)</span>
+<span class="sd">        for each housing type (4) in each grid cell at baseline year (2011)</span>
+<span class="sd">    initial_state_rent : ndarray(float64, ndim=2)</span>
+<span class="sd">        Average annual rent (in rands) per grid cell for each housing type</span>
+<span class="sd">        (4) at baseline year (2011)</span>
+<span class="sd">    initial_state_rent_matrix : ndarray(float64, ndim=3)</span>
+<span class="sd">        Average annual willingness to pay (in rands) per grid cell</span>
+<span class="sd">        for each income group (4) and each endogenous housing type (3)</span>
+<span class="sd">        at baseline year (2011)</span>
+<span class="sd">    initial_state_capital_land : ndarray(float64, ndim=2)</span>
+<span class="sd">        Value (in rands) of the housing capital stock per unit of available</span>
+<span class="sd">        land (in km²) for each endogenous housing type (3) per grid cell</span>
+<span class="sd">        at baseline year (2011)</span>
+<span class="sd">    initial_state_average_income : ndarray(float64)</span>
+<span class="sd">        Not an output of the model per se : it is just the average median</span>
+<span class="sd">        income for each income group in the model (4), that may change</span>
+<span class="sd">        over time</span>
+<span class="sd">    initial_state_limit_city : list</span>
+<span class="sd">        Contains a ndarray(bool, ndim=3) of indicator dummies for having</span>
+<span class="sd">        strictly more than one household per housing type and income group</span>
+<span class="sd">        in each grid cell</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Adjust the population to include unemployed people, then take out RDP</span>
     <span class="c1"># by considering that they all belong to poorest income group</span>
 
@@ -109,13 +228,13 @@
 
     <span class="c1"># Alternative strategy: we attribute the unemployed population in</span>
     <span class="c1"># proportion with calibrated unemployment rates, without applying them</span>
-    <span class="c1"># directly</span>
+    <span class="c1"># directly (as they are too noisy)</span>
     <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s2">&quot;unempl_reweight&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">/</span> <span class="n">size</span> <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;household_size&quot;</span><span class="p">]]</span>
         <span class="n">households_tot</span> <span class="o">=</span> <span class="n">households_per_income_class</span> <span class="o">*</span> <span class="n">ratio</span>
         <span class="n">households_unempl</span> <span class="o">=</span> <span class="n">households_tot</span> <span class="o">-</span> <span class="n">households_per_income_class</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">households_unempl</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">households_unempl</span><span class="p">)</span>
-        <span class="n">unempl_pop</span> <span class="o">=</span> <span class="n">income_2011</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">unempl_pop</span> <span class="o">=</span> <span class="n">income_baseline</span><span class="o">.</span><span class="n">Households_nb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">unempl_attrib</span> <span class="o">=</span> <span class="p">[</span><span class="n">unempl_pop</span> <span class="o">*</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">]</span>
         <span class="n">households_per_income_class</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">households_per_income_class</span> <span class="o">+</span> <span class="n">unempl_attrib</span><span class="p">)</span>
@@ -124,7 +243,6 @@
         <span class="c1"># implicit_empl_rate = ((households_per_income_class - unempl_attrib)</span>
         <span class="c1">#                       / households_per_income_class)</span>
         <span class="c1"># 0.74/0.99/0.98/0.99</span>
-        <span class="c1"># TODO: Re-use in calibration?</span>
 
     <span class="c1">#  Considering that all RDP belong to the poorest, we remove them from here</span>
     <span class="n">households_per_income_class</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
@@ -143,8 +261,6 @@
     <span class="n">grid_temp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
     <span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">selected_pixels</span><span class="p">,</span> <span class="p">:]</span>
     <span class="n">housing_limit</span> <span class="o">=</span> <span class="n">housing_limit</span><span class="p">[</span><span class="n">selected_pixels</span><span class="p">]</span>
-    <span class="c1"># param[&quot;multi_proba_group&quot;] = param[&quot;multi_proba_group&quot;][</span>
-    <span class="c1"># :, selected_pixels]</span>
     <span class="n">income_net_of_commuting_costs</span> <span class="o">=</span> <span class="n">income_net_of_commuting_costs</span><span class="p">[</span>
         <span class="p">:,</span> <span class="n">selected_pixels</span><span class="p">]</span>
     <span class="n">minimum_housing_supply</span> <span class="o">=</span> <span class="n">minimum_housing_supply</span><span class="p">[</span><span class="n">selected_pixels</span><span class="p">]</span>
@@ -156,7 +272,7 @@
     <span class="n">param_backyards_pockets</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_pockets&quot;</span><span class="p">][</span><span class="n">selected_pixels</span><span class="p">]</span>
 
     <span class="c1"># Useful variables for the solver</span>
-    <span class="c1"># (3 is because we have 3 types of housing in the solver)</span>
+    <span class="c1"># (we only consider 3 types of housing in the solver)</span>
     <span class="n">diff_utility</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;nb_of_income_classes&quot;</span><span class="p">]))</span>
     <span class="n">simulated_people_housing_types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">dist</span><span class="p">)))</span>
@@ -190,14 +306,11 @@
     <span class="c1">#  with high relative income as it will magnify the effect on rents, hence</span>
     <span class="c1">#  housing supply and resulting population distribution</span>
 
-    <span class="c1">#  TODO: run simulations with different convergence parameters to ensure</span>
-    <span class="c1">#  that we do not get stuck in some local optimum (unlikely as distribution</span>
-    <span class="c1">#  of households is monotonous wrt utility changes)</span>
     <span class="n">param</span><span class="p">[</span><span class="s2">&quot;convergence_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="mf">0.02</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">average_income</span><span class="p">)</span> <span class="o">/</span> <span class="n">mean_income</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.4</span>
-        <span class="p">)</span>  <span class="c1"># 0.045</span>
+        <span class="p">)</span>
 
-    <span class="c1"># Compute outputs solver - First iteration (for each housing type, no RDP)</span>
+    <span class="c1"># Compute outputs solver (for each housing type, no RDP)</span>
     <span class="c1">#  Formal housing</span>
     <span class="p">(</span><span class="n">simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">rent_matrix</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
      <span class="n">simulated_people_housing_types</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
@@ -245,7 +358,7 @@
     <span class="c1">#  diff_utility will be used to adjust the utility levels</span>
     <span class="c1">#  Note that optimization is made to stick to households_per_income_class,</span>
     <span class="c1">#  which does not include people living in RDP (as we take this as</span>
-    <span class="c1">#  exogenous), see equilibrium condition (i)</span>
+    <span class="c1">#  exogenous)</span>
 
     <span class="c1">#  We compare total population for each income group obtained from</span>
     <span class="c1">#  equilibrium condition (total_simulated_jobs) with target population</span>
@@ -254,6 +367,7 @@
     <span class="c1">#  We arbitrarily set a strictly positive minimum utility level at 10</span>
     <span class="c1">#  (as utility will be adjusted multiplicatively, we do not want to break</span>
     <span class="c1">#  the model with zero terms)</span>
+
     <span class="n">diff_utility</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
         <span class="p">(</span><span class="n">total_simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span>
         <span class="o">/</span> <span class="p">(</span><span class="n">households_per_income_class</span> <span class="o">+</span> <span class="mi">10</span><span class="p">))</span>
@@ -270,6 +384,7 @@
     <span class="n">error_max_abs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">total_simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span>
                <span class="o">/</span> <span class="n">households_per_income_class</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="c1">#  Other parameters</span>
     <span class="n">error_max</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="n">error_mean</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">total_simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span>
@@ -279,7 +394,6 @@
                <span class="o">/</span> <span class="n">households_per_income_class</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">])</span>
 
     <span class="c1"># Iteration (no RDP)</span>
-    <span class="c1"># with alive_bar(param[&quot;max_iter&quot;],title=&#39;compute equilibrium&#39;) as bar:</span>
     <span class="c1"># We use a progression bar</span>
     <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">],</span>
               <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;stops when error_max_abs &lt;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;precision&quot;</span><span class="p">])</span>
@@ -297,22 +411,24 @@
             <span class="c1"># This is a precaution as utility cannot be negative</span>
             <span class="n">utility</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="n">utility</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
 
-            <span class="c1"># We augment the convergence factor at each iteration in propotion</span>
-            <span class="c1"># with the estimation error to augment the importance of later</span>
-            <span class="c1"># compared to earlier errors (as algorithm should improve across</span>
-            <span class="c1"># iterations)</span>
+            <span class="c1"># We reduce the convergence factor at each iteration in inverse</span>
+            <span class="c1"># proportion with the estimation error not to overshoot target in</span>
+            <span class="c1"># subsequent iterations</span>
 
             <span class="c1"># NB: we assume the minimum error is 100 not to break model with</span>
             <span class="c1"># zeros</span>
             <span class="n">convergence_factor</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">param</span><span class="p">[</span><span class="s2">&quot;convergence_factor&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span>
-                    <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span>
-                        <span class="n">total_simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mi">100</span>
-                        <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">households_per_income_class</span> <span class="o">+</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="mi">1</span>
+                    <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">total_simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mi">100</span><span class="p">)</span>
+                        <span class="o">/</span> <span class="p">(</span><span class="n">households_per_income_class</span> <span class="o">+</span> <span class="mi">100</span><span class="p">)</span>
+                        <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
 
-            <span class="c1"># At the same time, we also reduce it while time passes, not to</span>
-            <span class="c1"># demand too much of the algorithm and to help convergence</span>
+            <span class="c1"># We also reduce it as time passes, as errors should become smaller</span>
+            <span class="c1"># and smaller</span>
             <span class="n">convergence_factor</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">convergence_factor</span>
                 <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="n">index_iteration</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;max_iter&quot;</span><span class="p">])</span>
@@ -320,7 +436,7 @@
 
             <span class="c1"># Now, we do the same as in the initalization phase</span>
 
-            <span class="c1"># Compute outputs solver - first iteration</span>
+            <span class="c1"># Compute outputs solver</span>
 
             <span class="c1">#  Formal housing</span>
             <span class="p">(</span><span class="n">simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
@@ -408,7 +524,8 @@
             <span class="n">pbar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">({</span><span class="s1">&#39;error_max_abs&#39;</span><span class="p">:</span> <span class="n">error_max_abs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">]})</span>
             <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-    <span class="c1"># RDP houses</span>
+    <span class="c1"># We plug back RDP houses in the output : let us define useful variables</span>
+    <span class="c1"># first</span>
     <span class="c1">#  We correct output coming from data_RDP with more reliable estimations</span>
     <span class="c1">#  from SAL data (to include council housing)</span>
     <span class="n">households_RDP</span> <span class="o">=</span> <span class="p">(</span><span class="n">number_properties_RDP</span> <span class="o">*</span> <span class="n">total_RDP</span>
@@ -417,11 +534,11 @@
     <span class="n">construction_RDP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;RDP_size&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;RDP_size&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;backyard_size&quot;</span><span class="p">]),</span>
         <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid_temp</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
-    <span class="c1">#  RDP dwelling size</span>
+    <span class="c1">#  RDP dwelling size (in m²)</span>
     <span class="n">dwelling_size_RDP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matlib</span><span class="o">.</span><span class="n">repmat</span><span class="p">(</span>
         <span class="n">param</span><span class="p">[</span><span class="s2">&quot;RDP_size&quot;</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid_temp</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
 
-    <span class="c1"># We fill the vector for each housing type</span>
+    <span class="c1"># We fill the output matrix for each housing type</span>
     <span class="n">simulated_people_with_RDP</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">grid_temp</span><span class="o">.</span><span class="n">dist</span><span class="p">)))</span>
     <span class="n">simulated_people_with_RDP</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="n">selected_pixels</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
         <span class="n">simulated_people</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">])</span>
@@ -434,13 +551,16 @@
     <span class="c1"># Outputs of the solver</span>
 
     <span class="n">initial_state_error</span> <span class="o">=</span> <span class="n">error</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span>
+
     <span class="c1">#  Note that this does not contain RDP</span>
     <span class="n">initial_state_simulated_jobs</span> <span class="o">=</span> <span class="n">simulated_jobs</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
     <span class="c1">#  We sum across income groups (axis=1)</span>
     <span class="n">initial_state_households_housing_types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">simulated_people_with_RDP</span><span class="p">,</span>
                                                     <span class="mi">1</span><span class="p">)</span>
     <span class="c1">#  We sum across housing types (axis=0)</span>
     <span class="n">initial_state_household_centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">simulated_people_with_RDP</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
     <span class="c1">#  We keep both dimensions</span>
     <span class="n">initial_state_households</span> <span class="o">=</span> <span class="n">simulated_people_with_RDP</span>
 
@@ -452,18 +572,17 @@
     <span class="n">dwelling_size_export</span><span class="p">[</span><span class="n">dwelling_size_export</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="c1"># NB: we multiply by construction_RDP because we want the housing supply</span>
     <span class="c1"># per unit of AVAILABLE land: RDP building is only a fraction of overall</span>
-    <span class="c1"># surface (also accounts for backyard)</span>
+    <span class="c1"># surface (also accounts for backyarding)</span>
     <span class="n">housing_supply_RDP</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">construction_RDP</span> <span class="o">*</span> <span class="n">dwelling_size_RDP</span> <span class="o">*</span> <span class="n">households_RDP</span>
-        <span class="o">/</span> <span class="p">(</span><span class="n">coeff_land_full</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="mf">0.25</span><span class="p">)</span>  <span class="c1"># * 1000000</span>
+        <span class="o">/</span> <span class="p">(</span><span class="n">coeff_land_full</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="mf">0.25</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="n">housing_supply_RDP</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">housing_supply_RDP</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">dwelling_size_RDP</span> <span class="o">=</span> <span class="n">dwelling_size_RDP</span> <span class="o">*</span> <span class="p">(</span><span class="n">coeff_land_full</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="c1"># dwelling_size_RDP[dwelling_size_RDP == 0] = np.nan</span>
     <span class="n">initial_state_dwelling_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
         <span class="p">[</span><span class="n">dwelling_size_export</span><span class="p">,</span> <span class="n">dwelling_size_RDP</span><span class="p">])</span>
-    <span class="c1"># Note that RDP housing supply per unit of land has nothing to do with</span>
-    <span class="c1"># backyard housing supply per unit of land</span>
+    <span class="c1"># Note that RDP housing supply per unit of available land has nothing to do</span>
+    <span class="c1"># with backyard housing supply per unit of available land</span>
     <span class="n">initial_state_housing_supply</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
         <span class="p">[</span><span class="n">housing_supply_export</span><span class="p">,</span> <span class="n">housing_supply_RDP</span><span class="p">]</span>
         <span class="p">)</span>
@@ -482,16 +601,15 @@
     <span class="n">initial_state_rent_matrix</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">rent_matrix_export</span><span class="p">)</span>
 
     <span class="c1"># Other outputs</span>
-    <span class="c1">#  See research note, p.10 (Cobb-Douglas)</span>
-    <span class="c1"># initial_state_capital_land = ((housing_supply / (construction_param))</span>
-    <span class="c1">#                               ** (1 / param[&quot;coeff_b&quot;]))</span>
+    <span class="n">initial_state_utility</span> <span class="o">=</span> <span class="n">utility</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="c1"># Housing capital value per unit of available land: see math appendix</span>
     <span class="n">initial_state_capital_land</span> <span class="o">=</span> <span class="p">((</span><span class="n">initial_state_housing_supply</span>
                                    <span class="o">/</span> <span class="n">construction_param</span><span class="p">)</span>
                                   <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">param</span><span class="p">[</span><span class="s2">&quot;coeff_b&quot;</span><span class="p">]))</span>
     <span class="c1">#  NB: this is not an output of the model</span>
     <span class="n">initial_state_average_income</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">average_income</span><span class="p">)</span>
+    <span class="c1">#  NB: this is not used in practice and is included for reference</span>
     <span class="n">initial_state_limit_city</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_state_households</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">initial_state_utility</span> <span class="o">=</span> <span class="n">utility</span><span class="p">[</span><span class="n">index_iteration</span><span class="p">,</span> <span class="p">:]</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">initial_state_utility</span><span class="p">,</span>
             <span class="n">initial_state_error</span><span class="p">,</span>

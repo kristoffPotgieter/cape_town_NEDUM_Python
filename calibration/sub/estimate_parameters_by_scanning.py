@@ -7,12 +7,10 @@ Created on Tue Oct 20 10:50:37 2020.
 
 import numpy as np
 import math
-# from numba import jit
 
 import calibration.sub.loglikelihood as callog
 
 
-# @jit
 def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
                                  dataDwellingSize, dataIncomeGroup,
                                  dataHouseholdDensity, selectedDensity,
@@ -27,7 +25,6 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # algorithm from Scipy to converge towards the solution
 
     # We remove poorest income group as it is crowded out of formal sector
-    # TODO: is it in line with the paper?
     net_income = incomeNetOfCommuting[1:4, :]
     # We generate a matrix of dummies for dominant income group in each SP
     # (can be always false when dominant group is poorest)
@@ -59,15 +56,13 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     # likelihood function)
 
     # Function for dwelling sizes
-    # See equation 9
-    # TODO: correct typo in equation C3
+    # See equation 9 (typo in equation C3)
     CalculateDwellingSize = (
         lambda beta, basic_q, incomeTemp, rentTemp:
             beta * incomeTemp / rentTemp + (1 - beta) * basic_q
             )
 
-    # Log likelihood for a lognormal law of mean 0
-    # TODO: correct typo in paper
+    # Log likelihood for a lognormal law of mean 0 (typo in original paper)
     ComputeLogLikelihood = (
         lambda sigma, error:
             np.nansum(- np.log(2 * math.pi * sigma ** 2) / 2
@@ -76,7 +71,7 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
 
     # %% Optimization algorithm
 
-    # Determines function that will be minimized
+    # We exclude GLM estimation for the fit on exogenous amenities
     optionRegression = 0
 
     # Initial value of parameters (all possible combinations)
@@ -117,18 +112,17 @@ def EstimateParametersByScanning(incomeNetOfCommuting, dataRent,
     which = np.argmax(scoreVect)
     parameters = combinationInputs[which, :]
 
-    # Option to implement GLM (not used in practice as this yields absurd
-    # results)
-    if options["glm"] == 1:
-        optionRegression = 1
-        (*_, parametersAmenities, modelAmenities, parametersHousing
-         ) = callog.LogLikelihoodModel(
-             parameters, initUti2, net_income, groupLivingSpMatrix,
-             dataDwellingSize, selectedDwellingSize, dataRent,
-             selectedRents, selectedDensity,
-             predictorsAmenitiesMatrix, tableRegression, variablesRegression,
-             CalculateDwellingSize, ComputeLogLikelihood, optionRegression,
-             options)
+    # Option to implement GLM (not used in practice)
+    # if options["glm"] == 1:
+    #     optionRegression = 1
+    #     (*_, parametersAmenities, modelAmenities, parametersHousing
+    #      ) = callog.LogLikelihoodModel(
+    #          parameters, initUti2, net_income, groupLivingSpMatrix,
+    #          dataDwellingSize, selectedDwellingSize, dataRent,
+    #          selectedRents, selectedDensity,
+    #          predictorsAmenitiesMatrix, tableRegression, variablesRegression,
+    #          CalculateDwellingSize, ComputeLogLikelihood, optionRegression,
+    #          options)
 
     return (parameters, scoreTot, parametersAmenities, modelAmenities,
             parametersHousing, selectedRents)
